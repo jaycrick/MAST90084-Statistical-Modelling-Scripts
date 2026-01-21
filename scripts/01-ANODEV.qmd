@@ -1,0 +1,301 @@
+---
+title: "ANOVA and Deviance Analysis"
+subtitle: "Binomial GLM with Logit and Probit Links"
+date: today
+format:
+  html:
+    code-fold: false
+---
+
+## Overview
+
+This script reproduces **Examples 2.1, 2.4, and 2.6** from Fahrmeir & Tutz, demonstrating:
+
+- Binomial logistic regression on the Caesar dataset
+- Hypothesis testing using deviance and Pearson statistics
+- Interaction effects in GLMs
+- Model goodness-of-fit assessment
+
+## Data Setup
+
+We start by loading the Caesar dataset from the Fahrmeir package and transforming it from contingency table format to individual-level data.
+
+```{r}
+#| message: false
+library(Fahrmeir)
+library(dplyr)
+
+# Load and inspect the dataset
+data(caesar)
+head(caesar)
+```
+
+The dataset contains information about surgical infections with factors including:
+- **Antibiotic use** (yes/no)
+- **Risk factors** (yes/no)
+- **Surgery type** (planned/emergency)
+
+## Data Transformation
+
+We aggregate the data to compute the number of infections and total cases for each combination of factors:
+
+```{r}
+# Convert to tibble format for easier manipulation
+caesar_tibble <- as_tibble(caesar)
+
+# Group by combinations of covariates
+caesar_grouped <- caesar_tibble |>
+  group_by(noplan, factor, antib) |>
+  summarize(
+    size = sum(w),
+    Infect_count = sum(yl * w),
+    .groups = 'drop'
+  )
+
+# Remove rows with zero cases
+caesar <- caesar_grouped |>
+  filter(size != 0) |>
+  as.data.frame()
+
+rownames(caesar) <- 1:nrow(caesar)
+caesar
+```
+
+## Understanding Factor Coding
+
+By default, R uses **dummy coding** for factors. Let's inspect and adjust the reference levels to match the textbook conventions:
+
+```{r}
+# Check current contrast coding
+contrasts(caesar$noplan)
+contrasts(caesar$factor)
+contrasts(caesar$antib)
+
+# Reset reference levels
+caesar$noplan <- relevel(caesar$noplan, ref = "planned")
+caesar$factor <- relevel(caesar$factor, ref = "without")
+caesar$antib <- relevel(caesar$antib, ref = "without")
+
+# Verify new contrasts
+contrasts(caesar$noplan)
+```
+
+## Main Effects Model
+
+Fit a binomial logistic regression with the three main effects:
+
+```{r}
+# Fit GLM with binomial family (logit link by default)
+caesar_glm <- glm(
+  Infect_count/size ~ antib + factor + noplan,
+  data = caesar,
+  weights = size,
+  family = binomial()
+)
+
+summary(caesar_glm)
+```
+
+### Model Diagnostics
+
+**Deviance and Goodness-of-Fit:**
+
+```{r}
+# Extract residuals of different types
+deviance_resid <- resid(caesar_glm, type = "deviance")
+pearson_resid <- resid(caesar_glm, type = "pearson")
+
+# Goodness-of-fit tests
+deviance_stat <- sum(deviance_resid^2)
+pearson_stat <- sum(pearson_resid^2)
+
+df_resid <- caesar_glm$df.residual
+p_deviance <- 1 - pchisq(deviance_stat, df = df_resid)
+p_pearson <- 1 - pchisq(pearson_stat, df = df_resid)
+
+cat("Deviance statistic:", deviance_stat, "\n")
+cat("Pearson statistic:", pearson_stat, "\n")
+cat("p-value (deviance):", p_deviance, "\n")
+cat("p-value (Pearson):", p_pearson, "\n")
+```
+
+**Comparison of fitted and observed proportions:**
+
+```{r}
+comparison <- data.frame(
+  Actual = caesar$Infect_count / caesar$size,
+  Fitted = caesar_glm$fitted.values
+)
+round(comparison, 3)
+```
+
+## Alternative Link Function: Probit
+
+R allows easy comparison with different link functions. Here's the same model with a probit link:
+
+```{r}
+caesar_glm_probit <- glm(
+  Infect_count/size ~ antib + factor + noplan,
+  data = caesar,
+  weights = size,
+  family = binomial(link = "probit")
+)
+
+summary(caesar_glm_probit)
+```
+
+## Interaction Effects
+
+### Model with noplan:antib Interaction
+
+First, test the interaction between noplan (planned/emergency surgery) and antib (antibiotic use):
+
+```{r}
+# Fit model with noplan:antib interaction
+caesar_glm_noplan_antib <- glm(
+  Infect_count/size ~ factor + noplan * antib,
+  data = caesar,
+  weights = size,
+  family = binomial()
+)
+
+summary(caesar_glm_noplan_antib)
+```
+
+**ANOVA Table:**
+
+```{r}
+anova(caesar_glm_noplan_antib, test = "Chisq")
+
+# Extract the interaction deviance difference
+anova_table <- anova(caesar_glm_noplan_antib, test = "Chisq")
+interaction_deviance <- anova_table$Deviance[4]  # Last row in ANOVA table
+p_noplan_antib <- 1 - pchisq(interaction_deviance, df = 1)
+
+cat("Deviance change for noplan:antib interaction:", round(interaction_deviance, 4), "\n")
+cat("p-value:", round(p_noplan_antib, 4), "\n")
+cat("Conclusion: Interaction is", ifelse(p_noplan_antib < 0.05, "significant", "not significant"), "\n")
+```
+
+### Model with noplan:factor Interaction
+
+```{r}
+# Fit model with noplan:factor interaction
+caesar_glm_int <- glm(
+  Infect_count/size ~ noplan + factor + antib + noplan:factor,
+  data = caesar,
+  weights = size,
+  family = binomial()
+)
+
+summary(caesar_glm_int)
+```
+
+**Model Diagnostics:**
+
+```{r}
+# Extract residuals
+pearson_resid_int <- resid(caesar_glm_int, type = "pearson")
+deviance_resid_int <- resid(caesar_glm_int, type = "deviance")
+
+# Goodness-of-fit tests
+pearson_stat_int <- sum(pearson_resid_int^2)
+deviance_stat_int <- sum(deviance_resid_int^2)
+df_int <- caesar_glm_int$df.residual
+
+p_pearson_int <- 1 - pchisq(pearson_stat_int, df = df_int)
+p_deviance_int <- 1 - pchisq(deviance_stat_int, df = df_int)
+
+cat("Goodness-of-fit tests (noplan:factor model):\n")
+cat("Pearson statistic:", round(pearson_stat_int, 4), "on", df_int, "df\n")
+cat("p-value:", round(p_pearson_int, 4), "\n\n")
+cat("Deviance statistic:", round(deviance_stat_int, 4), "on", df_int, "df\n")
+cat("p-value:", round(p_deviance_int, 4), "\n")
+```
+
+**Comparison of fitted vs actual proportions:**
+
+```{r}
+comparison_int <- data.frame(
+  Actual = caesar$Infect_count / caesar$size,
+  Fitted = caesar_glm_int$fitted.values
+)
+round(comparison_int, 2)
+```
+
+## Handling Separation Issues
+
+Some cells in the contingency table may be empty (zero infections), which can cause **complete separation** and infinite MLE estimates. A practical solution is to add fictitious data to stabilize estimation.
+
+**Before augmentation:**
+
+```{r}
+cat("Original data (rows with 0 infections):\n")
+print(caesar[which(caesar$Infect_count == 0), ])
+```
+
+**Adding fictitious data:**
+
+```{r}
+# Augment data: add 0.5 infection and 1 total case to problematic cell
+caesar_aug <- caesar
+caesar_aug$Infect_count[3] <- 0.5
+caesar_aug$size[3] <- caesar_aug$size[3] + 1
+
+cat("\nAugmented data:\n")
+print(caesar_aug)
+```
+
+**Fit with augmented data:**
+
+```{r}
+# Refit model with augmented data (noplan:factor interaction)
+caesar_glm_aug <- glm(
+  Infect_count/size ~ noplan + factor + antib + noplan:factor,
+  data = caesar_aug,
+  weights = size,
+  family = binomial()
+)
+
+summary(caesar_glm_aug)
+```
+
+**Comparison of actual vs fitted proportions:**
+
+```{r}
+comparison_aug <- data.frame(
+  Actual = caesar_aug$Infect_count / caesar_aug$size,
+  Fitted = caesar_glm_aug$fitted.values
+)
+round(comparison_aug, 2)
+```
+
+**Goodness-of-fit with augmented data:**
+
+```{r}
+# Pearson and deviance tests
+pearson_aug <- sum(resid(caesar_glm_aug, type = "pearson")^2)
+deviance_aug <- sum(resid(caesar_glm_aug, type = "deviance")^2)
+df_aug <- caesar_glm_aug$df.residual
+
+p_pearson_aug <- 1 - pchisq(pearson_aug, df = df_aug)
+p_deviance_aug <- 1 - pchisq(deviance_aug, df = df_aug)
+
+cat("Goodness-of-fit tests (augmented data, noplan:factor model):\n")
+cat("Pearson chi-square:", round(pearson_aug, 4), "on", df_aug, "df, p =", round(p_pearson_aug, 4), "\n")
+cat("Deviance:", round(deviance_aug, 4), "on", df_aug, "df, p =", round(p_deviance_aug, 4), "\n")
+cat("\nConclusion: Model", ifelse(p_deviance_aug < 0.05, "is rejected", "is not rejected"), "at 0.05 level\n")
+```
+
+## Key Takeaways
+
+1. **Data transformation**: Converting contingency tables to analysis format requires careful aggregation
+2. **Contrast coding**: Choose reference levels strategically for interpretability
+3. **Model comparison**: Use deviance and Pearson statistics for goodness-of-fit
+4. **Interaction testing**: Compare nested models to test interaction significance
+5. **Link functions**: Both logit and probit are commonly used; results often similar
+
+## References
+
+- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models*
+- [R documentation on `glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html)

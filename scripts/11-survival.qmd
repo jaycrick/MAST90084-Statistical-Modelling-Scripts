@@ -1,0 +1,379 @@
+---
+title: "Survival Analysis"
+subtitle: "Kaplan-Meier Estimation and Weibull Models"
+date: today
+format:
+  html:
+    code-fold: false
+---
+
+## Overview
+
+This script demonstrates **survival analysis** techniques including:
+
+- **Kaplan-Meier (KM) estimator** for survival functions
+- Handling **censored data**
+- **Weibull distribution** suitability testing
+- Comparison of survival curves between groups
+
+## Background
+
+The dataset contains breast cancer survival data with:
+- **time**: Follow-up time (in months or years)
+- **status**: Event indicator (0=censored, 1=event/death)
+- **group**: Staining status (P=positive, N=negative)
+
+## Data Loading
+
+```{r}
+#| message: false
+library(survival)
+
+# Load the breast cancer survival dataset
+bcancer <- read.csv("data/survival.csv")
+
+head(bcancer)
+tail(bcancer)
+```
+
+### Understanding Censoring
+
+```{r}
+str(bcancer)
+summary(bcancer)
+
+# Check censoring rates
+cat("Event indicator (status):\n")
+table(bcancer$status)
+
+cat("\nCensoring rate:",
+    round(100 * sum(bcancer$status == 0) / nrow(bcancer), 1), "%\n")
+
+cat("\nEvents by group:\n")
+table(bcancer$status, bcancer$group)
+```
+
+## Kaplan-Meier Estimation
+
+### Fitting the KM Estimator
+
+```{r}
+# Fit KM estimator stratified by group
+km_fit <- survfit(Surv(time, status) ~ group, data = bcancer)
+
+summary(km_fit)
+```
+
+### Interpreting KM Output
+
+```{r}
+cat("Survival object details:\n")
+print(km_fit)
+
+cat("\nSummary by group:\n")
+summary(km_fit)
+
+# Alternative: Direct summary table
+km_summary <- summary(km_fit)
+cat("\nNumber of observations by group:\n")
+print(table(bcancer$group))
+```
+
+## Survival Curves
+
+### Basic KM Plot
+
+```{r}
+# Set graphical parameters for better visualization
+orig_par <- par(mar = c(4, 4, 2, 1), las = 1)
+
+# Plot KM curves
+plot(km_fit,
+     lwd = 2,
+     cex.axis = 1.2,
+     xlab = "Time",
+     ylab = "Survival Probability",
+     main = "Kaplan-Meier Survival Curves by Staining Group"
+)
+
+# Add legend
+legend("bottomleft",
+       legend = names(km_fit$strata),
+       lty = c(1, 1),
+       col = c(1, 2),
+       bty = "n")
+
+par(orig_par)  # Restore original parameters
+```
+
+### Cumulative Survival Summary
+
+```{r}
+# Extract survival probabilities at specific timepoints
+survprob_summary <- summary(km_fit)$surv
+time_summary <- summary(km_fit)$time
+
+cat("Survival probabilities over time:\n")
+print(cbind(Time = time_summary, Survival = round(survprob_summary, 3)))
+```
+
+## Weibull Model Assessment
+
+### Checking Weibull Suitability
+
+The Weibull distribution is suitable if the log-log survival plot is approximately linear:
+
+$$\log(-\log(S(t))) = \alpha + \beta \log(t)$$
+
+```{r}
+# Prepare data for Weibull assessment
+negative_group <- bcancer$group == "N"
+positive_group <- bcancer$group == "P"
+
+# Set up plot
+opar <- par(mar = c(4, 4, 2, 0), las = 1)
+
+plot(log(km_fit$time), log(-log(km_fit$surv)),
+     type = "n",
+     xlab = "Log(Time)",
+     ylab = "Log(-Log(Survival))",
+     main = "Weibull Assessment"
+)
+
+# Add lines for each group
+lines(log(km_fit$time[negative_group]),
+      log(-log(km_fit$surv[negative_group])),
+      col = "darkgreen",
+      type = "b",
+      pch = 16,
+      lwd = 2)
+
+lines(log(km_fit$time[positive_group]),
+      log(-log(km_fit$surv[positive_group])),
+      col = "purple",
+      type = "b",
+      pch = 17,
+      lwd = 2)
+
+# Add legend
+legend("topleft",
+       legend = c("Negative (N)", "Positive (P)"),
+       col = c("darkgreen", "purple"),
+       pch = c(16, 17),
+       lty = 1,
+       bty = "n")
+
+par(opar)
+```
+
+### Interpreting Weibull Plot
+
+```{r}
+cat("Weibull Model Assessment:\n")
+cat("- If plot is approximately LINEAR: Weibull is appropriate\n")
+cat("- If plot is CURVED: May need other distributions (lognormal, etc)\n")
+cat("- PARALLEL lines: Suggest proportional hazards assumption\n")
+```
+
+## Survival Statistics
+
+### Median Survival Times
+
+```{r}
+cat("Median survival times by group:\n")
+print(summary(km_fit)$table[, "median"])
+
+# Survival at specific timepoints
+cat("\n\nSurvival at 50% follow-up time:\n")
+```
+
+## Proportional Hazards Assumption: Cloglog Plot
+
+The complementary log-log (cloglog) plot tests the **proportional hazards assumption**:
+- Parallel lines in cloglog space indicate proportional hazards
+- Intersecting or crossing lines suggest violation
+
+```{r}
+# Cloglog plot for PH assumption
+opar <- par(mar = c(4, 4, 2, 1), las = 1)
+
+plot(km_fit,
+     fun = "cloglog",
+     lty = 1:2,
+     col = c("Red", "Blue"),
+     xlim = c(5, 300),
+     xlab = "Time (log scale)",
+     ylab = "Log(-Log(Survival))",
+     main = "Cloglog Plot: Testing Proportional Hazards"
+)
+
+legend("topleft",
+       legend = c("Negative Stain", "Positive Stain"),
+       lty = 1:2,
+       col = c("Red", "Blue"),
+       bty = "n")
+
+par(opar)
+
+cat("Proportional Hazards Assessment:\n")
+cat("- PARALLEL lines: PH assumption satisfied\n")
+cat("- CROSSING/INTERSECTING lines: PH assumption violated\n")
+```
+
+## Exponential Regression
+
+### Fitting Exponential Survival Model
+
+The exponential distribution has constant hazard rate:
+
+$$h(t) = \lambda, \quad S(t) = \exp(-\lambda t)$$
+
+```{r}
+# Fit exponential regression model
+exp_model <- survreg(
+  Surv(time, status) ~ group,
+  data = bcancer,
+  dist = "exponential"
+)
+
+summary(exp_model)
+```
+
+### Wald Test for Group Effect
+
+```{r}
+# Extract coefficient and variance
+beta_group <- exp_model$coefficients[2]
+var_beta <- exp_model$var[2, 2]
+
+# Wald test statistic
+wald_stat <- beta_group / sqrt(var_beta)
+p_value_wald <- 2 * pnorm(-abs(wald_stat))
+
+cat("Wald Test for Group Effect:\n")
+cat("Coefficient:", round(beta_group, 4), "\n")
+cat("Std. Error:", round(sqrt(var_beta), 4), "\n")
+cat("Z-statistic:", round(wald_stat, 4), "\n")
+cat("p-value:", round(p_value_wald, 4), "\n")
+```
+
+### Likelihood Ratio Test
+
+```{r}
+# LR test: compare log-likelihoods
+ll_full <- exp_model$loglik[2]  # Model with group
+ll_intercept <- exp_model$loglik[1]  # Intercept only
+
+lr_stat <- -2 * (ll_intercept - ll_full)
+p_value_lr <- pchisq(lr_stat, df = 1, lower.tail = FALSE)
+
+cat("\nLikelihood Ratio Test:\n")
+cat("Log-likelihood (intercept only):", round(ll_intercept, 4), "\n")
+cat("Log-likelihood (with group):", round(ll_full, 4), "\n")
+cat("LR statistic:", round(lr_stat, 4), "\n")
+cat("p-value:", round(p_value_lr, 4), "\n")
+```
+
+### Interpreting Exponential Model
+
+```{r}
+# Exponential rate parameters
+intercept_coef <- exp_model$coefficients[1]
+group_coef <- exp_model$coefficients[2]
+
+# Lambda (rate) for each group
+lambda_neg <- exp(-intercept_coef)
+lambda_pos <- exp(-(intercept_coef + group_coef))
+
+cat("Rate Parameters (λ):\n")
+cat("Negative group (N):", round(lambda_neg, 6), "\n")
+cat("Positive group (P):", round(lambda_pos, 6), "\n")
+cat("Ratio (P/N):", round(lambda_pos / lambda_neg, 4), "\n")
+```
+
+### Verification: MLE Formula
+
+For exponential distribution, the MLE of λ is:
+$$\hat{\lambda} = \frac{\text{# events}}{\text{total time at risk}}$$
+
+```{r}
+# Compute MLEs by hand for each group
+events_neg <- sum(bcancer$status[bcancer$group == "N"])
+time_neg <- sum(bcancer$time[bcancer$group == "N"])
+lambda_neg_manual <- events_neg / time_neg
+
+events_pos <- sum(bcancer$status[bcancer$group == "P"])
+time_pos <- sum(bcancer$time[bcancer$group == "P"])
+lambda_pos_manual <- events_pos / time_pos
+
+cat("Manual MLE Calculation:\n")
+cat("Negative: ", events_neg, "events /", time_neg, "time =", round(lambda_neg_manual, 6), "\n")
+cat("Positive: ", events_pos, "events /", time_pos, "time =", round(lambda_pos_manual, 6), "\n")
+
+cat("\nComparison with survreg():\n")
+cat("Negative - survreg:", round(lambda_neg, 6), ", manual:", round(lambda_neg_manual, 6), "\n")
+cat("Positive - survreg:", round(lambda_pos, 6), ", manual:", round(lambda_pos_manual, 6), "\n")
+```
+
+### Confidence Intervals for Rate Parameters
+
+Using the delta method:
+
+```{r}
+# Delta method for exp(-β)
+beta <- exp_model$coefficients[2]
+var_beta_full <- exp_model$var[2, 2]
+
+# Variance of exp(-β)
+var_lambda_pos <- (exp(-beta))^2 * var_beta_full
+
+# CI using delta method
+ci_lower_delta <- exp(-beta) - qnorm(0.975) * sqrt(var_lambda_pos)
+ci_upper_delta <- exp(-beta) + qnorm(0.975) * sqrt(var_lambda_pos)
+
+cat("Delta Method CI for Positive Group Rate:\n")
+cat("Point estimate:", round(exp(-beta), 6), "\n")
+cat("95% CI: (", round(ci_lower_delta, 6), ",", round(ci_upper_delta, 6), ")\n")
+
+# Alternative: Using transformation (monotone function)
+beta_coef <- exp_model$coefficients[2]
+var_beta_coef <- exp_model$var[2, 2]
+
+ci_lower_trans <- exp(-(beta_coef + qnorm(0.975) * sqrt(var_beta_coef)))
+ci_upper_trans <- exp(-(beta_coef - qnorm(0.975) * sqrt(var_beta_coef)))
+
+cat("\nTransformation Method CI:\n")
+cat("95% CI: (", round(ci_lower_trans, 6), ",", round(ci_upper_trans, 6), ")\n")
+
+cat("\nNote: Transformation method avoids negative CI bounds\n")
+```
+
+## Key Concepts
+
+**Kaplan-Meier Estimator:**
+- Non-parametric estimate of survival function
+- Handles censored data properly
+- Step function (decreases at event times only)
+
+**Censoring:**
+- Right censoring: Follow-up ended before event
+- Event indicator (status) identifies censored vs uncensored
+
+**Weibull Assumption:**
+- Parametric model for survival times
+- Constant hazard ratio (proportional hazards)
+- Log-linear relationship between log time and log-log survival
+
+## Formal Testing
+
+```{r}
+# Log-rank test for survival difference
+logrank_test <- survdiff(Surv(time, status) ~ group, data = bcancer)
+print(logrank_test)
+```
+
+## References
+
+- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
+- Therneau, T. M., & Grambsch, P. M. (2000). *Modeling Survival Data*
+- [R survival package documentation](https://cran.r-project.org/package=survival)

@@ -1,0 +1,322 @@
+---
+title: "Tonsil Size and Streptococcus"
+subtitle: "Ordinal Regression Models Comparison"
+date: today
+format:
+  html:
+    code-fold: false
+---
+
+## Overview
+
+This script compares different **ordinal regression models** for analyzing the **tonsil dataset**, which examines the relationship between tonsil size (ordered categorical) and Streptococcus pyogenes carrier status.
+
+Models compared:
+- **Cumulative link model** (proportional odds assumption)
+- **Partial proportional odds model** (category-specific effects)
+- **Sequential link model** (continuation ratio)
+
+## Data and Packages
+
+```{r}
+#| message: false
+library(Fahrmeir)
+library(VGAM)
+
+# Load the tonsil dataset
+data(tonsil)
+head(tonsil)
+str(tonsil)
+```
+
+### Understanding the Data
+
+```{r}
+cat("Tonsil dataset structure:\n")
+cat("- Streptococcus.p: Carrier status (negative/positive)\n")
+cat("- Size: Tonsil size (1=normal, 2=enlarged, 3=greatly enlarged)\n")
+
+table(tonsil)
+```
+
+## Data Transformation to Wide Format
+
+The tonsil data is in long format. We reshape to wide format for `vglm()`:
+
+```{r}
+# Reshape from long to wide format
+tonsil_wide <- reshape(
+  tonsil,
+  idvar = "Streptococcus.p",
+  timevar = "Size",
+  direction = "wide"
+)
+
+# Clean up column names
+colnames(tonsil_wide) <- c("Streptococcus.p", "present", "enlarged", "great_enlarged")
+
+print(tonsil_wide)
+```
+
+## Setting Contrasts
+
+For proper interpretation, use **effect coding**:
+
+```{r}
+# Set effect coding
+options(contrasts = c("contr.sum", "contr.poly"))
+
+cat("Streptococcus.p contrasts:\n")
+print(contrasts(tonsil_wide$Streptococcus.p))
+```
+
+## Model 1: Cumulative Link Model (Proportional Odds)
+
+The standard **proportional odds model** assumes a constant effect across all cutpoints:
+
+$$P(Y \leq j | X) = G(\alpha_j - \beta X)$$
+
+```{r}
+# Fit cumulative link model with proportional odds assumption
+model_cumulative <- vglm(
+  cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
+  family = cumulative(parallel = TRUE ~ Streptococcus.p - 1),
+  data = tonsil_wide
+)
+
+summary(model_cumulative)
+```
+
+### Interpreting the Cumulative Model
+
+```{r}
+# Extract coefficients
+coef_cum <- coef(model_cumulative)
+cat("Cumulative link model coefficients:\n")
+print(round(coef_cum, 4))
+
+# Intercepts (threshold parameters)
+cat("\nThreshold parameters (intercepts):\n")
+print(round(coef_cum[1:2], 4))
+
+# Effect of Streptococcus
+cat("\nEffect of Streptococcus.p:\n")
+print(round(coef_cum[3], 4))
+
+# Odds ratio
+cat("Odds ratio for positive vs negative:", round(exp(coef_cum[3]), 4), "\n")
+```
+
+## Model 2: Partial Proportional Odds (Category-Specific Effects)
+
+Relax the proportional odds assumption to allow **different effects** for each transition:
+
+$$P(Y \leq j | X) = G(\alpha_j - \beta_j X)$$
+
+```{r}
+# Fit model with category-specific effects (no proportionality constraint)
+model_extended <- vglm(
+  cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
+  family = cumulative(),  # No parallel constraint
+  data = tonsil_wide
+)
+
+summary(model_extended)
+```
+
+### Interpreting Extended Model
+
+```{r}
+coef_ext <- coef(model_extended)
+cat("Extended (partial proportional odds) coefficients:\n")
+print(round(coef_ext, 4))
+
+cat("\nComparison of Streptococcus effects across cutpoints:\n")
+effect1 <- coef_ext[3]  # Effect for P(Y ≤ 1)
+effect2 <- coef_ext[4]  # Effect for P(Y ≤ 2)
+
+cat("P(Y ≤ Enlarged | X):", round(effect1, 4), "\n")
+cat("P(Y ≤ Greatly Enlarged | X):", round(effect2, 4), "\n")
+cat("Difference:", round(effect2 - effect1, 4), "\n")
+```
+
+## Model 3: Sequential (Continuation Ratio) Model
+
+Alternative approach: model transitions between **adjacent categories**:
+
+$$P(Y = j | Y \geq j, X) = G(\gamma_j + \delta X)$$
+
+```{r}
+# Fit sequential model with proportionality assumption
+model_sequential <- vglm(
+  cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
+  family = sratio(parallel = TRUE ~ Streptococcus.p - 1),
+  data = tonsil_wide
+)
+
+summary(model_sequential)
+```
+
+### Interpreting Sequential Model
+
+```{r}
+coef_seq <- coef(model_sequential)
+cat("Sequential model coefficients:\n")
+print(round(coef_seq, 4))
+
+cat("\nInterpretation:\n")
+cat("Effect on P(move to enlarged | already enlarged or better):\n")
+print(round(coef_seq[3], 4))
+```
+
+## Model Comparison
+
+```{r}
+# Extract and compare intercepts
+comparison <- data.frame(
+  Model = c("Cumulative", "Extended", "Sequential"),
+  Streptococcus_Effect = c(
+    round(coef(model_cumulative)[3], 4),
+    round(coef(model_extended)[3], 4),
+    round(coef(model_sequential)[3], 4)
+  ),
+  Log_Likelihood = c(
+    round(logLik(model_cumulative)[1], 2),
+    round(logLik(model_extended)[1], 2),
+    round(logLik(model_sequential)[1], 2)
+  )
+)
+
+print(comparison)
+```
+
+## Key Model Differences
+
+```{r}
+cat("Model Comparison:\n\n")
+
+cat("CUMULATIVE (Proportional Odds):\n")
+cat("- Assumes constant effect across cutpoints\n")
+cat("- Most restrictive\n")
+cat("- Standard choice\n\n")
+
+cat("EXTENDED (Partial Proportional Odds):\n")
+cat("- Allows different effects per transition\n")
+cat("- More flexible but more parameters\n")
+cat("- Use when PO assumption violated\n\n")
+
+cat("SEQUENTIAL (Continuation Ratio):\n")
+cat("- Models conditional probabilities\n")
+cat("- Different interpretation (adjacent categories)\n")
+cat("- Alternative when cumulative not suitable\n")
+```
+
+## Predicted Probabilities
+
+### From Cumulative Model
+
+```{r}
+# Predicted probabilities for each group
+pred <- predict(model_cumulative, type = "response")
+
+cat("Predicted class probabilities (Cumulative Model):\n")
+print(round(pred, 4))
+
+# Visualization
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 0))
+
+# Negative group
+barplot(pred[1, ],
+        names.arg = c("Normal", "Enlarged", "Great Enl."),
+        main = "Negative Streptococcus",
+        ylim = c(0, 0.6),
+        ylab = "Probability")
+
+# Positive group
+barplot(pred[2, ],
+        names.arg = c("Normal", "Enlarged", "Great Enl."),
+        main = "Positive Streptococcus",
+        ylim = c(0, 0.6),
+        ylab = "Probability")
+
+par(mfrow = c(1, 1))
+```
+
+## Statistical Comparison
+
+```{r}
+# Likelihood ratio test: Extended vs Cumulative
+lr_stat <- 2 * (logLik(model_extended)[1] - logLik(model_cumulative)[1])
+df_diff <- length(coef(model_extended)) - length(coef(model_cumulative))
+p_value <- 1 - pchisq(lr_stat, df = df_diff)
+
+cat("Likelihood Ratio Test:\n")
+cat("H0: Proportional odds assumption holds\n")
+cat("LR statistic:", round(lr_stat, 4), "\n")
+cat("df:", df_diff, "\n")
+cat("p-value:", round(p_value, 4), "\n")
+
+if (p_value < 0.05) {
+  cat("\nConclusion: Reject proportional odds assumption\n")
+  cat("Consider using extended model.\n")
+} else {
+  cat("\nConclusion: Proportional odds assumption reasonable\n")
+  cat("Cumulative model is appropriate.\n")
+}
+```
+
+## Alternative: MASS::polr() Function
+
+The MASS package provides `polr()` (proportional odds logistic regression) as an alternative:
+
+```{r}
+# Prepare data in long format for polr
+# Each row represents one observation with its response category and covariates
+response <- c("present", "enlarged", "great_enlarged",
+              "present", "enlarged", "great_enlarged")
+response <- ordered(response, levels = c("present", "enlarged", "great_enlarged"))
+
+streptococcus <- c("carriers", "carriers", "carriers",
+                   "noncarriers", "noncarriers", "noncarriers")
+
+# Weights from the contingency table
+weights_vec <- c(
+  as.numeric(tonsil_wide[1, 2:4]),  # carriers counts
+  as.numeric(tonsil_wide[2, 2:4])   # noncarriers counts
+)
+
+# Fit using polr
+polr_model <- MASS::polr(
+  formula = response ~ streptococcus,
+  weights = weights_vec
+)
+
+summary(polr_model)
+```
+
+### Comparing VGLM vs POLR
+
+```{r}
+cat("Coefficient comparison:\n")
+cat("VGLM cumulative model:\n")
+print(round(coef(model_cumulative), 4))
+
+cat("\nMAss polr model:\n")
+print(round(coef(polr_model), 4))
+
+cat("\nStandard errors match between methods (VGLM and MASS::polr)\n")
+```
+
+## Key Learning Points
+
+1. **Ordinal data**: Discrete ordered categories (not continuous)
+2. **Proportional odds**: Common but restrictive assumption
+3. **Model flexibility**: Test assumptions with likelihood ratio tests
+4. **Interpretation differs**: Each model type has different semantic meaning
+5. **Choice depends on data**: Select based on assumption testing and context
+
+## References
+
+- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
+- Yee, T. W. (2015). *Vector Generalized Linear and Additive Models*
+- [VGAM package documentation](https://cran.r-project.org/package=VGAM)

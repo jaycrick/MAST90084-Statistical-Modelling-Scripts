@@ -1,0 +1,183 @@
+---
+title: "Example 3.2 & 3.4: BTR Analysis"
+subtitle: "Ordinal Regression on Breathing Test Results"
+date: today
+format:
+  html:
+    code-fold: false
+---
+
+## Overview
+
+This script reproduces **Examples 3.2 and 3.4** from Fahrmeir & Tutz, analyzing **breathing test results (BTR)** with ordinal outcomes.
+
+Topics covered:
+- **Ordinal logistic regression** with `polr()` function
+- Model fitting with weighted counts
+- Contrast coding and reference levels
+- Interpretation of coefficients and proportional odds assumption
+
+## Data Loading and Setup
+
+```{r}
+#| message: false
+library(MASS)
+
+# Load the BTR dataset from CSV
+# Note: Ordinal outcome with factors: Positive, Borderline, Negative
+BTR.dat <- read.csv("data/Example3-2BTR.csv",
+    colClasses = c("factor", "factor", "factor", "numeric")
+)
+
+str(BTR.dat)
+is.data.frame(BTR.dat)
+BTR.dat
+```
+
+### Preparing the Data
+
+```{r}
+# Explore and modify the class of the data variables
+is.factor(BTR.dat$BTR)
+is.ordered(BTR.dat$BTR)
+
+# Set BTR to be ordinal (ordered categorical)
+BTR.dat$BTR <- as.ordered(BTR.dat$BTR)
+
+is.factor(BTR.dat$Age)
+is.factor(BTR.dat$Smoking)
+is.factor(BTR.dat$Freq)
+```
+
+## Contrast Coding
+
+The default is dummy coding with `contr.treatment`. Let's examine the contrasts:
+
+```{r}
+# Display current contrast settings
+getOption(x = "contrasts")
+
+# Check dummy coding for covariates
+contrasts(BTR.dat$Smoking)
+contrasts(BTR.dat$Age)
+```
+
+## Model Fitting with Interactions
+
+Fit a cumulative logistic/proportional odds model with interaction effects:
+
+```{r}
+# Fit cumulative logistic model with Age, Smoking, and their interaction
+# Note: polr() computes coefficient signs opposite to Fahrmeir & Tutz formula
+BTR.logit <- polr(BTR ~ Age + Smoking + Age:Smoking,
+    data = BTR.dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "logistic"
+)
+
+summary(BTR.logit)
+```
+
+### Accessing Model Components
+
+```{r}
+# Access model components
+names(BTR.logit)
+
+# Linear predictors
+BTR.logit$lp
+
+# Threshold parameters (intercepts/cutpoints)
+cat("Thresholds:\n")
+print(BTR.logit$zeta)
+```
+
+### Manual Coefficient Verification
+
+```{r}
+# Create design matrix manually for verification
+Z <- cbind(
+    (BTR.dat$Age == "40to59"),
+    (BTR.dat$Smoking == "2Former"),
+    (BTR.dat$Smoking == "3Current"),
+    (BTR.dat$Age == "40to59") * (BTR.dat$Smoking == "2Former"),
+    (BTR.dat$Age == "40to59") * (BTR.dat$Smoking == "3Current")
+)
+
+# Hand-computed linear predictors should match
+cat("Manual eta calculation (should match BTR.logit$lp):\n")
+print(Z %*% BTR.logit$coeff)
+
+cat("\nActual linear predictors:\n")
+print(BTR.logit$lp)
+```
+
+## Model Interpretation
+
+Extract and interpret coefficients:
+
+```{r}
+# Coefficient table
+cat("Coefficients:\n")
+print(summary(BTR.logit)$coefficients)
+
+# Odds ratios
+cat("\nOdds Ratios (exp(coefficients)):\n")
+print(round(exp(BTR.logit$coeff), 4))
+```
+
+## Predicted Probabilities
+
+```{r}
+# Predict for specific combinations
+new_data <- data.frame(
+    Age = c("20to39", "40to59"),
+    Smoking = c("1Never", "2Former")
+)
+
+# Get predicted probabilities for each class
+predictions <- predict(BTR.logit, new_data, type = "probs")
+cat("Predicted probabilities:\n")
+print(round(predictions, 4))
+```
+
+## Model Diagnostics
+
+```{r}
+# Check fitted values
+cat("Fitted values (first few):\n")
+print(head(BTR.logit$fitted.values, 10))
+
+# Deviance
+cat("\nModel Deviance:\n")
+print(BTR.logit$deviance)
+
+# Residuals
+cat("\nResiduals (first few):\n")
+print(head(residuals(BTR.logit), 10))
+```
+
+## Proportional Odds Assumption
+
+The proportional odds model assumes coefficients are the same across all cutpoints. We can test this assumption using the Brant test or comparing with non-proportional models.
+
+```{r}
+# Loglikelihood
+cat("Log-likelihood:\n")
+print(logLik(BTR.logit))
+```
+
+## Key Learning Points
+
+1. **Ordinal outcomes**: BTR with three ordered categories (Positive > Borderline > Negative)
+2. **Proportional odds model**: Assumes constant coefficients across all cutpoints
+3. **Weights parameter**: Handles aggregated count data properly
+4. **Coefficient interpretation**: Signs differ from textbook convention (check documentation)
+5. **Thresholds**: Represent the intercepts for each cutpoint in the latent variable model
+
+## References
+
+- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
+- Ripley, B. D. (2002). Modern applied statistics with S (4th ed.) - MASS package
+- [polr() documentation](https://www.rdocumentation.org/packages/MASS/versions/7.3-51.6/topics/polr)

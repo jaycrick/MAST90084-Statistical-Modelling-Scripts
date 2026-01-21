@@ -1,0 +1,292 @@
+---
+title: "GLM with Mixed Effects"
+subtitle: "Binomial GLMM on Ohio Respiratory Data"
+date: today
+format:
+  html:
+    code-fold: false
+---
+
+## Overview
+
+This script demonstrates **Generalized Linear Mixed Models (GLMM)** for handling **subject-specific random effects** in the Ohio respiratory data.
+
+Methods covered:
+- Laplace approximation via `glmer()`
+- Adaptive Gauss-Hermite quadrature (AGHQ) for improved accuracy
+- Penalized Quasi-Likelihood (PQL) via `glmmPQL()`
+- Random effects extraction and interpretation
+
+## Comparing GLMM Estimation Methods
+
+Different packages and methods provide different accuracy-computation tradeoffs:
+
+```{r}
+#| message: false
+library(lme4)
+library(geepack)
+library(MASS)
+
+# Load and prepare data
+data(ohio)
+ohio$age <- as.factor(ohio$age)
+ohio$smoke <- as.factor(ohio$smoke)
+
+# Set effect coding
+options(contrasts = c("contr.sum", "contr.poly"))
+contrasts(ohio$smoke) <- matrix(c(-1, 1), 2, 1)
+```
+
+## GLMM via Laplace Approximation
+
+The default `glmer()` approach uses the **Laplace approximation**:
+
+```{r}
+glmm_laplace <- glmer(
+  resp ~ age * smoke + (1 | id),
+  data = ohio,
+  family = binomial,
+  control = glmerControl(optimizer = "Nelder_Mead")
+)
+
+summary(glmm_laplace)
+```
+
+## GLMM via Adaptive Gauss-Hermite Quadrature
+
+More accurate numerical integration with `nAGQ`:
+
+```{r}
+# AGHQ with 10 quadrature points
+glmm_aghq10 <- glmer(
+  resp ~ age * smoke + (1 | id),
+  data = ohio,
+  family = binomial,
+  control = glmerControl(optimizer = "Nelder_Mead"),
+  nAGQ = 10
+)
+
+summary(glmm_aghq10)
+```
+
+### Comparison: Laplace vs AGHQ
+
+```{r}
+comparison <- data.frame(
+  Parameter = names(fixef(glmm_laplace)),
+  Laplace = round(fixef(glmm_laplace), 4),
+  AGHQ_10 = round(fixef(glmm_aghq10), 4)
+)
+print(comparison)
+
+cat("\nRandom effect SD:\n")
+cat("Laplace:", round(attr(VarCorr(glmm_laplace)$id, "stddev"), 4), "\n")
+cat("AGHQ_10:", round(attr(VarCorr(glmm_aghq10)$id, "stddev"), 4), "\n")
+```
+
+## Random Effects
+
+Extract and examine the estimated random effects (conditional modes):
+
+```{r}
+# Get random effects for each subject
+ranef_laplace <- ranef(glmm_laplace)$id
+ranef_aghq <- ranef(glmm_aghq10)$id
+
+head(ranef_laplace)
+head(ranef_aghq)
+
+# Summary statistics
+cat("Laplace - Random Effects Summary:\n")
+print(summary(ranef_laplace[, 1]))
+
+cat("\nAGHQ - Random Effects Summary:\n")
+print(summary(ranef_aghq[, 1]))
+```
+
+## Alternative: Penalized Quasi-Likelihood
+
+`glmmPQL()` from MASS provides a faster (though less accurate) alternative:
+
+```{r}
+glmm_pql <- glmmPQL(
+  resp ~ age * smoke,
+  random = ~ 1 | id,
+  family = binomial,
+  data = ohio
+)
+
+summary(glmm_pql)
+```
+
+## Comparing Estimation Methods
+
+```{r}
+# Extract coefficients from all methods
+coefs_comparison <- data.frame(
+  Method = c("Laplace", "AGHQ_10", "PQL"),
+  Intercept = c(
+    fixef(glmm_laplace)[1],
+    fixef(glmm_aghq10)[1],
+    fixef(glmm_pql)[1]
+  ),
+  Age_Effect = c(
+    fixef(glmm_laplace)[2],
+    fixef(glmm_aghq10)[2],
+    fixef(glmm_pql)[2]
+  )
+)
+
+print(round(coefs_comparison, 4))
+```
+
+## Wine Bitterness: Ordinal Mixed Models
+
+Now we demonstrate **ordinal regression with random effects** on the wine tasting dataset:
+
+### Data Setup
+
+```{r}
+library(ordinal)
+
+# Load wine dataset
+head(wine)
+str(wine)
+
+# Set contrasts
+options(contrasts = c("contr.treatment", "contr.poly"))
+
+# Verify class and contrasts
+cat("Contrast for contact:\n")
+print(contrasts(wine$contact))
+
+cat("\nContrast for temp:\n")
+print(contrasts(wine$temp))
+
+# Adjust contrasts as in raw script
+contrasts(wine$contact) <- c(0, 1)
+contrasts(wine$temp) <- c(1, 0)
+
+cat("\nAdjusted contact contrasts:\n")
+print(contrasts(wine$contact))
+
+cat("Adjusted temp contrasts:\n")
+print(contrasts(wine$temp))
+```
+
+### Fixed Effects Ordinal Model: polr()
+
+Fit using MASS::polr() (proportional odds logistic regression):
+
+```{r}
+# Fit fixed effects ordinal model
+wine_fit_polr <- MASS::polr(
+  rating ~ temp + contact,
+  data = wine,
+  Hess = TRUE,
+  method = "logistic"
+)
+
+summary(wine_fit_polr)
+```
+
+### Fixed Effects Ordinal Model: clm()
+
+Alternative from the ordinal package:
+
+```{r}
+# Fit using ordinal::clm()
+wine_fit_clm <- clm(
+  rating ~ temp + contact,
+  data = wine
+)
+
+summary(wine_fit_clm)
+
+cat("\nExtracted coefficients:\n")
+print(wine_fit_clm$coefficients)
+```
+
+### Comparing polr() vs clm()
+
+```{r}
+# Compare coefficients
+comparison_ordinal <- data.frame(
+  Parameter = names(coef(wine_fit_polr)),
+  polr_coef = round(coef(wine_fit_polr), 4),
+  clm_coef = round(coef(wine_fit_clm), 4)
+)
+
+print(comparison_ordinal)
+
+# Compare log-likelihoods
+cat("Log-likelihood (polr):", round(logLik(wine_fit_polr), 4), "\n")
+cat("Log-likelihood (clm):", round(logLik(wine_fit_clm), 4), "\n")
+```
+
+### Random Effects: clmm()
+
+Fit ordinal mixed model with judge random effects:
+
+```{r}
+# Fit ordinal mixed model with random judge effect
+wine_fit_clmm <- clmm(
+  rating ~ temp + contact + (1 | judge),
+  data = wine,
+  nAGQ = 10
+)
+
+summary(wine_fit_clmm)
+```
+
+### Comparing Fixed vs Mixed Effects
+
+```{r}
+# Extract and compare coefficients
+cat("Fixed effects (polr):\n")
+print(round(coef(wine_fit_polr), 4))
+
+cat("\nMixed effects (clmm):\n")
+print(round(clmm$beta, 4))
+
+# Get fitted values
+fitted_clmm <- wine_fit_clmm$fitted.values
+cat("\nFitted probabilities (first 10):\n")
+print(round(head(fitted_clmm, 10), 3))
+```
+
+### Random Effects for Judges
+
+```{r}
+# Extract random judge effects
+ranef_judges <- ranef(wine_fit_clmm)$judge
+
+cat("Random effects for each judge:\n")
+print(round(ranef_judges, 4))
+
+# Interpretation
+cat("\nInterpretation:\n")
+cat("Positive value: Judge tends to give higher ratings\n")
+cat("Negative value: Judge tends to give lower ratings\n")
+```
+
+## Model Features
+
+**Fixed effects interpretation:**
+- Subject-specific (conditional) estimates
+- Different from population-average (marginal) effects in GEE
+
+**Random intercept variance:**
+- Between-subject heterogeneity
+- Accounts for repeated measurements
+
+**Trade-offs:**
+- **Laplace**: Fast, reasonable accuracy
+- **AGHQ**: Slower, higher accuracy
+- **PQL**: Fastest, lower accuracy
+
+## References
+
+- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
+- Faraway, J. J. (2016). *Extending the Linear Model with R* (2nd ed.)
+- [lme4 documentation](https://cran.r-project.org/package=lme4)

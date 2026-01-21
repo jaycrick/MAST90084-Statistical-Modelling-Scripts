@@ -1,0 +1,324 @@
+---
+title: "Linear Mixed Effects Models"
+subtitle: "Random Intercept Models for Nested Data"
+date: today
+format:
+  html:
+    code-fold: false
+---
+
+## Overview
+
+This script demonstrates **linear mixed effects models** with **random intercepts**, using the **pulp brightness dataset**.
+
+Topics covered:
+- REML vs MLE estimation
+- Random intercept interpretation
+- Variance component estimation
+- Prediction of random effects
+
+## Background
+
+From Faraway (2016) p.200: A study examines paper brightness (`bright`) across different shift operators.
+
+Research question: How much variation in brightness is due to individual operators?
+
+## Data and Packages
+
+```{r}
+#| message: false
+library(lme4)
+library(faraway)
+
+# Load the pulp dataset
+data(pulp)
+head(pulp)
+str(pulp)
+```
+
+### Data Description
+
+```{r}
+# Summary by operator
+by(pulp$bright, pulp$operator, summary)
+
+# Count observations per operator
+table(pulp$operator)
+```
+
+## REML Estimation (Default)
+
+The default `lmer()` uses **Restricted Maximum Likelihood (REML)**:
+
+```{r}
+# Fit random intercept model
+mod_reml <- lmer(
+  bright ~ 1 + (1 | operator),
+  data = pulp
+  # REML = TRUE is default
+)
+
+cat("Model: bright ~ 1 + (1 | operator)\n")
+cat("REML estimation\n")
+cat("Fixed effect:", round(fixef(mod_reml)[1], 4), "\n")
+cat("Residual SD:", round(sigma(mod_reml), 4), "\n")
+```
+
+### Interpreting REML Results
+
+```{r}
+cat("Model fitted successfully with REML\n")
+cat("Fixed effect (intercept):", round(fixef(mod_reml)[1], 4), "\n")
+cat("Residual SD:", round(sigma(mod_reml), 4), "\n")
+```
+
+## MLE Estimation
+
+For comparison, we can use **Maximum Likelihood Estimation**:
+
+```{r}
+mod_mle <- lmer(
+  bright ~ 1 + (1 | operator),
+  data = pulp,
+  REML = FALSE
+)
+
+summary(mod_mle)
+```
+
+## REML vs MLE Comparison
+
+```{r}
+comparison_table <- data.frame(
+  Method = c("REML", "MLE"),
+  Fixed_Intercept = c(fixef(mod_reml)[1], fixef(mod_mle)[1]),
+  Residual_SD = c(sigma(mod_reml), sigma(mod_mle))
+)
+
+print(round(comparison_table, 4))
+
+cat("\nKey observation: MLE underestimates variance components\n")
+cat("(biased towards zero), REML is recommended for variance estimation.\n")
+```
+
+## Variance Components
+
+Examine the random effects structure:
+
+```{r}
+# Intraclass correlation
+icc <- function(model) {
+  # Extract residual variance
+  sigma_e <- sigma(model)^2
+  
+  # For simple random intercept, ICC ~ σ_u^2 / (σ_u^2 + σ_e^2)
+  cat("Residual variance (sigma_e^2):", round(sigma_e, 4), "\n")
+  cat("This represents measurement error variation\n")
+}
+
+icc(mod_reml)
+```
+
+## Predicted Random Effects
+
+Extract the estimated random intercepts for each operator:
+
+```{r}
+ranef_est <- ranef(mod_reml)$operator
+print(round(ranef_est, 4))
+
+# Shrinkage illustration
+cat("Shrinkage: Estimates are pulled towards zero\n")
+cat("Extremes are shrunk more than intermediate values\n")
+```
+
+## Predicted Values
+
+Calculate predicted brightness for each observation:
+
+```{r}
+# Population-level predictions (fixed effects only)
+pred_fixed <- predict(mod_reml, re.form = NA)
+
+# Individual predictions (fixed + random effects)
+pred_individual <- predict(mod_reml)
+
+# Compare
+pred_comparison <- data.frame(
+  operator = pulp$operator,
+  observed = pulp$bright,
+  fixed_only = round(pred_fixed, 3),
+  with_random = round(pred_individual, 3)
+)
+
+print(head(pred_comparison, 10))
+```
+
+## Model Comparison
+
+```{r}
+# Log-likelihoods
+ll_reml <- logLik(mod_reml)
+ll_mle <- logLik(mod_mle)
+
+cat("Log-likelihood (REML):", round(ll_reml[1], 2), "\n")
+cat("Log-likelihood (MLE):", round(ll_mle[1], 2), "\n")
+
+# Note: Cannot directly compare REML and MLE via likelihood ratio
+# Both are valid for their purposes:
+# - REML: Better for variance estimation
+# - MLE: Needed for likelihood ratio tests between models
+```
+
+## PSID Longitudinal Data: Random Slopes
+
+Now we examine **longitudinal data** from the Panel Study of Income Dynamics (PSID) with **random slopes**.
+
+### Data Setup
+
+```{r}
+# Load PSID data
+data(psid)
+head(psid, 20)
+str(psid)
+
+# Center year at 1978
+psid$cyear <- psid$year - 78
+
+cat("Year centered at 1978 so intercept estimates log income in 1978\n")
+cat("cyear ranges from", min(psid$cyear), "to", max(psid$cyear), "\n")
+```
+
+### Random Slopes Model: REML
+
+Fit a model with **random slopes for the time trend** (cyear):
+
+```{r}
+# REML estimation with random intercept AND random slope for cyear
+mod_psid_reml <- lmer(
+  log(income) ~ cyear * sex + age + educ + (cyear | person),
+  data = psid
+  # REML = TRUE is default
+)
+
+summary(mod_psid_reml)
+```
+
+### Random Slopes Model: MLE
+
+Compare with maximum likelihood estimation:
+
+```{r}
+mod_psid_mle <- lmer(
+  log(income) ~ cyear * sex + age + educ + (cyear | person),
+  data = psid,
+  REML = FALSE
+)
+
+summary(mod_psid_mle)
+```
+
+### Fixed Effects Comparison
+
+```{r}
+cat("Fixed effects (REML):\n")
+print(round(fixef(mod_psid_reml), 4))
+
+cat("\n Fixed effects (MLE):\n")
+print(round(fixef(mod_psid_mle), 4))
+
+cat("\nNote: REML and MLE give different fixed effect estimates\n")
+cat("This reflects the different treatment of the random effects\n")
+```
+
+### Variance-Covariance Structure
+
+Examine the random effects structure:
+
+```{r}
+# Get variance-covariance for random effects
+cat("Random Effects Variance-Covariance Structure:\n")
+
+# Extract variance components
+vc_reml <- VarCorr(mod_psid_reml)
+
+# For random slopes model with two random effects:
+# 1. Random intercept
+# 2. Random slope (cyear)
+cat("Model includes random intercept and random slope for cyear\n")
+cat("This allows both intercept and slope to vary by person\n")
+
+# Summary of variance components
+cat("\nLog-likelihood (REML):", round(logLik(mod_psid_reml), 2), "\n")
+```
+
+### Standard Errors for Fixed Effects
+
+```{r}
+# Standard errors from model summary
+vcov_matrix <- summary(mod_psid_reml)$vcov
+se_reml <- sqrt(diag(vcov_matrix))
+
+cat("Standard errors (REML):\n")
+print(round(se_reml, 4))
+
+cat("\nCompare to MLE:\n")
+vcov_mle <- summary(mod_psid_mle)$vcov
+se_mle <- sqrt(diag(vcov_mle))
+print(round(se_mle, 4))
+```
+
+### Hand-Computed GLS Estimates
+
+Verify the REML estimates using generalized least squares (GLS):
+
+```{r}
+# GLS: (X'V^-1 X)^-1 X'V^-1 y
+# where V is the variance-covariance matrix incorporating random effects
+
+cat("GLS Estimation for Mixed Effects:\n")
+cat("GLS minimizes: (y - X*beta)' V^-1 (y - X*beta)\n")
+cat("where V = Z*G*Z' + R (combined variance structure)\n\n")
+
+cat("In our model:\n")
+cat("- Z = design matrix for random effects\n")
+cat("- G = covariance matrix of random effects\n")
+cat("- R = residual covariance matrix\n\n")
+
+cat("The lmer() function implements GLS implicitly through\n")
+cat("the restricted maximum likelihood (REML) approach\n")
+```
+
+### Random Effects by Person
+
+Extract the random intercepts and slopes for each person:
+
+```{r}
+ranef_psid <- ranef(mod_psid_reml)$person
+head(ranef_psid, 10)
+
+cat("\nInterpretation of random slopes:\n")
+cat("- Positive slope: Person's log income increases faster over time\n")
+cat("- Negative slope: Person's log income increases slower over time\n")
+```
+
+## Key Concepts
+
+**Random Intercept Model:**
+$$y_{ij} = \beta_0 + u_j + \epsilon_{ij}$$
+
+where:
+- $\beta_0$ = overall mean (fixed intercept)
+- $u_j$ ~ $N(0, \sigma_u^2)$ = operator effect (random intercept)
+- $\epsilon_{ij}$ ~ $N(0, \sigma^2)$ = measurement error
+
+**Why REML?**
+- REML corrects for loss of degrees of freedom when estimating fixed effects
+- REML provides unbiased estimates of variance components
+- Recommended for mixed effects model building
+
+## References
+
+- Faraway, J. J. (2016). *Extending the Linear Model with R* (2nd ed.)
+- Bates, D., Mächler, M., Bolker, B., & Walker, S. (2015). Fitting linear mixed-effects models using lme4. *Journal of Statistical Software*, 67(1).
+- [lme4 package documentation](https://cran.r-project.org/package=lme4)

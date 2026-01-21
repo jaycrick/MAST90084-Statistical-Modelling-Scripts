@@ -1,0 +1,297 @@
+---
+title: "Example 3.1 & 3.11: Caesar Dataset Analysis"
+subtitle: "Multinomial Logistic Regression and Category-Specific Effects"
+date: today
+format:
+  html:
+    code-fold: false
+---
+
+## Overview
+
+This example reproduces **Example 3.1 and 3.11** from Fahrmeir & Tutz, demonstrating:
+
+- **Multinomial logistic regression** for categorical outcomes with >2 categories
+- Modeling three infection categories: no infection, single infection, multiple infections
+- Comparing estimation methods: `nnet::multinom()` and `VGAM::vglm()`
+- **Constrained coefficients** (Example 3.11) with parallel assumption testing
+
+## Data Loading and Exploration
+
+```{r}
+#| message: false
+library(nnet)
+library(VGAM)
+library(dplyr)
+library(tidyr)
+
+# Load the pre-formatted Caesar dataset from CSV
+Caes.dat <- read.csv("data/Example3-1Caes.csv")
+head(Caes.dat)
+is.data.frame(Caes.dat)
+str(Caes.dat)
+```
+
+### Understanding the Data
+
+The dataset contains surgical infection data with:
+- **size**: Total number of patients per combination
+- **noInf**: Patients with no infection (reference category)
+- **Inf1**: Patients with exactly one infection
+- **Inf2**: Patients with two infections
+- **NoPlan**: Surgery planning (0=planned, 1=not planned)
+- **Antib**: Antibiotic use (0=no, 1=yes)
+- **RiskF**: Risk factors (0=no, 1=yes)
+
+## Example 3.1: Multinomial Regression with `nnet`
+
+The `multinom()` function fits multinomial logistic regression using BFGS optimization (quasi-Newton method).
+
+### Fitting the Model
+
+```{r}
+# Fit multinomial model
+# The response is the 2:4 columns (noInf, Inf1, Inf2)
+# First column (noInf) is automatically treated as reference category
+Caes_nnet <- nnet::multinom(as.matrix(Caes.dat[, 2:4]) ~ NoPlan + Antib + RiskF,
+    data = Caes.dat
+)
+
+# Display model summary
+Caes_nnet
+summary(Caes_nnet)
+```
+
+### Extracting Coefficients
+
+```{r}
+# Extract coefficient matrix
+coef_matrix <- summary(Caes_nnet)$coeff
+cat("Coefficient Matrix (matches textbook Example 3.1, p.109):\n")
+print(round(coef_matrix, 4))
+
+# Transpose for easier reading
+cat("\nTransposed coefficients:\n")
+print(t(coef_matrix))
+
+# Model deviance (note: this is -2 * loglikelihood, unadjusted)
+cat("\nModel Deviance:\n")
+print(Caes_nnet$deviance)
+```
+
+### Model Predictions and Fitted Values
+
+```{r}
+# Get fitted probabilities for each observation
+fitted_probs <- Caes_nnet$fitted
+cat("Fitted probabilities (first few rows):\n")
+print(round(head(fitted_probs), 4))
+
+# Get residuals (observed - fitted proportions)
+residuals_nnet <- Caes_nnet$residuals
+cat("\nResiduals (first few rows):\n")
+print(round(head(residuals_nnet), 4))
+```
+
+### Manual Verification of Residuals
+
+```{r}
+# Manually compute proportions from the data
+Caes_proportions <- Caes.dat[, 2:4]
+Caes_proportions[, 1] <- Caes.dat[, 2] / Caes.dat[, 1] # noInf proportion
+Caes_proportions[, 2] <- Caes.dat[, 3] / Caes.dat[, 1] # Inf1 proportion
+Caes_proportions[, 3] <- Caes.dat[, 4] / Caes.dat[, 1] # Inf2 proportion
+
+cat("Manual calculation of residuals:\n")
+print(round(Caes_proportions - Caes_nnet$fitted, 4))
+```
+
+### Predictions for Specific Covariate Combinations
+
+```{r}
+# Predict probabilities for a specific case
+# NoPlan=1 (not planned), Antib=1 (yes), RiskF=0 (no)
+pred_case <- data.frame(NoPlan = 1, Antib = 1, RiskF = 0)
+
+cat("Predicted probabilities for NoPlan=1, Antib=1, RiskF=0:\n")
+pred_probs <- predict(Caes_nnet, pred_case, type = "probs")
+print(pred_probs)
+
+# Predicted class
+cat("\nPredicted infection category:\n")
+print(predict(Caes_nnet, pred_case, type = "class"))
+```
+
+### Manual Probability Calculation
+
+```{r}
+# Manually verify the probability calculation
+# Using multinomial logistic regression: P(category j) = exp(η_j) / (1 + sum(exp(η_i)))
+# where η_i are the linear predictors relative to reference category
+
+coefs_case <- coef_matrix %*% c(1, 1, 1, 0) # [intercept, NoPlan, Antib, RiskF]
+cat("Linear predictors for this case:\n")
+print(coefs_case)
+
+# Calculate probabilities
+ratios <- exp(coefs_case) # Relative risks vs reference
+prob_reference <- 1 / (sum(ratios) + 1) # P(no infection)
+prob_other <- ratios * prob_reference # P(Inf1), P(Inf2)
+
+cat("\nManually calculated probabilities:\n")
+cat("P(noInf):", prob_reference, "\n")
+cat("P(Inf1):", prob_other[1], "\n")
+cat("P(Inf2):", prob_other[2], "\n")
+```
+
+## Alternative Approach: VGAM with Fisher Scoring
+
+The VGAM package uses Fisher scoring (different optimization) and provides additional flexibility.
+
+### Basic VGAM Model
+
+```{r}
+# Fit using VGAM with multinomial family
+# Note: Need to specify reference level
+Caes_vgam <- vglm(
+    formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
+    data = Caes.dat,
+    family = multinomial(refLevel = "noInf")
+)
+
+summary(Caes_vgam)
+```
+
+### Extracting VGAM Coefficients
+
+```{r}
+# Extract coefficients in matrix form
+coef_vgam <- coefvlm(Caes_vgam, matrix.out = TRUE)
+cat("VGAM Coefficients (in matrix form):\n")
+print(round(coef_vgam, 4))
+
+# Compare with nnet results
+cat("\nComparison: nnet vs VGAM\n")
+cat("Both methods should give similar results (up to numerical differences)\n")
+cat("nnet coefficients:\n")
+print(round(coef_matrix, 4))
+```
+
+### VGAM Fitted Probabilities
+
+```{r}
+# Extract fitted values
+fitted_vgam <- fittedvlm(Caes_vgam)
+cat("VGAM fitted probabilities (first few rows):\n")
+print(round(head(fitted_vgam), 4))
+```
+
+## Example 3.11: Parallel Coefficients (Constrained Model)
+
+Example 3.11 tests whether some coefficients can be constrained to be equal across outcome categories (proportional odds-like assumption).
+
+### Constrained VGAM Model
+
+```{r}
+# Fit model with parallel constraint on NoPlan and RiskF
+# This means these coefficients are the same for both Inf1 and Inf2 categories
+Caes_vgam_parallel <- vglm(
+    formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
+    data = Caes.dat,
+    family = multinomial(
+        refLevel = "noInf",
+        parallel = TRUE ~ NoPlan + RiskF - 1
+    )
+)
+
+summary(Caes_vgam_parallel)
+```
+
+### Compare Constrained Coefficients
+
+```{r}
+# Extract parallel model coefficients
+coef_parallel <- coefvlm(Caes_vgam_parallel, matrix.out = TRUE)
+cat("Parallel model coefficients (NoPlan, RiskF constrained):\n")
+print(round(coef_parallel, 4))
+
+cat("\nUnconstrained model coefficients (for comparison):\n")
+print(round(coef_vgam, 4))
+
+# Notice: Parallel model has single NoPlan and RiskF coefficients
+# while Antib has separate coefficients for each category
+```
+
+### Likelihood Ratio Test
+
+```{r}
+# Test the parallel constraint hypothesis
+# H0: NoPlan and RiskF effects are equal across categories
+# H1: Effects differ across categories
+
+ll_unconstrained <- logLik(Caes_vgam)[1]
+ll_parallel <- logLik(Caes_vgam_parallel)[1]
+
+lr_stat <- 2 * (ll_unconstrained - ll_parallel)
+df_diff <- length(coef(Caes_vgam)) - length(coef(Caes_vgam_parallel))
+p_value <- 1 - pchisq(lr_stat, df = df_diff)
+
+cat("Likelihood Ratio Test:\n")
+cat("H0: Parallel assumption holds for NoPlan, RiskF\n")
+cat("LR statistic:", round(lr_stat, 4), "\n")
+cat("df:", df_diff, "\n")
+cat("p-value:", round(p_value, 4), "\n")
+
+if (p_value > 0.05) {
+    cat("\nConclusion: Parallel assumption is reasonable (p >0.05)\n")
+} else {
+    cat("\nConclusion: Parallel assumption rejected (p <0.05)\n")
+}
+```
+
+## Alternative Data Format: Long Form
+
+The data can also be reshaped to long form for alternative modeling approaches:
+
+```{r}
+# Reshape from wide to long format
+caesar_long <- pivot_longer(
+    data = Caes.dat[, -1],
+    cols = noInf:Inf2,
+    names_to = "inf_type",
+    values_to = "w"
+)
+
+# Convert to factor with proper reference level
+caesar_long$inf_type <- factor(caesar_long$inf_type,
+    levels = unique(caesar_long$inf_type)
+)
+
+cat("Data in long format (first 12 rows):\n")
+print(head(caesar_long, 12))
+
+# Fit model using long format
+Caes_nnet_long <- multinom(inf_type ~ NoPlan + Antib + RiskF,
+    data = caesar_long,
+    weights = w
+)
+
+cat("\nCoefficients from long format (should match original):\n")
+print(round(summary(Caes_nnet_long)$coeff, 4))
+```
+
+## Key Learning Points
+
+1. **Multinomial regression**: For outcomes with >2 unordered categories
+2. **Reference category**: Coefficients are relative to the reference (first) category
+3. **Interpretation**: Coefficients represent log-odds ratios vs reference
+4. **Optimization methods**: BFGS (nnet) vs Fisher scoring (VGAM) give similar results
+5. **Constrained models**: Test whether coefficients are equal across categories (parallel assumption)
+6. **Data formats**: Wide format (response matrix) vs long format (weights)
+
+## References
+
+- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models* (2nd ed.), p. 109-114
+- Yee, T. W. (2015). *Vector Generalized Linear and Additive Models: With an Implementation in R*
+- [nnet package documentation](https://cran.r-project.org/package=nnet)
+- [VGAM package documentation](https://cran.r-project.org/package=VGAM)

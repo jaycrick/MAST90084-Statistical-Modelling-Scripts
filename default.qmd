@@ -1,0 +1,74 @@
+---
+title: "MAST90084 Statistical Modelling Scripts"
+subtitle: "Learning-Focused Educational Guides"
+---
+
+## Welcome
+
+This is a collection of **detailed educational Quarto documents** that explain R scripts from the MAST90084 Statistical Modelling course. Each document goes beyond inline comments to provide:
+
+- **Clear explanations** of statistical concepts
+- **Step-by-step code walkthroughs**
+- **Interpretations** of statistical outputs
+- **Visualizations** and diagnostics
+- **Key takeaways** for learning
+
+## Scripts Covered
+
+### Generalized Linear Models (GLM)
+
+1. **[ANOVA and Deviance Analysis](scripts/01-ANODEV.qmd)** - Binomial regression with the Caesar dataset, demonstrating hypothesis testing and interaction effects.
+
+2. **[Cell Differentiation Study](scripts/02-CellDiff.qmd)** - Poisson regression analyzing synergistic effects of two treatment factors.
+
+3. **[Example 3.1 & 3.11: Caesar Dataset](scripts/03-Example3-1and3-11Caes.qmd)** - Detailed logistic regression walkthrough with reference level selection.
+
+4. **[Example 3.2: BTR Analysis](scripts/04-Example3-2BTR.qmd)** - Simple logistic regression example with model diagnostics.
+
+### Ordinal Regression
+
+5. **[Tonsil Size and Streptococcus](scripts/05-tonsil.qmd)** - Comparison of cumulative, partial proportional odds, and sequential models.
+
+6. **[Happiness Data: Ordinal Regression](scripts/06-Happiness.qmd)** - Cumulative link models with category-specific effects and data reshaping.
+
+### Longitudinal & Correlated Data
+
+7. **[Ohio Respiratory Data: GEE Analysis](scripts/07-ohio.qmd)** - In-depth GEE demonstration with focus on repeated measures.
+
+8. **[GEE Analysis: Ohio Respiratory Data](scripts/08-gee_ctsib.qmd)** - Generalized Estimating Equations with different correlation structures (independence, exchangeable, unstructured).
+
+9. **[GLM with Mixed Effects](scripts/09-GLM_mixed_Effect.qmd)** - Binomial GLMM comparing Laplace approximation, AGHQ, and PQL estimation.
+
+10. **[LM Mixed Effects](scripts/10-LM_mixed_effect.qmd)** - Linear mixed models with random intercepts using the pulp brightness dataset.
+
+### Survival Analysis
+
+11. **[Survival Analysis](scripts/11-survival.qmd)** - Kaplan-Meier estimation, handling censoring, and Weibull distribution assessment.
+
+## How to Use These Guides
+
+- **New to a topic?** Start with the overview and key concepts sections
+- **Need practical code?** Look at the code sections with step-by-step explanations
+- **Debugging?** Check the diagnostics and interpretation sections
+- **Learning concepts?** Read the "Key Learning Points" and reference sections
+
+## Document Format
+
+Each document is designed with learning in mind:
+
+- 📋 **Clear structure**: Overview → Data → Analysis → Interpretation → Takeaways
+- 💡 **Explanation-focused**: Every code block is explained in context
+- 📊 **Visual outputs**: Plots and tables show results clearly
+- 🔗 **Cross-references**: Links to related concepts and textbooks
+- 💾 **Reproducible**: All code is runnable with provided data
+
+## References
+
+These guides are based primarily on:
+
+- **Fahrmeir, L. & Tutz, G. (2001).** *Multivariate Statistical Modelling Based on Generalized Linear Models* (2nd ed.)
+- **Faraway, J. J. (2016).** *Extending the Linear Model with R* (2nd ed.)
+
+## Getting Started
+
+Click on any script above to dive into the detailed educational guide!
