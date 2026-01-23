@@ -50,23 +50,16 @@ is.factor(BTR.dat$Freq)
 ```
 
 ## Contrast Coding
-
 The default is dummy coding with `contr.treatment`. Let's examine the contrasts:
 
 ```{r}
 # Display current contrast settings
 getOption(x = "contrasts")
 
-# Check dummy coding for covariates
 contrasts(BTR.dat$Smoking)
 contrasts(BTR.dat$Age)
 ```
 
-## Model Fitting with Interactions
-
-Fit a cumulative logistic/proportional odds model with interaction effects:
-
-```{r}
 # Fit cumulative logistic model with Age, Smoking, and their interaction
 # Note: polr() computes coefficient signs opposite to Fahrmeir & Tutz formula
 BTR.logit <- polr(BTR ~ Age + Smoking + Age:Smoking,

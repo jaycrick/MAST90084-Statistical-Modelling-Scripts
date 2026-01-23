@@ -22,363 +22,204 @@ The study investigates whether TNF (Tumor Necrosis Factor) and IFN (Interferon) 
 
 ```{r}
 #| message: false
+library(conflicted)
+library(dplyr)
 library(Fahrmeir)
-library(gee)      # For robust quasi-likelihood inference
-library(MASS)     # For negative binomial modeling
+library(gee)
+library(geepack)
+library(MASS)
 
-# Load the cells dataset
 data(cells)
-head(cells)
-str(cells)
-```
-
-The dataset contains:
-- **TNF**: TNF treatment (yes/no)
-- **IFN**: IFN treatment (yes/no)
-- **y**: Count of differentiated cells
-
-## Exploratory Analysis
-
-Let's look at the structure and summary of the data:
-
-```{r}
 cells
-summary(cells)
-
-# Summary statistics by treatment group
-with(cells, by(y, list(TNF, IFN), summary))
 ```
 
-## Poisson GLM: Main Effects + Interaction
+## Example 2.3
 
-We fit a Poisson GLM with the interaction term to test for synergistic effects:
+Aims to study whether the two agents stimulate cell differentiation synergistically or independently. Just fit the Poisson GLM as in Ex 2.3.
 
 ```{r}
-# Fit Poisson GLM
-glm_poisson <- glm(
-  formula = y ~ TNF * IFN,
-  family = poisson,
-  data = cells
-)
+glm_poisson <- glm(formula = y ~ TNF * IFN, family = poisson, data = cells)
 
 summary(glm_poisson)
+
+summary(glm_poisson)$coeff
+
+round(summary(glm_poisson)$coeff, digits = 4)
+
+anova(glm_poisson)
+round(glm_poisson$coeff, digits = 4)
+glm_poisson$deviance
 ```
 
-### Model Interpretation
+## Covariance Matrices of Beta
 
-The terms in the model are:
-- **Intercept**: Baseline log count (reference group: no TNF, no IFN)
-- **TNF**: Main effect of TNF treatment
-- **IFN**: Main effect of IFN treatment
-- **TNF:IFN**: Interaction effect (synergy test)
-
-Extract and display coefficients:
+These two are the same, which makes sense under the exponential family assumption is true.
 
 ```{r}
-coeff_table <- round(summary(glm_poisson)$coefficients, 4)
-print(coeff_table)
-
-# Exponentiate to get rate ratios
-rate_ratios <- data.frame(
-  Coefficient = names(glm_poisson$coefficients),
-  "Rate Ratio" = round(exp(glm_poisson$coefficients), 4)
-)
-print(rate_ratios)
+summary(glm_poisson)$cov.scaled
+summary(glm_poisson)$cov.unscaled
 ```
 
-## Model Diagnostics
+## Covariance Matrices of Beta
 
-### Deviance Analysis
+These two are the same, which makes sense under the exponential family assumption is true.
 
 ```{r}
-cat("Model Deviance:", round(glm_poisson$deviance, 3), "\n")
-cat("Degrees of Freedom:", glm_poisson$df.residual, "\n")
-
-# ANOVA table
-anova(glm_poisson, test = "Chisq")
+summary(glm_poisson)$cov.scaled
+summary(glm_poisson)$cov.unscaled
 ```
 
-### Goodness-of-Fit Testing
+## Example 2.6
 
-Two key statistics for assessing model fit in Poisson regression:
+Estimated Pearson statistic, same as in Eg 2.6. Both reject the model, but we should take these results with a grain of salt.
 
-**1. Deviance Test:**
 ```{r}
-p_value_deviance <- 1 - pchisq(glm_poisson$deviance, df = glm_poisson$df.residual)
-cat("Deviance:", round(glm_poisson$deviance, 3), "\n")
-cat("p-value:", round(p_value_deviance, 4), "\n")
+pearson_chisq_stat <-
+    sum((glm_poisson$y - glm_poisson$fitted.values)^2 / glm_poisson$fitted.values)
+
+1 - pchisq(glm_poisson$deviance, df = 12)
+1 - pchisq(pearson_chisq_stat, df = 12)
 ```
 
-**2. Pearson Chi-Square Test:**
-```{r}
-# Calculate Pearson residuals
-pearson_residuals <- resid(glm_poisson, type = "pearson")
-pearson_stat <- sum(pearson_residuals^2)
+The estimated dispersion in Example 2.6, very close to the book.
 
-p_value_pearson <- 1 - pchisq(pearson_stat, df = glm_poisson$df.residual)
-cat("Pearson Chi-Square:", round(pearson_stat, 3), "\n")
-cat("p-value:", round(p_value_pearson, 4), "\n")
+```{r}
+est_disperson <- pearson_chisq_stat / glm_poisson$df.residual
+est_disperson
 ```
 
-### Residual Diagnostics
+Perform quasi "model-based" (also known as "naive") approach assuming the variance structure is correctly specified:
 
 ```{r}
-# Plot residuals
-par(mfrow = c(2, 2))
-
-# Deviance residuals vs fitted
-plot(glm_poisson$fitted.values, resid(glm_poisson, type = "deviance"),
-     main = "Deviance Residuals vs Fitted",
-     xlab = "Fitted Values", ylab = "Deviance Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Pearson residuals vs fitted
-plot(glm_poisson$fitted.values, pearson_residuals,
-     main = "Pearson Residuals vs Fitted",
-     xlab = "Fitted Values", ylab = "Pearson Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Q-Q plot
-qqnorm(rstandard(glm_poisson))
-qqline(rstandard(glm_poisson))
-
-# Scale-location plot
-plot(glm_poisson$fitted.values, sqrt(abs(pearson_residuals)),
-     main = "Scale-Location",
-     xlab = "Fitted Values", ylab = "√|Pearson Residuals|")
-
-par(mfrow = c(1, 1))
-```
-
-## Overdispersion Assessment
-
-Poisson regression assumes the mean equals the variance. When this fails, we have **overdispersion**.
-
-```{r}
-# Estimated dispersion parameter
-dispersion_pearson <- pearson_stat / glm_poisson$df.residual
-dispersion_deviance <- glm_poisson$deviance / glm_poisson$df.residual
-
-cat("Dispersion (Pearson):", round(dispersion_pearson, 4), "\n")
-cat("Dispersion (Deviance):", round(dispersion_deviance, 4), "\n")
-
-if (dispersion_pearson > 1) {
-  cat("\nOverdispersion detected!\n")
-  cat("Consider using quasi-Poisson or negative binomial model.\n")
-}
-```
-
-## Covariance Matrices
-
-### Poisson Model: Scaled vs Unscaled
-
-Under the Poisson assumption (dispersion = 1), these should be identical:
-
-```{r}
-cat("Scaled covariance matrix:\n")
-print(round(summary(glm_poisson)$cov.scaled, 4))
-
-cat("\nUnscaled covariance matrix:\n")
-print(round(summary(glm_poisson)$cov.unscaled, 4))
-
-cat("\nThese are identical under Poisson assumption (phi=1)\n")
-```
-
-## Quasi-Poisson Model
-
-When overdispersion is present, use quasi-Poisson to estimate the scale:
-
-```{r}
-# Fit quasi-Poisson model
-glm_quasipoisson <- glm(
-  formula = y ~ TNF * IFN,
-  family = quasipoisson,
-  data = cells
+glm_quasi_poisson <- glm(
+    formula = y ~ TNF * IFN,
+    family = quasipoisson,
+    data = cells
 )
 
-summary(glm_quasipoisson)
+summary(glm_quasi_poisson)
+
+summary(glm_quasi_poisson)$coefficients
+anova(glm_quasi_poisson)
+resid(glm_quasi_poisson)
+resid(glm_quasi_poisson, type = "deviance")
+resid(glm_quasi_poisson, type = "working")
+resid(glm_quasi_poisson, type = "pearson")
 ```
 
-### Comparing Covariance Matrices
+These two are different now by the scale/dispersion.
 
 ```{r}
-cat("Scaled covariance (quasi-Poisson):\n")
-scaled_cov <- summary(glm_quasipoisson)$cov.scaled
-print(round(scaled_cov, 4))
+summary(glm_quasi_poisson)$cov.scaled
+summary(glm_quasi_poisson)$cov.unscaled
 
-cat("\nUnscaled covariance (quasi-Poisson):\n")
-unscaled_cov <- summary(glm_quasipoisson)$cov.unscaled
-print(round(unscaled_cov, 4))
-
-cat("\nRelationship: cov.scaled = cov.unscaled * dispersion\n")
-cat("Dispersion from quasi-Poisson:", round(summary(glm_quasipoisson)$dispersion, 4), "\n")
-
-# Verify relationship
-scaled_computed <- unscaled_cov * summary(glm_quasipoisson)$dispersion
-cat("\nVerification (max difference):\n")
-print(max(abs(scaled_cov - scaled_computed)))
+summary(glm_poisson)$cov.unscaled * summary(glm_quasi_poisson)$dispersion
 ```
 
-### Alternative Dispersion Estimates
+**WARNING**: the dispersion estimate provided by glm() actually leverages the "working residuals" and the IWLS weights! So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as `glm_poisson$weights`, the weights by assuming phi = 1 under the full likelihood model.
 
 ```{r}
-# Method 1: From quasi-Poisson summary
-disp_glm <- summary(glm_quasipoisson)$dispersion
-cat("GLM dispersion estimate:", round(disp_glm, 4), "\n")
+summary(glm_quasi_poisson)$dispersion
 
-# Method 2: Using working residuals and weights
-disp_working <- with(glm_quasipoisson, sum(weights * residuals^2) / df.residual)
-cat("Dispersion from working residuals:", round(disp_working, 4), "\n")
-
-cat("\nNote: The dispersion in quasi-Poisson uses working residuals, not Pearson residuals\n")
+with(glm_quasi_poisson, sum(weights * residuals^2)) /
+    glm_quasi_poisson$df.residual
 ```
 
-## Example 2.7: Variance vs Mean and GEE
-
-Plot the empirical variance against mean by TNF level:
+**WARNING**: the dispersion estimate provided by glm() actually leverages the "working residuals" and the IWLS weights! So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as `glm_poisson$weights`, the weights by assuming phi = 1 under the full likelihood model.
 
 ```{r}
-library(dplyr)
+summary(glm_quasi_poisson)$dispersion
 
-# Compute summary statistics by TNF level
-cells_summary <- cells |>
-  group_by(TNF) |>
-  summarize(
-    est_mean = mean(y),
-    # Note: var() computes unbiased estimate; multiply by (n-1)/n for biased
+with(glm_quasi_poisson, sum(weights * residuals^2)) /
+    glm_quasi_poisson$df.residual
+```
+
+## Example 2.7
+
+Plotting variance against mean by TNF. Note that `var()` computes the unbiased variance estimate by default; to reproduce the results on p.59 of F&T, we have to use the biased variance estimate.
+
+```{r}
+cells_tbl <- as_tibble(cells)
+cells_tbl_grouped_tnf <- group_by(cells_tbl, TNF)
+cells_tbl_summary <- summarize(
+    cells_tbl_grouped_tnf,
     est_var = var(y) * 3 / 4,
-    .groups = 'drop'
-  ) |>
-  as.data.frame()
-
-print(cells_summary)
-
-# Plot variance against mean
-plot(cells_summary$est_mean, cells_summary$est_var,
-     xlab = "Estimated Mean",
-     ylab = "Estimated Variance",
-     main = "Variance vs Mean Relationship",
-     pch = 16, cex = 1.5)
-
-# Add reference line for Poisson (variance = mean)
-x_range <- range(cells_summary$est_mean)
-abline(0, 1, lty = 2, col = "red", lwd = 2)
-legend("topleft", legend = "Poisson (var = mean)", lty = 2, col = "red")
+    est_mean = mean(y)
+)
+cells_summary <- as.data.frame(cells_tbl_summary)
+cells_summary
+plot(
+    cells_summary$est_mean,
+    cells_summary$est_var,
+    xlab = "mean",
+    ylab = "variance"
+)
 ```
 
-## GEE with Linear Variance Structure
-
-Use GEE with linear variance function (variance ~ mean):
+Use the gee function for the "robust inference" in this example instead. This should get the second column of table 2.7 corresponding to the linear working variance structure. The dispersion provided by gee is the same as our own estimated dispersion based on Pearson residuals!
 
 ```{r}
-library(gee)
-
-# GEE with linear variance structure
-gee_linear <- gee(
-  formula = y ~ TNF * IFN,
-  id = 1:nrow(cells),
-  family = quasi(variance = "mu", link = "log"),
-  data = cells
+gee_mu <- gee(
+    formula = y ~ TNF * IFN,
+    id = seq_len(nrow(cells)),
+    family = quasi(variance = "mu", link = "log"),
+    data = cells
 )
 
-summary(gee_linear)
+summary(gee_mu)
 
-cat("\nGEE Coefficients (linear variance):\n")
-print(round(summary(gee_linear)$coeff, 4))
-
-cat("\nDispersion from GEE:\n")
-print(round(summary(gee_linear)$scale, 4))
+summary(gee_mu)$coeff
 ```
 
-### Robust vs Naive Standard Errors
+The following should be the robust z-values, i.e. estimates rescaled by sandwich variance estimate.
 
 ```{r}
-cat("Robust z-values (sandwich variance):\n")
-robust_z <- gee_linear$coeff / sqrt(diag(gee_linear$robust.variance))
-robust_p <- round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
-print(robust_p)
-
-cat("\nNaive z-values (model-based variance):\n")
-naive_z <- gee_linear$coeff / sqrt(diag(gee_linear$naive.variance))
-naive_p <- round(2 * pnorm(abs(naive_z), lower.tail = FALSE), 3)
-print(naive_p)
+robust_z <- gee_mu$coeff / sqrt(diag((gee_mu)$robust.variance))
+round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
 ```
 
-## GEE with Quadratic Variance Structure
-
-Fit GEE with quadratic variance function (variance ~ mean²):
+The following should be the estimates rescaled by model-based variance estimate.
 
 ```{r}
-# GEE with quadratic variance structure
-gee_quadratic <- gee(
-  formula = y ~ TNF * IFN,
-  id = 1:nrow(cells),
-  family = quasi(variance = "mu^2", link = "log"),
-  data = cells
-)
-
-summary(gee_quadratic)
-
-cat("\nRobust p-values (quadratic variance):\n")
-robust_z_quad <- gee_quadratic$coeff / sqrt(diag(gee_quadratic$robust.variance))
-robust_p_quad <- round(2 * pnorm(abs(robust_z_quad), lower.tail = FALSE), 3)
-print(robust_p_quad)
-
-cat("\nNote: These robust p-values should match Table 2.7 in F&T\n")
+naivez <- gee_mu$coeff / sqrt(diag((gee_mu)$naive.variance))
+round(2 * pnorm(abs(naivez), lower.tail = FALSE), 3)
 ```
 
-## Comparison with geepack
+Try to fit with geeglm from the geepack instead.
 
 ```{r}
-library(geepack)
-
-# geepack with scale estimated
-gee_geepack_est <- geepack::geeglm(
-  formula = y ~ TNF * IFN,
-  id = 1:nrow(cells),
-  family = poisson(link = "log"),
-  data = cells,
-  scale.fix = FALSE
+gee_mu_geepack <- geeglm(
+    formula = y ~ TNF * IFN,
+    id = seq_len(nrow(cells)),
+    family = poisson(link = "log"),
+    data = cells,
+    scale.fix = FALSE
 )
 
-# geepack with scale fixed to 1
-gee_geepack_fix <- geepack::geeglm(
-  formula = y ~ TNF * IFN,
-  id = 1:nrow(cells),
-  family = poisson(link = "log"),
-  data = cells,
-  scale.fix = TRUE
+gee_mu_geepack_fix <- geeglm(
+    formula = y ~ TNF * IFN,
+    id = seq_len(nrow(cells)),
+    family = poisson(link = "log"),
+    data = cells,
+    scale.fix = TRUE
 )
-
-cat("geepack coefficients (scale estimated):\n")
-print(round(gee_geepack_est$coefficients, 4))
-
-cat("\ngeepack coefficients (scale fixed = 1):\n")
-print(round(gee_geepack_fix$coefficients, 4))
 ```
 
-## Comparison with Fitted Values
+I think the second column in Table 2.7 is not correctly printed; they have printed the naive p-values, which should have been the robust p-values.
+
+Now the third column of table 2.7 corresponding to the purely quadratic working variance structure. The robust p-values match the ones in F&T, but not the naive ones, so all the p-values reported in parentheses of Table 2.7 in F&T should have been robust p-values.
 
 ```{r}
-fitted_comparison <- data.frame(
-  Observation = 1:nrow(cells),
-  TNF = cells$TNF,
-  IFN = cells$IFN,
-  Observed = cells$y,
-  Fitted = round(glm_poisson$fitted.values, 2),
-  Residual = round(glm_poisson$residuals, 3)
+glm_gee_mu2 <- gee(
+    formula = y ~ TNF * IFN,
+    id = seq_len(nrow(cells)),
+    family = quasi(variance = "mu^2", link = "log"),
+    data = cells
 )
-print(fitted_comparison)
+
+summary(glm_gee_mu2)$scale
+robust_z <- glm_gee_mu2$coeff / sqrt(diag(glm_gee_mu2$robust.variance))
+round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
+naivez <- glm_gee_mu2$coeff / sqrt(diag(glm_gee_mu2$naive.variance))
+round(2 * pnorm(abs(naivez), lower.tail = FALSE), 3)
 ```
-
-## Key Findings
-
-1. **Model Assessment**: Evaluate whether the Poisson assumption is appropriate via goodness-of-fit tests
-2. **Interaction**: Test the TNF:IFN interaction to determine if effects are synergistic
-3. **Overdispersion**: If present, consider alternative models (quasi-Poisson, negative binomial)
-4. **Interpretation**: Rate ratios provide intuitive interpretation of treatment effects
-
-## References
-
-- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models*
-- [Poisson Regression in R](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html)

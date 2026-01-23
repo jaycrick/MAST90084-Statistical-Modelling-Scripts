@@ -53,9 +53,9 @@ The default `lmer()` uses **Restricted Maximum Likelihood (REML)**:
 ```{r}
 # Fit random intercept model
 mod_reml <- lmer(
-  bright ~ 1 + (1 | operator),
-  data = pulp
-  # REML = TRUE is default
+    bright ~ 1 + (1 | operator),
+    data = pulp
+    # REML = TRUE is default
 )
 
 cat("Model: bright ~ 1 + (1 | operator)\n")
@@ -78,9 +78,9 @@ For comparison, we can use **Maximum Likelihood Estimation**:
 
 ```{r}
 mod_mle <- lmer(
-  bright ~ 1 + (1 | operator),
-  data = pulp,
-  REML = FALSE
+    bright ~ 1 + (1 | operator),
+    data = pulp,
+    REML = FALSE
 )
 
 summary(mod_mle)
@@ -90,9 +90,9 @@ summary(mod_mle)
 
 ```{r}
 comparison_table <- data.frame(
-  Method = c("REML", "MLE"),
-  Fixed_Intercept = c(fixef(mod_reml)[1], fixef(mod_mle)[1]),
-  Residual_SD = c(sigma(mod_reml), sigma(mod_mle))
+    Method = c("REML", "MLE"),
+    Fixed_Intercept = c(fixef(mod_reml)[1], fixef(mod_mle)[1]),
+    Residual_SD = c(sigma(mod_reml), sigma(mod_mle))
 )
 
 print(round(comparison_table, 4))
@@ -108,12 +108,12 @@ Examine the random effects structure:
 ```{r}
 # Intraclass correlation
 icc <- function(model) {
-  # Extract residual variance
-  sigma_e <- sigma(model)^2
-  
-  # For simple random intercept, ICC ~ σ_u^2 / (σ_u^2 + σ_e^2)
-  cat("Residual variance (sigma_e^2):", round(sigma_e, 4), "\n")
-  cat("This represents measurement error variation\n")
+    # Extract residual variance
+    sigma_e <- sigma(model)^2
+
+    # For simple random intercept, ICC ~ σ_u^2 / (σ_u^2 + σ_e^2)
+    cat("Residual variance (sigma_e^2):", round(sigma_e, 4), "\n")
+    cat("This represents measurement error variation\n")
 }
 
 icc(mod_reml)
@@ -145,10 +145,10 @@ pred_individual <- predict(mod_reml)
 
 # Compare
 pred_comparison <- data.frame(
-  operator = pulp$operator,
-  observed = pulp$bright,
-  fixed_only = round(pred_fixed, 3),
-  with_random = round(pred_individual, 3)
+    operator = pulp$operator,
+    observed = pulp$bright,
+    fixed_only = round(pred_fixed, 3),
+    with_random = round(pred_individual, 3)
 )
 
 print(head(pred_comparison, 10))
@@ -196,9 +196,9 @@ Fit a model with **random slopes for the time trend** (cyear):
 ```{r}
 # REML estimation with random intercept AND random slope for cyear
 mod_psid_reml <- lmer(
-  log(income) ~ cyear * sex + age + educ + (cyear | person),
-  data = psid
-  # REML = TRUE is default
+    log(income) ~ cyear * sex + age + educ + (cyear | person),
+    data = psid
+    # REML = TRUE is default
 )
 
 summary(mod_psid_reml)
@@ -210,9 +210,9 @@ Compare with maximum likelihood estimation:
 
 ```{r}
 mod_psid_mle <- lmer(
-  log(income) ~ cyear * sex + age + educ + (cyear | person),
-  data = psid,
-  REML = FALSE
+    log(income) ~ cyear * sex + age + educ + (cyear | person),
+    data = psid,
+    REML = FALSE
 )
 
 summary(mod_psid_mle)
