@@ -48,12 +48,14 @@ install.packages(c("conflicted", "dplyr", "Fahrmeir"))
 
 The `conflicted` library forces you to choose a which library
 you want to call a function from if it is in two or more loaded libraries.
-
+This is very important, particularly if you are looking at legacy code (old code)
+from someone else who may have had particular functions loaded.
 
 ```{r}
-library(conflicted)
-library(dplyr)
-library(Fahrmeir)
+library(conflicted) # avoid calling functions in multiple libraries
+library(dplyr) # manipulate dataframes
+library(forcats) # deal with categorical data (factors)
+library(Fahrmeir) # load datasets from the book
 ```
 
 We load the Caeser dataset in (from the Fahrmeir package),
@@ -116,10 +118,11 @@ caesar_tbl <- caesar_tbl |>
 caesar_tbl
 ```
 
-Here is the equivalent code (without pipes)
+Unfold the following code to see the equivalent unpiped version.
 
 ```{r}
 #| eval: false
+#| code-fold: true
 # Step 1: Group by covariates
 caesar_tbl <- group_by(caesar_tbl, noplan, factor, antib)
 
@@ -137,22 +140,33 @@ caesar_tbl <- dplyr::filter(caesar_tbl, size != 0)
 
 ## Understanding Factor Coding
 
+It is good practice to understand the data structure we have.
+From the above tibble we can see that we have 7 observations of 5 variables.
+The benefit of tibbles is that we can see what class each variable has.
+`noplan`, `factor`, and `antib` have the class factor.
+`size` and `Infect_count` have the class double (numeric).
+
 Look at a description of the structure of caesar and the coding scheme of each
-variable of type "factor" using the function `contrasts()`. By default, they
-are usually based on dummy coding. Note that they are coded in an exact opposite
-way to Example 2.1 on p.30. Redefine the reference levels of these variables
-of type "factor", so the coding is exactly like example 2.1 on p.30 in F & T.
+variable of type "factor" using the function `contrasts()`.
 
 ```{r}
-str(caesar_tbl)
-
 contrasts(caesar_tbl$noplan)
 contrasts(caesar_tbl$factor)
 contrasts(caesar_tbl$antib)
+```
 
-caesar_tbl$noplan <- relevel(caesar_tbl$noplan, ref = "planned")
-caesar_tbl$factor <- relevel(caesar_tbl$factor, ref = "without")
-caesar_tbl$antib <- relevel(caesar_tbl$antib, ref = "without")
+We can see that these are coded in the exact opposite way that F & T describes,
+and so we need to redefine the reference levels of these variables.
+Set the reference level for each factor. The reference level (first level) becomes
+the baseline category in regression coefficients.
+
+```{r}
+caesar_tbl_fct <- caesar_tbl |>
+    mutate(
+        noplan = fct_relevel(noplan, "planned"),
+        factor = fct_relevel(factor, "without"),
+        antib = fct_relevel(antib, "without")
+    )
 
 contrasts(caesar_tbl$noplan)
 contrasts(caesar_tbl$factor)
@@ -161,52 +175,149 @@ contrasts(caesar_tbl$antib)
 
 ## Main Effects Model
 
-Alternatively, we can force our covariates as integers with values (1 or 0)
-exactly as in example 2.1 in the book. Fit the regression with the logit link
-(default). The unscaled deviance gives the same scaled deviance for binomial and
-poisson data. (Note: The documentation of glm() about what it is reporting for
-the deviance may be misleading, because it ignores the fact that deviance only
-becomes twice the log-likelihood difference when rescaled by the dispersion.)
+Now that our dataset looks good, we are ready to go ahead with the regression.
+`Infect_count / size` as our $y$ gives us the proportion of women
+with an infection per group of covariates.
+When we use grouped data, the weight should always be the same
+as the number of counts of that combination of covariates, hence `weights = size`.
+
+Fit the regression with the logit link (default). The unscaled deviance gives the same scaled deviance for binomial and poisson data. (Note:
+[The documentation of `glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html) about what it is reporting for the deviance may be misleading, because it ignores the fact that deviance only becomes twice the log-likelihood difference when rescaled by the dispersion.)
 
 ```{r}
-caesar_tbl$noplan <- as.integer(caesar_tbl$noplan == "not")
-caesar_tbl$factor <- as.integer(caesar_tbl$factor == "risk factors")
-caesar_tbl$antib <- as.integer(caesar_tbl$antib == "antibiotics")
-
-caesar_glm <- glm(
+caesar_glm_fct <- glm(
     Infect_count / size ~ antib + factor + noplan,
+    family = binomial,
     data = caesar_tbl,
-    weights = size,
-    family = binomial
+    weights = size
 )
 
-caesar_glm
-summary(caesar_glm)
-deviance(caesar_glm)
-
-anova(caesar_glm, test = "Chisq")
-anova(caesar_glm, test = "F")
+caesar_glm_fct
 ```
+
+These results line up with the ones in the book (yay).
+
+Alternatively, we can assign integer values to the factors.
+This makes the dataframe look exactly like it matches the books notation exactly.
+
+```{r}
+caesar_tbl_int <- caesar_tbl |>
+    mutate(
+        noplan = as.integer(noplan == "not"),
+        factor = as.integer(factor == "risk factors"),
+        antib = as.integer(antib == "antibiotics")
+    )
+
+caesar_tbl_int
+caesar_tbl
+```
+
+We can see that we get the same results for the integer version
+
+```{r}
+caesar_int_glm <- glm(
+    Infect_count / size ~ antib + factor + noplan,
+    family = binomial,
+    data = caesar_tbl_int,
+    weights = size
+)
+
+caesar_int_glm
+```
+
+We can see the results more fully by using `summary()`
+
+```{r}
+summary(caesar_int_glm)
+```
+
+It is important to understand how `glm()` reports the summary.
+We can see that the reported deviance is `r round(deviance(caesar_int_glm), 3)`.
+This reported deviance is what we call the **unscaled deviance**.
+In the binomial and Poisson cases,
+the scaled deviance will be the same as the unscaled deviance.
+
+::: {.callout-note}
+The documentation of `glm()` about what it is reporting for the deviance may be misleading, because it ignores the fact that deviance only becomes twice the log-likelihood difference when rescaled by the dispersion.
+:::
+
+We can now consider the significance of each of the variables
+
+```{r}
+anova(caesar_int_glm, test = "Chisq")
+```
+
+This table closely matches the one in the notes.
+All three effects are highly significant.
+
+```{r}
+anova(caesar_int_glm, test = "F")
+```
+
+::: {.callout-warning}
+**Why is an F test inappropriate here?**
+
+For binomial GLMs, the natural test for nested models is based on differences in deviance, which asymptotically follows a chi-square distribution. The F test is appropriate for Gaussian linear models with unknown dispersion (and certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
+:::
 
 ## Model Diagnostics
 
-Extract residuals of different types. The working residuals are equivalent to
-`caesar_glm$residuals`. Perform Pearson and deviance tests for model
-goodness-of-fit. Compare fitted and realized proportions as on the top of p.52.
+We can extract residuals of different types; here we collect them into a single tibble and round to three decimals for readability.
 
 ```{r}
-resid(caesar_glm, type = "deviance")
-resid(caesar_glm, type = "pearson")
-resid(caesar_glm, type = "working")
-resid(caesar_glm, type = "response")
-sum(resid(caesar_glm, type = "deviance")^2)
-
-1 - pchisq(caesar_glm$deviance, df = 3)
-1 - pchisq(sum(resid(caesar_glm, type = "pearson")^2), df = 3)
-
-round(caesar_tbl$Infect_count / caesar_tbl$size, digits = 2)
-round(caesar_glm$fitted.values, digits = 2)
+tibble(
+    deviance = resid(caesar_int_glm, type = "deviance"),
+    pearson = resid(caesar_int_glm, type = "pearson"),
+    working = resid(caesar_int_glm, type = "working"),
+    response = resid(caesar_int_glm, type = "response")
+)
 ```
+
+As a sanity check, if we sum the squares of the deviance residuals,
+we should recover the deviance.
+
+Perform Pearson and deviance tests for model goodness-of-fit. Compare fitted and realized proportions as on the top of p.52.
+
+```{r}
+sum(resid(caesar_int_glm, type = "deviance")^2)
+deviance(caesar_int_glm)
+```
+
+We can also test the goodness of fit using the deviance, and the Pearson statistic.
+Both of these converge to the same asymptotic chi-squared distribution.
+If we assume that the number of observations in each group is sufficiently large,
+the degrees of freedom in the chi-squared distribution is
+the difference between the number of
+parameters in the saturated model (7, make sure you can explain why),
+and the degrees of freedom in the glm model (4).
+
+Both the deviance test
+```{r}
+1 - pchisq(caesar_int_glm$deviance, df = 3)
+```
+
+and the Pearson test
+
+```{r}
+1 - pchisq(sum(resid(caesar_int_glm, type = "pearson")^2), df = 3)
+```
+
+return values under 0.05,
+and so under both tests (assuming sufficient asymptotics apply),
+we reject null hypothesis that the data can be explained by these models,
+with significant level of 0.05.
+
+We can investigate why this might be by comparing the observed and fitted proportions side by side:
+
+```{r}
+tibble(
+    observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
+    fitted = round(caesar_int_glm$fitted.values, 2)
+)
+```
+
+We can see that this lines up with what we have in the book (Example 2.4),
+with a significant discrepancy in the 3rd row.
 
 ## Alternative Link Function: Probit
 
@@ -217,7 +328,7 @@ book.
 ```{r}
 caesar_glm_probit <- glm(
     Infect_count / size ~ antib + factor + noplan,
-    data = caesar_tbl,
+    data = caesar_tbl_int,
     weights = size,
     family = binomial(link = "probit")
 )
@@ -237,7 +348,7 @@ The noplan:factor interaction is insignificant.
 ```{r}
 caesar_glm_noplan_antib <- glm(
     Infect_count / size ~ factor + noplan * antib,
-    data = caesar_tbl,
+    data = caesar_tbl_int,
     weights = size,
     family = binomial
 )
@@ -259,7 +370,7 @@ of significance. Compare fitted and realized proportions as on p.53.
 ```{r}
 caesar_glm_noplan_factor <- glm(
     Infect_count / size ~ noplan + factor + antib + noplan:factor,
-    data = caesar_tbl,
+    data = caesar_tbl_int,
     weights = size,
     family = binomial
 )
@@ -273,7 +384,7 @@ summary(caesar_glm_noplan_factor)
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "pearson")^2), df = 2)
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
 
-round(caesar_tbl$Infect_count / caesar_tbl$size, 2)
+round(caesar_tbl_int$Infect_count / caesar_tbl$size, 2)
 round(caesar_glm_noplan_factor$fitted.values, 2)
 ```
 
