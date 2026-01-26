@@ -9,52 +9,130 @@ format:
 
 ## Overview
 
-This script reproduces **Examples 2.1, 2.4, and 2.6** from Fahrmeir & Tutz,
-demonstrating:
+This script reproduces **Examples 2.1, 2.4** from Fahrmeir & Tutz (pages 30 and 51).
+We consider the Caesarian birth study with 251 births.
+We consider the binary response variable $y$,
+which is 1 for infection, and 0 for no infection.
 
-- Binomial logistic regression on the Caesar dataset
-- Hypothesis testing using deviance and Pearson statistics
-- Interaction effects in GLMs
-- Model goodness-of-fit assessment
+There are 3 categorical variables:
+
+1. NOPLAN: whether or not the Caesarian was planned or not
+2. FACTOR: whether there are risk factors present or not
+3. ANTIB: whether antibiotics were given to prevent infection (rather than treat infection)
+
+We use fit the logistic regression model
+$$
+\ln\biggl(\frac{\Pr(\text{infection})}{\Pr(\text{no infection})}\biggr)
+= \beta_{0} + \beta_{1}\texttt{NOPLAN}
++ \beta_{2}\texttt{FACTOR} +\beta_{3}\texttt{ANTIB}
+$$
+to the data.
+
+We want to replicate the following table from page 30:
+
+| Covariate | Effect    |
+| :-------- | --------: |
+| 1         | -1.89     |
+| `NOPLAN`  | 1.07      |
+| `FACTOR`  | 2.03      |
+| `ANTIB`   | -3.25     |
 
 ## Data Setup
 
-We start by loading the Caesar dataset from the Fahrmeir package
-and transforming it from contingency table format to individual-level data.
-Remember to install the package "Fahrmeir" to get the dataset!
-We will only use `yl` as response for now (yes or no infection status).
+We start by loading the Caesar dataset from the Fahrmeir package.
+If you don't already have the packages installed, run
+```{r}
+#| eval: false
+install.packages(c("conflicted", "dplyr", "Fahrmeir"))
+```
+
+The `conflicted` library forces you to choose a which library
+you want to call a function from if it is in two or more loaded libraries.
+
 
 ```{r}
-#| message: false
 library(conflicted)
 library(dplyr)
 library(Fahrmeir)
+```
+
+We load the Caeser dataset in (from the Fahrmeir package),
+and inspect the top few rows using `head`.
+
+```{r}
 data(caesar)
 head(caesar)
 ```
 
-## Data Transformation
-
-Convert to tibble format for easier manipulation. Group the data by different
-combinations of the covariates, then sum the total counts and infected count for
-each combination. Finally, convert back to a usual data.frame and eliminate
-unnecessary rows (combinations of covariates) with zero cases.
+You can inspect information about the data set
+by running the following command in RStudio
 
 ```{r}
-caesar_tibble <- as_tibble(caesar)
+#| eval: false
+help(caeser)
+```
 
-caesar_grouped <- group_by(caesar_tibble, noplan, factor, antib)
+## Data Transformation
 
-caesar_summary <- summarize(
-    caesar_grouped,
+The raw `caesar` dataset has one row per birth (251 rows total). For binomial regression, we need to aggregate the data: one row per unique combination of covariates (`noplan`, `factor`, `antib`), with columns for total cases and infection counts in each group.
+
+First, convert to a tibble for clearer printing, and easier data manipulation.
+Note that tibble print the data types of each column.
+
+```{r}
+caesar_tbl <- as_tibble(caesar)
+caesar_tbl
+```
+
+### Grouping and Summarizing
+
+Now we use a **pipe** (`|>`) to chain operations together.
+Think of the pipe as saying "and then...":
+
+- Take `caesar_tbl` **and then**
+- Group rows by covariate combinations **and then**
+- Count totals and infections per group
+
+```{r}
+caesar_tbl <- caesar_tbl |>
+    group_by(noplan, factor, antib) |>
+    summarize(
+        size = sum(w),
+        Infect_count = sum(yl * w),
+        .groups = "drop"
+    )
+caesar_tbl
+```
+
+Setting `.groups = "drop"` removes the grouping after `summarize()`,
+giving us a normal tibble, and avoiding confusing behaviour in later operations.
+
+The third row has `size` zero, and so we remove it (and any other empty variable combinations)
+
+```{r}
+caesar_tbl <- caesar_tbl |>
+    dplyr::filter(size != 0)
+
+caesar_tbl
+```
+
+Here is the equivalent code (without pipes)
+
+```{r}
+#| eval: false
+# Step 1: Group by covariates
+caesar_tbl <- group_by(caesar_tbl, noplan, factor, antib)
+
+# Step 2: Compute totals per group
+caesar_tbl <- summarize(
+    caesar_tbl,
     size = sum(w),
-    Infect_count = sum(yl * w)
+    Infect_count = sum(yl * w),
+    .groups = "drop"
 )
-caesar <- as.data.frame(caesar_summary)
 
-caesar <- caesar[caesar$size != 0, ]
-row.names(caesar) <- seq_len(nrow(caesar))
-caesar
+# Step 3: Remove empty cells
+caesar_tbl <- dplyr::filter(caesar_tbl, size != 0)
 ```
 
 ## Understanding Factor Coding
@@ -66,19 +144,19 @@ way to Example 2.1 on p.30. Redefine the reference levels of these variables
 of type "factor", so the coding is exactly like example 2.1 on p.30 in F & T.
 
 ```{r}
-str(caesar)
+str(caesar_tbl)
 
-contrasts(caesar$noplan)
-contrasts(caesar$factor)
-contrasts(caesar$antib)
+contrasts(caesar_tbl$noplan)
+contrasts(caesar_tbl$factor)
+contrasts(caesar_tbl$antib)
 
-caesar$noplan <- relevel(caesar$noplan, ref = "planned")
-caesar$factor <- relevel(caesar$factor, ref = "without")
-caesar$antib <- relevel(caesar$antib, ref = "without")
+caesar_tbl$noplan <- relevel(caesar_tbl$noplan, ref = "planned")
+caesar_tbl$factor <- relevel(caesar_tbl$factor, ref = "without")
+caesar_tbl$antib <- relevel(caesar_tbl$antib, ref = "without")
 
-contrasts(caesar$noplan)
-contrasts(caesar$factor)
-contrasts(caesar$antib)
+contrasts(caesar_tbl$noplan)
+contrasts(caesar_tbl$factor)
+contrasts(caesar_tbl$antib)
 ```
 
 ## Main Effects Model
@@ -91,13 +169,13 @@ the deviance may be misleading, because it ignores the fact that deviance only
 becomes twice the log-likelihood difference when rescaled by the dispersion.)
 
 ```{r}
-caesar$noplan <- as.integer(caesar$noplan == "not")
-caesar$factor <- as.integer(caesar$factor == "risk factors")
-caesar$antib <- as.integer(caesar$antib == "antibiotics")
+caesar_tbl$noplan <- as.integer(caesar_tbl$noplan == "not")
+caesar_tbl$factor <- as.integer(caesar_tbl$factor == "risk factors")
+caesar_tbl$antib <- as.integer(caesar_tbl$antib == "antibiotics")
 
 caesar_glm <- glm(
     Infect_count / size ~ antib + factor + noplan,
-    data = caesar,
+    data = caesar_tbl,
     weights = size,
     family = binomial
 )
@@ -126,7 +204,7 @@ sum(resid(caesar_glm, type = "deviance")^2)
 1 - pchisq(caesar_glm$deviance, df = 3)
 1 - pchisq(sum(resid(caesar_glm, type = "pearson")^2), df = 3)
 
-round(caesar$Infect_count / caesar$size, digits = 2)
+round(caesar_tbl$Infect_count / caesar_tbl$size, digits = 2)
 round(caesar_glm$fitted.values, digits = 2)
 ```
 
@@ -139,7 +217,7 @@ book.
 ```{r}
 caesar_glm_probit <- glm(
     Infect_count / size ~ antib + factor + noplan,
-    data = caesar,
+    data = caesar_tbl,
     weights = size,
     family = binomial(link = "probit")
 )
@@ -159,7 +237,7 @@ The noplan:factor interaction is insignificant.
 ```{r}
 caesar_glm_noplan_antib <- glm(
     Infect_count / size ~ factor + noplan * antib,
-    data = caesar,
+    data = caesar_tbl,
     weights = size,
     family = binomial
 )
@@ -181,23 +259,24 @@ of significance. Compare fitted and realized proportions as on p.53.
 ```{r}
 caesar_glm_noplan_factor <- glm(
     Infect_count / size ~ noplan + factor + antib + noplan:factor,
-    data = caesar,
+    data = caesar_tbl,
     weights = size,
     family = binomial
 )
 
 # eqiuvalently, you can do
 # caesar_glm_noplan_factor <- glm(Infect_count/size ~  antib + noplan*factor,
-#                    data=caesar , weight=size, family=binomial)
+#                    data=caesar_tbl , weight=size, family=binomial)
 
 summary(caesar_glm_noplan_factor)
 
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "pearson")^2), df = 2)
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
 
-round(caesar$Infect_count / caesar$size, 2)
+round(caesar_tbl$Infect_count / caesar_tbl$size, 2)
 round(caesar_glm_noplan_factor$fitted.values, 2)
 ```
+
 ## Handling Separation Issues
 
 The book recommended we should add fictitious data to the two zero
@@ -206,8 +285,8 @@ total case to problematic cell. We do not reject the new model with
 noplan_factor interaction at usual levels such as 0.1 or 0.05.
 
 ```{r}
-caesar
-caesar_augment <- caesar
+caesar_tbl
+caesar_augment <- caesar_tbl
 caesar_augment$Infect_count[3] <- 0.5
 caesar_augment$size[3] <- caesar_augment$size[3] + 1
 
