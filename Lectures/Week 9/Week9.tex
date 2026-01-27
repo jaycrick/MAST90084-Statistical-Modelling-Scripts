@@ -1,0 +1,1195 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{3.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldeta}{{\boldsymbol \eta}}
+\newcommand{\boldalpha}{{\boldsymbol \alpha}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\boldgamma}{{\boldsymbol \gamma}}
+\newcommand{\boldmu}{{\boldsymbol \mu}}
+\newcommand{\boldpi}{{\boldsymbol \pi}}
+
+\newcommand{\boldvarepsilon}{{\boldsymbol \varepsilon}}
+
+\newcommand{\boldZ}{{\bf Z}}
+\newcommand{\boldV}{{\bf V}}
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 7. Random Effects Models}
+\author[Random Effects Models]{MAST90084 Statistical Modelling Slides}
+\vskip 1cm
+\institute[Ch7]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+\begin{frame}{Longitudinal data setup}
+\begin{wideitemize}
+
+\item
+Data: repeated observations $(y_{it}, \mathbf{x}_{it}), \; t=1,\cdots, T_i$, for each
+individual or unit $i=1,\cdots, n$, where $y_{it}$ is the response variable and $\mathbf{x}_{it}$ a covariate
+vector, at ``time" $t$.  
+\item
+ The $T_i$ data points for each unit $i$ comprising a cluster. 
+\item
+Responses for different clusters are 
+assumed to be  independent.
+
+\end{wideitemize}
+\end{frame}
+
+
+%frame
+\begin{frame}{}
+\begin{wideitemize}
+\item
+The models so far specify the effects of covariates  to be constant across 
+clusters (\emph{population-averaged} effects). 
+
+
+\item Inappropriate if one is interested
+in \emph{cluster- or subject-specific} effects on individual responses, because there may be unobservable heterogeneity in the effects
+across clusters.
+
+
+\item To allow for heterogeneity across clusters, \textbf{random effects} or \textbf{mixed effects} models  treat some or all covariate effects as random according to a common distribution.
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+\begin{frame}{Additional references}
+
+\begin{wideitemize}
+\item \emph{Analysis of Longitudinal Data}, 2001, 2nd edition by Diggle et al., chapter 4. ( ``ALD" for short)
+
+
+\item \emph{Extending the linear model with R}, 2016, 2nd edition by Faraway. (chapter 10-13)
+
+\end{wideitemize}
+
+
+\end{frame}
+
+%
+
+\begin{frame}[fragile] \frametitle{Outline}
+{\normalsize
+\tableofcontents}
+\end{frame}
+
+
+
+%\begin{frame}
+%
+%\begin{itemize}
+%\item 
+%We previously suggested 
+%\[
+%\mu_{it} = h(Z_{it} \beta_i) \text{ for } i = 1, \dots,n
+%\]
+%where the coefficients differ for different subject $i$, for longitudinal data. 
+%
+%\item $\Rightarrow$ requires a long time series to consistently estimate each $\beta_i$ !
+%
+%\item Crux of the problem: dimension of parameters $(\beta_1, \dots, \beta_n)$ grows with $n$
+%
+%\end{itemize}
+%
+%
+%\end{frame}
+%
+
+
+
+
+\section{\S7.1 Linear Random Effects Models for Normal Data}\label{sec:7.1}
+
+%\begin{frame}{Linear random effects models for normal data}
+%
+%\end{frame}
+
+\subsection{\S7.1.1 Linear random effects models}
+\begin{frame}{Linear random effects models (1)}
+
+
+For normal responses, the {\bf linear random effect model} is defined by:
+\begin{itemize}
+\item
+\textbf{First stage}: normal responses $y_{it}$ are assumed to have the form:
+\begin{equation}
+y_{it}=\mathbf{z}_{it}^T\boldbeta+\mathbf{w}_{it}^T\mathbf{b}_i+\varepsilon_{it}
+\label{eq-7.1.1}
+\end{equation} 
+\begin{itemize}
+\item $\boldbeta$: Population specific effect
+
+\item $\mathbf{b}_i$: \textcolor{red}{cluster specific effect}
+
+\item $\mathbf{z}_{it}$ and $\mathbf{w}_{it}$:  design vectors; often $\mathbf{w}_{it}$ is a sub-vector of $\mathbf{z}_{it}$, with $\mathbf{z}_{it}$ containing the intercept term ``1". $\mathbf{z}_{it}$,  and thus $\mathbf{w}_{it}$, depend on  covariates
+% and
+% past responses
+ :
+\[
+\mathbf{z}_{it}=\mathbf{z}_{it}(\mathbf{x}_{it}
+%, y^*_{i, t-1}
+).
+%\quad \mbox{with $y^*_{i, t-1}=(y_{i, t-1}, \cdots, y_{i1})$}.
+\]
+
+\item 
+$\varepsilon_{it}$'s are uncorrelated normals with $E(\varepsilon_{it})=0$ and 
+$\text{Var}(\varepsilon_{it})=\sigma^2_{\varepsilon}$.
+
+
+\end{itemize}
+
+\end{itemize}
+\end{frame}
+
+% new frame
+\begin{frame}
+\begin{wideitemize}
+\item In matrix notation,  (\ref{eq-7.1.1}) takes the form
+\begin{equation}\label{eq-7.1.3}
+\mathbf{y}_i=Z_i\boldbeta+W_i\mathbf{b}_i+\boldvarepsilon_i
+\end{equation}
+where 
+\begin{wideitemize}
+\item
+$\mathbf{y}_i=(y_{i1},\cdots, y_{iT_i})^T$, 
+\item $Z_i=(\mathbf{z}_{i1}, \cdots, \mathbf{z}_{iT_i})^T$,
+\item 
+$W_i=(\mathbf{w}_{i1},\cdots, \mathbf{w}_{iT_i})^T$, 
+\item $\boldvarepsilon_i=(\varepsilon_{i1}, 
+\cdots, \varepsilon_{iT_i})^T$, and
+\item  ${\boldsymbol \varepsilon}_i\sim_{i.i.d.} \text{MVN}(0, \sigma^2_\varepsilon I)$.
+\end{wideitemize}
+
+\end{wideitemize}
+\end{frame}
+
+
+% new frame
+\begin{frame}{Linear random effects models (2)}
+\begin{wideitemize}
+\item
+\textbf{Second Stage}: $\mathbf{b}_i$'s assumed to be i.i.d. (across the $i$'s)
+normal with mean $E(\mathbf{b}_i)=0$ and covariance matrix
+$\mbox{Cov}(\mathbf{b}_i)=Q$, i.e.
+\begin{equation}
+\mathbf{b}_i\sim_{iid} \text{MVN}(\mathbf{0}, Q), \quad Q>0\; \mbox{positive definite.}
+\label{eq-7.1.2}
+\end{equation} 
+\item 
+ $\{\boldvarepsilon_i\}$ and $\{\mathbf{b}_i\}$ are mutually uncorrelated.
+
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame}{Linear random effects models (3)}
+\begin{wideitemize}
+\item
+
+The model now 
+%Model (\ref{eq-7.1.3}) 
+can be rewritten as a
+% multivariate
+ {\bf heteroscedastic} linear regression model
+\begin{equation}
+\mathbf{y}_i=Z_i\boldbeta+\boldvarepsilon_i^*
+\label{eq-7.1.4}
+\end{equation}
+where the distribution vectors 
+\[
+\boldvarepsilon_i^*= W_i\mathbf{b}_i+\boldvarepsilon_i =(\varepsilon_{i1}^*, \cdots,
+\varepsilon_{iT_i}^*)^T
+\]
+ with components $\varepsilon_{it}^*=\mathbf{w}_{it}^T\mathbf{b}_i+\varepsilon_{it}$,
+are independent across clusters
+and normally distributed as:
+\begin{equation}
+\boldvarepsilon_i^*\sim \text{MVN}(\mathbf{0}, V_i), \quad \text{with}\;\
+V_i=\sigma^2_\varepsilon I+W_iQW_i^T
+\label{eq-7.1.5}
+\end{equation}
+\item
+%Equation (\ref{eq-7.1.4}), together with the covariance structure (\ref{eq-7.1.5}), 
+
+This represents the 
+\textbf{marginal version} of the linear random effects model, where the conditioning on $\mathbf{b}_i$ is
+dropped.
+\item
+%From (\ref{eq-7.1.5}) we see 
+The responses $y_{it}$ in the same cluster are, marginally, correlated.
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+\begin{frame}{Random intercept models (1) }
+\begin{wideitemize}
+\item \textbf{Linear model with random intercepts} has the form 
+\begin{equation}
+y_{it}=\tau_i+\mathbf{x}_{it}^T\boldgamma+\varepsilon_{it}
+\label{eq-7.1.6}
+\end{equation}
+where the slope coefficient $\boldgamma$ is a fixed vector constant and intercepts
+\[
+\tau_i \sim_{i.i.d. } N(\tau , \sigma^2).
+\]
+%$\tau_i$'s are assumed to be i.i.d. normal with $E(\tau_i)=\tau$ and $\mbox{Var}(\tau_i)=\sigma^2$.
+
+
+\item
+ $\tau_i-\tau$:  interpreted as effects of the cluster-specific features.
+\item
+%Assuming normality gives a 
+
+Can be written as linear random effects model in  (\ref{eq-7.1.1}) and (\ref{eq-7.1.2}) with
+$$\boldbeta^T\!=\!(\tau, \boldgamma^T), \quad \mathbf{z}_{it}^T\!=\!(1,
+\mathbf{x}_{it}^T), \quad \mathbf{w}_{it}\!=\!1, \quad \mathbf{b}_i\!=\!(\tau_i\!-\!\tau)\sim N(0, \sigma^2).$$
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Random intercept models (2)}
+\begin{wideitemize}
+\item
+Motivation  1: the random intercept may capture effects of  cluster-specific covariates that haven't been collected due
+to various reasons 
+
+\item
+Motivation  2:  takes into account intra-cluster correlation of the Gaussian outcomes. One can  check that, marginally, 
+
+\[
+\mbox{corr}(y_{it}, y_{is})=\rho_{ts}=\rho=\frac{\sigma^2}{\sigma^2_\varepsilon +\sigma^2}, \quad t\neq s.
+\]
+
+\item
+$\sigma^2_\varepsilon$ and $\sigma^2$ respectively represent
+ variability \textit{between} and \textit{within} the clusters.
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame}{Random slope models (1)}
+\begin{wideitemize}
+\item {\bf Random slope models} have the form 
+$$y_{it}=\tau_i + \mathbf{x}_{it}^T\boldgamma_i +\varepsilon_{it}$$
+where $\boldbeta_i^T=(\tau_i, \boldgamma_i^T)$ vary independently
+across clusters according to a normal density with $E(\boldbeta_i)=\boldbeta$
+and $\mbox{Cov}(\boldbeta_i)=Q>0$, i.e. 
+\[
+\boldbeta_i \sim \text{MVN}(\boldbeta, Q)
+\]
+
+
+\item
+$\boldbeta$: the population-averaged effect of $\mathbf{z}_{it}=(1, \mathbf{x}_i^T)^T$.
+
+\item 
+The variance matrix $Q$ gives $\boldbeta_i$'s heterogeneity and correlation.
+\item
+Rewrite $\boldbeta_i=\boldbeta+\mathbf{b}_i$, then $\mathbf{b}_i\sim 
+\text{MVN}(\mathbf{0}, Q)$. The model becomes a special case of (\ref{eq-7.1.1}) with $\mathbf{z}_{it}^T
+=\mathbf{w}_{it}^T=(1, \mathbf{x}_{it}^T)$.
+%\item
+%Random slope model is also called \textbf{random coefficient regression model}.
+\end{wideitemize} 
+\end{frame}
+
+
+
+
+
+\begin{frame}{Random slope models (2)}
+\begin{wideitemize}
+\item
+Motivation: In longitudinal studies, the intercept and slope coefficients can be
+specific to each short time series (cluster).
+\item Sometimes it makes sense to have only some of the coefficients to be cluster-specific:  Set $\boldsymbol \beta_i^T = (\beta_{i1}^T, \beta_{i2}^T)$, where $ \beta_{i2} = \beta_2$ for all $i$ and $E[ \beta_{i1}] = \beta_1$, then for $\boldbeta^T  =  (\beta_1^T, \beta_2^T)$,
+\[
+\boldsymbol \beta_i  \sim N\bigg(\boldbeta , 
+\left[\begin{matrix}
+  Q& 0 \\
+  0 & 0
+ \end{matrix}\right]\bigg),
+\]
+where $Q$ is positive definite; known as linear ``mixed" models.
+
+\item Rewriting $\boldbeta_i = \boldbeta + {\bf a}_i$ with 
+$
+{\bf a}_i^T = ({\bf b}_i^T, {\bf 0}^T) \text{ and } {\bf b}_i \sim N(0, Q)
+$,
+one retrieves the form in \eqref{eq-7.1.1} with ${\bf z}_{it}^T = ({\bf z}_{it1}^T, {\bf z}_{it2}^T)$ and ${\bf w}_{it} = {\bf z}_{it1}$.
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+%\begin{frame}{Multilevel models }
+%\begin{itemize}
+%\item Sometimes we can have more than one levels of clusterings and the clusters are hierarchically nested %The linear random effects model just introduced are based on a single level structure. In some applications, clustering
+%%occurs on more than one level and the clusters are hierarchically nested.
+%\item
+%E.g:  students' performance in a subject: each student is a cluster. A school to which a student belongs to comprises another level of cluster.  
+%
+%
+%%each student has two test marks at the beginning and end
+%%of the semester (response with 2 components), comprising a cluster. Each cluster is determined according to which tutorial class the student sits in
+%%and which Id number he/she has.
+%
+%
+%
+%\item Level 1 (student level):  \[y_i = \alpha_{j[i]} + \beta x_i +\epsilon_i\] for students $i = 1, \dots, n$. $j[i]$ is the index for the school containing student $i$. 
+%
+%\item Level 2 (school level): 
+%\begin{align*}
+%\alpha_j &= a  +  b u_j  + \eta_j\\
+%\end{align*}
+%for schools $j = 1, \dots, J$
+%
+%
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}
+%\begin{itemize}
+%\item $x_i$ and $u_j$ represent predictors at the student and school levels, respectively. 
+%
+%\item $\epsilon_i$ and $\eta_j$ are independent error terms at each of the two levels. 
+%
+%
+%
+%\item Of course each student can also have more than one grade so $y$ can be a vector
+%
+%
+%\item (Reference: Data Analysis Using Regression and Multilevel/Hierarchical Models, Gelman and Hill, 2007. )
+%
+%\end{itemize}
+%
+%\end{frame}
+
+
+\subsection{\S7.1.2 Statistical Inference}\label{sec:7.1.2}
+
+\begin{frame}{\S7.1.2  Statistical Inference }
+\begin{wideitemize}
+\item
+Main objective: estimate $\boldbeta$, $\sigma^2_\varepsilon$ and $Q$, and the random
+effects $\mathbf{b}_i$.
+\item
+Focus on a frequentist approach here, where $\boldbeta$, $\sigma^2_\varepsilon$
+and $Q$ are treated as \textbf{fixed} parameters.
+%\item
+%Alternatively, Bayesian methods can be applied, where $\boldbeta$, $\sigma^2_\varepsilon$
+%and $Q$ are treated as \textbf{random} parameters with some prior distribution.
+
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Known variance-covariance components (1)}
+\noindent \textbf{Situation 1}: $\sigma^2_\varepsilon$ and $Q$ are known. 
+\begin{wideitemize}
+\item
+MLE for $\boldsymbol \beta$:
+%
+%Then estimating $\boldbeta$ is usually 
+based
+on the marginal model defined by (\ref{eq-7.1.4}) and (\ref{eq-7.1.5}); easily seen to be  the weighted least squares solution
+\begin{equation}
+\hat{\boldbeta}=\left(\sum_{i=1}^n Z_i^TV_i^{-1}Z_i\right)^{-1}
+\sum_{i=1}^n Z_i^TV_i^{-1}\mathbf{y}_i.
+\label{eq-7.1.9}
+\end{equation}
+%The MLE $\hat{\boldbeta}$ can also be shown to be BLUE.
+\item
+
+Strictly speaking, the random ${\bf b}_i$ cannot be estimated, but it makes sense to talk about its distribution  given $Y=\{\mathbf{y}_1,\cdots, \mathbf{y}_n\}$. 
+
+\item Due to the linearity in the construction of the model \eqref{eq-7.1.3}, it is easy to see that $\{{\bf b}_i, \boldvarepsilon_i, {\bf y}_i\}_{i=1}^n$ are jointly normal. As such,  the conditional pdf $f(\mathbf{b}_i|Y)$ of $\mathbf{b}_i$ is  normal.
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {Known variance-covariance components (2)}
+
+\begin{wideitemize}
+
+\item Moreover, because $({\bf b}_i, \boldvarepsilon_i, {\bf y}_i)$ are independent across $i$, the conditional distribution of ${\bf b}_i$ only depends on ${\bf y}_i$, i.e. 
+\[
+f(\mathbf{b}_i|Y) = f(\mathbf{b}_i|{\bf y}_i).
+\]
+
+
+\item The conditional mean can be easily shown to be
+\begin{equation*}
+E(\mathbf{b}_i |\mathbf{y}_i)=QW_i^TV_i^{-1}(\mathbf{y}_i-Z_i \boldbeta),
+\end{equation*}
+so a natural ``estimator" for ${\mathbf{b}}_i$ is 
+\begin{equation}
+\hat{\mathbf{b}}_i =QW_i^TV_i^{-1}(\mathbf{y}_i-Z_i \hat{\boldbeta}),
+\label{eq-7.1.10}
+\end{equation}
+
+\item $\hat{\boldsymbol \beta}$ and $\hat{\mathbf{b}}_i$ constitute the best linear unbiased estimator (BLUE) for this problem.  This is the extension of classical Gauss Markov Theorem in the fixed-parameter linear regression setup to the current context with random coefficients. \cite{harville1976, harville1977}
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+\begin{frame} {Known variance-covariance components (3)}
+
+\begin{wideitemize}
+
+
+
+\item A Bayesian interpretation: If one further impose  a flat prior on $\boldsymbol \beta$ (i.e. improper uniform prior on the $\boldsymbol \beta$ space), then $(\hat{\boldsymbol \beta} , \hat{\mathbf{b}}_i)$ jointly is indeed a posterior mode. 
+
+
+\item In Assignment 4 you will work with this \textbf{empirical Bayes} approach.
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+\begin{frame}{Unknown variance-covariance components (1)}
+\noindent \textbf{Situation 2}: Unknown  $\boldtheta:=(\sigma^2_\varepsilon, Q)$. There are two approaches for estimation:
+\begin{enumerate}
+\item \emph{Maximum likelihood estimation}
+\item \emph{Restricted maximum likelihood estimation}
+\end{enumerate}
+
+
+ 
+\end{frame}
+
+
+% new frame
+\begin{frame} {Unknown variance-covariance components (2)}
+\noindent\textbf{Maximum likelihood estimation (MLE)}
+\begin{wideitemize}
+\item
+Maximize the marginal log-likelihood of the marginal model (\ref{eq-7.1.4}) and (\ref{eq-7.1.5}), equivalent to the minimisation of
+\[
+\ell(\boldbeta, \boldtheta)=\sum_{i=1}^n\left[\log |V_i (\boldtheta)|+ (\mathbf{y}_i -
+Z_i\boldbeta)^TV_i(\boldtheta)^{-1}(\mathbf{y}_i-Z_i \boldbeta)\right].
+\]
+\item
+Drawback: The MLE for $\boldtheta$ doens't take into account the loss
+in degrees of  freedom resulting from the estimation of $\boldbeta$.
+
+\item  The larger the dimension of
+$\boldbeta$, the larger is the bias of the MLE for $\boldtheta$.
+
+
+
+%The same issue happens with classical LM; recall MLE for estimating $\sigma^2$ has the denominator $n$, where as the unbiased estimator has denominator $n-p$.)
+\end{wideitemize}
+
+
+\end{frame}
+
+
+%new frame 
+\begin{frame}{Unknown variance-covariance components (3)}
+
+\begin{wideitemize}
+
+\item   For example, the MLE of $\sigma_\varepsilon^2$ for the normal linear model with no random effects (i.e., $T_i = 1$, $V_i = \sigma_\varepsilon^2 $) is 
+\[
+n^{-1}\sum_{i = 1}^n (y_i - \hat{\mu}_i)^2 ,
+\]
+whose expectation is $\sigma_\varepsilon^2 (n-p)/n$ (downward bias'ed). Here, $\hat{\mu}_i$'s are the usual least square fitted values.
+
+\item The bias becomes problematic when $p$ is large, which is typical for longitudinal data. 
+
+
+\item The restricted maximum likelihood estimators attempt to fix this.
+\end{wideitemize}
+
+\end{frame}
+% new frame
+\begin{frame}{Unknown variance-covariance components (4)}
+\noindent\textbf{Restricted maximum likelihood estimation (RMLE or REML, \cite{REML_paper})}
+\begin{wideitemize}
+
+\item To illustrate REML, it is convenient to rewrite the marginal model  (\ref{eq-7.1.4}) and (\ref{eq-7.1.5}) in a  vectorized form. For simplicity assume $T_i = T$ for all $i$.
+
+\item  ${\bf Y} \equiv ({\bf y}_1^T, \dots, {\bf y}_n^T)^T$: a long vector stacking up all  ${\bf y}_i$'s. 
+
+
+
+
+\item  Then \[
+ {\bf Y} \sim N\left({\bf Z}{\boldsymbol \beta}, {\bf V} \right),
+ \]
+where 
+\begin{wideitemize}
+\item ${\bf Z} \equiv (Z_1^T, \dots, Z_n^T)^T$, $Tn$-by-$p$.
+\item 
+${\bf V} \equiv {\bf V} (\boldtheta) = \text{diag}(V_1({\boldtheta}), \dots, V_n({\boldtheta}))$, a block diagonal matrix. 
+
+\end{wideitemize}
+
+
+\item Essentially, it is a {\bf general linear model} with covariance matrix  ${\bf V}({\boldsymbol \theta})$.
+
+\end{wideitemize}
+
+\end{frame}
+
+%new frame
+\begin{frame}{Unknown variance-covariance components (5)}
+
+\begin{wideitemize}
+
+ 
+ \item Vaguely speaking, the bias in the MLE for $\boldtheta$ comes from the ``loss in degree of freedom" from estimating $\boldbeta$. 
+ 
+ 
+ 
+ \item Key idea of REML:   Estimating $\boldtheta$ based  on the transformed data vector ${\bf Y}^* = A {\bf Y}$ such that the likelihood of ${\bf Y}^*$ is only a function of $\theta$.  The components of ${\bf Y}^*$ are known as \emph{contrasts}. 
+
+ 
+
+\end{wideitemize}
+\end{frame}
+
+% new frame
+\begin{frame}{Unknown variance-covariance components (6)}
+
+\begin{wideitemize}
+
+
+ 
+
+\item  $A$ is a $(Tn - p)$-by-$Tn$ matrix such that $A {\bf Z} = 0$, in which case the distribution of $A{\bf Y}$ easily seen to depend on ${\bf V}$ only.
+
+\item Up to additive constants, the log-likelihood of ${\bf Y}^*$ turns out to be
+\[
+\ell_1( \boldtheta,{\bf Y}^* ) = - \frac{1}{2} \log |{\bf V} | - \underbrace{\frac{1}{2} \log |{\boldZ^T \boldV^{-1}\boldZ}|}_{\text{adjustment factor}} - \frac{1}{2} ({\bf Y} - {\bf Z} \hat{\boldbeta})^T  {\bf V}^{-1} ({\bf Y} - {\bf Z} \hat{\boldbeta}),
+\]
+where $\hat{\boldbeta} := {(\boldZ^T \boldV^{-1}\boldZ)^{-1} \boldZ^T \boldV^{-1} }{\bf Y}$; 
+\item  The REML estimator is $\hat{\boldsymbol \theta}_{RMEL} \equiv \arg\max_{\boldsymbol \theta} \ell_1( {\boldsymbol \theta},{\bf Y}^* )$.
+
+\item The optimization can be simplified a bit by ``profiling out" the parameter $\sigma_\varepsilon^2$:
+
+\end{wideitemize}
+\end{frame}
+% new frame
+\begin{frame}{``Profiling out  $\sigma_\epsilon^2$"}
+
+\begin{enumerate}
+\item First, we reparamatrize $\boldtheta$ by $\tilde{\boldtheta} = (\sigma_\varepsilon^2, \tilde{Q})$, where $
+\tilde{Q} = Q/\sigma_\varepsilon^2$. As such, ${\bf V} = \sigma_\varepsilon^2 \tilde{\bf V}$, where $\tilde{\bf V}  = \text{diag} (\tilde{V}_1, \dots, \tilde{V}_n) $ for
+\[
+\tilde{V}_i= I+W_i\tilde{Q}W_i^T \text{ for } i  = 1, \dots, n.
+\]
+Moreover, by cancelling out $\sigma_\varepsilon^2$, one can also write
+\[
+\hat{\boldbeta} = {(\boldZ^T \tilde{\boldV}^{-1}\boldZ)^{-1} \boldZ^T \tilde{\boldV}^{-1} }{\bf Y}.
+\]
+
+\item For a \emph{fixed}  value of $\tilde{Q}$, one can maximize 
+\[
+\ell_1(\boldtheta, {\bf Y}^*) = \ell_1(\tilde{\boldtheta}, {\bf Y}^*) = \ell_1\left((\sigma_\epsilon^2, \tilde{Q}), {\bf Y}^*\right)
+\]
+ with respect to $\sigma_\varepsilon^2$, and will obtain, by setting $\frac{\partial \ell_1}{\partial \sigma_\varepsilon^2} = 0$, that
+\[
+\tilde{\sigma}^2_\varepsilon(\tilde{Q}) \equiv  \underset{\sigma_\varepsilon^2}{\text{argmax}} \ \ell_1(\boldtheta, {\bf Y}^*)= \frac{({\bf Y} - {\bf Z} \hat{\boldbeta} )^T  \tilde{\bf V}^{-1} ({\bf Y} - {\bf Z} \hat{\boldbeta})}{Tn - p}.
+\] 
+Note that both $\hat{\boldbeta}$ and $\tilde{\bf V}$ depend only on  $\tilde{Q}$.
+\item Lastly, maximizes $\ell_1 \big((\tilde{\sigma}^2_\varepsilon(\tilde{Q}), \tilde{Q}), {\bf Y}^*\big)$ with respect to $\tilde{Q}$, possibly with nonlinear optimization.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Unknown variance-covariance components (7)}
+\begin{wideitemize}
+
+
+
+\item E.g. In a simple normal linear model with no random effects, the REML estimate for $\sigma_\varepsilon^2$ is exactly the usual unbiased estimate
+\[
+\sum_{i = 1}^n (y_i - \hat{\mu}_i)^2 /(n-p),
+\]
+
+\item The estimator of $\boldbeta$ is then obtained using formula \eqref{eq-7.1.9}, where we substitute $\hat{V}_i = V_i(\hat{\boldsymbol \theta}_{RMEL})$.
+
+
+\item  Refer to ALD (p.69) and its references  for more discussion on the relative merits of REML and MLE. In short, these studies support that REML is preferable to MLE when $p$ is large, as it is generally less biased. 
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+%new frame
+\begin{frame} {Unknown variance-covariance components (8)}
+
+\begin{wideitemize}
+
+
+\item Alternatively, $\ell_1( {\boldsymbol \theta},{\bf Y}^* )$ can be derived using an (empirical) Bayesian formulation of the linear random effects
+model, where $\boldbeta$ are considered random variables having a totally flat prior
+distribution, e.g. $\boldbeta\sim \text{MVN}(\boldbeta^*, \Gamma)$ with
+$\Gamma\rightarrow \infty$ or $\Gamma^{-1}\rightarrow 0$, so that the prior distribution of $\boldbeta$
+is an improper uniform.
+
+\item Let $f({\bf Y}| {\boldsymbol \beta}, {\boldsymbol \theta} )$ be the multivariate normal density of  ${\bf Y}$(with the $ {\bf b}_i$'s already marginalized out). In this formulation, we can further integrate out ${\boldsymbol \beta}$ to get 
+\[
+g({\boldsymbol \theta}) := \int  f({\bf Y}| {\boldsymbol \beta}, {\boldsymbol \theta} ) d {\boldsymbol \beta}
+\]
+
+\item Up to an additive constant not involving $\boldtheta$,  $\log g({\boldsymbol \theta}) $ is actually same as the REML log-likelihood $\ell_1(\theta, {\bf Y}^*)$, hence, equivalently, $\hat{\boldsymbol \theta}_{REML} = \arg \max_{\theta}   g({\boldsymbol \theta})$; see Harville (1974) and Assignment 4.
+
+
+
+
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+
+
+
+
+ 
+\section{\S7.2 Random Effects in GLM}\label{sec:7.2}
+
+
+\begin{frame}{Generalized Linear models with random effects }
+
+For non-normal responses, one  can extend to generalized linear models (GLM) with random effects: 
+
+\ \
+
+\begin{itemize}
+\item
+\textbf{Stage 1.} The conditional density $f({\bf y}_{it}|\mathbf{b}_i)$ is of the simple uni- or multi-variate
+exponential family type with conditional mean:
+\begin{equation}
+{\boldsymbol \mu}_{it}=E({\bf y}_{it}|\mathbf{b}_i)={\bf h}({\boldsymbol \eta}_{it}), \quad \mbox{with}\quad {\boldsymbol \eta}_{it}= Z_{it} {\boldsymbol
+\beta}+ W_{it}\mathbf{b}_i
+\label{eq-7.2.2}
+\end{equation}
+where ${\bf h}(\cdot)$ is a response function, and ${\boldsymbol \eta}_{it}$ is the linear predictor.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}
+\begin{itemize}
+\item
+\textbf{Stage 2.} Cluster-specific effects $\mathbf{b}_i$ are i.i.d. with
+$E(\mathbf{b}_i)=\mathbf{0}$ and unknown $\text{Cov}(\mathbf{b}_i)=Q>0$; e.g. $\mathbf{b}_i
+\stackrel{i.i.d.}{\sim} \text{MVN}(\mathbf{0}, Q), \; i=1,\cdots, n$; or follows a more general pdf 
+\[p(\mathbf{b}_i; Q).\]
+
+
+\begin{wideitemize}
+\item 
+Conditional independence of observations within and between clusters assumed,  i.e.
+\begin{equation}
+f(Y|B; \boldbeta)=\prod_{i=1}^n f(\mathbf{y}_i|\mathbf{b}_i; \boldbeta), \quad
+\mbox{with}\quad f(\mathbf{y}_i|\mathbf{b}_i;\boldbeta)=\prod_{t=1}^{T_i}
+f(y_{it}|\mathbf{b}_i;\boldbeta)
+\label{eq-7.2.4}
+\end{equation}
+where $Y=(\mathbf{y}_1,\cdots, \mathbf{y}_n)$ and $B=(\mathbf{b}_1,\cdots,\mathbf{b}_n)$.
+\item
+Dropping conditioning on $\mathbf{b}_i$ $\Rightarrow$ observations within clusters are dependent.
+
+\item Observations in different clusters are both conditionally and marginally independent.
+\end{wideitemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example 1 : binary logistic random intercept model}
+%\noindent \textbf{Example 1. (binary logistic random intercept model)}\vspace{6pt}
+
+\begin{itemize}
+\item
+For binary  $y_{it}$, $t=1,\cdots, T_i$, $i=1,\cdots,n$
+\begin{equation}
+\pi_{it}=P(y_{it}=1|b_i)=\frac{\exp (\eta_{it})}{1+\exp(\eta_{it})}
+\label{eq-7.2.5}
+\end{equation}
+with 
+\[
+\eta_{it}=\mathbf{z}_{it}^T\boldbeta+b_i, \quad b_i \stackrel{i.i.d.}{\sim} N(0,\sigma^2),\]
+ where the design vector $\mathbf{z}_{it}$ is assumed to contain the intercept  ``1".
+\vspace{6pt}
+
+\item We will apply this  to the Ohio children RI dataset. 
+
+\end{itemize}
+\end{frame}
+
+
+%another frame
+\begin{frame}{Example 1 : binary logistic random intercept model}
+\begin{wideitemize}
+
+\item 
+Generally, if the random effect model (\ref{eq-7.2.5}) does hold, the covariate effects measured by the population-averaged model (which omits the random effect) with
+$\eta_{it}=\mathbf{z}_{it}^T\boldbeta$ are closer to zero than the true underlying subject-specific
+model. 
+
+\item This result is shown by  \cite{NKH1991}.
+
+\item This will be observed when we analyze the Ohio children dataset later. 
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Random effects GLM for multi-categorical data}
+%\noindent \textbf{Example 2. (multinomial logistic random effects model)} (1)
+\begin{wideitemize}
+\item
+Suppose each response $Y_{it}$ is $k$-categorical with coding vector $\mathbf{y}_{it}=(y_{it1},\cdots, y_{itq})^T$, where
+at time $t$,
+\[
+y_{itj} = \begin{cases}
+1  & \text{ if category $j$ is observed for individual $i$ } \\
+0 &\text{ otherwise }
+\end{cases},  
+\]
+for $j = 1, \dots, q = k-1$.
+\item
+Then multinomial random effects models for nominal or ordered responses are completely specified by conditional
+probabilities $\boldpi_{it}=(\pi_{it1}, \cdots, \pi_{itq})^T$, $q=k-1$, with
+\[
+\boldpi_{it}=\mathbf{h}(\boldeta_{it}), \quad 
+\boldeta_{it}=Z_{it}\boldbeta+W_{it}\mathbf{b}_i.
+\]
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Example 2: multinomial logistic random effects model}
+
+\begin{itemize}
+
+\item
+Specifically, a multinomial logistic random effects model accounting for cluster- and category-specific effects can be 
+given by
+$$\pi_{itj}=\frac{\exp(\eta_{itj})}{1+\sum_{j=1}^q\exp(\eta_{itj})}, \quad\mbox{with}\;
+\eta_{itj}=\alpha_{ij}+\mathbf{x}_{it}^T\boldgamma_j,\;\; j=1,\cdots, q.$$
+
+
+\item
+Assume the cluster-specific effects $\boldalpha_i=(\alpha_{i1},\cdots,\alpha_{iq})^T$ are such that 
+\[
+\boldalpha_i \stackrel{i.i.d.}{\sim}
+\text{MVN}(\boldalpha, Q)
+\]
+for mean vector $\boldalpha=(\alpha_1,\cdots,\alpha_q)^T$,  the linear predictors can be rewritten as
+$$\eta_{itj}=\alpha_j+b_{ij}+\mathbf{x}_{it}^T { \boldsymbol \gamma}_j, \quad\mbox{where}\;\;
+b_{ij}=\alpha_{ij}-\alpha_j.$$
+
+\end{itemize}
+\end{frame}
+
+
+
+%frame
+
+\begin{frame}{Example 2: multinomial logistic random effects model}
+\begin{itemize}
+
+\item
+Let $\boldbeta^T=(\alpha_1, \boldgamma_1^T, \cdots, \alpha_q,
+\boldgamma_q^T)$ and
+$\mathbf{b}_i^T=(b_{i1},\cdots, b_{iq})$ such that
+\[
+ \mathbf{b}_i \stackrel{i.i.d.}{\sim} \text{MVN}(\mathbf{0}, Q),
+\]
+ one then obtains a conditional multinomial model of form
+(\ref{eq-7.2.2}) with
+\[
+Z_{it}=\left[\begin{array}{ccccccc}1 & \mathbf{x}_{it}^T & &&&& \\ & & 1 & \mathbf{x}_{it}^T &&& \\
+& & & &\ddots & & \\ & & & && 1 & \mathbf{x}_{it}^T\end{array}\right], \quad
+W_{it}=\left[\begin{array}{ccc} 1 & \cdots & 0 \\ \vdots & \ddots & \vdots \\ 0 & \cdots & 1
+\end{array}\right]_{q\times q}
+\]
+
+\item Again the model can be developed with a latent utility variable like in Ch 3. Then the latent utility variable has to be based on a linear random effect model; see F \& T for details. 
+\end{itemize}
+\end{frame}
+
+
+%frame
+\begin{frame}{Example 3: Cumulative  random effect models for ordinal responses}
+\begin{itemize}
+\item Recall:  The cumulative model for a $k$-categorical $Y$ has the form
+\[
+P(Y \leq r ) = F(\theta_r + x'\gamma)
+\]
+for some CDF $F(\cdot)$, e.g. the logistic cdf,
+
+\item
+Longitudinal data: conditional response probabilities may be specified by
+$$\pi_{it1}=F(\theta_{i1}+\mathbf{x}_{it}^T\boldgamma), \quad
+  \sum_{j=1}^r\pi_{itj}=F(\theta_{ir}+\mathbf{x}_{it}^T\boldgamma), \;\; r=2,\cdots, q,$$
+with \textbf{cluster-specific thresholds} 
+\begin{equation}
+-\infty=\theta_{i0}<\theta_{i1}<\cdots < \theta_{iq}<\theta_{ik}=\infty
+\label{eq-7.2.6}
+\end{equation}
+
+\end{itemize}
+
+\end{frame}
+
+
+
+
+
+\begin{frame}{Example 3: Cumulative  random effect models for ordinal responses}
+%\noindent \textbf{Example 3. (ordered response random effects model)} (2)
+\begin{itemize}
+\item For 
+\[
+-\infty=\theta_{0}<\theta_{1}<\cdots < \theta_{q}<\theta_{k}=\infty,
+\]
+the cluster-specific thresholds can be modeled by {\bf random shifting} as 
+$$\theta_{ir}=\theta_r+b_i, \quad b_i\stackrel{i.i.d.}{\sim} N(0,\sigma^2).$$
+\item
+Then $\eta_{itr}=\theta_r+b_i+\mathbf{x}_{it}^T\boldgamma$
+\item
+The matrices in the linear form $\boldeta_{it}=Z_{it}\boldbeta
++W_{it} b_i$ are given by
+$$Z_{it}\!\!=\!\! \underbrace{\left[\begin{array}{cccc}1 & 0 & \cdots &\mathbf{x}_{it}^T \\ 0 & 1 & \cdots & \mathbf{x}_{it}^T \\
+\vdots & \ddots & \vdots & \vdots \\ 0 & \cdots & 1 & \mathbf{x}_{it}^T\end{array}\right]}_{q \times p }, \;\;
+W_{it}\!\!=\!\!\left[\begin{array}{c}1 \\ \vdots \\ 1\end{array}\right], \;\; \mbox{where}\;
+\boldbeta^T\!\!=\!(\theta_1,\cdots, \theta_q, \boldgamma^T)$$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example 3: Cumulative  random effect models for ordinal responses}
+
+\begin{itemize}
+\item
+One may also consider the more general random thresholds
+$$\boldtheta_i^T=(\theta_{i1},\cdots, \theta_{iq})^T\stackrel{i.i.d.}{\sim}\text{MVN}(
+\boldtheta=(\theta_1,\cdots,\theta_q)^T, Q), $$
+
+but the required threshold ordering (\ref{eq-7.2.6}) may break if 
+ $\theta_1 ,\dots, \theta_q$ are not well-separated and/or the variances on the diagonal of $Q$ not small enough\\
+  $\Rightarrow $ numeric problems in the estimation.
+\item
+Alternative: reparametrize $\theta_{ir}$'s as before using
+$$\alpha_{i1}=\theta_{i1}, \quad \alpha_{ij}=\log(\theta_{ij}-\theta_{i,j-1}), \quad j=2,\cdots, q$$
+where $\boldalpha_i=(\alpha_{i1},\cdots, \alpha_{iq})^T$ follows
+\[
+\boldalpha_i\stackrel{i.i.d.}{\sim}\text{MVN}(\boldalpha,  Q).
+\] 
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example 3: Cumulative  random effect models for ordinal responses}
+%\noindent \textbf{Example 3. (ordered response random effects model)} (4)
+\begin{itemize}
+\item
+The conditional response probabilities are now
+$$\pi_{it1}\!=\!F(\alpha_{i1}+\mathbf{x}_{it}^T\boldgamma), \quad \sum_{m=1}^j\!\pi_{itm}
+\!=\!F\!\left(\!\alpha_{i1}\!+\!\sum_{m=2}^j\!e^{\alpha_{im}}\!+\!\mathbf{x}_{it}^T\boldgamma
+\!\right), \quad\!\! j\!=\!2,\cdots,q.$$
+\item
+Rewriting  $\boldalpha_i=\boldalpha+\mathbf{b}_i$,
+with $\mathbf{b}_i\stackrel{i.i.d.}{\sim}\text{MVN}(\mathbf{0}, Q)$ and defining $\boldbeta=
+(\boldalpha^T, \boldgamma^T)^T$ implies design matrices
+
+\[
+Z_{it}=\left[\begin{array}{ccccc}1 &0 & \cdots & 0 & \mathbf{x}_{it}^T \\ 0 & 1 & \cdots & 0& \mathbf{0} \\
+\vdots & \vdots & \ddots & \vdots & \vdots \\ 0 & 0 & \cdots & 1 & \mathbf{0}\end{array}\right], \quad
+W_{it}=\left[\begin{array}{ccc} 1 & \cdots & 0 \\ \vdots & \ddots & \vdots \\ 0 & \cdots & 1 \end{array} \right].
+\]
+
+(Refer back to \S 3.3.3  for the details )
+\end{itemize}
+\end{frame}
+
+
+
+
+\section{\S7.4. Estimation of random-effect GLMs by integration techniques}\label{sec:7.4}
+\begin{frame}{\S7.4. Estimation of random-effect GLMs by integration techniques}
+\begin{itemize}
+
+
+\item In Section 7.4, MLE  of the fixed parameters $\boldsymbol \beta$ and $Q$ in a random effect GLM is treated.
+
+
+\item  Numerical integration is unavoidable, as suggested by the marginal log-likelihood
+
+\[
+\sum_{i =1}^n \log \int f({\bf y}_i | {\bf b}_i ; {\boldsymbol \beta}) p({\bf b}_i ;Q) d{\bf b}_i,
+\]
+
+
+\item   Techniques involved: Gauss-Hermite integration, Monte-Carlo integration; details won't be pursued.
+
+\item There are also REML-type methods for estimating GLMs with random effects; details won't be pursued.
+
+%\item an active area of research with a large variety of R packages to choose from.  
+%
+
+
+\end{itemize}
+\end{frame}
+
+
+
+
+\section{R practices}\label{sec:7.5}
+
+\begin{frame} {R practices: The package \texttt{lme4}}
+
+The R package \texttt{lme4} provides functions for fitting  random-effect models:
+
+\begin{itemize}
+
+\item \texttt{lmer}: For fitting linear mixed models, and both MLE and REML are available. 
+
+\item \texttt{glmer}: For fitting generalized linear mixed models with MLE, using integration-based methods. 
+
+%Look at how the \texttt{lmer} function in the package \texttt{lme4} which performs linear mixed model inference (Their paper in JSS /  their vignette suggested that EM algorithm isn't what they used for REML though. It seems to be using some non-linear optimizer). 
+
+
+
+
+
+\end{itemize}
+See their paper in Journal of Statistical Software \cite{lme4paper} for more ``under-the-hood" information. 
+
+\end{frame}
+
+
+% new frame
+
+\begin{frame} { Pulp mill (Chapter 10, Faraway (2016))}
+\begin{wideitemize}
+
+\item The dataset comes from  "Statistical techniques applied to production situations" by Sheldon (1960).
+
+
+\item The brightness of a handsheet, as measured by a reflectance meter,  may depend on the four shift operators, each of whom makes five handsheets $\Rightarrow$ a total of 20 observations.
+
+
+
+\item We will fit a simple random intercept linear model with no extra covariates. 
+
+\item \texttt{LM\_mixed\_effect.R}
+\end{wideitemize}
+
+
+\end{frame}
+
+\begin{frame} { PSID  (Chapter 11, Faraway (2016))}
+\begin{wideitemize}
+
+
+\item The Panel Study of Income Dynamics (PSID), begun in 1968, is a longitudinal study of a representative sample of U.S. individuals. 
+
+\item Each individual is followed for a number of years, and taken measurements for his/her income, age, education, etc. for each year.
+
+\item Using log of the income as a response, we will fit a  random slope linear model.
+\item \texttt{LM\_mixed\_effect.R}
+\end{wideitemize}
+
+
+\end{frame}
+
+\begin{frame} {Ohio children ( Example 7.3 in F \& T)}
+\begin{itemize}
+
+\item Data  for 537 children in Ohio annually from age 7 to 10. ( $n = 537$ and $T = 4$)
+
+\item Random effect logistic regression model for child ($i$) specific effect:
+
+\begin{multline*}
+\log \frac{P(\text{infection})}{ P(\text{no infection})} = \textcolor{red}{b_i} + \beta_0+ \beta_S x_S +
+ \beta_{A1} x_{A1} + \beta_{A2} x_{A2} + 
+ \beta_{A3} x_{A3} +\\
+  \beta_{S, A1} x_S x_{A1} + \beta_{S, A2} x_S x_{A2 } + \beta_{S, A3} x_S x_{A3 }. 
+\end{multline*}
+
+
+\item Mother's smoking status ``effect coded" as $x_S = 1$ for smoking, $x_S = - 1$ for non-smoking
+
+\item Age effect coded with three dummies $x_{A1}$ (Age 7) , $x_{A2}$ (Age 8), $x_{A3}$ (Age 9), where each equals $1$ if the age is hit and $-1$ if the age is $10$. 
+
+\item \alert{Caution:} {\bf No within-cluster correlation structure} specified for each child; here, we are not doing GEE like in Ch. 3. Within cluster correlations are captured by $b_i$. 
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\includegraphics[]{ohio_ranef}
+
+Note: the estimates of the fixed effects model (based on GEE in Example 6.4) bias  towards zero compared to that of the random effects models; this is  expected if the random-effects model is the ``ground truth" \cite{NKH1991}.
+\end{frame}
+
+
+
+
+% another frame
+\begin{frame}{Wine ( Example 7.4 in F \& T)}
+%\noindent \textbf{Example 3. (ordered response random effects model)} (1)
+\begin{wideitemize}
+
+
+\item Problem: How  temperature ($x_T = 1$: low, $x_T = 0$: high) and contact with skin during pressing ($x_C = 1$: yes, $x_C = 0$: No) influence the bitterness of wine ($1 = \text{nonbitter}$, \dots, $5 = \text{ very bitter}$)
+
+
+\item For each factor combination, two bottles of wine chosen randomly ($t  = 1, \dots, 8$). Tasted by nine judges 
+($i =1, \dots, 9$ ). 
+
+
+
+
+\item
+Goal: Use random effects to handle judge-specific heterogeneity of the covariate effects.
+
+
+\end{wideitemize}
+
+\end{frame}
+%new frame
+\begin{frame}{Wine ( Example 7.4 in F \& T)}
+\begin{itemize}
+
+
+\item Fixed-effect model:
+\begin{align*}
+P(y_{it} =1) &= F(\alpha_1 + \beta_T x_T  + \beta_C x_C)\\
+P(y_{it}\leq r) &= F(\alpha_1 + \sum_{s = 2}^r \exp(\alpha_s) + \beta_T x_T  + \beta_C x_C)
+\end{align*}
+for $r = 2 \dots 4$. ($F$ is the logistic distribution function.)
+ 
+\item Random-effect model:
+\begin{align*}
+P(y_{it} =1|\alpha_{1i}) &= F( a_i + \alpha_1 + \beta_T x_T  + \beta_C x_C)\\
+P(y_{it}\leq r | \alpha_{1i}) &= F(a_i + \alpha_1 + \sum_{s = 2}^r \exp(\alpha_s) + \beta_T x_T  + \beta_C x_C)
+\end{align*}
+with 
+\[
+a_i \sim_{iid} N(0, \sigma^2) 
+\]
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\includegraphics[]{wine_ranef}
+
+\end{frame}
+
+
+
+\begin{frame}[allowframebreaks]
+  \frametitle{References}    
+  \begin{thebibliography}{10}    
+
+
+            \beamertemplatearticlebibitems
+  \bibitem[Patterson and Thompson, 1971]{REML_paper}
+  Patterson, H. D., \& Thompson, R.
+    \newblock Recovery of inter-block information when block sizes are unequal..
+    \newblock { Biometrika 58.3 (1971): 545-554.}
+    
+    
+            \beamertemplatearticlebibitems
+  \bibitem[Neuhaus, Kalbfleisch \& Hauck, 1991]{NKH1991}
+Neuhaus, John M., John D. Kalbfleisch, and Walter W. Hauck.
+    \newblock A comparison of cluster-specific and population-averaged approaches for analyzing correlated binary data.
+    \newblock {International Statistical Review/Revue Internationale de Statistique (1991): 25-35.}
+    
+       \beamertemplatearticlebibitems
+      \bibitem[Harville, 1976]{harville1976}
+   Harville, David.
+    \newblock Extension of the Gauss-Markov theorem to include the estimation of random effects.
+    \newblock {The Annals of Statistics 4.2 (1976): 384-395.}
+    
+    
+                    \beamertemplatearticlebibitems
+      \bibitem[Harville, 1977]{harville1977}
+   Harville, David.
+    \newblock Maximum likelihood approaches to variance component estimation and to related problems.
+    \newblock {Journal of the American statistical association 72.358 (1977): 320-338.}
+    
+    
+          \beamertemplatearticlebibitems
+      \bibitem[Bates, Bolker \&  Walker 2015]{lme4paper}
+Douglas Bates, M. M., Ben Bolker, and Steve Walker.
+    \newblock Fitting linear mixed-effects models using lme4.
+    \newblock {Journal of Statistical Software 67.1 (2015): 1-48.}
+    
+  \end{thebibliography}
+\end{frame}
+
+\end{document}
+
+\end{document}
+

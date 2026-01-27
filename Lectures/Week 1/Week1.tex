@@ -1,0 +1,1495 @@
+\documentclass{beamer}
+\usepackage{bm}
+
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+
+
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{2.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldgamma}{{\boldsymbol \gamma}}
+\newcommand{\boldx}{{\bf x}}
+\newcommand{\bx}{{\bf x}}
+\newcommand{\bz}{{\bf z}}
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 1\& 2. Motivating Examples and univariate GLM}
+\author[Ch1 \& 2]{MAST90084 Statistical Modelling}
+\vskip 1cm
+\institute[]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung\hspace{8pt}]{}
+
+
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+
+\begin{frame} {Housekeeping}
+
+\begin{itemize}
+
+ \setlength\itemsep{1em}
+
+
+
+\item Logistics:  CANVAS ``Subject Overview" tab.
+
+
+
+ 
+
+
+\item Textbook: \emph{Multivariate Statistical Modelling based on Generalized Linear Models}, Ludwig Fahrmeir and Gerhard Tutz (\textcolor{red}{F \& T})
+
+
+
+\item Pre-requisite: Linear regression analysis (MAST 30025)
+
+
+\item Very recommended: some prior knowledge of R
+
+\item Ed discussion board:  Primary venue where you ask subject matter questions. (Emails are \underline{discouraged} as a conduit for such questions) 
+
+\end{itemize}
+
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}{Nomenclature in regression models}
+
+\begin{itemize}
+\item $\boldx$: a vector of \textcolor{red}{covariates}/independent variables/explanatory variables
+\item y: \textcolor{red}{response}/dependent variable/outcome
+\end{itemize}
+
+
+
+
+
+\end{frame}
+
+
+\begin{frame}{Linear model}
+\begin{wideitemize}
+%
+
+\item 
+The normal linear model (LM) assumes:
+\begin{equation} \label{linReg}
+y_i = \boldx_i^T\boldbeta + {\epsilon_i},
+\end{equation}
+where $\epsilon_i$'s are independent $N(0, \sigma^2)$ errors for subjects $i  =1, \dots, n$. 
+
+\item Conditional on the covariates, the implied {\bf mean model} specifies: 
+\[
+E[y_i|\boldx_i] = \boldx_i^T\boldbeta.
+\] 
+ \item ($\boldx^T \boldbeta$ is usually called a  {\bf linear predictor}, for  a generic $\bx$)
+ 
+\item The regression coefficients in $\boldbeta$ are the targets of inference. 
+
+\item  $X =  [ \boldx_1| \cdots | \boldx_n]^T$ and ${\bf y} = (y_1, \dots, y_n)^T$, the least square estimate is 
+\[\hat{\boldbeta} = (X^T X)^{-1} X^T{\bf y}.
+\]
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {General linear model	}
+\begin{wideitemize}
+
+
+
+\item For the \emph{general} linear model, a covariance structure of the errors is allowed; it assumes 
+\[
+{\boldsymbol \epsilon} = (\epsilon_1, \dots, \epsilon_n)^T \sim N(0, \sigma^2 \tilde{W})
+\]
+ for some positive definite matrix $ \tilde{W}$; boils down to the LM when $\tilde{W} = I$.
+
+\item The least square estimate is then
+\[\hat{\boldbeta} = (X^T  \tilde{W}^{-1} X)^{-1} X^T  \tilde{W}^{-1}{\bf y}.
+\]
+
+\item Restrictionl: $y_i$ must take values on the real line $\mathbb{R}$,  and stochastically behaves like normal when conditioning on $\boldx_i$. 
+
+\item Many interesting datasets in applications  have different types of $\boldx_i$ (covariates) and/or $y_i$ (response). 
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+\begin{frame}{A good part of MAST90084 is about..}
+\begin{wideitemize}
+
+
+\item Extend the normal  models to accommodate different types of data, particularly those with discrete, non-continuous response $y$.
+
+
+\item One important extension ---  \textcolor{red}{Generalized Linear Models (GLM)}
+
+
+ 
+(Caveat: not to be confused with the \emph{general linear model} above)\\
+ 
+ \end{wideitemize}
+ \begin{figure}
+  \caption{Inventors of GLMs}
+  \centering
+    \includegraphics[width=0.5\textwidth]{NandW}
+\end{figure}
+
+
+\end{frame}
+
+
+
+
+
+
+
+\begin{frame}
+\begin{center}
+Let's first get some feelings for selected datasets in F \& T. 
+\end{center}
+\end{frame}
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+\tableofcontents
+\end{frame}
+
+
+\section{\S1.1 Example 1. Caesarian  birth study}\label{sec:Ex1}
+
+\begin{frame}{Example 1. Caesarian birth  (C-section) study (1)}
+\begin{table} [!htbp]
+\caption{Data on classification of 251 births by caesarian section \label{tab1.1}}
+\begin{center}
+\begin{tabular}{|c|ccccccc|}
+\hline
+ &\multicolumn{3}{c}{\underline{Caesarian planned}} & & \multicolumn{3}{c|}{\underline{Caesarian not planned}} \\ 
+& \multicolumn{3}{c}{Infection} & & \multicolumn{3}{c|}{Infection} \\
+& I & II & non & &  I & II & non \\ \hline
+\underline{Antibiotics} & & & & & & & \\ 
+Risk-factors & 0 & 1 & 17 & &4 &7 & 87 \\
+No risk-factors & 0 & 0 & 2 & &0 &0 & 0 \\ \hline
+\underline{No antibiotics} & & & & & & & \\ 
+Risk-factors & 11 & 17 & 30 & &10 &13 & 3 \\
+No risk-factors & 4 & 4 & 32 & &0 &0 & 9 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\begin{itemize}
+\item
+y--- \texttt{Infection}, with 3 levels (Type I, Type II, non)
+\item
+\boldx ---  \begin{enumerate}
+\item
+\texttt{CP}: C-section planned or not; 
+\item
+\texttt{RF}: Having risk factors (e.g. diabetes, over-weight, etc.) or not;
+\item
+\texttt{AB}: antibiotics given as a prophylaxis? 
+\end{enumerate}
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Example 1. Caesarian birth study (3)}
+\begin{itemize}
+\item
+The data in Table~\ref{tab1.1} are \textbf{grouped data}. Can  be converted to \textbf{ungrouped data}.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{ccccc}
+\hline
+Individual & CP & RF & AB & Infection \\ \hline
+1 & 1 & 1 & 1 & II \\
+2 & 1 & 1 & 1 & non \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\
+18 & 1 & 1 & 1 & non \\
+19 & 1 & 0 & 1 & non \\
+20 & 1 & 0 & 1 & non \\
+21 & 1 & 1 & 0 & I \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\  
+251 & 0 & 0 & 0 & non \\ \hline
+\end{tabular}
+\end{center}
+
+
+CP=1 if yes and 0 if no; RF=1 if yes and 0 if no; AB=1 if yes and 0 if no.
+\end{frame}
+
+
+\begin{frame}{Example 1. Caesarian birth study (2)}
+\begin{wideitemize}
+\item
+\textbf{Aim}: Analyse the effects of the covariates on the risk of infection.
+
+%\textbf{Note}:\textit{Response} variable is also called \textit{dependent} variable or \textit{outcome} variable.
+%\item
+%\textbf{Note}: \textit{Covariate} is also called \textit{independent} variable, \textit{explanatory} variable,
+%or \textit{predictor}.
+\item
+The y (\texttt{Infection}) is \emph{categorical};  having $> 2$ levels.
+
+%\item   level values are \textit{nominal}, but may
+%also be treated as \texttt{ordinal} which makes the analysis even more difficult. 
+
+\item For the moment, ignore the two different levels of infection. Treat $y$ as binary, i.e. $y = 1$ if there is infection, and $y = 0$ if no, i.e. a Bernoulli random variable
+
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}
+
+\begin{wideitemize}
+\item  A natural model may specify
+\[
+E[y|\boldx] = P(y = 1| {\bf x}) = h(\boldx^T\boldbeta),
+\] where $h : R \rightarrow [0, 1]$ is some (sufficiently smooth) function taking values in the range $[0, 1]$ only. 
+
+ \item  $h(\cdot) $ is called a  {\bf response function}; it connects the linear predictor $\boldx^T\boldbeta$ to the expectation of the response. 
+ 
+ \item One famous instance is the \emph{logit/logistic model}, where
+ \[
+ E[y|\boldx] = \frac{\exp(\boldx^T \boldbeta)}{1 + \exp(\boldx^T \boldbeta)},
+ \]
+with $h(\eta)  = \frac{\exp(\eta)}{1 + \exp(\eta)} =  \frac{1}{1 + e^{-\eta}}$, the {\bf logistic  function}.
+ 
+
+\end{wideitemize}
+\end{frame}
+
+\section{\S1.2 Example 2. Breathing test results}\label{sec:Ex2}
+\begin{frame}{Example 2. Breathing test results}
+\begin{itemize}
+\item
+Forthofer \& Lehnen (1981) dataset: the effect of age \& smoking on breathing test results (BTRs)
+for workers in Houston
+\item
+Response: \texttt{BTR} ($3$ \emph{ordinal} levels: Normal, Borderline or Abnormal.) 
+\item
+Covariates: \texttt{Age} (2 levels) and \texttt{smoking status} (3 levels) .
+\end{itemize}
+\begin{table} [!htbp]
+\caption{BTS of Houston industrial workers \label{tab1.2}}
+\begin{center}
+\begin{tabular}{|cc|ccc|}
+\hline
+ \multicolumn{2}{|c}{} &\multicolumn{3}{c|}{Breathing test results}  \\ \cline{3-5} 
+Age & Smoking status & Normal & Borderline & Abnormal \\ \cline{1-2}
+\multirow{3}{*}{$< 40$} & Never smoked & 577 & 27 & 7 \\
+& Former smoker & 192 & 20 & 3 \\
+& Current smoker & 682 & 46 & 11 \\  \hline
+\multirow{3}{*}{$40\sim 59$} & Never smoked & 164 & 4 & 0 \\
+& Former smoker & 145 & 15 & 7 \\
+& Current smoker & 245 & 47 & 27 \\  \hline
+\end{tabular}
+\end{center}
+\end{table}
+\end{frame}
+\begin{frame}
+\begin{wideitemize}
+
+\item The response in both Example 1 and 2 are ordinal variables, as in \begin{itemize} \item $Normal < Borderline < Abnormal$ \item $\text{No Infection}< \text{Type 1} < \text{Type 2}$ \end{itemize}
+
+\item One popular \emph{ordinal regression} model is the {\bf threshold approach}, which will be covered in Ch. 3.3 of F \& T in detail.
+
+
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame}{Threshold approach (brief form)}
+\begin{itemize}
+\item $Y$ has $k$ categories
+\item Assume an unobserved continuous variable $U$ governing $Y$ in  the following way: \vspace*{-3pt}
+$$Y=r \quad\Leftrightarrow\quad \theta_{r-1}<U\leq \theta_r; \quad r=1,\cdots,k \vspace*{-3pt}$$ 
+where $-\infty=\theta_0<\theta_1<\cdots <\theta_k=+\infty$ unknown.
+ \item $Y$ is a coarser version of $U$
+
+\item
+ $U$ depends on a $p\times 1$  covariate vector $\textbf{x}$ in the following way: \vspace*{-5pt}
+$$U=-\textbf{x}^T\mbox{\boldmath $\gamma$}+\varepsilon$$
+where $\mbox{\boldmath $\gamma$}=(\gamma_1,\cdots,\gamma_p)^T$ is a vector
+parameter and $\varepsilon$ is random error with some cumulative distribution function (cdf) $F$.
+\item
+It follows that \vspace*{-5pt}
+$$P(Y\leq r |\textbf{x})=P(U\leq \theta_r)=F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}). \vspace*{-3pt}$$
+%This is called a \textbf{cumulative model} or \textbf{threshold model} with cdf $F$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+\item The prior two examples involve \emph{univariate} response, although it can take values in several categories .  
+
+\ \
+
+\item The next two examples feature \emph{multivariate} responses. 
+\end{itemize}
+\end{frame}
+
+
+\section{\S1.3 Example 3. Visual impairment study}\label{sec:Ex3}
+%
+%
+\begin{frame}{Example 3. Visual impairment study}
+\begin{table} [!htbp]
+\caption{Visual impairment data, from Liang, Zeger \& Qaqish (1992) \label{tab1.3}}
+\begin{center}
+\begin{scriptsize}
+\begin{tabular}{|c|cccc|cccc|c|}
+\hline
+& \multicolumn{4}{c}{White} & \multicolumn{4}{c|}{Black} & \\
+Visual &\multicolumn{8}{c|}{Age} & \\
+impairment & 40-50 & 51-60 & 61-70 & 70+ & 40-50
+ & 51-60 & 61-70 & 70+ & Total \\ \hline
+Left eye & &&&&&&&& \\
+Yes & 15 & 24 & 42 & 139 & 29 & 38 & 50 & 85 & 422 \\
+No & 617 & 557 & 789 & 673 & 750 & 574 & 473 & 344 & 4777 \\ \hline
+Right eye & &&&&&&&& \\
+Yes & 19 & 25 & 48 & 146 & 31 & 37 & 49 & 93 & 448 \\
+No & 613 & 556 & 783 & 666 & 748 & 575 & 474 & 336 & 4751 \\ \hline
+\end{tabular}
+\end{scriptsize}
+\end{center}
+\end{table}
+\begin{itemize} 
+\item 
+\textbf{Aim}: find the effect of race and age on visual impairment.
+\item
+Vector binary \textbf{response} variable $(y_{i1}, y_{i2})$, where for subject $i$,
+\begin{itemize}
+\item
+$y_{i1}=1$ if left-eye impaired, 0 otherwise;
+\item
+ $y_{i2}=1$ if right-eye impaired, 0 otherwise. 
+ \end{itemize}
+ \item
+\textbf{Covariates}: \texttt{Age} (yrs.), \texttt{Race} (W or B).
+
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\begin{itemize}
+\item
+\textbf{Complication}: We have a \emph{bivariate} binary response with potentially \emph{correlated} components: $y_{i1}$ and $y_{i2}$ (impairment of left and right eyes)
+\item The \textbf{marginal model} (in Ch 3) specifies:
+\ \
+
+\begin{wideitemize}
+\item Marginal mean:  For each $j = 1, 2$, 
+\[
+\mu_{ij} = E[y_{ij}|{\bf x}_{ij}] = h({\bf z}^T_{ij} \boldbeta),
+\] where ${\bf z}_{ij}$ is just some transformation of ${\bf x}_{ij}$ (such as adding an intercept term)
+\item Marginal variance: 
+\[
+\sigma_{ij}^2=\mbox{var}(y_{ij}|{\bf x}_{ij})=v(\mu_{ij})\phi
+\]
+ for some parameter $\phi$ and known variance function $v(\cdot)$
+\item $\text{corr}(y_{i1}, y_{i2})=c(\mu_{i1}, \mu_{i2}, {\boldsymbol \alpha})$ for some known function $c(\cdot, \cdot, \cdot)$ and additional parameter $\boldsymbol \alpha$
+\end{wideitemize}
+
+
+\item Magic: Even if the correlation structure is incorrectly specified, the $\boldbeta$  can still be consistently estimated as long as the marginal mean model is correct!
+
+\end{itemize}
+\end{frame}
+
+\section{\S1.4 Example 4. Ohio children respiratory infection}\label{sec:Ex4}
+\begin{frame}{Example 4. Respiratory infection (RI) in Ohio children }
+\begin{table} [!htbp]
+\caption{Presence and absence of {\bf respiratory infection} (RI) \label{tab1.4}}
+\begin{center}
+\begin{scriptsize}
+\begin{tabular}{|ccccc|ccccc|}
+\hline
+\multicolumn{5}{|c|}{Mother did not smoke} & \multicolumn{5}{c|}{Mother smoked}  \\
+\multicolumn{4}{|c}{Age of child} & Frequency & \multicolumn{4}{c}{Age of child} & Frequency \\
+7 & 8 & 9 & 10 & & 7 & 8 & 9 & 10 & \\ \hline
+0 & 0 & 0 & 0& 237 & 0 & 0 & 0 & 0& 118 \\
+0 & 0 & 0 & 1 & 10 & 0 & 0 & 0 & 1& 6 \\
+0 & 0 & 1 & 0& 15 & 0 & 0 & 1 & 0& 8 \\
+0 & 0 & 1 & 1& 4 & 0 & 0 & 1 & 1 & 2 \\ \hline
+0 & 1 & 0 & 0& 16 & 0 & 1 & 0 & 0& 11 \\
+0 & 1 & 0 & 1 & 2 & 0 & 1 & 0 & 1& 1 \\
+0 & 1 & 1 & 0& 7 & 0 & 1 & 1 & 0& 6 \\
+0 & 1 & 1 & 1& 3 & 0 & 1 & 1 & 1 & 4 \\ \hline
+1& 0 & 0 & 0& 24 & 1 & 0 & 0 & 0& 7 \\
+1 & 0 & 0 & 1 & 3 & 1 & 0 & 0 & 1& 3 \\
+1 & 0 & 1 & 0& 3 & 1 & 0 & 1 & 0& 3 \\
+1 & 0 & 1 & 1& 2 & 1 & 0 & 1 & 1 & 1 \\ \hline
+1 & 1 & 0 & 0& 6 & 1 & 1 & 0 & 0& 4 \\
+1 & 1 & 0 & 1 & 2 & 1 & 1 & 0 & 1& 2 \\
+1 & 1 & 1 & 0& 5 &  1 & 1 & 1 & 0& 4 \\
+1 & 1 & 1 & 1& 1 & 1 & 1 & 1 & 1 & 7 \\ \hline
+\end{tabular}
+\end{scriptsize}
+\end{center}
+\end{table}
+\end{frame}
+
+
+
+\begin{frame}{Example 4. RI in Ohio children }
+
+\begin{wideitemize}
+\item
+Harvard Study of Air Pollution and Health (Laird, Beck \& Ware, 1984).
+\item
+537 children examinated  annually from age 7 to 10 for the presence  of RI
+\item
+\textbf{Response}: presence/absence of RI at each  age, for each child.
+\item
+Repeated measurements of RI status  for each child is  a 
+\textcolor{red}{short time series}; these are known as \textbf{longitudinal data}. Hence, responses at difference ages may be correlated.
+
+
+
+\item 
+\textbf{Covariate(s)}: mother's smoking status (regular, non-regular) at the beginning of the study, and  the age of the child.
+\item
+\textit{Aim}: Analysing the effect of mother's smoking on children's RI
+
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame}{Example 4. RI in Ohio children}
+Table~\ref{tab1.4} presented grouped data. They can be equivalently expressed as the following ungrouped format:
+
+\begin{center}
+\begin{footnotesize}
+\begin{tabular}{|cccccc|}
+\hline
+individual & mother smoking status & \multicolumn{4}{c|}{Infection History} \\ \hline
+1 & 0 & 0 & 0 & 0& 0 \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\ 
+237 & 0 & 0 & 0 & 0& 0 \\
+238 & 0 & 0 & 0 & 0& 1 \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\ 
+247 & 0 & 0 & 0 & 0& 1 \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\ 
+531 & 1 & 1 & 1 & 1 & 1 \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\ 
+537 & 1 & 1 & 1 & 1 & 1 \\
+\hline
+\end{tabular}
+\end{footnotesize}
+\end{center}
+
+
+\end{frame}
+
+\begin{frame}
+\begin{wideitemize}
+\item An individual/subject $i \in \{1, \dots, 537\}$  is sometimes  called a ``{\bf cluster}" in this case, since each gives multiple correlated responses (the ``0 or 1" infection history over the four years). 
+\item Models  so far: effects of covariates (usually means the $\boldbeta$ vector) on the response is constant across 
+clusters ( population-averaged). 
+\item Inappropriate if children (clusters) respond differently to their mother smoking  ( cluster/subject-specific effect)
+
+\item
+\textbf{Mixed effects} models: part of the effect is modeled as{ \bf varying} (random) across the clusters; covered in Ch 7 of F \& T. 
+
+
+
+\end{wideitemize}
+
+
+
+
+\end{frame}
+
+
+\begin{frame}
+\begin{wideitemize}
+\item  $y_{it}$ (equals 1 or 0): the response of individual $i$ at age $t \in \{7, \dots,10 \}$
+\item A mixed-effects model for Ohio children data may look like: 
+\[\pi_{it} := P(y_{it} = 1|b_i) = h(\eta_{it})\] 
+
+\item $h(\cdot)$ is a response function taking values in $[0,1]$, such as
+\[
+h(\eta) = \frac{1}{1 + e^{-\eta}}
+\]
+
+\item A linear predictor can be 
+\[
+\eta_{it} =[1, 1, 1, 0, 0] \boldbeta + b_i
+\]
+ for cluster $i$ with a smoking mother  observed at age $t = 7$, where
+\begin{wideitemize}
+\item 
+$b_i$ is a cluster-specific {\bf random} effect, where $b_i \sim_{iid} N(0, 1)$ across $i$.
+
+\item $\boldbeta$ is a vector of 5 {\bf fixed} effects  corresponding to the ``intercept", ``smoking status of mother", ``age 7", ``age 8", ``age 9"
+\end{wideitemize}
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}
+\begin{wideitemize}
+\item Caveat: the more flexible/complex your model is, the harder it is to do statistical inference (in terms of parameter estimation/computation etc.)
+\item Much  research goes into balancing these two conflicting goals.
+
+\end{wideitemize}
+
+\end{frame}
+
+
+\section{\S 2.1 Univariate GLM}\label{sec:2.1}
+\subsection{\S 2.1.1 Data}
+
+\begin{frame}{\S 2.1.1 Data format (ungrouped)}
+\begin{itemize}
+\item
+$y$, univariate response
+
+\item  $\textbf{x}=(x_1,\cdots,x_m)^T$, $m$ covariate variables
+
+\item
+A sample of $n$ individuals: 
+$$(y_i, \textbf{x}_i^T)=(y_i, x_{i1},\cdots, x_{im}), \quad i=1,2,\cdots,n$$
+ in matrix form
+\begin{equation*}
+\textbf{y}=\left[\begin{array}{c} y_1 \\ \vdots \\ y_i \\ \vdots \\ y_n\end{array}\right], \quad
+X=\left[\begin{array}{ccc} x_{11} & \cdots & x_{1m} \\ \vdots & \cdots & \vdots \\
+x_{i1} & \cdots & x_{im} \\ \vdots & \cdots & \vdots \\ x_{n1} & \cdots & x_{nm} \end{array}
+\right]_{n\times m}
+\end{equation*}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.1.1 Data format (grouped)}
+\begin{itemize}
+\item 
+Two/more individuals may have same covariate values, i.e. some rows of $X$ are identical
+
+\item Individuals with  same values for $\bf x$, say $n_i$ of them,  can be grouped together.
+
+\item The group mean $\bar{y}$  is taken to be the group response. 
+
+
+\item $g = $ number of different ${\bf x}_i$
+\ \
+
+
+
+\begin{center}
+\begin{tabular}{cccc}
+& sizes & group means &  \\ \\
+Group 1 &  \multirow{5}{*}{$\left[\begin{array}{c} n_1 \\ \vdots \\ n_i \\ \vdots \\ n_g\end{array}\right]$,} 
+& \multirow{5}{*}{$\bar{\textbf{y}}=\left[\begin{array}{c} \bar{y}_1 \\ \vdots \\ \bar{y}_i \\ \vdots 
+\\ \bar{y}_g\end{array}\right]$,} & \multirow{5}{*}{$X=\left[\begin{array}{ccc} x_{11} & \cdots & x_{1m} \\ 
+\vdots & \cdots & \vdots \\ x_{i1} & \cdots & x_{im} \\ \vdots & \cdots & \vdots \\ x_{g1} & \cdots & x_{gm}
+\end{array}\right]_{g\times m}$} \\ $\vdots$ & & & \\ Group $i$ & & & \\ $\vdots$ & & & \\ Group $g$ & & &
+\end{tabular}
+\end{center}
+
+\end{itemize}
+\end{frame}
+
+\subsection{\S2.1.2 GLM}
+\begin{frame}{\S2.1.2 Generalized Linear Models (Motivation)}
+\begin{wideitemize}
+\item A normal linear model  assumes these \emph{distributional} and \emph{structural} assumptions: 
+\begin{enumerate}
+\item Conditional on ${\bf x}_1, \dots, {\bf x}_n$, the responses are independently and normally distributed as 
+\[
+y_i \sim N(\mu_i, \sigma^2), \quad i = 1, \dots, n.
+\]
+\item The (conditional) mean $\mu_i \equiv E[y_i | {\bf x}_i]$ depends on the covariate ${\bf x}_i$ as
+\[
+\mu_i  = {\bf z}^T_i \boldbeta,
+\]
+where $\bz_i$, known as the \emph{design vector}, is a function of the original covariate vector ${\bf x}_i$. E.g. $\bz_i = (1, \bx_i^T)^T$ to augment an intercept.
+\end{enumerate}
+
+\item To accommodate responses that aren't normal-like (e.g. can't take all values in $\mathbb{R}$), the  {\bf generalized linear models (GLMs)} relax these as:
+
+
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame}{\S2.1.2 GLM (Exponential family distribution)}
+\noindent
+\textbf{1. Distributional assumption}: Given $\textbf{x}_i$'s, the $y_i$'s are (conditionally) independent, and the (conditional) probability density function of $y_i$ has the \alert {exponential family form}
+$$f(y_i|\theta_i, \phi, \omega_i)=\exp\left\{\frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot \omega_i +
+c(y_i,\phi, \omega_i)\right\}, \quad \mbox{where}$$
+
+\begin{wideitemize}
+\item
+$\theta_i$ -- \textit{natural} (or \textit{canonical}) parameter;
+\item
+$\phi$ --  \textit{scale} (or \textit{dispersion}) parameter (common for all $i$);
+\item
+$b(\cdot)$ and $c(\cdot)$ --  specific functions depending on the particular  type of exponential family (normal, binomial, poisson, gamma etc. )
+\item
+$\omega_i$ is the \textit{weight} (More on this to follow). 
+%\begin{itemize}
+%\item for ungrouped data, $\omega_i=1$ ; 
+%\item for grouped data, $\omega_i$ equals $n_i$ when the group mean is the response, and equals $1/n_i$
+%when group total is the response; 
+%\end{itemize}
+\end{wideitemize}
+
+\ \
+
+\begin{center}
+(Jorgensen (1992) also calls this an exponential dispersion model (EDM))
+\end{center}
+\end{frame}
+
+
+
+
+
+
+\begin{frame}{\S2.1.2 GLM (Mean structure via link)}
+\noindent
+\textbf{2. Structural assumption}: The mean $\mu_i \equiv E(y_i|\textbf{x}_i)$ is related to the \textcolor{red}{linear predictor} $\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$}$ by
+$$\mu_i=h(\eta_i)=h(\textbf{z}_i^T\mbox{\boldmath $\beta$}), \quad\mbox{or equivalently},\quad
+\eta_i=g(\mu_i)$$
+where
+\begin{itemize}
+\item
+$h(\cdot)$ is a (sufficiently smooth) one-to-one \textit{\bf response function};
+\item
+$g(\cdot) \equiv h^{-1}(\cdot)$ is the \textit{\bf link function}, the inverse of $h(\cdot)$;
+\item
+$\mbox{\boldmath $\beta$}$ is a $p\times 1$ unknown \textit{\bf parameter} vector;
+\item
+$\textbf{z}_i$ is a $p\times 1$  \textit{\bf design} vector, $\textbf{z}_i=\textbf{z}(\textbf{x}_i)$. E.g. if $\textbf{x}_i = (x_{i1}, x_{i2})^T$, 
+$\textbf{z}(\textbf{x}_i)$ can be $(1 , x_{i1} ,   x_{i2} ,   x_{i2}^2 , x_{i1} x_{i2})^T  $.
+\end{itemize}
+
+
+\ \
+
+Hence, $\mu_i$ depends on covariates  via a response/link function. If the response function has a limited range (e.g. the logistic  function), one can model the mean of a response with the same limited range.
+
+\end{frame}
+
+\begin{frame} {\S2.1.2 GLM (Overview)}
+
+Hence, there are three main components to defining a GLM: 
+
+\ \
+
+\begin{enumerate}
+\item the particular exponential family distribution of the response
+\item the response/link function for modeling the mean
+\item the construct of the design vector
+\end{enumerate}
+
+\ \
+
+In particular, the normal linear model is a specific example of a GLM, with
+\begin{itemize}
+\item a normal distribution for the response.
+\item  an identity function as the link. 
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{\S2.1.2 GLM ($\mu$ and $\theta$)}
+\noindent
+\begin{wideitemize}
+\item The exponential family assumption  implies  a relationship between $\mu_i$ and the natural parameter $\theta_i$.
+\item One can  show (in Assignment 2) that
+\begin{wideitemize}
+\item $\mu_i=b^\prime (\theta_i)=\frac{\partial b(\theta_i)}{\partial \theta_i}$
+\item $\mbox{var} (y_i|\textbf{x}_i)=\sigma^2(\mu_i)=\frac{\phi}{\omega_i} v(\mu_i)$
+\end{wideitemize}
+where
+$v(\mu)\equiv b^{\prime\prime}(\theta)=\frac{\partial^2 b(\theta)}{\partial \theta^2}$ is called the 
+\textit{variance function}.
+
+\item  {\bf Important}: $b' : \theta \mapsto \mu $ is an increasing, and hence invertible mapping, since $b''(\theta)$, being a variance term, is $>0$. 
+
+\begin{center} {\bf So $\mu$ and $\theta$ are one-to-one via $b'(\cdot)$. }
+
+\end{center}
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+\begin{frame}{\S2.1.2 GLM (Mean determines variance)}
+
+\begin{wideitemize}
+
+\item 
+ Modeling the  mean structure  as $\mu=h(\textbf{z}^T\mbox{\boldmath $\beta$})$  also determines the variance structure
+since $\sigma^2 = \frac{\phi}{\omega} b''(\theta)$, given $\mu$ and $\theta$ are one-to-one.
+
+\item Hence the notation $v(\mu)$ for $b''(\theta)$, making the dependence on $\mu$ explicit.
+
+
+\item An exception to ``\emph{mean determines variance}" is the normal model, where $E(y|\textbf{x})$ and 
+$\mbox{var}(y|\textbf{x})$ are unrelated because $v(\mu)$ turns out to be a constant function in $\mu$; see Table \ref{tab2.1} below. 
+\item \textbf{Quasi-likelihood} approach (Ch 2.3 in F\&T) allows us to model the mean and variance structure separately, by dropping the exponential family assumption.  
+
+\end{wideitemize}
+
+\end{frame}
+
+
+
+
+\begin{frame}{\S2.1.2 GLM (Natural link)}
+%\noindent
+
+\begin{wideitemize}
+\item
+Choosing $h(\cdot)$, or equivalently $g(\cdot)$, should depend on the specific distribution of $y$. 
+
+\item E.g. If $y$ is Poisson, $h(\cdot)$ should only take values in $\mathbb{R}_{\geq 0} = [0, \infty)$. 
+\item
+
+Setting  $h(\cdot) = b'(\cdot)$, or equivalently, equating $\theta$  to the linear predictor $\eta$ as
+\[
+\theta\equiv \theta(\mu)= (b')^{-1} (\mu)= \eta\equiv \textbf{z}^T\mbox{\boldmath $\beta$},
+\]
+leads to convenient mathematical and statistical properties. (will become apparent when we talk about estimation)
+
+
+\item
+We call $g(\cdot)=(b^\prime)^{-1}(\cdot)$ the \textcolor{red}{\textit{natural} (or \textit{canonical}) link} function,
+and $h (\cdot)=b^{\prime}(\cdot)$ the \textit{\textcolor{red}{natural response} function}.
+
+\item Depending on the application, other link/response functions may be more appropriate.
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{\S2.1.2 GLM (Common exponential families)}
+\begin{table} [!htbp]
+\caption{Common exponential families} \label{tab2.1}
+\begin{center}
+{\tiny
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Distribution & $\theta (\mu)$ & $b(\theta)$ & $\phi$ & $E(y)=b^\prime(\theta)$ & $v(\mu)=b^{\prime\prime}(\theta)$
+& $\mbox{var}(y)=b^{\prime\prime}(\theta)\phi/\omega$ \\ \hline
+$\begin{array}{c} \mbox{Normal} \\ N(\mu,\sigma^2)\end{array}$ & $\mu$ & $\theta^2/2$ & $\sigma^2$ 
+& $\mu=\theta$ & 1 & $\sigma^2/\omega$ \\
+\hline
+$\begin{array}{c} \mbox{Bernoulli} \\ B(1,\pi)\end{array}$ & $\log\frac{\pi}{1\!-\!\pi}$ 
+& $\log (1\!+\!e^\theta)$ & 1 & $\pi=\frac{e^\theta}{1+e^\theta}$ &
+$\pi(1-\pi)$ & $\pi(1-\pi)/\omega$ \\ \hline
+$\begin{array}{c} \mbox{Poisson} \\ P(\lambda)\end{array}$ & $\log\lambda$ & $e^\theta$ 
+& 1 & $\lambda=e^\theta$ & $\lambda$ & $\lambda/\omega$ \\
+\hline
+$\begin{array}{c} \mbox{Gamma} \\ G(\mu,\nu)\end{array}$ & $-1/\mu$ & $-\log(-\theta)$ & $\nu^{-1}$ 
+& $\mu=-1/\theta$ & $\mu^2$ & $\mu^2\nu^{-1}/\omega$ \\ \hline
+$\begin{array}{c} \mbox{InverseGaussian} \\ IG(\mu,\sigma^2)\end{array}$ & $-1/2\mu^2$ & $-(-2\theta)^{1/2}$
+& $\sigma^2$ &  $\mu=(-2\theta)^{-1/2}$ & $\mu^3$ & $\mu^3\sigma^2/\omega$ \\ \hline
+\end{tabular}}
+\end{center}
+\end{table}
+Remember that if we set $\theta = \eta$, then:
+\begin{itemize}
+\item The column with heading ``$\theta(\mu)$" gives the natural link function.
+\item  The column with heading ``$E(y) = b'(\theta)$"  gives the natural response function.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.1.2 GLM (design vector specifics: augmenting intercept)}
+\noindent
+
+\begin{itemize}
+\item
+An intercept is often included in
+\[
+\textbf{z}=(1,\textbf{z}^{*T})^T
+\]
+where $\textbf{z}^*=\textbf{z}^*(\textbf{x})$ is a function of $\textbf{x}$, including terms like $\log(x_1)$,
+$x_2^2$, $\sin (x_m)$ etc., as well as $\textbf{x}$ itself.
+%\item
+%A categorical covariate with $k$ levels has to be coded by a $(k-1)\times 1$ dummy vector, or an equivalent
+%vector of size $q=k-1$ for it to be properly included in the design vector.
+%\item A \emph{categorical} covariate with $k$ levels can  be coded by a  vector ${\bf x} = (x^{(1)}, \dots, x^{(k-1)})$ of length $k-1$, with one level reserved as a reference. 
+
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame} {\S2.1.2 GLM (design vector specifics: dummy  and effect coding)}
+\begin{wideitemize}
+
+\item Suppose $x$ is a {\bf categorical covariate} (also called a {\bf factor}) with $k$ possible categories $1, \dots, k$ as values. 
+
+\item  $x$ is usually   coded by $q = k -1$ many components/variables $x^{(1)}, \dots, x^{(q)}$ in the design vector, with one category reserved as the ``reference" category.
+
+\item
+However, any category be picked as the reference, not necessarily category $k$.
+
+\item Anyhow, $1, \dots, k$ are just artificial numbers that we assign to some categorical values (e.g. apple, orange, pear, etc. if $x$ is ``fruit type") that may not even be numerical in nature!
+
+\end{wideitemize}
+
+
+
+\end{frame}
+
+\begin{frame}{\S2.1.2 GLM (design vector specifics: dummy  and effect coding)}
+\begin{wideitemize}
+\item  Assuming category $k$ is reserved as the ``reference", two major ways to do it are:
+
+\begin{itemize}
+\item {\bf Dummy coding}:
+
+\[
+x^{(j)} = 
+  \begin{cases} 
+   1 & \text{if  category $j$ is observed} \\
+   0      & \text{if otherwise}  
+  \end{cases}, \quad j = 1, \dots, q
+\]
+
+
+\item {\bf Effect coding}:
+
+\[
+x^{(j)} = 
+  \begin{cases} 
+   1 & \text{if } \text{ category $j$ is observed} \\
+   -1       & \text{if category $k$ is observed}  \\
+    0      & \text{if } \text{otherwise} 
+  \end{cases}, \quad j = 1, \dots, q
+\]
+
+\end{itemize}
+
+ \end{wideitemize}
+\end{frame}
+
+\begin{frame} {Dummy and effect coding example}
+
+If a covariate $x$ has categories 1, 2, 3 as values and the \textcolor{red}{category 3 is reserved as the reference}, and the two coordinates of 
+\[
+{\bf x} = (x^{(1)}, x^{(2)})
+\]
+ respectively represent categories 1 and 2, in that order, then
+ 
+ \begin{itemize}
+ \item under dummy coding,
+\begin{itemize}
+
+\item ${\bf x} = (1, 0)$ means $x$ takes on category 1 as value, 
+\item ${\bf x} = (0, 1)$ means $x$ takes on category 2 as value, 
+\item ${\bf x} = (0, 0)$ means $x$ takes on category 3 as value, 
+\end{itemize}
+
+\item under effect coding ,
+
+\begin{itemize}
+
+\item ${\bf x} = (1, 0)$ means $x$ takes on category 1 as value, 
+\item ${\bf x} = (0, 1)$ means $x$ takes on category 2 as value, 
+\item ${\bf x} = (-1, -1)$ means $x$ takes on category 3 as value, 
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Some coding interpretation}
+\begin{wideitemize}
+\item Interpretations of the regression coefficients under different coding schemes are different. 
+
+\item Continuing with the 3-category example, suppose the linear predictor has the form
+\[
+\beta_0 + {\bf x}^T \boldgamma, \text{ for } \boldgamma = (\beta_1, \beta_2)^T.
+\] 
+
+\item Under dummy coding:  $\beta_1$ (resp. $\beta_2$) is interpreted as the effect of category 1 (resp. 2) \emph{relative to} the reference category 3.  
+
+\item Under effect coding: $\beta_1$ (resp. $\beta_2$)  is interpreted as the deviation of category 1's (resp. category 2's) mean from the \emph{grand mean} (of the linear predictor) $\beta_0$:
+\begin{itemize}
+\item mean of category 1: $\beta_0 + \beta_1$
+\item mean of category 2: $\beta_0 + \beta_2$
+\item mean of category 3: $\beta_0 - \beta_1 - \beta_2$
+\item The average (grand mean) of the three  is $\beta_0$.
+\end{itemize}\
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+
+
+
+\begin{frame}{\S2.1.2 GLM (Grouped, ungrouped and the weights $\omega_i$)}
+\noindent
+\begin{itemize}
+
+
+
+\item Suppose the ungrouped data $(y_i, \bx_i^T)$, $i = 1, \dots, n$, follow a certain GLM with mean and variance structures
+\[
+E(y_i|\textbf{x}_i)=\mu_i=h(\textbf{z}_i^T\mbox{\boldmath $\beta$}), \quad
+\mbox{var}(y_i|\textbf{x}_i)=\phi v(\mu_i).
+\]
+%Suppose ungrouped data 
+%$(y_i, \textbf{x}_i^T)$, $i=1,\cdots, n$, are modelled by a GLM with
+%$$E(y_i|\textbf{x}_i)=\mu_i=h(\textbf{z}_i^T\mbox{\boldmath $\beta$}), \quad
+%\mbox{var}(y_i|\textbf{x}_i)=\phi v(\mu_i).$$
+
+
+\item For ungrouped data, the weights $\omega_i = 1$ in general. 
+
+
+
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.1.2 GLM (Ungrouped, grouped and the weights $\omega_i$)}
+\begin{wideitemize}
+
+\item
+If the data are now grouped, so the group mean $\bar{y}_i$ is  the response observation for group $i$ of
+size $n_i$ with covariate vector $\textbf{x}_i$, for $i = 1, \dots, g$.  
+
+\item Then $\bar{y}_i$ is distributed as the same exponential family again, with mean and variance structures
+\[
+E(\bar{y}_i|\textbf{x}_i)=\mu_i=h(\textbf{z}_i^T\mbox{\boldmath $\beta$}), \quad
+\mbox{var}(\bar{y}_i|\textbf{x}_i)=\textcolor{red}{n_i^{-1}}\phi v(\mu_i).
+\]
+
+
+\item So, apart from the variance function being properly adjusted 
+by a factor of $n_i^{-1}$, the same GLM applies to the grouped data as well, i.e. defining the weight $\omega_i=n_i$.
+
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame}{\S2.1.2 GLM (Grouped, ungrouped and the weights $\omega_i$)}
+
+\begin{itemize}
+
+
+
+
+\item The fact in the previous slide is not trivial; it depends on the property that the exponential dispersion model under consideration is ``reproductive", i.e. if $X_1, \dots, X_n$ are iid generic variables from an EDM, then a weighted sum of them  is also in the same EDM. 
+
+\item  (Note that $\bar{y}_i$ is a scaled sum of iid observations)
+
+
+
+\end{itemize}
+\ \
+
+Some references:
+\begin{itemize}
+\item
+\url{http://www.stat.uchicago.edu/~pmcc/seminars/SASA/glm2.pdf}
+% \href{http://www.stat.uchicago.edu/~pmcc/seminars/SASA/glm2.pdf
+%}{http://www.stat.uchicago.edu/~pmcc/seminars/SASA/glm2.pdf}
+
+\item \url{https://en.wikipedia.org/wiki/Exponential_dispersion_model}
+\item Morris C. (1982) "Natural exponential families with quadratic variance functions". Ann. Stat., 10(1), 65?80.
+\end{itemize}
+
+\end{frame}
+
+
+
+
+\subsection{\S2.1.3 GLM for continuous responses}\label{sec:2.1.3}
+\begin{frame}{\large \S2.1.3 GLM for normal responses }
+When $y\sim \mbox{Normal}(\mu,\sigma^2)$, it has pdf
+\begin{align*}
+f(y) &= \frac{1}{\sqrt{2 \pi}\sigma} \exp\Bigg( \frac{- (y - \mu)^2}{2 \sigma^2}\Bigg)\\
+&= \frac{1}{\sqrt{2 \pi}\sigma} \exp\Bigg( \frac{y \mu - \mu^2/2}{ \sigma^2}   - \frac{y^2}{2 \sigma^2}   \Bigg)
+\end{align*}
+
+\begin{enumerate}
+\item  $b(\theta)=\theta^2/2 = \mu^2/2$, 
+\item  $\theta=\mu$,
+\item $\phi=\sigma^2$,
+\item $v(\mu) = b''(\theta)=1$.
+\end{enumerate}
+\begin{itemize}
+
+
+\item A happy coincidence:  $v(\cdot)$ is just a constant ($1$) in the mean. 
+
+\item  $\Rightarrow$ the mean doesn't dictate the variance structure.
+
+\item If we use the natural link $\mu=\eta=\textbf{z}^T\mbox{\boldmath $\beta$}$, we recover the classical linear model (LM) with normal errors. 
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\large \S2.1.3 GLM for Gamma responses}
+When $y$ has a Gamma distribution, the pdf is
+\begin{align*}
+f(y|\mu,\nu)&=\frac{1}{\Gamma(\nu)}\left(\frac{\nu}{\mu}\right)^\nu y^{\nu-1}\exp\left(-\frac{\nu}{\mu}y\right)\\
+&= \frac{y^{\nu-1}}{\Gamma(\nu)} \exp \Bigg( \frac{ - y \mu^{-1}- \log(\mu)}{\nu^{-1}} + \nu \log (\nu ) \Bigg) \text{ for } y \geq 0,
+\end{align*}
+where $\mu>0$ is the mean parameter, and $\nu>0$ the shape parameter.
+\begin{itemize}
+\item E.g. survival time, insurance claims, amount of rainfall, etc, which are always non-negative.
+\item
+The natural link is $\eta=\theta= - \mu^{-1}$.  This restricts $\eta$ to be -ve since $\mu >0$. (Again recall linear predictor $\eta\equiv \textbf{z}^T\mbox{\boldmath $\beta$}$.)
+\item
+Alternative links are
+
+\begin{itemize}
+
+\item identical link: $\eta=\mu$
+\item log link:  $\eta=\log \mu$  (freeing the restriction $\eta < 0$ in the natural link since $\exp(\eta) \geq 0$ for all $\eta \in \mathbb{R}$)
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+%\begin{frame}{\large \S2.1.3 GLM for Inverse Gaussian response }
+%\begin{itemize}
+%\item
+%When $y$ has an inverse Gaussian distribution $\mbox{IG}(\mu,\sigma^2)$ (useful for modelling life time etc.), the pdf is
+%\begin{eqnarray*}
+%f(y|\mu,\sigma^2) &\!\!\!=\!\!\!&\left(\frac{1}{2\pi\sigma^2 y^3}\right)^{1/2}\exp\left(-\frac{(y-\mu)^2}{2\sigma^2\mu^2y}
+%\right), \quad\!\!\! y>0, \mu>0, \sigma^2>0 \\
+%&\!\!\!=\!\!\!& \left(\frac{1}{2\pi\sigma^2 y^3}\right)^{1/2}\exp\left\{\frac{-y\frac{1}{2\mu^2}+\frac{1}{\mu}}{\sigma^2}
+%-\frac{1}{2\sigma^2 y}\right\}
+%\end{eqnarray*}
+%\item
+%Natural parameter $\theta=-\frac{1}{2\mu^2}$;  dispersion parameter $\phi=\sigma^2$.
+%\begin{eqnarray*}
+%b(\theta)=-\frac{1}{\mu}=-(-2\theta)^{1/2} \quad \Rightarrow \quad b^\prime(\theta)=(-2\theta)^{-1/2}=\mu \\
+%\Rightarrow \; b^{\prime\prime}(\theta)\!=\!(-2\theta)^{-3/2}\!=\!\mu^3 \;\; \Rightarrow \;\;
+%v(\mu)\!=\!\mu^3 \;\; \Rightarrow \;\; \mbox{Var}(y)\!=\!\sigma^2\mu^3
+%\end{eqnarray*}
+%The natural link:  $$\eta=\theta=(b^\prime)^{-1}(\mu)=-(2\mu^2)^{-1}.$$
+%In practice $\eta=\mu^{-2}$ is used as the natural link.
+%\end{itemize}
+%\end{frame}
+
+
+\subsection{\S2.1.4 GLM for binary and binomial responses}\label{sec:2.1.4}
+\begin{frame}{\S2.1.4 GLM for binary and binomial responses }
+\begin{wideitemize}
+\item
+Let $y_i|\textbf{x}_i \sim \mbox{Binomial}(m_i,\pi_i)$
+
+\item  Assume the scaled binomials $\bar{y}_i\equiv\frac{y_i}{m_i}$, $i=1,\cdots,n$,  are used as the
+response. Then the corresponding pmf is {\footnotesize
+$$f(\bar{y}_i|m_i, \pi_i,\textbf{x}_i)\!=\!{m_i\choose y_i}\pi_i^{y_i}(1-\pi_i)^{m_i\!-\!y_i}\!=\!{m_i\choose y_i}\exp\left\{
+m_i\bar{y}_i\log\frac{\pi_i}{1\!-\!\pi_i}+m_i\log (1\!-\!\pi_i)\right\}$$}
+\item
+Natural parameter $\theta_i=\log\frac{\pi_i}{1-\pi_i}$; dispersion $\phi=1$; weight $\omega_i=m_i$.
+\item The scaled binomial may treated as the average from $m_i$ many grouped binary observations. 
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame}
+\begin{itemize}
+\item
+Recall: Need only $b(\cdot)$ to  learn about the mean and the variance
+\item For scaled binomial with weight $m_i$, 
+ \[
+ b(\theta_i)=-\log (1-\pi_i)=\log (1+e^{\theta_i}) 
+ \]
+\begin{align*}
+&\Rightarrow \quad 
+\mu_i = b^\prime(\theta_i)=\frac{e^{\theta_i}}{1+e^{\theta_i}}=\pi_i\\
+& \Rightarrow\quad b^{\prime\prime}(\theta_i)=\frac{e^{\theta_i}}{(1+e^{\theta_i})^2}=\pi_i(1-\pi_i)
+=v(\pi_i)\\
+&\Rightarrow\quad \mbox{Var}(\bar{y}_i|\textbf{x}_i)=\sigma^2(\mu_i)=\phi v(\mu_i)/\omega_i
+=m_i^{-1}\pi_i(1-\pi_i)
+\end{align*}
+
+
+%{\small $$\Rightarrow\quad b^{\prime\prime}(\theta_i)=\frac{e^{\theta_i}}{(1+e^{\theta_i})^2}=\pi_i(1-\pi_i)
+%=v(\pi_i)$$}
+%$\Rightarrow\quad \mbox{Var}(\bar{y}_i|\textbf{x}_i)=\sigma^2(\mu_i)=\phi v(\mu_i)/\omega_i
+%=m_i^{-1}\pi_i(1-\pi_i)$.
+
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{\S2.1.4 GLM for binary and binomial responses }
+\begin{itemize}
+\item
+The natural link is the logit link: 
+\[\eta_i=\theta_i=\log\frac{\pi_i}{1-\pi_i}=(b^\prime)^{-1}(\pi_i),\]
+ with the corresponding {\bf logistic} response function
+\[
+\pi_i = \frac{\exp(\eta_i)}{1 + \exp(\eta_i)}. 
+\]
+These correspond to the well-known  logistic/logit regression model.
+
+
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+
+%Other models of the form 
+%\[
+%\pi = h(\eta)
+%\]
+Other strictly monotonous response functions $h: \mathbb{R} \rightarrow [0, 1]$:
+\begin{enumerate} 
+\item
+\textbf{Probit Model}:  \[\pi_i = \Phi(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}), \] where $\Phi(\cdot)$ is the N(0,1) cdf. 
+
+\item
+\textbf{Complementary log-log Model}:
+\[
+\pi_i = h(\eta_i)\!=\!1\!-\!\exp(\!-\!\exp(\!\eta_i\!)\!)
+\]
+with link function 
+$
+ \textbf{z}_i^T\!\mbox{\boldmath $\beta$}= \log (-\log(1-\pi_i)).
+$
+
+\item
+\textbf{Complementary log Model} 
+\[
+ \pi_i = h(\eta_i)  = 
+  \begin{cases} 
+   1 - \exp(- \eta_i) & \text{if } \eta_i \geq 0 \\
+   0       & \text{if } \eta_i < 0
+  \end{cases}
+\]
+
+
+with link function $-\log(1-\pi_i)=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}.$
+
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}
+
+
+
+\begin{figure}
+ \centering
+\includegraphics[width=1\textwidth]{BinaryResponseFunctions.png}
+ \label{figure:example}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{\S2.1.4 Over-dispersion issue with binary data modeling}
+\begin{wideitemize}
+
+\item In applications, what  often happens is that the binary data may suggest  
+\[
+\mbox{var}(\bar{y}_i|\textbf{x}_i) > \frac{\pi_i(1-\pi_i)}{m_i},
+\]  making the binomial modeling problematic. 
+
+\item One  reason for this  \textbf{over-dispersion}:
+\begin{itemize}
+%\item
+%Unobserved heterogeneity, i.e. different Bernoulli trials in the data have different probabilities of ``success".
+\item
+Positive correlation between individual Bernoulli trials within a cluster; only happens if $n_i > 1$. (e.g., different units in a group may be correlated, such as members in a household)
+\end{itemize}
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Teaser: quasi-likelihood model for binary data}
+\begin{wideitemize}
+\item
+One can account for this by assuming 
+\[\mbox{var}(\bar{y}_i|\textbf{x}_i) =\phi\cdot\frac{\pi_i(1-\pi_i)}{m_i},
+\]
+with an over-dispersion parameter $\phi>1$. 
+
+\item Variance-structure modeling as such is a simple form of  \emph{quasi-likelihood} model, which will be covered later in detail (in Ch 2.3 of F\& T). 
+
+
+
+
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame}{Teaser: quasi-likelihood model for binary data}
+\begin{wideitemize}
+
+
+\item \alert{Caution}: Quasi-likelihood modeling is {\bf not} the same as setting $\phi \not= 1$ in the exponential family form of the binomial distribution! 
+
+\item Only $\phi = 1$ can give a proper binomial density that integrates to $1$.
+
+
+\item However, a genuine likelihood is not actually needed for inference; more on this later when we cover \emph{quasi-likelihood} inference. 
+
+
+
+
+\item Alternatively, one  may assume  a \textbf{beta-binomial distribution}, which  is a proper probability distribution that does allow for variance of the form $\phi \frac{\pi_i(1-\pi_i)}{m_i}$ for $\phi >1$.
+\end{wideitemize}
+
+\end{frame}
+
+\subsection{\S2.1.5 GLM for count responses}\label{sec:2.1.5}
+\begin{frame}{\S2.1.5 GLM for count responses}
+\begin{wideitemize}
+\item
+If $y_i|\textbf{x}_i \sim \mbox{Poisson}(\lambda=\mu_i)$ with $E(y_i|\textbf{x}_i)=\mu_i$
+and $\mbox{var}(y_i|\textbf{x}_i)=\mu_i$.
+
+\item The natural/canonical parameter is
+$\theta_i=\log\mu_i$
+
+\item This leads to the natural link  \textbf{log-link} $\eta_i=\log\mu_i$, resulting in
+the \textbf{log linear model}:
+\[
+\log\mu_i=\eta_i=\textbf{z}_i^T\!\mbox{\boldmath $\beta$} \quad \iff \quad
+\mu_i=\exp(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})=\exp(\eta_i).
+\]
+
+
+\item Over-dispersion in count data can occur for similar reasons as for binary data. Again,   in the quasi-likelihood framework later, we can manage that by taking over-dispersion $\phi \not= 1$ in the variance model
+\[
+\text{var}(y_i |\bx_i) = \phi \mu_i.
+\]
+
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Negative binomial distribution as alternative}
+
+\begin{wideitemize}
+\item True distributions that allow for over-dispersion of count data do exist in the exponential family, e.g. the {\bf negative binomial} distribution. 
+
+\item
+\texttt{edgeR},  a famous R package for analyzing count-based gene expression data modeled by  negative binomial distribution, is done by prominent researchers here at unimelb:
+
+\ \
+
+ \url{https://www.ncbi.nlm.nih.gov/pubmed/19910308?otool=iaumelblib} 
+
+
+\ \
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+%
+%\section{\S2.2 Likelihood Inference}\label{sec:2.2}
+%\begin{frame}{\S2.2 Likelihood Inference}
+%\begin{wideitemize}
+%\item
+%Regression analysis with GLMs is based on \textbf{likelihood}. 
+%\item
+%Inference tasks include
+%\begin{itemize}
+%\item parameter point estimation
+%\item constructing confidence intervals
+%\item hypothesis testing
+%\item  goodness-of-fit tests 
+%\end{itemize}
+%\item
+%For now we assume the model is completely and correctly specified, i.e., the GLM assumptions are all ``true" (to be relaxed when we cover quasi-likelihood).  
+%\end{wideitemize}
+%\end{frame}
+%
+%
+%
+%\subsection{\S2.2.1 Maximum likelihood estimation}\label{sec:2.2.1}
+%\begin{frame}{\S2.2.1 Maximum likelihood estimation (MLE)}
+%\begin{wideitemize}
+%\item
+%Data:  response $y_i$, covariates $\textbf{x}_i$ and design
+%vector $\textbf{z}_i = {\bf z}_i(\textbf{x}_i)$, $i=1,2,\cdots, n$.
+%
+%\item
+%Assumptions: 
+%\begin{wideitemize}
+%\item  design matrix $Z = Z_{n\times p}=(\textbf{z}_1,\cdots,\textbf{z}_n)^T$ has (full) rank $p$
+%\item  scale/dispersion parameter $\phi$ is
+%assumed known or otherwise consistently estimated. 
+%\end{wideitemize}
+%
+%\item 
+%(Also recall that we treat the design vectors as non-random)
+%
+%\item We will estimate $\mbox{\boldmath $\beta$}$ by the {\bf maximum likelihood estimate} (MLE) $\hat{\boldsymbol \beta}$. 
+%\end{wideitemize}
+%
+%\end{frame}
+%
+%\begin{frame}{\S2.2.1 Maximum likelihood estimation (MLE)}
+%
+%%The focus is estimating $\mbox{\boldmath $\beta$}$. 
+%The MLE maximizes the log-likelihood, treated as a function in $\boldsymbol \beta$. Now the log-likelihood function is {\footnotesize
+%\begin{eqnarray*}
+%\ell(\mbox{\boldmath $\beta$})&=&\sum_{i=1}^n\ell_i(\mbox{\boldmath $\beta$})
+%=\sum_{i=1}^n \log f(y_i|\theta_i,\phi,\omega_i) \\
+%&=&\sum_{i=1}^n \frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot\omega_i
+%+(\mbox{terms not involving $\theta_i$'s} )\\
+%&=& \sum_{i=1}^n \frac{y_i\theta (\mu_i)-b(\theta(\mu_i))}{\phi}\cdot\omega_i  + (ditto)\\
+%&=&\sum_{i=1}^n \frac{y_i\theta (h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))-
+%b(\theta(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})))}{\phi}\cdot\omega_i + (ditto)
+%\end{eqnarray*}}
+%
+%
+%
+% We find $\hat{\boldsymbol \beta}$ by solving for the root  of the derivative of $\ell$. 
+%\end{frame}
+%
+%\begin{frame}{\S2.2.1 Maximum likelihood estimation (MLE)}
+%\begin{itemize}
+%\item
+%The \textbf{score function} is the first derivative of $\ell$: {\footnotesize
+%\begin{eqnarray*}
+%\textbf{s}(\mbox{\boldmath $\beta$})&\!\!\!=\!\!\!& \frac{\partial \ell(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath 
+%$\beta$}}=\sum_{i=1}^n\frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath $\beta$}}
+%=\sum_{i=1}^n  \frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\theta_i}\cdot
+%\frac{\partial \theta_i}{\partial\mu_i}\cdot \frac{\partial \mu_i}{\partial\eta_i} \cdot
+%\frac{\partial \eta_i}{\partial\mbox{\boldmath $\beta$}}\\
+%&\!\!\!=\!\!\!&\sum_{i=1}^n \left(\frac{y_i-b^\prime(\theta_i)}{\phi}\cdot\omega_i\right)\cdot
+%\left[v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))\right]^{-1}\cdot
+% \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot \underbrace{ \textbf{z}_i }_{\frac{\partial \eta_i}{ \partial {\boldsymbol \beta}}}\\
+%&\!\!\!=\!\!\!& \sum_{i=1}^n \textbf{z}_i\cdot \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot
+%\left[ \underbrace{\frac{\phi v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))}{\omega_i}}_{\sigma^2_i({\boldsymbol \beta})}\right]^{-1}\cdot
+%\left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] 
+%\end{eqnarray*}}
+%
+%\item Supporting arguments: 
+%\begin{align*}
+%& \mu_i=b^\prime(\theta_i) \Rightarrow \quad \frac{\partial \mu_i}{\partial\theta_i}=
+%b^{\prime\prime}(\theta_i)=v(\mu_i)=v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})) \\
+%&\Rightarrow \quad   \frac{\partial \theta_i}{\partial\mu_i}=\left(\frac{\partial \mu_i}{\partial\theta_i}\right)^{-1} = [v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})) ]^{-1} \quad \text{(inverse function theorem)}
+%\end{align*}
+%\end{itemize}
+%
+%
+%
+%
+%\end{frame}
+%
+%
+%
+%
+%
+%
+%\begin{frame}{\S2.2.1 Maximum likelihood estimation (MLE)}
+%
+%\begin{itemize}
+%
+%\item
+%{\footnotesize Denote $\displaystyle D_i(\mbox{\boldmath $\beta$})=\frac{\partial \mu_i}{\partial\eta_i}
+%=\frac{\partial h(\eta_i)}{\partial\eta_i}\mid_{\eta_i=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}}$\;
+%,
+%$i=1,\cdots, n$ ($1,\cdots, g$ for grouped data).}
+%\item
+%{\footnotesize Denote $\displaystyle D(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%\{D_1(\mbox{\boldmath $\beta$}), \cdots, D_n(\mbox{\boldmath $\beta$})\}$}
+%\item
+%{\footnotesize Denote $\displaystyle \Sigma(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$})\!\! & & \\
+%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%\{\sigma_1^2(\mbox{\boldmath $\beta$}), \cdots, \sigma_n^2(\mbox{\boldmath $\beta$})\}$}
+%
+%
+%\end{itemize}
+%In matrix form we get:
+%\begin{eqnarray*}
+%%&\!\!\!\stackrel{denoted}{=} \!\!\!& \sum_{i=1}^n \textbf{z}_i D_i(\mbox{\boldmath $\beta$})
+%%\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] \\
+%\textbf{s}(\mbox{\boldmath $\beta$})&\!\!\!=\!\!\!&  \underbrace{\left[\textbf{z}_1, \cdots, \textbf{z}_n\right] }_{Z^T} \left[\!\begin{array}{ccc}
+%\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\!\right] 
+%\left[\begin{array}{ccc}\!\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$}) \!\!\! & & \\
+%&\!\!\!\!\ddots \!\!\!\!& \\ & & \!\!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]^{\!\!-1}
+%\left[\begin{array}{c} \!\!\!y_1\!-\!\mu_1(\mbox{\boldmath $\beta$}) \!\!\!\! \\
+%\!\!\!\vdots \!\!\!\! \\ \!\!\! y_n\!-\!\mu_n(\mbox{\boldmath $\beta$})\!\!\!\!\end{array}\!\right] \\
+%&\!\!\!\stackrel{\mbox{}}{=} \!\!\!& Z^TD(\mbox{\boldmath $\beta$})\Sigma^{-1}(\mbox{\boldmath $\beta$})
+%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})\right]
+%\end{eqnarray*}
+%\end{frame}
+%
+
+
+\end{document}
+
+

@@ -1,0 +1,3064 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{3.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\boldgamma}{{\boldsymbol \gamma}}
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 3. Models for Multi-categorical Responses: Multivariate Extensions of GLM }
+\author[Multivariate GLM]{MAST90084 Statistical Modelling Slides}
+\vskip 1cm
+\institute[Ch3]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+{\scriptsize
+\tableofcontents}
+\end{frame}
+
+\section{\S3.3 Models for ordinal responses} \label{sec:3.3}
+\begin{frame}{\S3.3 Models for ordinal responses}
+Response variable having $k>2$ categories may be of ordinal nature.
+
+
+
+\end{frame}
+
+\begin{frame} { Example 3.2: Breathing test results (F \& T) }
+
+\begin{figure}
+\center
+\includegraphics[width=.5\textwidth]{BreathingTest}
+
+\end{figure}
+
+\begin{wideitemize}
+
+ \item Investigates  effect of age and smoking on breathing test results (BTR) for workers in Texan industrial plants. 
+
+\item BTR has 3 levels: Normal, Borderline, Abnormal
+\item
+ The BTR  is a  \emph{grouped continuous} variable: a categorized version of a continuous variable; arises as intervals of a physical scale, such as the volume of breath. 
+
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame} {Example 3.3: Job expectations (F \& T)}
+\begin{figure}
+\center
+\includegraphics[width=.4\textwidth]{JobExpectation}
+
+\end{figure}
+
+\begin{itemize}
+
+\item Employment expectations of  University of Regensburg students upon completing their degrees; three categories. 
+\item Category 1 = (don't expect adequate employment),  Category 2 = (not sure), Category 3 =  (immediately after getting the degree).
+
+
+
+\item The  expectation is an \emph{assessed ordered} variable; it's obtained after an assessor's judgment.
+\end{itemize}
+
+\end{frame}
+
+%\begin{frame}
+%
+%
+%\end{frame}
+
+\subsection{\S3.3.1 Cumulative (or threshold) models} \label{sec:3.3.1}
+\begin{frame}{\S3.3.1 Cumulative models: the threshold approach}
+\begin{itemize}
+\item
+The response $Y$, with $k$ categories, is a categorized version  of a latent continuous variable $U$
+% for the response variable $Y$ having
+%$k$ categories.
+\item
+$Y$ determined by $U$ as \vspace*{-3pt}
+$$Y=r \quad\Leftrightarrow\quad \theta_{r-1}<U\leq \theta_r; \quad r=1,\cdots,k \vspace*{-3pt}$$ 
+where the {\bf thresholds} $-\infty=\theta_0<\theta_1<\cdots <\theta_k=+\infty$ unknown.
+
+%That means $Y$ is a coarser (categorized) version of $U$ determined by the thresholds 
+%$\theta_1, \cdots, \theta_{k-1}$.
+\item
+$U$ depends on a $p\times 1$ vector explanatory variable $\textbf{x}$ as \vspace*{-5pt}
+$$U=-\textbf{x}^T\mbox{\boldmath $\gamma$}+\varepsilon$$
+where $\mbox{\boldmath $\gamma$}=(\gamma_1,\cdots,\gamma_p)^T$ is an unknown vector
+parameter and $\varepsilon$ is random with cdf $F$.
+
+\item It follows that \vspace*{-5pt}
+$$P(Y\leq r |\textbf{x})=P(U\leq \theta_r)=F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}). \vspace*{-3pt}$$
+This is called a \textbf{cumulative model} or \textbf{threshold model} with cdf $F$.
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{\S3.3.1 Cumulative logistic (or proportional odds) model (1)}
+\begin{wideitemize}
+
+
+
+\item Suppose $F$ is the logistic funciton, i.e.
+$
+ F(x)=\left[1+e^{-x}\right]^{-1}$.
+ 
+ 
+ \item Then
+\begin{equation}
+P(Y\leq r|\textbf{x})=\frac{e^{\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}}}{1 
++e^{\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}}}, \quad r=1,\cdots, \underbrace{q}_{= k-1}.
+\label{eq-3.3.4}
+\end{equation}
+\item
+Equivalent to:
+\begin{eqnarray}
+\underbrace{\text{logit} ( P(Y\leq r|\textbf{x}))}_{\textcolor{red}{\mbox{cumulative logit link}}} &=& \log\frac{P(Y\leq r|\textbf{x})}{P(Y> r|\textbf{x})} = \theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}
+\quad\quad \mbox{or} \label{eq-3.3.5} \\
+\frac{P(Y\leq r|\textbf{x})}{P(Y> r|\textbf{x})} &=& \exp\{\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}\}
+\label{eq-3.3.6}
+\end{eqnarray}
+
+\item Remark: $\frac{e^y}{1 + e^y}$ increasing in $y$ $\Rightarrow$ $P(Y \leq 1 | {\bf x}) \leq \cdots \leq P(Y \leq q | {\bf x})$.
+
+\item The model given 
+%by 
+%(\ref{eq-3.3.4}), (\ref{eq-3.3.5}) or (\ref{eq-3.3.6})
+ is called the \textbf{cumulative
+logistic model}.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {\S3.3.1 Cumulative logistic (or proportional odds) model (2)}
+\begin{wideitemize}
+
+\item
+Suppose two populations (groups) are characterized by $\textbf{x}_1$ and $\textbf{x}_2$ respectively. Then
+$$\frac{P(Y\leq r|\textbf{x}_1)}{P(Y> r|\textbf{x}_1)} = e^{\theta_r+\textbf{x}_1^T\mbox{\boldmath $\gamma$}}
+\quad\mbox{and}\quad \frac{P(Y\leq r|\textbf{x}_2)}{P(Y> r|\textbf{x}_2)} = e^{\theta_r+
+\textbf{x}_2^T\mbox{\boldmath $\gamma$}}.$$
+\item The ratio of the cumulative odds (or {\bf cumulative odds ratio})
+\[\frac{P(Y\leq r|\textbf{x}_1)/P(Y> r|\textbf{x}_1)}{P(Y\leq r|\textbf{x}_2)/
+P(Y> r|\textbf{x}_2)}=e^{(\textbf{x}_1-\textbf{x}_2)^T\mbox{\boldmath $\gamma$}}\]
+ is the same for all $r=1,\cdots,q$ 
+ 
+ \item $\Rightarrow$
+ the log of  the cumulative odds ratio  is {\bf proportional} to the distance ${\bf x}_1 - {\bf x}_2$. 
+
+\item The model's also called a \textbf{proportional odds model}. (McCullagh 1980). 
+\end{wideitemize}
+\end{frame}
+
+
+% new frame
+
+\begin{frame}{\S3.3.1 Grouped Cox (or proportional hazards) model (1)}
+\begin{wideitemize}
+\item Suppose $F$ is the cdf of the extreme \emph{minimal}-value distribution, i.e. 
+\[
+F(x)=1-\exp\{-e^x\}.
+\]
+\item Then
+\begin{eqnarray}
+P(Y\leq r|\textbf{x}) &=& 1-\exp\{-e^{\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}}\}
+\label{eq-3.3.8} \\   \Longleftrightarrow \quad
+\underbrace{\log\left[-\log P(Y>r|\textbf{x})\right]}_{\textcolor{red}{\mbox{complementary log-log link}}}
+&=& \theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}, \quad r=1,\cdots,q
+\nonumber
+\end{eqnarray}
+\item 
+Model (\ref{eq-3.3.8}) is referred to as the \textbf{grouped Cox model} or the \textbf{proportional 
+hazards model} due to the following interpretation:
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {\S3.3.1 Grouped Cox (or proportional hazards) model (2)}
+\begin{wideitemize}
+\item  Define the \textbf{hazard function} \[
+\lambda(r|\cdot)\equiv -\frac{d}{dr}\log P(Y\geq r|\cdot) = \frac{P(Y = r| \cdot)}{P(Y \geq r| \cdot)},
+\]
+as if $r$ were continuous (like \emph{time}). 
+\item Interpretation of  $\lambda(r|\cdot)$: 
+The probability that a failure occurs instantaneously at time $r$ \underline{given no failure before time $r$}.
+
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame} {\S3.3.1 Grouped Cox (or proportional hazards) model (3)}
+\begin{wideitemize}
+\item
+For two groups characterized by $\textbf{x}_1$ and $\textbf{x}_2$ respectively,
+\[
+\log P(Y> r|\textbf{x}_1)=\log P(Y> r|\textbf{x}_2)\cdot
+e^{(\textbf{x}_1-\textbf{x}_2)^T\mbox{\boldmath $\gamma$}}, \quad r=1,\cdots, q.
+\]
+
+
+
+
+\item Differentiating w.r.t. $r$ on both sides  gives
+$$\lambda(r|\textbf{x}_1)=\lambda(r|\textbf{x}_2)\cdot
+e^{(\textbf{x}_1-\textbf{x}_2)^T\mbox{\boldmath $\gamma$}} \quad \iff \quad
+\frac{\lambda(r|\textbf{x}_1)}{\lambda(r|\textbf{x}_2)}=
+e^{(\textbf{x}_1-\textbf{x}_2)^T\mbox{\boldmath $\gamma$}},$$
+which is the same for all $r=1,\cdots,q$. 
+
+\item The log of hazard ratio is proportional to ${\bf x}_1 - {\bf x}_2$ regardless of $r$, hence the name \emph{proportional hazards}.
+
+
+\item  It is a discretized version of the continuous proportional hazard model for continuous time in survival analysis. 
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame}{\large \S3.3.1 Extreme maximal-value distribution model (1)}
+\begin{wideitemize}
+\item Suppose $F$ is the cdf of the extreme \emph{maximal}-value distribution, i.e.
+
+\[
+F(x)=\exp\{-e^{-x}\}
+\]
+\item Then
+\begin{eqnarray}
+P(Y\leq r|\textbf{x}) &\!\!=\!\!& \exp\{-e^{-(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$})}\}
+\label{eq-3.3.9} \\   \Longleftrightarrow \quad
+\underbrace{\log\left[-\log P(Y\leq r|\textbf{x})\right]}_{\textcolor{red}{\mbox{log-log link}}}
+&\!\!=\!\!& -(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}), \; r=1,\cdots,q.
+\label{eq-3.3.10}
+\end{eqnarray}
+
+\item
+Model (\ref{eq-3.3.9}) is called the \textbf{extreme maximal-value distribution
+model}.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {\large \S3.3.1 Extreme maximal-value distribution model (2)}
+
+
+
+\begin{wideitemize}
+\item There is a connection between the complementary log-log link and the log-log link models above
+
+\item One can use model (5) to estimate model (4):
+\begin{wideitemize}
+\item Define $\tilde{Y} = k + 1 - Y$ to reversing the order of the categories. 
+
+\item Estimate model (5) with $\tilde{Y}$ to give estimates $\tilde{\boldgamma}$ and $\tilde{\theta}_r$, $r = 1, \dots, q$.
+\item The estimated model of (4) for $Y$ should have parameter estimates $\hat{\boldgamma} =- \tilde{\boldgamma}$ and $\hat{\theta}_r = - \tilde{\theta}_{k-r}$, $r =1, \dots, q$.
+\end{wideitemize}
+\end{wideitemize}
+
+\end{frame}
+
+
+\subsection{\S3.3.2 Extended versions of cumulative models}\label{sec:3.3.2}
+\begin{frame}{\S3.3.2 Extended versions of cumulative models (1)}
+%\begin{itemize}
+%\item
+%Recall that an ordinal categorical response $Y$ with $k$ categories is determined by a latent variable $U$ as
+%$$Y\!=\!r \;\Leftrightarrow\; \theta_{r\!-\!1}\!<\!U\!\leq\! \theta_r; \quad r\!=\!1,\!\cdots\!,k;
+% -\infty\!=\!\theta_0<\theta_1<\!\cdots\! <\theta_k\!=\!+\infty$$
+%and $U=-\textbf{x}^T\mbox{\boldmath $\gamma$}+\varepsilon$, with $\varepsilon$ having cdf $F$.
+%\item
+%Then a \textbf{cumulative model} or \textbf{threshold model} with cdf $F$ is
+%\begin{equation} 
+%P(Y\leq r |\textbf{x})=P(U\leq \theta_r)=F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}).
+%\label{eq-3.3.3}
+%\end{equation}
+
+\begin{wideitemize}
+\item
+More generally, one may assume a linear form for the thresholds,
+$$\theta_r=\beta_{r0}+\textbf{w}^T\mbox{\boldmath $\beta$}_r, \ \ r \in \{1,\dots, q\}$$
+where $\textbf{w}$ is a vector of explanatory variables and 
+\[
+\mbox{\boldmath $\beta$}_r=(\beta_{r1},
+\cdots,\beta_{rm})^T
+\]
+ is a \textit{category-specific} parameter vector.
+\item 
+An \textbf{extended cumulative model} is then obtained:
+\begin{equation}
+P(Y\leq r|\textbf{x}, \textbf{w})=F(\beta_{r0}+\textbf{w}^T\mbox{\boldmath $\beta$}_r+
+\textbf{x}^T\mbox{\boldmath $\gamma$}). \label{eq-3.3.11} 
+\end{equation}
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{\S3.3.2 Extended versions of cumulative models (2)}
+\textbf{Remarks}
+\begin{enumerate}
+\item
+In model (\ref{eq-3.3.11}), $\boldgamma$ becomes \underline{unidentifiable} from $\boldbeta_r$ if 
+\[
+\textbf{w}_i=\textbf{x}_i \text{ for each } i=1,\cdots,n, 
+\]
+i.e., it will not be possible to separate $\mbox{\boldmath $\gamma$}$ from
+each $\mbox{\boldmath $\beta$}_r$ if $\textbf{w}_i=\textbf{x}_i$.
+
+\ \
+
+\item
+So $\textbf{w}_i$ and $\textbf{x}_i$ must not be the same.
+
+%\ \
+%
+%\item
+%%$\mbox{\boldmath $\beta$}_r$ can be global, while 
+%$\mbox{\boldmath $\gamma$}$ can be replaced
+%by a category-specific parameter.
+
+\ \
+
+\item Terminology: 
+\begin{wideitemize} \item
+$\textbf{w}_i$:  \textbf{\textcolor{red}{threshold variables}}.(changing the threshold $\theta_r$'s)
+ \item $\textbf{x}_i$:   
+\textbf{\textcolor{red}{shift variables}}. (shifting the latent variable $U$)
+\end{wideitemize}
+\end{enumerate}
+\end{frame}
+
+\subsection{\S3.3.3 Link functions and design matrices for cumulative models}\label{sec:3.3.3}
+\begin{frame}{\S3.3.3 Cumulative models as MGLMs}
+\begin{wideitemize}
+
+\item Suppose $\pi_1 \equiv P(Y\!=\!1)$, $\dots$, $\pi_q \equiv P(Y\!=\!q)$ and $\pi_k \equiv 1 - \sum_{r =1}^q \pi_r$.
+
+\item Already know:   the  $q$-vector ${\bf y}$ that ``dummy-codes" $Y$ with reference level $k$ is multinomial-distributed; hence an exponential family.
+
+
+\item The structural assumption of cumulative models: The link function $\mathbf{g}\!=\!(g_1,\cdots, g_q)^T$,
+as a vector-valued  function of the mean vector $(\pi_1, \dots, \pi_q)^T$, is given by
+$$g_r(\pi_1,\cdots,\pi_q)=F^{-1}(\pi_1+\cdots+\pi_r), \quad r=1,\cdots,q,$$
+
+\item $F^{-1}(\cdot)$ is the inverse  of $F$ specifying the cumulative model:
+\[
+\pi_1+\cdots+\pi_r   \equiv P(Y\leq r|\textbf{x}, \textbf{w})=F(\beta_{r0}+\textbf{w}^T\mbox{\boldmath $\beta$}_r+
+\textbf{x}^T\mbox{\boldmath $\gamma$}).
+\]
+
+
+\end{wideitemize}
+\end{frame}
+
+
+% another frame
+
+\begin{frame}{\S3.3.3 Cumulative models as MGLMs}
+\begin{wideitemize}
+
+
+\item The components of the  mean of the $q$-vector ${\bf y}$  are  
+\[
+\pi_1 = P( Y \leq 1 | {\bf x}, {\bf w}) = F(\beta_{10}+\textbf{w}^T\mbox{\boldmath $\beta$}_1+
+\textbf{x}^T\mbox{\boldmath $\gamma$})
+\]
+ and 
+\begin{align*}
+\pi_r 
+& = P( Y \leq r | {\bf x}, {\bf w}) -  P( Y \leq r -1| {\bf x}, {\bf w}) \text{ for } r = 2, \dots, q\\
+&= F(\beta_{r0}+\textbf{w}^T\mbox{\boldmath $\beta$}_r+
+\textbf{x}^T\mbox{\boldmath $\gamma$}) - F(\beta_{r-1, 0}+\textbf{w}^T\mbox{\boldmath $\beta$}_{r-1}+
+\textbf{x}^T\mbox{\boldmath $\gamma$}).
+\end{align*}
+ These explicitly define the response function.
+
+\item Under the MGLM framework, it isn't absolutely necessarily  to motivate our models with the latent variable in the threshold approach; the latter only makes the model more interpretable.
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{\S3.3.3 Different link functions}
+\begin{wideitemize}
+\item
+$F$ being the $N(0,1)$ cdf gives the \textbf{probit link} 
+$$g_r(\pi_1,\cdots,\pi_q)=\Phi^{-1}(\pi_1+\cdots+\pi_r), \quad r=1,\cdots,q.$$
+\item
+For proportional odds model, the link is the \textbf{cumulative logit}
+$$g_r(\pi_1,\cdots,\pi_q)=\log\frac{\pi_1+\cdots+\pi_r}{1-(\pi_1+\cdots+\pi_r)}, \quad r=1,\cdots,q.$$
+\item
+For proportional hazards model, the link is the \textbf{complement log-log}
+$$g_r(\pi_1,\cdots,\pi_q)=\log\{-\log(1-(\pi_1+\cdots+\pi_r))\}, \quad r=1,\cdots,q.$$
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame}{\S3.3.3 Design matrices for cumulative models (1)}
+\begin{itemize}
+\item
+For the {\bf simple cumulative model} (i.e., without threshold variables)
+$$P(Y_i\leq r|\textbf{x}_i)=F(\theta_r+\textbf{x}_i^T\mbox{\boldmath $\gamma$}),$$
+the design matrix $Z_i$ in the linear predictor $\mbox{\boldmath $\eta$}_i=Z_i\mbox{\boldmath $\beta$} \in \mathbb{R}^q$
+is given by
+$$Z_i=\left[\begin{array}{ccccc}1 & & & & \textbf{x}_i^T \\
+& 1 & & &  \textbf{x}_i^T \\ & & \ddots & & \vdots \\
+& & & 1 & \textbf{x}_i^T\end{array}\right]_{q\times (q+\dim(\textbf{x}_i))}$$
+and 
+$$\mbox{\boldmath $\beta$}=(\theta_1,\cdots, \theta_q, \mbox{\boldmath $\gamma$}^T)^T.$$
+Here $\textbf{x}_i$ should not contain a constant component.
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame} {\S3.3.3 Design matrices for cumulative models (2)}
+\begin{itemize}
+\item
+For the {\bf extended cumulative model}
+$$P(Y_i\leq r|\textbf{x}_i, \textbf{w}_i)=F(\beta_{r0}+\textbf{w}_i^T\mbox{\boldmath $\beta$}_r+
+\textbf{x}_i^T\mbox{\boldmath $\gamma$}),$$ 
+the design
+matrix $Z_i$ in the linear predictor $\mbox{\boldmath $\eta$}_i=Z_i\mbox{\boldmath $\beta$} \in \mathbb{R}^q$
+is given by
+$$Z_i=\left[\begin{array}{cccccccc}1 & \textbf{w}_i^T & & & & & & \textbf{x}_i^T \\
+& & 1 & \textbf{w}_i^T & & & &  \textbf{x}_i^T \\ & & & \ddots & \ddots & & & \vdots \\
+& & & & & 1 & \textbf{w}_i^T & \textbf{x}_i^T\end{array}\right]_{q\times (q(1+\dim(\textbf{w}_i))+\dim(\textbf{x}_i))}$$
+and 
+$$\mbox{\boldmath $\beta$}=(\beta_{10},\mbox{\boldmath $\beta$}_1^T,\cdots, \beta_{q0},
+\mbox{\boldmath $\beta$}_q^T, \mbox{\boldmath $\gamma$}^T)^T.$$
+\item Neither the threshold variables $\textbf{w}_i$ nor the shift variables $\textbf{x}_i$ should contain a constant; constants should be absorbed into the $\beta_{r0}$'s. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S3.3.3 Alternative parameterisation in cumulative models }
+\begin{wideitemize}
+\item
+The threshold parameters $\theta_1,\cdots,\theta_q$ in simple cumulative models 
+$P(Y\leq r|\textbf{x})=F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$})$ are restricted by
+$$\theta_1<\theta_2<\cdots<\theta_q$$
+\item
+The corresponding restriction for the extended cumulative model is
+$$\beta_{10}+\textbf{w}^T\mbox{\boldmath $\beta$}_1<\beta_{20}+\textbf{w}^T\mbox{\boldmath $\beta$}_2
+<\cdots < \beta_{q0}+\textbf{w}^T\mbox{\boldmath $\beta$}_q.$$
+
+\item Without explicitly accounting for these constraints, an  iterative estimation procedure
+may fit inadmissible parameters for the GLM.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}\begin{wideitemize}
+\item
+For the simple cumulative model, use the  reparameterisation:
+\begin{eqnarray*}
+\alpha_1=\theta_1,\quad \alpha_r=\log (\theta_r-\theta_{r-1}), \quad r=2,\cdots, q \\
+\Longleftrightarrow\quad \theta_1=\alpha_1,\quad \theta_r=\theta_1+\sum_{i=2}^r e^{\alpha_i}, \quad
+r=2,\cdots,q.
+\end{eqnarray*}
+The new parameters $\alpha_1,\cdots,\alpha_q$ are now unconstrained.
+\item
+The simple cumulative model under this new formulation has a (vector-valued) link function  of the following form
+\begin{eqnarray*}
+F^{-1}\left(P(Y=1|\textbf{x})\right)=\alpha_1+\textbf{x}^T\mbox{\boldmath $\gamma$\hspace{45pt}} \\
+\log\left[F^{-1}\left(P(Y\leq r|\textbf{x})\right)-F^{-1}\left(P(Y\leq r-1|\textbf{x})\right)\right]=\alpha_r,
+\quad r=2,\cdots,q.
+\end{eqnarray*}
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}
+
+\begin{wideitemize}
+\item
+For the simple \textit{cumulative logistic model}, we have the \textbf{log-logit link} 
+ {\footnotesize
+\begin{eqnarray*}
+g_1(\pi_1,\cdots,\pi_q) &=& \log\left(\frac{\pi_1}{1-\pi_1}\right) \\
+g_r(\pi_1,\cdots,\pi_q) &=& \log\left[\log\left\{\frac{\pi_1+\cdots+\pi_r}{1-\pi_1-\cdots-\pi_r}\right\} -
+\log\left\{\frac{\pi_1+\cdots+\pi_{r-1}}{1-\pi_1-\cdots-\pi_{r-1}}\right\}\right], \\ & & \quad q=2,\cdots,q.
+\end{eqnarray*}}
+\item
+If this alternative link function is used, the design matrix $Z_i$ has to be adapted as
+ {\footnotesize
+$$Z_i=\left[\begin{array}{ccccc}1 & & & & \textbf{x}_i^T \\
+& 1 & & &  \textbf{0} \\ & & \ddots & & \vdots \\
+& & & 1 & \textbf{0}\end{array}\right]_{q\times (q+\dim(\textbf{x}_i))},$$}
+and the parameter vector becomes
+$\mbox{\boldmath $\beta$}=(\alpha_1,\cdots, \alpha_q, \mbox{\boldmath $\gamma$}^T)^T.$
+
+%\item Here $\textbf{x}_i$ should not contain a constant component.
+\end{wideitemize}
+\end{frame}
+
+% another frame
+\begin{frame}{Ordinal regression in R}
+\begin{wideitemize}
+
+\item
+The \texttt{polr()} function in the \textbf{MASS} package in R can be used to fit simple cumulative models
+(but not extended cumulative models).
+
+
+
+
+\item
+More generally, the \textbf{ordinal} package in R can be used for fitting ordinal regression models.
+
+\end{wideitemize}
+
+
+\end{frame}
+
+% new frame
+\begin{frame}[fragile] \frametitle{Ordinal regression in R}
+\textbf{Usage of} \texttt{polr}: {\footnotesize
+\begin{verbatim}
+polr(formula, data, weights, start, ..., subset, na.action,
+     contrasts = NULL, Hess = FALSE, model = TRUE,
+     method = c("logistic", "probit", "loglog", "cloglog", "cauchit"))
+\end{verbatim}}
+
+%\begin{tiny}
+%\begin{Schunk}
+%\begin{Sinput}
+%> library(MASS); BTR.dat <- read.csv("D:/MAST90084/Example3-2BTR.csv"); BTR.dat
+%\end{Sinput} 
+%\begin{Soutput}
+%       BTR    Age  Smoking Freq
+%1  1Normal    <40   1Never  577
+%2  2Border    <40   1Never   27
+%3  3Abnorm    <40   1Never    7
+%4  1Normal    <40  2Former  192
+%5  2Border    <40  2Former   20
+%6  3Abnorm    <40  2Former    3
+%7  1Normal    <40 3Current  682
+%8  2Border    <40 3Current   46
+%9  3Abnorm    <40 3Current   11
+%10 1Normal 40to59   1Never  164
+%11 2Border 40to59   1Never    4
+%12 3Abnorm 40to59   1Never    0
+%13 1Normal 40to59  2Former  145
+%14 2Border 40to59  2Former   15
+%15 3Abnorm 40to59  2Former    7
+%16 1Normal 40to59 3Current  245
+%17 2Border 40to59 3Current   47
+%18 3Abnorm 40to59 3Current   27
+%\end{Soutput}
+%\end{Schunk}
+%\end{tiny}
+\end{frame}
+
+
+% new frame
+\begin{frame}{\S3.3.3 Example 3.4: Breathing test results  (Ex. 3.2 cont'd)}
+\begin{wideitemize}
+\item
+Response variable: \texttt{BTR}, ordinal with $k=3$ levels 
+
+\item (1 = Normal, 2 = Border, 3 = Abnormal ).
+\item
+\texttt{Age} (2 levels) and \texttt{Smoking} status (3 levels) are predictors.
+\item
+Aim: see how \texttt{Age} and \texttt{Smoking} are associated with \texttt{BTR}.
+\item 
+We  will fit two cumulative logistic models to \texttt{BTR} :
+
+\begin{wideitemize}
+
+\item  \texttt{BTR.logit} includes both the \texttt{Age:Smokings} 
+interaction-effect terms and  the main-effect terms; 
+\item \texttt{BTR.logit1}
+includes main-effect terms only.
+\end{wideitemize}
+\end{wideitemize}
+
+
+\end{frame}
+
+% new frame
+\begin{frame}{\S3.3.3 Example 3.4: Breathing test results  }
+\begin{itemize}
+
+\item
+Dummy coding is used as the default coding for factors in \texttt{R}, and  can be set by using the function \texttt{contr.treatment}(). For  \texttt{Age} and \texttt{Smoking}:
+{\footnotesize
+\begin{eqnarray*}
+\texttt{Age40to59}&=& \left\{\begin{array}{cc} 1, & \mbox{if age is 40 $\sim$ 59} \\ 0 & \mbox{if age < 40}
+\end{array}\right. \\
+\texttt{Smoking2Former}&=&\left\{\begin{array}{cc} 1, & \mbox{former smoker} \\ 0 & \mbox{else}
+\end{array}\right.,\\
+\texttt{Smoking3Current}&=&\left\{\begin{array}{cc} 1, & \mbox{current smoker} \\ 0 & \mbox{else}
+\end{array}\right.
+\end{eqnarray*}}
+\item  As per the documentation page for \texttt{polr}, the model used in \texttt{polr} is 
+\[
+P(Y\leq r|\textbf{x})=F(\theta_r-\textbf{x}^T\boldgamma),
+\] so the estimates of our $\mbox{\boldmath $\gamma$}$ should be -ve of that fitted by \texttt{polr}.
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> is.factor(BTR.dat$BTR)    #TRUE;     > is.ordered(BTR.dat$BTR)    #FALSE
+> is.factor(BTR.dat$Age)    #TRUE;     > is.factor(BTR.dat$Smoking)  #TRUE
+> is.factor(BTR.dat$Freq) #FALSE;     
+> BTR.dat$BTR=as.ordered(BTR.dat$BTR)   #Set BTR as an ordinal factor
+> help(polr)
+> BTR.logit=polr(BTR~Age+Smoking+Age:Smoking, data=BTR.dat, weights=Freq, 
+                  Hess=T,method="logistic")
+> summary(BTR.logit)
+\end{Sinput} 
+\begin{Soutput}
+Coefficients:
+                            Value Std. Error t value
+Age40to59                 -0.8857     0.5359  -1.653
+Smoking2Former             0.6973     0.2822   2.471
+Smoking3Current            0.3472     0.2238   1.551
+Age40to59:Smoking2Former   1.1458     0.6228   1.840
+Age40to59:Smoking3Current  2.2007     0.5689   3.868
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.8334  0.1764    16.0603
+2Border|3Abnorm  4.3078  0.2130    20.2210
+
+Residual Deviance: 1564.968 
+AIC: 1578.968 
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+
+%new frame
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> BTR.logit1=polr(BTR~Age+Smoking, data=BTR.dat, weights=Freq, Hess=T,method="logistic")
+> summary(BTR.logit1)
+\end{Sinput} 
+\begin{Soutput}
+Coefficients:
+                 Value Std. Error t value
+Age40to59       0.7772     0.1482   5.243
+Smoking2Former  0.7815     0.2333   3.350
+Smoking3Current 0.9607     0.1918   5.010
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  3.1927  0.1749    18.2544
+2Border|3Abnorm  4.6543  0.2125    21.9076
+
+Residual Deviance: 1589.744 
+AIC: 1599.744 
+\end{Soutput}
+\begin{Sinput}
+> anova(BTR.logit, BTR.logit1)
+\end{Sinput} 
+\begin{Soutput}
+Likelihood ratio tests of ordinal regression models
+
+Response: BTR
+                        Model Resid. df Resid. Dev   Test    Df LR stat.   Pr(Chi)
+1               Age + Smoking      2214   1589.744                                   
+2 Age + Smoking + Age:Smoking      2212   1564.968 1 vs 2     2 24.77585 4.168e-06
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{tiny}
+\begin{Schunk}
+\begin{Sinput}
+> BTR.logit$fitted
+\end{Sinput} 
+\begin{Soutput}
+     1Normal    2Border     3Abnorm
+1  0.9444565 0.04225961 0.013283873
+2  0.9444565 0.04225961 0.013283873
+3  0.9444565 0.04225961 0.013283873
+4  0.8943685 0.07930628 0.026325236
+5  0.8943685 0.07930628 0.026325236
+6  0.8943685 0.07930628 0.026325236
+7  0.9231700 0.05813458 0.018695369
+8  0.9231700 0.05813458 0.018695369
+9  0.9231700 0.05813458 0.018695369
+10 0.9763207 0.01815786 0.005521451
+11 0.9763207 0.01815786 0.005521451
+12 0.9763207 0.01815786 0.005521451
+13 0.8671630 0.09895796 0.033879045
+14 0.8671630 0.09895796 0.033879045
+15 0.8671630 0.09895796 0.033879045
+16 0.7633793 0.17036521 0.066255462
+17 0.7633793 0.17036521 0.066255462
+18 0.7633793 0.17036521 0.066255462
+\end{Soutput}
+\begin{Sinput}
+> BTR.logit$residual  #does not exist.
+> BTR.logit$lp  #linear predictor values
+\end{Sinput} 
+\begin{Soutput}
+         1          2          3          4          5          6          7          8          9 
+ 0.0000000  0.0000000  0.0000000  0.6972823  0.6972823  0.6972823  0.3472245  0.3472245  0.3472245 
+        10         11         12         13         14         15         16         17         18 
+-0.8857462 -0.8857462 -0.8857462  0.9573393  0.9573393  0.9573393  1.6621466  1.6621466  1.6621466 
+\end{Soutput}
+\begin{Sinput}
+> attributes(BTR.logit)
+\end{Sinput} 
+\begin{Soutput}
+ [1] "coefficients"  "zeta"          "deviance"      "fitted.values" "lev"           "terms"        
+ [7] "df.residual"   "edf"           "n"             "nobs"          "call"          "method"       
+[13] "convergence"   "niter"         "lp"            "Hessian"       "model"         "contrasts"    
+[19] "xlevels"      
+$class
+[1] "polr"
+\end{Soutput}
+\end{Schunk}
+\end{tiny}
+\end{frame}
+
+
+
+\begin{frame}{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{itemize}
+\item
+The {\bf interaction} model can be written as {\scriptsize
+\begin{eqnarray*}
+\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}>\texttt{Normal})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_1
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+\!\!\!\!&\!\!\!\! &\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!+ \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} \\
+\log\frac{P(\texttt{BTR}\leq \texttt{Bordering})}{P(\texttt{BTR}>\texttt{Bordering})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_2
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+\!\!\!\!&\!\!\!\! &\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\! + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} 
+\end{eqnarray*}}
+\item
+MLEs of the parameters in this  model are {\scriptsize
+$$\hat{\theta}_1=2.833, \hat{\theta}_2=4.308, \hat{\gamma}_1=0.886, \hat{\gamma}_2=-0.697,
+\hat{\gamma}_3=-0.347, \hat{\gamma}_4=-1.146, \hat{\gamma}_5=-2.201$$}
+with their standard errors given in the R output.
+\item
+Proportional odds interpretation: If a worker is of age 40 - 59, the cumulative odds of having a normal test result for a former smoker is $e^{ \hat{\gamma}_2 + \hat{\gamma}_4} = e^{- 0.697 - 1.146} =0.158$  times that for one who has never smoked. The same is true for the cumulative odds of having ``$\leq$ borderline testing result". 
+
+%\textbf{For example}, the odds of having a normal test result (or normal/bordering result)
+%for a worker aged 40 to 59 who never smoked 
+%is estimated to be $e^{-\hat{\gamma}_2-\hat{\gamma}_4}=e^{0.697+1.146}=0.158$ times that for a worker
+%aged 40 to 59 who is a former worker.
+\end{itemize}
+\end{frame}
+% new frame
+\begin{frame}{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{itemize}
+\item
+The {\bf main-effect}  only model can be written as {\scriptsize
+\begin{eqnarray*}
+\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}>\texttt{Normal})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_1
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+\log\frac{P(\texttt{BTR}\leq \texttt{Bordering})}{P(\texttt{BTR}>\texttt{Bordering})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_2
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current}
+\end{eqnarray*}}
+\item
+MLEs of the parameters in this  model are {\scriptsize
+$$\hat{\theta}_1=3.193, \;\hat{\theta}_2=4.654, \; \hat{\gamma}_1=-0.777, \;\hat{\gamma}_2=-0.782, \;
+\hat{\gamma}_3=-0.961$$}
+with their standard errors given in the R output.
+\item
+``$H_0: \gamma_4=\gamma_5=0$ vs. $H_1: \mbox{not}\; H_0$" is the hypothesis about the 
+\texttt{Age:Smoking} interaction effects on \texttt{BTR}.  
+\item
+A $\chi^2$ analysis of deviance test comparing models \texttt{BTR.logit} and \texttt{BTR.logit1} gives 
+an LR statistic of 24.776 and $p$-value of $4.168\times 10^{-6}$. 
+
+\item Therefore, reject $H_0$ and  conclude that \texttt{Age} and \texttt{Smoking} have very strong interaction effects on \texttt{BTR}.
+\end{itemize}
+\end{frame}
+
+% new frame
+\begin{frame}{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{itemize}
+\item
+Linear predictor of the interaction model is {\scriptsize
+\begin{eqnarray*}
+\eta_1 &=& \theta_1
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+& & + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} \\
+\eta_2&=& \theta_2
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+& & + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} 
+\end{eqnarray*}}
+\item
+However, the linear predictor returned by \texttt{BTR.logit\$lp} is just the -ve of our $\textbf{x}^T\mbox{\boldmath $\gamma$}$, i.e.
+{\scriptsize
+\begin{eqnarray*}
+\lefteqn{ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current}} & \\
+& &  + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current}
+\end{eqnarray*}}
+which has just 6 possible values knowing that there are 6 combinations of \texttt{Age} and \texttt{Smoking}.
+
+
+\end{itemize}
+\end{frame}
+
+
+% new frame
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+Fit a grouped Cox or proportional hazards model:
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> BTR.ph=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat, weights=Freq, 
+                      Hess=T, method="cloglog")
+> summary(BTR.ph)
+\end{Sinput} 
+\begin{Soutput}
+Coefficients:
+                            Value Std. Error t value
+Age40to59                 -0.2865    0.14264  -2.008
+Smoking2Former             0.2125    0.10054   2.114
+Smoking3Current            0.1088    0.07301   1.490
+Age40to59:Smoking2Former   0.4333    0.18941   2.288
+Age40to59:Smoking3Current  0.8379    0.16357   5.122
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  1.0477  0.0558    18.7612
+2Border|3Abnorm  1.5528  0.0629    24.6916
+
+Residual Deviance: 1559.949 
+AIC: 1573.949 
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+% new frame
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+Fit a cumulative model with the extreme maximal-value distribution:
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> BTR.extm=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat,weights=Freq, 
+                              Hess=T,method="loglog")
+> summary(BTR.extm)
+\end{Sinput} 
+\begin{Soutput}
+Coefficients:
+                            Value Std. Error t value
+Age40to59                 -0.8672     0.5286  -1.640
+Smoking2Former             0.6755     0.2700   2.501
+Smoking3Current            0.3368     0.2167   1.554
+Age40to59:Smoking2Former   1.1003     0.6070   1.813
+Age40to59:Smoking3Current  2.0724     0.5573   3.719
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.8614  0.1715    16.6838
+2Border|3Abnorm  4.2761  0.2080    20.5605
+
+Residual Deviance: 1566.335 
+AIC: 1580.335 
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+
+% new frame
+\begin{frame}{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{itemize}
+\item
+Effect coding (set by the \texttt{contr.sum} function in R) is used in F\&T  to represent \texttt{Age} and \texttt{Smoking}:
+{\scriptsize
+\begin{eqnarray*}
+\texttt{Age1}&=& \left\{\begin{array}{cc} 1, & \mbox{if age < 40} \\ -1, & \mbox{if age is 40 $\sim$ 59}
+\end{array}\right. \\
+\texttt{Smoking1}&=&\left\{\begin{array}{cc} 1, & \mbox{never smoked} \\ 0, & \mbox{former smoker} \\ -1, & 
+\mbox{current smoker} \end{array}\right., \quad
+\texttt{Smoking2}\;=\; \left\{\begin{array}{cc} 0, & \mbox{never smoked} \\ 1, & \mbox{former smoker} \\ 
+-1, & \mbox{current smoker}
+\end{array}\right.
+\end{eqnarray*}}
+\item
+With this coding, the interaction model can be written as {\scriptsize
+\begin{eqnarray*}
+\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}>\texttt{Normal})}&=&\theta_1
++ \gamma_1\texttt{Age1}+\gamma_2\texttt{Smoking1}+\gamma_3\texttt{Smoking2} \\
+&& + \gamma_4\texttt{Age1}\cdot \texttt{Smoking1}
++ \gamma_5\texttt{Age1}\cdot \texttt{Smoking2} \\
+\log\frac{P(\texttt{BTR}\leq \texttt{Bordering})}{P(\texttt{BTR}>\texttt{Bordering})}&=&\theta_2
++ \gamma_1\texttt{Age1}+\gamma_2\texttt{Smoking1}+\gamma_3\texttt{Smoking2} \\
+&& + \gamma_4\texttt{Age1}\cdot \texttt{Smoking1}
++ \gamma_5\texttt{Age1}\cdot \texttt{Smoking2} 
+\end{eqnarray*}}
+\item
+Although the parameter estimates will be different now, other results from the model will be the
+same as that using dummy coding.
+\end{itemize}
+\end{frame}
+
+
+%
+%\begin{frame} {Coding scheme revisited (2.1 in F \& T)}
+% 
+%
+%
+%\end{frame}
+
+
+% new frame
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{tiny}
+\begin{Schunk}
+\begin{Sinput}
+> options(contrasts = c("contr.sum", "contr.poly"))
+> BTR.logit=polr(BTR~Age+Smoking+Age:Smoking, data=BTR.dat, weights=Freq, Hess=T,method="logistic")
+> summary(BTR.logit)
+\end{Sinput} 
+\begin{Soutput}
+Coefficients:
+                 Value Std. Error t value
+Age1          -0.11487     0.1086 -1.0580
+Smoking1      -0.90596     0.1890 -4.7933
+Smoking2       0.36428     0.1421  2.5644
+Age1:Smoking1  0.55777     0.1890  2.9512
+Age1:Smoking2 -0.01517     0.1421 -0.1068
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.3704  0.1086    21.8209
+2Border|3Abnorm  3.8447  0.1599    24.0486
+
+Residual Deviance: 1564.968 
+AIC: 1578.968 
+\end{Soutput}
+\begin{Sinput}
+> BTR.logit1=polr(BTR~Age+Smoking, data=BTR.dat, weights=Freq, Hess=T,method="logistic")
+> anova(BTR.logit, BTR.logit1)
+\end{Sinput} 
+\begin{Soutput}
+Likelihood ratio tests of ordinal regression models
+
+Response: BTR
+                        Model Resid. df Resid. Dev   Test    Df LR stat.      Pr(Chi)
+1               Age + Smoking      2214   1589.744                                   
+2 Age + Smoking + Age:Smoking      2212   1564.968 1 vs 2     2 24.77585 4.168618e-06
+\end{Soutput}
+\end{Schunk}
+\end{tiny}
+\end{frame}
+
+% new frame
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+\begin{tiny}
+\begin{Schunk}
+\begin{Sinput}
+> attributes(BTR.logit)
+\end{Sinput} 
+\begin{Soutput}
+$names
+ [1] "coefficients"  "zeta"          "deviance"      "fitted.values" "lev"           "terms"         "df.residual"  
+ [8] "edf"           "n"             "nobs"          "call"          "method"        "convergence"   "niter"        
+[15] "lp"            "Hessian"       "model"         "contrasts"     "xlevels"      
+\end{Soutput}
+\begin{Sinput}
+> BTR.logit$fitted
+\end{Sinput} 
+\begin{Soutput}
+     1Normal    2Border     3Abnorm
+1  0.9444565 0.04225911 0.013284361
+2  0.9444565 0.04225911 0.013284361
+3  0.9444565 0.04225911 0.013284361
+4  0.8943660 0.07930714 0.026326874
+5  0.8943660 0.07930714 0.026326874
+6  0.8943660 0.07930714 0.026326874
+7  0.9231672 0.05813603 0.018696801
+8  0.9231672 0.05813603 0.018696801
+9  0.9231672 0.05813603 0.018696801
+10 0.9763222 0.01815653 0.005521309
+11 0.9763222 0.01815653 0.005521309
+12 0.9763222 0.01815653 0.005521309
+13 0.8671585 0.09895993 0.033881540
+14 0.8671585 0.09895993 0.033881540
+15 0.8671585 0.09895993 0.033881540
+16 0.7633676 0.17037058 0.066261785
+17 0.7633676 0.17037058 0.066261785
+18 0.7633676 0.17037058 0.066261785
+\end{Soutput}
+\begin{Sinput}
+> BTR.logit$lp    #linear predictor values
+\end{Sinput} 
+\begin{Soutput}
+         1          2          3          4          5          6          7          8          9         10 
+-0.4630592 -0.4630592 -0.4630592  0.2342498  0.2342498  0.2342498 -0.1157938 -0.1157938 -0.1157938 -1.3488684 
+        11         12         13         14         15         16         17         18 
+-1.3488684 -1.3488684  0.4943191  0.4943191  0.4943191  1.1991525  1.1991525  1.1991525
+\end{Soutput}
+\end{Schunk}
+\end{tiny}
+\end{frame}
+
+
+% new frame
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+We fit a grouped Cox or proportional hazards model using the effect coding.
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> options(contrasts = c("contr.sum", "contr.poly"))
+> BTR.ph=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat, weights=Freq, 
+                           Hess=T, method="cloglog")
+> summary(BTR.ph)
+\end{Sinput} 
+\begin{Soutput}
+Coefficients:
+                 Value Std. Error  t value
+Age1          -0.06862    0.03421 -2.00575
+Smoking1      -0.31898    0.05366 -5.94408
+Smoking2       0.11022    0.04961  2.22168
+Age1:Smoking1  0.21188    0.05361  3.95205
+Age1:Smoking2 -0.00481    0.04960 -0.09699
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  0.8720  0.0353    24.7072
+2Border|3Abnorm  1.3771  0.0441    31.2213
+
+Residual Deviance: 1559.949 
+AIC: 1573.949 
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+
+% new frame
+\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing test results  (Example 3.4)}
+We finally fit a cumulative model with the extreme maximal-value distribution using the effect coding.
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> options(contrasts = c("contr.sum", "contr.poly"))
+> BTR.extm=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat,weights=Freq, 
+                              Hess=T,method="loglog")
+> summary(BTR.extm)
+\end{Sinput} 
+\begin{Soutput}
+Coefficients:
+                 Value Std. Error t value
+Age1          -0.09523     0.1053  -0.904
+Smoking1      -0.86618     0.1854  -4.671
+Smoking2       0.35943     0.1361   2.642
+Age1:Smoking1  0.52877     0.1854   2.852
+Age1:Smoking2 -0.02136     0.1361  -0.157
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.4288  0.1054    23.0536
+2Border|3Abnorm  3.8434  0.1573    24.4373
+
+Residual Deviance: 1566.335 
+AIC: 1580.335 
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+
+
+
+%\begin{frame}{\S3.3.3 Computing packages and an example}
+%\begin{itemize}
+%\item
+%The \texttt{polr()} function in the R \textbf{MASS} package can be used to fit cumulative models
+%(but not extended cumulative models).
+%\item
+%More generally, the \textbf{ordinal} package in R can be used for fitting ordinal regression models.
+%\end{itemize}
+%
+%\textbf{Example 3.4} (Example 2 in Chapter 1). Breathing test results.
+%\begin{itemize}
+%\item
+%The response variable is \texttt{BTR}, ordinal with $k=3$ levels.
+%\item
+%\texttt{Age} (2 levels) and \texttt{Smoking} status (3 levels) are predictors.
+%\item
+%The aim is to see how \texttt{Age} and \texttt{Smoking} are associated with \texttt{BTR}.
+%\item
+%Command \texttt{polr} in R \texttt{MASS} package is used in the analysis.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (1)}
+%\textbf{Usage of} \texttt{polr}: {\footnotesize
+%\begin{verbatim}
+%polr(formula, data, weights, start, ..., subset, na.action,
+%     contrasts = NULL, Hess = FALSE, model = TRUE,
+%     method = c("logistic", "probit", "loglog", "cloglog", "cauchit"))
+%\end{verbatim}}
+%Note the estimates of $\mbox{\boldmath $\gamma$}$ are those from \texttt{polr} multiplied by $-1$
+%due to the model used in \texttt{polr} being $P(Y\leq r|\textbf{x})=F(\theta_r-\textbf{x}^T\mbox{\boldmath
+%$\gamma$})$.
+%\begin{tiny}
+%\begin{Schunk}
+%\begin{Sinput}
+%> library(MASS); BTR.dat <- read.csv("D:/MAST90084/Example3-2BTR.csv"); BTR.dat
+%\end{Sinput} 
+%\begin{Soutput}
+%       BTR    Age  Smoking Freq
+%1  1Normal    <40   1Never  577
+%2  2Border    <40   1Never   27
+%3  3Abnorm    <40   1Never    7
+%4  1Normal    <40  2Former  192
+%5  2Border    <40  2Former   20
+%6  3Abnorm    <40  2Former    3
+%7  1Normal    <40 3Current  682
+%8  2Border    <40 3Current   46
+%9  3Abnorm    <40 3Current   11
+%10 1Normal 40to59   1Never  164
+%11 2Border 40to59   1Never    4
+%12 3Abnorm 40to59   1Never    0
+%13 1Normal 40to59  2Former  145
+%14 2Border 40to59  2Former   15
+%15 3Abnorm 40to59  2Former    7
+%16 1Normal 40to59 3Current  245
+%17 2Border 40to59 3Current   47
+%18 3Abnorm 40to59 3Current   27
+%\end{Soutput}
+%\end{Schunk}
+%\end{tiny}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (2)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> is.factor(BTR.dat$BTR)    #TRUE;     > is.ordered(BTR.dat$BTR)    #FALSE
+%> is.factor(BTR.dat$Age)    #TRUE;     > is.factor(BTR.dat$Smoking)  #TRUE
+%> is.factor(BTR.dat$Freq) #FALSE;     
+%> BTR.dat$BTR=as.ordered(BTR.dat$BTR)   #Set BTR as an ordinal factor
+%> help(polr)
+%> BTR.logit=polr(BTR~Age+Smoking+Age:Smoking, data=BTR.dat, weights=Freq, 
+%                  Hess=T,method="logistic")
+%> summary(BTR.logit)
+%\end{Sinput} 
+%\begin{Soutput}
+%Coefficients:
+%                            Value Std. Error t value
+%Age40to59                 -0.8857     0.5359  -1.653
+%Smoking2Former             0.6973     0.2822   2.471
+%Smoking3Current            0.3472     0.2238   1.551
+%Age40to59:Smoking2Former   1.1458     0.6228   1.840
+%Age40to59:Smoking3Current  2.2007     0.5689   3.868
+%
+%Intercepts:
+%                Value   Std. Error t value
+%1Normal|2Border  2.8334  0.1764    16.0603
+%2Border|3Abnorm  4.3078  0.2130    20.2210
+%
+%Residual Deviance: 1564.968 
+%AIC: 1578.968 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (3)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> BTR.logit1=polr(BTR~Age+Smoking, data=BTR.dat, weights=Freq, Hess=T,method="logistic")
+%> summary(BTR.logit1)
+%\end{Sinput} 
+%\begin{Soutput}
+%Coefficients:
+%                 Value Std. Error t value
+%Age40to59       0.7772     0.1482   5.243
+%Smoking2Former  0.7815     0.2333   3.350
+%Smoking3Current 0.9607     0.1918   5.010
+%
+%Intercepts:
+%                Value   Std. Error t value
+%1Normal|2Border  3.1927  0.1749    18.2544
+%2Border|3Abnorm  4.6543  0.2125    21.9076
+%
+%Residual Deviance: 1589.744 
+%AIC: 1599.744 
+%\end{Soutput}
+%\begin{Sinput}
+%> anova(BTR.logit, BTR.logit1)
+%\end{Sinput} 
+%\begin{Soutput}
+%Likelihood ratio tests of ordinal regression models
+%
+%Response: BTR
+%                        Model Resid. df Resid. Dev   Test    Df LR stat.   Pr(Chi)
+%1               Age + Smoking      2214   1589.744                                   
+%2 Age + Smoking + Age:Smoking      2212   1564.968 1 vs 2     2 24.77585 4.168e-06
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (4)}
+%\begin{tiny}
+%\begin{Schunk}
+%\begin{Sinput}
+%> BTR.logit$fitted
+%\end{Sinput} 
+%\begin{Soutput}
+%     1Normal    2Border     3Abnorm
+%1  0.9444565 0.04225961 0.013283873
+%2  0.9444565 0.04225961 0.013283873
+%3  0.9444565 0.04225961 0.013283873
+%4  0.8943685 0.07930628 0.026325236
+%5  0.8943685 0.07930628 0.026325236
+%6  0.8943685 0.07930628 0.026325236
+%7  0.9231700 0.05813458 0.018695369
+%8  0.9231700 0.05813458 0.018695369
+%9  0.9231700 0.05813458 0.018695369
+%10 0.9763207 0.01815786 0.005521451
+%11 0.9763207 0.01815786 0.005521451
+%12 0.9763207 0.01815786 0.005521451
+%13 0.8671630 0.09895796 0.033879045
+%14 0.8671630 0.09895796 0.033879045
+%15 0.8671630 0.09895796 0.033879045
+%16 0.7633793 0.17036521 0.066255462
+%17 0.7633793 0.17036521 0.066255462
+%18 0.7633793 0.17036521 0.066255462
+%\end{Soutput}
+%\begin{Sinput}
+%> BTR.logit$residual  #does not exist.
+%> BTR.logit$lp  #linear predictor values
+%\end{Sinput} 
+%\begin{Soutput}
+%         1          2          3          4          5          6          7          8          9 
+% 0.0000000  0.0000000  0.0000000  0.6972823  0.6972823  0.6972823  0.3472245  0.3472245  0.3472245 
+%        10         11         12         13         14         15         16         17         18 
+%-0.8857462 -0.8857462 -0.8857462  0.9573393  0.9573393  0.9573393  1.6621466  1.6621466  1.6621466 
+%\end{Soutput}
+%\begin{Sinput}
+%> attributes(BTR.logit)
+%\end{Sinput} 
+%\begin{Soutput}
+% [1] "coefficients"  "zeta"          "deviance"      "fitted.values" "lev"           "terms"        
+% [7] "df.residual"   "edf"           "n"             "nobs"          "call"          "method"       
+%[13] "convergence"   "niter"         "lp"            "Hessian"       "model"         "contrasts"    
+%[19] "xlevels"      
+%$class
+%[1] "polr"
+%\end{Soutput}
+%\end{Schunk}
+%\end{tiny}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.3 Breathing testing example (5)}
+%\begin{itemize}
+%\item 
+%On the previous 3 slides we fit two cumulative logistic models to \texttt{BTR} using 
+%\texttt{Age} and \texttt{Smoking}: the first (\texttt{BTR.logit} includes the \texttt{Age:Smokings} 
+%interaction-effect terms as well as the main-effect terms; while the second (\texttt{BTR.logit1}
+%includes main-effect terms only.
+%\item
+%Dummy coding (i.e. \texttt{contr.treatment} coding in R) is used for representing \texttt{Age} and \texttt{Smoking}:
+%{\footnotesize
+%\begin{eqnarray*}
+%\texttt{Age40to59}&=& \left\{\begin{array}{cc} 1, & \mbox{if age is 40 $\sim$ 59} \\ 0 & \mbox{if age < 40}
+%\end{array}\right. \\
+%\texttt{Smoking2Former}&=&\left\{\begin{array}{cc} 1, & \mbox{former smoker} \\ 0 & \mbox{else}
+%\end{array}\right.,\\
+%\texttt{Smoking3Current}&=&\left\{\begin{array}{cc} 1, & \mbox{current smoker} \\ 0 & \mbox{else}
+%\end{array}\right.
+%\end{eqnarray*}}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.3 Breathing testing example (6)}
+%\begin{itemize}
+%\item
+%The first model can be written as {\scriptsize
+%\begin{eqnarray*}
+%\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}>\texttt{Normal})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_1
+%+ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+%\!\!\!\!&\!\!\!\! &\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!+ \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
+%+ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} \\
+%\log\frac{P(\texttt{BTR}\leq \texttt{Bordering})}{P(\texttt{BTR}>\texttt{Bordering})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_2
+%+ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+%\!\!\!\!&\!\!\!\! &\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\! + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
+%+ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} 
+%\end{eqnarray*}}
+%\item
+%MLEs of the parameters in the first model are {\scriptsize
+%$$\hat{\theta}_1=2.833, \hat{\theta}_2=4.308, \hat{\gamma}_1=0.886, \hat{\gamma}_2=-0.697,
+%\hat{\gamma}_3=-0.347, \hat{\gamma}_4=-1.146, \hat{\gamma}_5=-2.201$$}
+%with their standard errors given in the R output.
+%\item
+%Estimated values of the $\gamma$ parameters can be interpreted as log cumulative odds ratios.
+%\textbf{For example}, the odds of having a normal test result (or normal or bordering result)
+%for a worker aged 40 to 59 who never smoked 
+%is estimated to be $e^{-\hat{\gamma}_2-\hat{\gamma}_4}=e^{0.697+1.146}=6.32$ times of that for a worker
+%aged 40 to 59 who is a former worker.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.3 Breathing testing example (7)}
+%\begin{itemize}
+%\item
+%The second model can be written as {\scriptsize
+%\begin{eqnarray*}
+%\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}>\texttt{Normal})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_1
+%+ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+%\log\frac{P(\texttt{BTR}\leq \texttt{Bordering})}{P(\texttt{BTR}>\texttt{Bordering})}\!\!&\!\!\!\!=\!\!\!&\!\!\!\theta_2
+%+ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current}
+%\end{eqnarray*}}
+%\item
+%MLEs of the parameters in the first model are {\scriptsize
+%$$\hat{\theta}_1=3.193, \;\hat{\theta}_2=4.654, \; \hat{\gamma}_1=-0.777, \;\hat{\gamma}_2=-0.782, \;
+%\hat{\gamma}_3=-0.961$$}
+%with their standard errors given in the R output.
+%\item
+%``$H_0: \gamma_4=\gamma_5=0$ vs. $H_1: \mbox{not}\; H_0$" is the hypothesis about the 
+%\texttt{Age:Smoking} interaction effects on \texttt{BTR}.  
+%\item
+%A $\chi^2$ analysis of deviance test comparing models \texttt{BTR.logit} and texttt{BTR.logit1} gives 
+%an LR statistic of 22.776 and $p$-value of $4.168\times 10^{-6}$. Therefore, there is very strong evidence to reject $H_0$.
+%We conclude that \texttt{Age} and \texttt{Smoking} have very strong interaction effects on \texttt{BTR}.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.3 Breathing testing example (8)}
+%\begin{itemize}
+%\item
+%Linear predictor of the first model is {\scriptsize
+%\begin{eqnarray*}
+%\eta_1 &=& \theta_1
+%+ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+%& & + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
+%+ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} \\
+%\eta_2&=& \theta_2
+%+ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} \\
+%& & + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
+%+ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current} 
+%\end{eqnarray*}}
+%\item
+%However, the linear predictor returned from \texttt{polr} is just $\textbf{x}^T\mbox{\boldmath $\gamma$}$, i.e.
+%{\scriptsize
+%\begin{eqnarray*}
+%\lefteqn{ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current}} & \\
+%& &  + \gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
+%+ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current}
+%\end{eqnarray*}}
+%thus has just 6 different values knowing that there are 6 combinations of \texttt{Age} and \texttt{Smoking}.
+%\item
+%Knowing these tricks, there should be no difficulty to reveal how the fitted values returned by
+%\texttt{BTR.logit\$fitted} are obtained.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.3 Breathing testing example (9)}
+%\begin{itemize}
+%\item
+%Effect coding (i.e. \texttt{contr.sum} coding in R, $-1$ for last category) 
+%may also be used for representing \texttt{Age} and \texttt{Smoking}:
+%{\scriptsize
+%\begin{eqnarray*}
+%\texttt{Age1}&=& \left\{\begin{array}{cc} 1, & \mbox{if age < 40} \\ -1, & \mbox{if age is 40 $\sim$ 59}
+%\end{array}\right. \\
+%\texttt{Smoking1}&=&\left\{\begin{array}{cc} 1, & \mbox{never smoked} \\ 0, & \mbox{former smoker} \\ -1, & 
+%\mbox{current smoker} \end{array}\right., \quad
+%\texttt{Smoking2}\;=\; \left\{\begin{array}{cc} 0, & \mbox{never smoked} \\ 1, & \mbox{former smoker} \\ 
+%-1, & \mbox{current smoker}
+%\end{array}\right.
+%\end{eqnarray*}}
+%\item
+%With this coding, the first model can be written as {\scriptsize
+%\begin{eqnarray*}
+%\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}>\texttt{Normal})}&=&\theta_1
+%+ \gamma_1\texttt{Age1}+\gamma_2\texttt{Smoking1}+\gamma_3\texttt{Smoking2} \\
+%&& + \gamma_4\texttt{Age1}\cdot \texttt{Smoking1}
+%+ \gamma_5\texttt{Age1}\cdot \texttt{Smoking2} \\
+%\log\frac{P(\texttt{BTR}\leq \texttt{Bordering})}{P(\texttt{BTR}>\texttt{Bordering})}&=&\theta_2
+%+ \gamma_1\texttt{Age1}+\gamma_2\texttt{Smoking1}+\gamma_3\texttt{Smoking2} \\
+%&& + \gamma_4\texttt{Age1}\cdot \texttt{Smoking1}
+%+ \gamma_5\texttt{Age1}\cdot \texttt{Smoking2} 
+%\end{eqnarray*}}
+%\item
+%Although the parameter estimates will be different now, other results from the model will be the
+%same as that using dummy coding.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (10)}
+%\begin{tiny}
+%\begin{Schunk}
+%\begin{Sinput}
+%> options(contrasts = c("contr.sum", "contr.poly"))
+%> BTR.logit=polr(BTR~Age+Smoking+Age:Smoking, data=BTR.dat, weights=Freq, Hess=T,method="logistic")
+%> summary(BTR.logit)
+%\end{Sinput} 
+%\begin{Soutput}
+%Coefficients:
+%                 Value Std. Error t value
+%Age1          -0.11487     0.1086 -1.0580
+%Smoking1      -0.90596     0.1890 -4.7933
+%Smoking2       0.36428     0.1421  2.5644
+%Age1:Smoking1  0.55777     0.1890  2.9512
+%Age1:Smoking2 -0.01517     0.1421 -0.1068
+%
+%Intercepts:
+%                Value   Std. Error t value
+%1Normal|2Border  2.3704  0.1086    21.8209
+%2Border|3Abnorm  3.8447  0.1599    24.0486
+%
+%Residual Deviance: 1564.968 
+%AIC: 1578.968 
+%\end{Soutput}
+%\begin{Sinput}
+%> BTR.logit1=polr(BTR~Age+Smoking, data=BTR.dat, weights=Freq, Hess=T,method="logistic")
+%> anova(BTR.logit, BTR.logit1)
+%\end{Sinput} 
+%\begin{Soutput}
+%Likelihood ratio tests of ordinal regression models
+%
+%Response: BTR
+%                        Model Resid. df Resid. Dev   Test    Df LR stat.      Pr(Chi)
+%1               Age + Smoking      2214   1589.744                                   
+%2 Age + Smoking + Age:Smoking      2212   1564.968 1 vs 2     2 24.77585 4.168618e-06
+%\end{Soutput}
+%\end{Schunk}
+%\end{tiny}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (11)}
+%\begin{tiny}
+%\begin{Schunk}
+%\begin{Sinput}
+%> attributes(BTR.logit)
+%\end{Sinput} 
+%\begin{Soutput}
+%$names
+% [1] "coefficients"  "zeta"          "deviance"      "fitted.values" "lev"           "terms"         "df.residual"  
+% [8] "edf"           "n"             "nobs"          "call"          "method"        "convergence"   "niter"        
+%[15] "lp"            "Hessian"       "model"         "contrasts"     "xlevels"      
+%\end{Soutput}
+%\begin{Sinput}
+%> BTR.logit$fitted
+%\end{Sinput} 
+%\begin{Soutput}
+%     1Normal    2Border     3Abnorm
+%1  0.9444565 0.04225911 0.013284361
+%2  0.9444565 0.04225911 0.013284361
+%3  0.9444565 0.04225911 0.013284361
+%4  0.8943660 0.07930714 0.026326874
+%5  0.8943660 0.07930714 0.026326874
+%6  0.8943660 0.07930714 0.026326874
+%7  0.9231672 0.05813603 0.018696801
+%8  0.9231672 0.05813603 0.018696801
+%9  0.9231672 0.05813603 0.018696801
+%10 0.9763222 0.01815653 0.005521309
+%11 0.9763222 0.01815653 0.005521309
+%12 0.9763222 0.01815653 0.005521309
+%13 0.8671585 0.09895993 0.033881540
+%14 0.8671585 0.09895993 0.033881540
+%15 0.8671585 0.09895993 0.033881540
+%16 0.7633676 0.17037058 0.066261785
+%17 0.7633676 0.17037058 0.066261785
+%18 0.7633676 0.17037058 0.066261785
+%\end{Soutput}
+%\begin{Sinput}
+%> BTR.logit$lp    #linear predictor values
+%\end{Sinput} 
+%\begin{Soutput}
+%         1          2          3          4          5          6          7          8          9         10 
+%-0.4630592 -0.4630592 -0.4630592  0.2342498  0.2342498  0.2342498 -0.1157938 -0.1157938 -0.1157938 -1.3488684 
+%        11         12         13         14         15         16         17         18 
+%-1.3488684 -1.3488684  0.4943191  0.4943191  0.4943191  1.1991525  1.1991525  1.1991525
+%\end{Soutput}
+%\end{Schunk}
+%\end{tiny}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (12)}
+%We also fit a grouped Cox or proportional hazards model.
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> BTR.ph=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat, weights=Freq, 
+%                      Hess=T, method="cloglog")
+%> summary(BTR.ph)
+%\end{Sinput} 
+%\begin{Soutput}
+%Coefficients:
+%                            Value Std. Error t value
+%Age40to59                 -0.2865    0.14264  -2.008
+%Smoking2Former             0.2125    0.10054   2.114
+%Smoking3Current            0.1088    0.07301   1.490
+%Age40to59:Smoking2Former   0.4333    0.18941   2.288
+%Age40to59:Smoking3Current  0.8379    0.16357   5.122
+%
+%Intercepts:
+%                Value   Std. Error t value
+%1Normal|2Border  1.0477  0.0558    18.7612
+%2Border|3Abnorm  1.5528  0.0629    24.6916
+%
+%Residual Deviance: 1559.949 
+%AIC: 1573.949 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (13)}
+%We further fit a cumulative model with the extreme maximal-value distribution.
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> BTR.extm=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat,weights=Freq, 
+%                              Hess=T,method="loglog")
+%> summary(BTR.extm)
+%\end{Sinput} 
+%\begin{Soutput}
+%Coefficients:
+%                            Value Std. Error t value
+%Age40to59                 -0.8672     0.5286  -1.640
+%Smoking2Former             0.6755     0.2700   2.501
+%Smoking3Current            0.3368     0.2167   1.554
+%Age40to59:Smoking2Former   1.1003     0.6070   1.813
+%Age40to59:Smoking3Current  2.0724     0.5573   3.719
+%
+%Intercepts:
+%                Value   Std. Error t value
+%1Normal|2Border  2.8614  0.1715    16.6838
+%2Border|3Abnorm  4.2761  0.2080    20.5605
+%
+%Residual Deviance: 1566.335 
+%AIC: 1580.335 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (14)}
+%We fit a grouped Cox or proportional hazards model using the effect coding.
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> options(contrasts = c("contr.sum", "contr.poly"))
+%> BTR.ph=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat, weights=Freq, 
+%                           Hess=T, method="cloglog")
+%> summary(BTR.ph)
+%\end{Sinput} 
+%\begin{Soutput}
+%Coefficients:
+%                 Value Std. Error  t value
+%Age1          -0.06862    0.03421 -2.00575
+%Smoking1      -0.31898    0.05366 -5.94408
+%Smoking2       0.11022    0.04961  2.22168
+%Age1:Smoking1  0.21188    0.05361  3.95205
+%Age1:Smoking2 -0.00481    0.04960 -0.09699
+%
+%Intercepts:
+%                Value   Std. Error t value
+%1Normal|2Border  0.8720  0.0353    24.7072
+%2Border|3Abnorm  1.3771  0.0441    31.2213
+%
+%Residual Deviance: 1559.949 
+%AIC: 1573.949 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.3.3 Breathing testing example (15)}
+%We finally fit a cumulative model with the extreme maximal-value distribution using the effect coding.
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> options(contrasts = c("contr.sum", "contr.poly"))
+%> BTR.extm=polr(BTR~Age+Smoking+Age:Smoking,data=BTR.dat,weights=Freq, 
+%                              Hess=T,method="loglog")
+%> summary(BTR.extm)
+%\end{Sinput} 
+%\begin{Soutput}
+%Coefficients:
+%                 Value Std. Error t value
+%Age1          -0.09523     0.1053  -0.904
+%Smoking1      -0.86618     0.1854  -4.671
+%Smoking2       0.35943     0.1361   2.642
+%Age1:Smoking1  0.52877     0.1854   2.852
+%Age1:Smoking2 -0.02136     0.1361  -0.157
+%
+%Intercepts:
+%                Value   Std. Error t value
+%1Normal|2Border  2.4288  0.1054    23.0536
+%2Border|3Abnorm  3.8434  0.1573    24.4373
+%
+%Residual Deviance: 1566.335 
+%AIC: 1580.335 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\subsection{\S3.3.4 Sequential models}\label{sec:3.3.4}
+%\begin{frame}{\S3.3.4 Motivating example for sequential models}
+%\begin{itemize}
+%\item
+%In many applications the ordering of the response categories is due to a sequential mechanism.
+%The categories are ordered since they can be reached only successively.
+%\end{itemize}
+%
+%\noindent \textbf{Example 3.6. Tonsil size} Children have been classified according to their tonsil size 
+%and whether or not they are carriers of Streptococcus pyogenes. 
+%\begin{table} [htbp]
+%\caption{Tonsil size and Streptococcus pyogenes (Holmes \& Williams, 1954)} \label{tab3.5}
+%\begin{center} {\small
+%\begin{tabular}{|lccc|} \hline
+% & $\begin{array}{c} \mbox{Present but} \\ \mbox{not enlarged}\end{array}$ & Enlarged & 
+% $\begin{array}{c} \mbox{Greatly} \\ \mbox{enlarged}\end{array}$ \\ \hline
+%Carriers & 19 & 29 & 24 \\
+%Noncarriers & 497 & 560 & 269 \\ \hline
+%\end{tabular}}
+%\end{center}
+%\end{table}
+%\begin{itemize}
+%\item
+%{\scriptsize It may be assumed that tonsil size always starts in the normal state ``present
+%but not enlarged" (\textit{category 1}). If the tonsils grow abnormally, they may
+%become ``enlarged" (\textit{category 2}); if the process does not stop, tonsils may
+%become ``greatly enlarged" (\textit{category 3}). But in order to get greatly enlarged
+%tonsils, they first have to be enlarged for the duration of the intermediate
+%state ``enlarged."}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.4 Sequential models (1)}
+%\begin{itemize}
+%\item
+%Let latent variables $U_r$, $r=1,\cdots,q$ with $q=k-1$ have the linear form
+%$$U_r=-\textbf{x}^T\mbox{\boldmath $\gamma$}+\varepsilon_r, \quad\mbox{where $\varepsilon_r$
+%has cdf $F$.}$$
+%\item
+%We assume the ordinal response variable $Y$ is determined by $U_r$'s in the following sequential way:
+%\begin{eqnarray}
+%Y=1 & \Leftrightarrow & U_1\leq\theta_1 \nonumber \\
+%Y=2 \;\mbox{given $Y\geq 2$} & \Leftrightarrow & U_2\leq\theta_2; \quad\mbox{and in general} \nonumber \\
+%Y=r \;\mbox{given $Y\geq r$} & \Leftrightarrow & U_r\leq\theta_r; \quad\mbox{or equivalently} \nonumber \\
+%Y>r \;\mbox{given $Y\geq r$} & \Leftrightarrow & U_r> \theta_r, \quad r=1,\cdots, q \label{eq-3.3.16}
+%\end{eqnarray}
+%\item
+%The sequential mechanism (\ref{eq-3.3.16}) models the transition from category $r$ to category $r+1$
+%given that category $r$ is reached.
+%\item
+%The main difference to the threshold approach used in the cumulative model is the conditional modelling 
+%of the transitions. The sequential mechanism assumes a binary decision in each step.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.4 Sequential models (2)}
+%\begin{itemize}
+%\item
+%The sequential response mechanism (\ref{eq-3.3.16}) combined with the linear form of the latent variable
+%$$U_r=-\textbf{x}^T\mbox{\boldmath $\gamma$}+\varepsilon_r, \quad\mbox{where $\varepsilon_r$
+%has cdf $F$,}$$
+%leads to the \textbf{sequential model} with cdf $F$
+%\begin{equation}
+%P(Y=r|Y\geq r, \textbf{x})=P(U_r\leq \theta_r)=F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}),
+%\quad r=1,\cdots,k, 
+%\label{eq-3.3.17}
+%\end{equation}
+%where $\theta_k=+\infty$. It follows that {\footnotesize
+%\begin{eqnarray*}
+%\lefteqn{P(Y=r|\textbf{x})=P(Y=r|Y\geq r, \textbf{x})\cdot P(Y\geq r |\textbf{x})} & \\
+%& & =F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}) \cdot P(Y>r-1|Y\geq r-1, \textbf{x}) \cdot \\
+%& & \quad\quad \quad P(Y>r-2|Y\geq r-2, \textbf{x})\cdots P(Y>1|Y\geq 1, \textbf{x}) \\
+%&&=F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$})[1-F(\theta_{r-1}+\textbf{x}^T\mbox{\boldmath $\gamma$})]
+%\cdots [1-F(\theta_1+\textbf{x}^T\mbox{\boldmath $\gamma$})] \\
+%&& = F(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$})\prod_{i=1}^{r-1}
+%[1-F(\theta_i+\textbf{x}^T\mbox{\boldmath $\gamma$})], \quad r=1,\cdots, k; \quad 
+%\mbox{Note $\prod_{i=1}^0 [\cdot]=0$}
+%\end{eqnarray*}}
+%\item
+%Model (\ref{eq-3.3.17}) is also called the \textbf{continuation ratio model}.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.4 Sequential models (3)}
+%\begin{itemize}
+%\item
+%Note that there is no need to impose any order restriction on $\theta_1, \cdots, \theta_q$ in (\ref{eq-3.3.17}).
+%\item
+%Now specify a cdf $F$ will give a specific sequential model.
+%\begin{enumerate}
+%\item
+%Choosing $F(x)=(1+e^{-x})^{-1}$ gives the \textbf{sequential logit model}
+%$$P(Y=r|Y\geq r, \textbf{x})=\frac{\exp(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$})}{1+
+%\exp(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$})}, \quad r=1,\cdots, k$$
+%which is equivalent to $\displaystyle \log\left\{\frac{P(Y=r|\textbf{x})}{P(Y>r|\textbf{x})}\right\}=
+%\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}.$
+%\item
+%Choosing $F(x)=1-\exp(-e^x)$, the sequential model has the form
+%\begin{equation}
+%P(Y=r|Y\geq r, \textbf{x})=1-\exp\left(-e^{\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}}\right), 
+%\quad r=1,\cdots, k
+%\label{eq-3.3.18}
+%\end{equation}
+%which is equivalent to
+%\begin{equation}
+%\log\left[-\log\left\{\frac{P(Y>r|\textbf{x})}{P(Y\geq r|\textbf{x})}\right\}\right]=
+%\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}, \quad r=1,\cdots, k.
+%\label{eq-3.3.19}
+%\end{equation}
+%\end{enumerate}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.4 Sequential models (4)}
+%\begin{itemize}
+%\item
+%It is worth to note that (\ref{eq-3.3.19}) is equivalent to the cumulative model with 
+%$F(x)=1-\exp(-e^x)$. This means (\ref{eq-3.3.19}) is a special parametric form of the grouped Cox model.
+%This equivalence follows by the reparameterisation:
+%$$\theta_r=\log\{e^{\tilde{\theta}_r}-e^{\tilde{\theta}_{r-1}}\}, \quad r=1,\cdots, k-1.$$
+%Note $\tilde{\theta}_0=-\infty$ and $\theta_1=\tilde{\theta}_1$. 
+%Further $\displaystyle \tilde{\theta}_r=\log\left(\sum_{i=1}^r e^{\theta_i}\right)$.
+%
+%Substituting  $\theta_r=\log\{e^{\tilde{\theta}_r}-e^{\tilde{\theta}_{r-1}}\}$ into (\ref{eq-3.3.19}),
+%one obtains {\footnotesize
+%\begin{eqnarray*}
+%-\log P(Y>r|\textbf{x})+ \log P(Y> r-1|\textbf{x})=e^{\tilde{\theta}_r+\textbf{x}^T\mbox{\boldmath $\gamma$}}
+%-e^{\tilde{\theta}_{r-1}+\textbf{x}^T\mbox{\boldmath $\gamma$}}, \quad r=1,\cdots,q \\
+% \Rightarrow \quad -\log P(Y>r|\textbf{x})=e^{\tilde{\theta}_r+\textbf{x}^T\mbox{\boldmath $\gamma$}},
+%\quad r=1,\cdots,q \hspace{80pt} \\
+% \Rightarrow \quad P(Y\leq r|\textbf{x})=1-\exp\left(-e^{\tilde{\theta}_r+\textbf{x}^T\mbox{\boldmath $\gamma$}}\right)
+%\quad \mbox{\normalsize which is a \textbf{grouped Cox model}.}
+%\end{eqnarray*}}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.4 Sequential models (5)}
+%\begin{enumerate}
+%\setcounter{enumi}{2}
+%\item
+%Choosing exponential cdf $F(x)=1-e^{-x}$, the \textbf{exponential sequential model} becomes
+%\begin{eqnarray*}
+%& P(Y=r|Y\geq r,\textbf{x})=1-e^{-(\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$})} \\
+%\Leftrightarrow & -\log\left\{\frac{P(Y>r|\textbf{x})}{P(Y\geq r|\textbf{x})}\right\}=
+%\theta_r+\textbf{x}^T\mbox{\boldmath $\gamma$}, \quad r=1,\cdots,q.
+%\end{eqnarray*}
+%\end{enumerate}
+%\noindent \textbf{Generalised sequential models:}
+%
+%If assuming $\theta_r=\delta_{r0}+\textbf{z}^T\mbox{\boldmath $\delta$}_r$, where 
+%$\mbox{\boldmath $\delta$}_r=(\delta_{r1}, \cdots, \delta_{rm})^T$ is a category-specific vector
+%parameter, then one gets the \textit{Generalised sequential model}:
+%\begin{equation}
+%P(Y=r|Y\geq r,\textbf{x}, \textbf{z})=F(\delta_{r0}+\textbf{z}^T\mbox{\boldmath $\delta$}_r+ 
+%\textbf{x}^T\mbox{\boldmath $\gamma$})
+%\label{eq-3.3.20}
+%\end{equation}
+%\textbf{Remark:} The effect of $\textbf{z}$ is non-homogeneous over the categories, while the
+%effect of $\textbf{x}$ is homogeneous.
+%\end{frame}
+%
+%\begin{frame}{\large \S3.3.4 Link functions and design matrices in sequential models}
+%\begin{itemize}
+%\item
+%Response and link functions may be derived directly from model (\ref{eq-3.3.17}).
+%\item
+%The link function $\textbf{g}=(g_1,\cdots, g_q)^T$ is given by
+%$$g_r(\pi_1,\cdots,\pi_q)=F^{-1}\left(\frac{\pi_r}{1-\pi_1-\cdots -\pi_{r-1}}\right), \quad r=1,\cdots,q$$
+%and the response function $\textbf{h}=(h_1,\cdots, h_q)^T$ has the form
+%$$h_r(\eta_1,\cdots, \eta_q)=F(\eta_r)\prod_{i=1}^{r-1}(1-F(\eta_i)), \quad r=1,\cdots,q.$$
+%\item
+%For the sequential logit model, with $r=1,\cdots,q$ {\footnotesize
+%$$g_r(\pi_1,\cdots,\pi_q)=\log\frac{\pi_r}{1\!-\!\pi_1\!-\!\cdots \!-\!\pi_{r-1}}\quad \mbox{and}\quad
+%h_r(\eta_1,\cdots, \eta_q)=e^{\eta_r}\prod_{i=1}^{r-1}(1+e^{\eta_i})^{-1}.$$}
+%\item
+%In regard to the design matrices there is no difference between sequential and cumulative models.
+%Thus the design matrices from \S3.3.3 apply.
+%\end{itemize}
+%\end{frame}
+%
+%\subsection{\S3.3.5 Strict stochastic ordering}\label{sec:3.3.5}
+%\begin{frame}{\S3.3.5 Strict stochastic ordering}
+%\begin{itemize}
+%\item
+%\textbf{Strict stochastic ordering} is a concept generalizing the \textit{proportional odds} for
+%simple cumulative model (\ref{eq-3.3.3})
+%$$\Delta_c(\textbf{x}_1,\textbf{x}_2)=F^{-1}\left(P(Y\leq r |\textbf{x}_1)\right)-
+%F^{-1}\left(P(Y\leq r |\textbf{x}_2)\right).$$
+%If $\Delta_c(\textbf{x}_1,\textbf{x}_2)=\mbox{\boldmath $\gamma$}^T(\textbf{x}_1-\textbf{x}_2)$,
+%we say strict stochastic ordering holds.
+%\item
+%Then for general cumulative model (\ref{eq-3.3.11}) where $\textbf{w}=\textbf{x}$ is set and
+%$\textbf{x}^T\mbox{\boldmath $\gamma$}$ is omitted, one can test strict stochastic ordering by
+%testing $\mbox{\boldmath $\beta$}_1=\mbox{\boldmath $\beta$}_2=\cdots=\mbox{\boldmath $\beta$}_q$.
+%\item
+%The concept can be generalized to the sequential model (\ref{eq-3.3.17}) as well. Let
+%$$\Delta_s(\textbf{x}_1,\textbf{x}_2)=F^{-1}\left(P(Y=r|Y\geq r, \textbf{x}_1)\right)-
+%F^{-1}\left(P(Y=r|Y\geq r, \textbf{x}_2)\right).$$
+%If $\Delta_s(\textbf{x}_1,\textbf{x}_2)=\mbox{\boldmath $\gamma$}^T(\textbf{x}_1-\textbf{x}_2)$,
+%we say strict stochastic ordering holds for the sequential model.
+%\end{itemize}
+%\end{frame}
+%
+%\subsection{\S3.3.6 Two-step models}\label{sec:3.3.6}
+%\begin{frame}{\S3.3.6 Two-step models (1)}
+%\begin{itemize}
+%\item
+%It may be more appropriate to divide the ordered categories into sets of categories with very
+%homogeneous responses in the first step, then model the categories within each set separately
+%in the second step. This is the \textbf{two-step modelling approach}.
+%\item
+%{\small \textbf{Example 3.9. Rheumatoid arthritis} Mehta, Patel \& Tsiatis (1984) analysed data of patients
+%with acute rheumatoid arthritis. A new agent was compared with an active control, and each
+%patient was evaluated on a 5-point assessment scale. \vspace*{-8pt}
+%\begin{table} [htbp]
+%\caption{Clinical trial of a new agent and an active control} \label{tab3.8}
+%\begin{center}
+%\begin{tabular}{|lccccc|} \hline
+%& \multicolumn{5}{c|}{Global assessment} \\
+%Drug & $\begin{array}{c} \mbox{Much} \\ \mbox{improved}\end{array}$ & Improved & 
+% $\begin{array}{c} \mbox{No} \\ \mbox{change}\end{array}$ & Worse &
+% $\begin{array}{c} \mbox{Much} \\ \mbox{worse}\end{array}$\\ \hline
+%New agent & 24 & 37 & 21 & 19 & 6 \\
+%Active control & 11 & 51 & 22 & 21 & 7 \\ \hline
+%\end{tabular}
+%\end{center}
+%\end{table}
+%Global assessment may be subdivided into``improvement", ``no change"
+%and ``worse" first. Then ``improvement"
+%is split up into ``much improved" and ``improved" and the
+%``worse" category is split into ``worse" and ``much worse."}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.3.6 Two-step models (2)}
+%\begin{itemize}
+%\item
+%Specifically, let the categories $1, \cdots, k$ be subdivided into $t$ basic sets $S_1, \cdots, S_t$,
+%where $S_j=\{m_{j-1}+1, \cdots, m_j\}$, $m_0=0$ and $m_t=k$. \vspace{8pt}
+%
+%In \underline{Step 1}: $Y\in S_j\;\; \Leftrightarrow \;\; \theta_{j-1}<U_0\leq \theta_j,\;\;
+%j=1,\cdots, t.$
+%
+%\hspace{50pt} Assume $U_0=-\textbf{x}^T\mbox{\boldmath $\gamma$}_0+\varepsilon$.
+%\vspace{6pt}
+%
+%In \underline{Step 2}: $Y=R \mid Y\in S_j \;\; \Leftrightarrow \;\; \theta_{j, r-1}<U_j\leq \theta_{jr}.$
+%
+%\hspace{50pt} Assume $U_j=-\textbf{x}^T\mbox{\boldmath $\gamma$}_j+\varepsilon_j$.
+%Also $\varepsilon, \varepsilon_j$'s are iid with cdf $F$.
+%\item
+%Then the two-step model becomes
+%\begin{equation}
+%P(Y\in T_j|\textbf{x})=F(\theta_j+\textbf{x}^T\mbox{\boldmath $\gamma$}_0), \quad
+%P(Y\leq r |Y\in S_j, \textbf{x})=F(\theta_{jr}+\textbf{x}^T\mbox{\boldmath $\gamma$}_j)
+%\label{eq-3.3.21}
+%\end{equation}
+%where $T_j=S_1\cup\cdots\cup S_j, \quad \theta_1<\cdots <\theta_{t-1}, \quad \theta_t=\infty$;
+%$\theta_{j, m_{j-1}+1}<\cdots <\theta_{j, m_{j-1}}, \quad \theta_{j, m_j}=\infty, \quad j=1,\cdots,t$.
+%\item
+%Since cumulative mechanisms are used in both steps, (\ref{eq-3.3.21}) is called a \textbf{two-step 
+%cumulative model}. \textbf{Two-step sequential model} can be similarly defined.
+%\end{itemize}
+%\end{frame}
+%
+%\subsection{\S3.3.7 Alternative approaches}\label{sec:3.3.7}
+%\begin{frame}{\S3.3.7 Alternative approaches}
+%\begin{enumerate}
+%\item
+%Anderson (1984). 
+%$$P(Y=r|\textbf{x})=\frac{e^{\beta_{r0}-\phi_r\mbox{\scriptsize \boldmath 
+%$\beta$}^T\textbf{x}}}{1+\sum_{i=1}^q e^{\beta_{i0}-\phi_i\mbox{\scriptsize \boldmath $\beta$}^T\textbf{x}}},\quad
+%r=1,\cdots, q;$$
+%where $1=\phi_1>\cdots >\phi_k=0$.
+%\item
+%Williams and Grizzle (1972).
+%$\displaystyle \sum_{r=1}^k s_rP(Y=r|\textbf{x})=\textbf{x}^T\mbox{\boldmath $\beta$}$
+%
+%where $s_1,\cdots, s_k$ are some given scores for the categories.
+%\item
+%\textbf{Adjacent categories logit model} (Agresti 1984).
+%\begin{eqnarray*}
+%\lefteqn{\log \frac{P(Y=r|\textbf{x})}{P(Y=r-1|\textbf{x})}=\textbf{x}^T\mbox{\boldmath $\beta$}_r} & \\
+%&& \Leftrightarrow \quad P(Y=r|Y\in\{r, r+1\}, \textbf{x})=F(\textbf{x}^T\mbox{\boldmath $\beta$}_r)
+%\end{eqnarray*}
+%where $F$ is the logistic cdf.
+%\end{enumerate}
+%\end{frame}
+%
+%\section{\S3.4 Statistical inference for MGLM}\label{sec:3.4}
+%\begin{frame}{\S3.4 Statistical inference for MGLM overview}
+%\begin{enumerate}
+%\item
+%MLE
+%\item
+%Testing of linear hypotheses
+%\item
+%Goodness of fit (model adequacy) statistics
+%\item
+%Power-divergence statistics
+%\end{enumerate}
+%\end{frame}
+%
+%\subsection{\S3.4.1 Maximum likelihood estimation in MGLM}\label{sec:3.4.1}
+%\begin{frame}{\S3.4.1 Maximum likelihood estimation in MGLM (1)}
+%\begin{itemize}
+%\item
+%An extension of the exponential family is the \textbf{multivariate exponential family}, having the pdf
+%$$f(\textbf{y}_i | \mbox{\boldmath $\theta$}_i, \phi, \omega_i)=\exp\left\{\frac{\textbf{y}_i^T
+% \mbox{\boldmath $\theta$}_i-b(\mbox{\boldmath $\theta$}_i)}{\phi}\cdot \omega_i + 
+%c(\textbf{y}_i,\phi, \omega_i)\right\}$$
+%\item
+%For $q\times 1$ vector observations $\textbf{y}_1,\cdots, \textbf{y}_n$ which are suppose to be independent
+%of each other, let $\mbox{\boldmath $\mu$}_i=E(\textbf{y}_i|\textbf{x}_i)$, $i=1,\cdots,n$, with $\textbf{x}_i$ being the 
+%covariate vector.
+%\item
+%The \textbf{structural assumption} of MGLM is that $\mbox{\boldmath $\mu$}_i$'s depend on the linear
+%predictor  $\mbox{\boldmath $\eta$}_i=Z_i\mbox{\boldmath $\beta$}$ in the form
+%$$\mbox{\boldmath $\mu$}_i=\textbf{h}(\mbox{\boldmath $\eta$}_i)=
+%\textbf{h}(Z_i\mbox{\boldmath $\beta$})=\left[h_1(Z_i\mbox{\boldmath $\beta$}),
+%\cdots,h_1(Z_i\mbox{\boldmath $\beta$})\right]^T, \quad i=1,\cdots,n$$
+%where
+%\begin{itemize}
+%\item
+%the response function $\textbf{h}: S\rightarrow M$ is defined on $S\subset \mathbb{R}^q$, taking
+%values in $M\subset\mathbb{R}^q$;
+%\item
+%$Z_i$ is a $q\times p$ design matrix for unit $i$;
+%\item
+%$\mbox{\boldmath $\beta$}=(\beta_1,\cdots,\beta_p)^T$ is an unknown parameter vector
+%from $B\subset\mathbb{R}^q$.
+%\end{itemize}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.4.1 Maximum likelihood estimation in MGLM (2)}
+%\begin{itemize}
+%\item
+%The MLE of $\mbox{\boldmath $\beta$}$ may be derived in analogy to the one-dimensional case.
+%\item
+%The log-likelihood kernel for observation $\textbf{y}_i$ is
+%\begin{equation}
+%\ell_i(\mbox{\boldmath $\mu$}_i)=\frac{\textbf{y}_i^T\mbox{\boldmath $\theta$}_i
+%-b(\mbox{\boldmath $\theta$}_i)}{\phi}\cdot \omega_i, \quad \mbox{where $\mbox{\boldmath $\theta$}_i
+%=\mbox{\boldmath $\theta$}(\mbox{\boldmath $\mu$}_i)$}
+%\label{eq-3.4.1}
+%\end{equation}
+%\item
+%Using the relation $\mbox{\boldmath $\mu$}_i=\textbf{h}(\mbox{\boldmath $\eta$}_i)=
+%\textbf{h}(Z_i\mbox{\boldmath $\beta$})$, it can be found that the score function is
+%$\displaystyle \textbf{s}(\mbox{\boldmath $\beta$})=\frac{\partial\ell}{\partial \mbox{\boldmath $\beta$}}=
+%\sum_{i=1}^n \textbf{s}_i(\mbox{\boldmath $\beta$})$, with
+%\begin{equation}
+%\textbf{s}_i(\mbox{\boldmath $\beta$})=Z_i^TD_i(\mbox{\boldmath $\beta$})\Sigma_i^{-1}(\mbox{\boldmath $\beta$})
+%[\textbf{y}_i-\mbox{\boldmath $\mu$}_i(\mbox{\boldmath $\beta$})],
+%\label{eq-3.4.2}
+%\end{equation}
+%where $\displaystyle D_i(\mbox{\boldmath $\beta$})=
+%\frac{\partial\textbf{h}^T(\mbox{\boldmath $\eta$}_i)}{\partial \mbox{\boldmath $\eta$}_i}$ is the
+%derivative matrix of $\textbf{h}^T(\mbox{\boldmath $\eta$}_i)$ evaluated at $\mbox{\boldmath $\eta$}_i
+%=Z_i\mbox{\boldmath $\beta$}$, which is also called the Jacobian (matrix). 
+%And $\Sigma_i (\mbox{\boldmath $\beta$})=\mbox{cov}(\textbf{y}_i)$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.4.1 Maximum likelihood estimation in MGLM (3)}
+%\begin{itemize}
+%\item
+%An alternative form for $\textbf{s}_i(\mbox{\boldmath $\beta$})$ is
+%$$\textbf{s}_i(\mbox{\boldmath $\beta$})=Z_i^TW_i(\mbox{\boldmath $\beta$})\frac{\partial
+%\textbf{g}(\mbox{\boldmath $\mu$}_i)}{\partial \mbox{\boldmath $\mu$}_i^T}
+%[\textbf{y}_i-\mbox{\boldmath $\mu$}_i(\mbox{\boldmath $\beta$})], \quad \mbox{where}$$
+%\begin{equation}
+%W_i(\mbox{\boldmath $\beta$})=D_i(\mbox{\boldmath $\beta$})\Sigma_i^{-1}(\mbox{\boldmath $\beta$})
+%D_i(\mbox{\boldmath $\beta$})=\left\{\frac{\partial\textbf{g}(\mbox{\boldmath $\mu$}_i)}{\partial 
+%\mbox{\boldmath $\mu$}_i^T} \Sigma_i(\mbox{\boldmath $\beta$})\frac{\partial
+%\textbf{g}^T(\mbox{\boldmath $\mu$}_i)}{\partial \mbox{\boldmath $\mu$}_i}\right\}^{-1}
+%\label{eq-3.4.3}
+%\end{equation}
+%which approximately equals $(\mbox{cov}(\textbf{g}(\textbf{y}_i))^{-1}$.
+%\item
+%The expected Fisher information matrix is $$F(\mbox{\boldmath $\beta$})=
+%\mbox{cov}(\textbf{s}(\mbox{\boldmath $\beta$}))=\sum_{i=1}^nZ_i^TW_i(\mbox{\boldmath $\beta$})Z_i.$$
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.4.1 Maximum likelihood estimation in MGLM (4)}
+%\begin{itemize}
+%\item
+%In matrix form the above may be rewritten as
+%\begin{eqnarray*}
+%\textbf{s}(\mbox{\boldmath $\beta$}) &=& Z^TD(\mbox{\boldmath $\beta$})\Sigma^{-1}(\mbox{\boldmath $\beta$})
+%[\textbf{y}-\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})] \\
+%F(\mbox{\boldmath $\beta$}) &=& Z^TW(\mbox{\boldmath $\beta$})Z.
+%\end{eqnarray*}
+%where $\textbf{y}=(\textbf{y}_1^T,\cdots, \textbf{y}_n^T)^T$,
+%$\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})=(\mbox{\boldmath $\mu$}_1(\mbox{\boldmath $\beta$})^T,
+%\cdots,\mbox{\boldmath $\mu$}_n(\mbox{\boldmath $\beta$})^T)^T$,
+%$\Sigma(\mbox{\boldmath $\beta$})=\mbox{diag}\left(\Sigma_i(\mbox{\boldmath $\beta$})\right)$,
+%$W(\mbox{\boldmath $\beta$})=\mbox{diag}\left(W_i(\mbox{\boldmath $\beta$})\right)$,
+%$D(\mbox{\boldmath $\beta$})=\mbox{diag}\left(D_i(\mbox{\boldmath $\beta$})\right)$, 
+%all being block diagonal, and the total design matrix $\displaystyle Z=\left[Z_1^T, \cdots, Z_n^T\right]^T$.
+%\item
+%In the situation of grouped data, $\textbf{y}_i$ is the mean vector over $n_i$ observations and
+%$\Sigma_i(\mbox{\boldmath $\beta$})$ is replaced by $n_i^{-1}\Sigma_i(\mbox{\boldmath $\beta$})$.
+%\item
+%Under regularity conditions, 
+%$$\mbox{MLE}\; \hat{\mbox{\boldmath $\beta$}}\stackrel{a}{\sim}
+%N(\mbox{\boldmath $\beta$}, F^{-1}(\hat{\mbox{\boldmath $\beta$}})).$$
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.4.1 Numerical computing in MGLM}
+%\begin{itemize}
+%\item
+%This is the same as in the univariate case, except using the multivariate versions.
+%\begin{enumerate}
+%\item
+%Working or pseudo observation vector
+%\begin{eqnarray*}
+%\lefteqn{\tilde{\textbf{y}}(\mbox{\boldmath $\beta$})=(\tilde{\textbf{y}}_1(\mbox{\boldmath $\beta$})^T,
+%\cdots, \tilde{\textbf{y}}_n(\mbox{\boldmath $\beta$})^T)^T, \quad\mbox{where}} \\
+%&& \tilde{\textbf{y}}_i(\mbox{\boldmath $\beta$})= Z_i\mbox{\boldmath $\beta$}+
+%\left(D_i^{-1}(\mbox{\boldmath $\beta$})\right)^T[\textbf{y}_i-\mbox{\boldmath $\mu$}_i(\mbox{\boldmath $\beta$})]
+%\end{eqnarray*}
+%is an approximation for $\textbf{g}(\mbox{\boldmath $\mu$}_i(\mbox{\boldmath $\beta$}))$.
+%\item
+%The IRWLS estimate is
+%$$\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\left(Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right)^{-1}
+%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\tilde{\textbf{y}}(\mbox{\boldmath $\beta$}^{(k)})$$
+%which is equivalent to the Fisher scoring iteration
+%$$\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\hat{\mbox{\boldmath $\beta$}}^{(k)}+
+%\left(Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right)^{-1}\textbf{s}(\mbox{\boldmath $\beta$}^{(k)}).$$
+%\end{enumerate}
+%\end{itemize}
+%\end{frame}
+%
+%\subsection{\S3.4.2 Testing and goodness-of-fit in MGLM}\label{sec:3.4.2}
+%\begin{frame}{\S3.4.2 Testing linear hypotheses in MGLM}
+%The linear hypotheses
+%$$H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$}\quad \mbox{vs.}\quad
+%H_1: C\mbox{\boldmath $\beta$}\neq\mbox{\boldmath $\xi$}$$
+%can be tested in the same way as in the univariate GLM, except replacing the score and
+%Fisher information by their multivariate versions.
+%\end{frame}
+%
+%\begin{frame}{\S3.4.2 Goodness-of-fit statistics in MGLM (1)}
+%Goodness of fit (or model adequacy) of the MGLM can be assessed based on the Pearson
+%statistics and the deviance (the data need be grouped as much as possible).
+%\begin{itemize}
+%\item
+%\textbf{General Pearson Statistics:}
+%$$\chi^2=\sum_{i=1}^g (\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)^T
+%\Sigma_i^{-1}(\hat{\mbox{\boldmath $\beta$}})(\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)$$
+%\item
+%In the case of multi-categorical response variable with multinomial distribution $n_i\textbf{y}_i\sim
+%M(n_i, \mbox{\boldmath $\pi$}_i)$, we have
+%$$\chi^2=\sum_{i=1}^g \chi_p^2(\textbf{y}_i, \hat{\mbox{\boldmath $\pi$}}_i)=
+%\sum_{i=1}^g n_i\sum_{j=1}^k\frac{(y_{ij}-\hat{\pi}_{ij})^2}{\hat{\pi}_{ij}}$$
+%with $y_{ik}=1-y_{i1}-\cdots-y_{iq}$ and $\hat{\pi}_{ik}=1-\hat{\pi}_{i1}-\cdots-\hat{\pi}_{iq}$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.4.2 Goodness-of-fit statistics in MGLM (2)}
+%\begin{itemize}
+%\item
+%\textbf{Deviance} or \textbf{likelihood ratio (LR) statistics}:
+%$$D=-2\sum_{i=1}^g\left\{\ell_i(\hat{\mbox{\boldmath $\pi$}}_i)-\ell_i(\textbf{y}_i)\right\}$$.
+%\item
+%For multinomial data,
+%$$D=2\sum_{i=1}^g\chi_D^2(\textbf{y}_i, \hat{\mbox{\boldmath $\pi$}}_i)=
+%2\sum_{i=1}^g n_i\sum_{j=1}^k y_{ij}\log\frac{y_{ij}}{\hat{\pi}_{ij}}$$
+%\item
+%Under regularity conditions,
+%$$\chi^2\stackrel{a}{\sim} \chi^2(g(k-1)-p)\quad \mbox{and} \quad
+%D\stackrel{a}{\sim}\chi^2(g(k-1)-p)$$
+%where $p$ is the number of estimated parameters.
+%\item
+%For sparse data with small $n_i$, one should use alternative asymtotics.
+%\end{itemize}
+%\end{frame}
+%
+%\subsection{\S3.4.3 Power-divergence family}\label{sec:3.4.3}
+%\begin{frame}{\S3.4.3 Power-divergence family (1)}
+%For categorical data a more general single-parameter family of goodness-of-fit statistics is
+%the \textbf{power-divergence family}, introduced by Cressie and Read (1984, JRSSB).
+%
+%The power-divergence statistic with parameter $\lambda\in \mathbb{R}$ is given by
+%$$S_\lambda =\sum_{i=1}^g \mbox{SD}_\lambda (\textbf{y}_i, \hat{\mbox{\boldmath $\pi$}}_i)$$
+%where the sum of deviations over observations at $\textbf{y}_i$ is
+%\begin{equation}
+%\mbox{SD}_\lambda (\textbf{y}_i, \hat{\mbox{\boldmath $\pi$}}_i)=\frac{2n_i}{\lambda (\lambda+1)}
+%\sum_{j=1}^k y_{ij}\left[\left(\frac{y_{ij}}{\hat{\pi}_{ij}}\right)^\lambda -1 \right], \quad -\infty<\lambda<\infty
+%\label{eq-3.4.4}
+%\end{equation}
+%\end{frame}
+%
+%\begin{frame}{\S3.4.3 Power-divergence family (2)}
+%\begin{enumerate}
+%\item
+%At $\lambda=1$, $\displaystyle S_1=\sum_{i=1}^g n_i\sum_{j=1}^k \frac{(y_{ij}-\hat{\pi}_{ij})^2}{\hat{\pi}_{ij}}$,
+%the usual Pearson statistic.
+%\item
+%At $\lambda\rightarrow 0$, $\displaystyle S_0=2\sum_{i=1}^g n_i\sum_{j=1}^k y_{ij}
+%\log \frac{y_{ij}}{\hat{\pi}_{ij}}$,
+%the likelihood ratio statistic.
+%\item
+%At $\lambda\rightarrow -1$, $\displaystyle S_{-1}=2\sum_{i=1}^g n_i\sum_{j=1}^k \hat{\pi}_{ij}
+%\log \frac{\hat{\pi}_{ij}}{y_{ij}}$, Kullback's minimum discrimination information statistic.
+%\item
+%At $\lambda= -2$, 
+%$\displaystyle S_{-2}=\sum_{i=1}^g n_i\sum_{j=1}^k \frac{(y_{ij}-\hat{\pi}_{ij})^2}{y_{ij}}$,
+%Neyman's minimum modified $\chi^2$-statistic.
+%\item
+%At $\lambda=-\frac{1}{2}$, $\displaystyle S_{-\frac{1}{2}}\!=\!4\!\sum_{i=1}^g \sum_{j=1}^k 
+%(\!\sqrt{n_iy_{ij}}-\sqrt{n_i\hat{\pi}_{ij}})^2$, {\small Freeman-Tukey statistic.}
+%\end{enumerate}
+%In general, $\lambda\in [-1, 2]$ is recommended.
+%\end{frame}
+%
+%\begin{frame}{\large \S3.4.3 Asymptotic properties under classical ``fixed cells" assumptions}
+%Classical assumptions in asymptotic theory for grouped data imply
+%\begin{enumerate}
+%\item
+%a fixed number of groups ($g$ is fixed)
+%\item
+%increasing sample sizes $n_i\rightarrow\infty, i=1,\cdots, g$, such that $\frac{n_i}{n}\rightarrow\lambda_i$
+%for fixed proportions $\lambda_i>0$, $i=1,\cdots,g$.
+%\item
+%a fixed ``number of cells" $k$ in each group
+%\item
+%a fixed number of parameters.
+%\end{enumerate}
+%If these assumptions hold and in addition, the model under consideration is correct, then
+%$$S_\lambda \stackrel{a}{\sim} \chi^2 (g(k-1)-p), \quad p\; \mbox{is the \# of estimated parameters}.$$
+%And under local alternative hypothesis, the limit distribution of $S_\lambda$ is non-central $\chi^2$.
+%\end{frame}
+%
+%\begin{frame}{\large \S3.4.3 Asymptotic properties under sparseness and ``increasing-cells" assumptions}
+%\begin{itemize}
+%\item
+%If several explanatory variables are considered, the number of observations
+%for a fixed explanatory variable $\textbf{x}$ is often small and the usual asymptotic machinery will fail.
+%\item
+%Under such sparseness conditions, it may be assumed that with increasing sample size $n\rightarrow\infty$ 
+%the number of groups (values of the explanatory variables) is also increasing with $g\rightarrow\infty$, resulting
+%in the ``increasing-cells" setting.
+%\item
+%Now $S_\lambda$ is no longer $\chi^2$-distributed in the limit. Rather $S_\lambda$ has an asymptotic
+%normal distribution under $H_0$ that the model holds. Details are not pursued here.
+%\end{itemize}
+%\end{frame}
+%
+%\section{\S3.5 Multivariate models for correlated responses}\label{sec:3.5}
+%\begin{frame}{\S3.5 Multivariate models for correlated responses}
+%\begin{itemize}
+%\item
+%So far we have been assuming there is only one response variable, possibly multi-categorical, being under 
+%consideration.
+%\item
+%Now we consider the situations where a vector of correlated or clustered response variables is
+%observed, together with covariates, for each unit in the sample.
+%\item
+%These situations often happen in longitudinal studies, repeated measurements studies, and 
+%grouped (clustered) studies, etc.
+%\item
+%When the response variables are approximately Gaussian, multivariate linear models are commonly
+%used for the underlying data analysis, which has been well established.
+%\item
+%The situations become more difficult when the response variables are discrete, categorical or
+%mixed discrete/categorical/continuous.
+%\item
+%Three main approaches will be introduced here:
+%\begin{enumerate}
+%\item
+%\textbf{conditional models}
+%\item
+%\textbf{marginal models}
+%\item
+%\textbf{random effects models}
+%\end{enumerate}
+%\end{itemize}
+%\end{frame}
+%
+%\subsection{\S3.5.1 Conditional models}\label{sec:3.5.1}
+%\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (1)}
+%\noindent \textbf{Asymmetric models}
+%\begin{itemize}
+%\item
+%In many applications, the components of a response vector are ordered in a way that some components
+%are prior to the other components, e.g. if they refer to events that take place earlier. 
+%\item
+%Consider the simplest case of a response vector $\textbf{Y}=(Y_1, Y_2)$, with categorical components 
+%$Y_1\in\{1,\cdots, k_1\}$ and $Y_2\in\{1,\cdots, k_2\}$. Let $Y_2$ refer to events that may be
+%considered conditional on $Y_1$.
+%\begin{itemize}
+%\item
+%\textbf{An example}: response years in school ($Y_1$) and the statement about happiness ($Y_2$).
+%\end{itemize}
+%\item
+%Then $Y_1$ may be modelled to be dependent on the explanatory variables $\textbf{x}$, using a
+%model introduced in \S3.2 and \S3.3.
+%\item
+%And $Y_2$ may be modelled based on $Y_1$ and $\textbf{x}$, also using a model introduced in 
+%\S3.2 and \S3.3.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (2)}
+%\noindent \textbf{Asymmetric models}
+%\begin{itemize}
+%\item
+%In general, consider $m$ categorical responses $Y_1,\cdots, Y_m$, where $Y_j$ depends on $Y_1, \cdots, Y_{j-1}$
+%but not on $Y_{j+1},\cdots, Y_m$. Models that make use of this dependence structure are based on the
+%decomposition
+%\begin{equation}
+%P(Y_1,\cdots,Y_m|\textbf{x})=P(Y_1|\textbf{x})\cdot P(Y_2|Y_1, \textbf{x})\cdots
+%P(Y_m|Y_1,\cdots, Y_{m-1}, \textbf{x})
+%\label{eq-3.5.1}
+%\end{equation}
+%\item
+%Simple models arise if each component in (\ref{eq-3.5.1}) is specified by a GLM:
+%\begin{equation}
+%P(Y_j=r|Y_1,\cdots, Y_{j-1}, \textbf{x})=h_j(Z_j\mbox{\boldmath $\beta$})
+%\label{eq-3.5.2}
+%\end{equation}
+%where $Z_j=Z(Y_1,\cdots, Y_{j-1}, \textbf{x})$ is a function of previous components $Y_1,\cdots, Y_{j-1}$
+%and the explanatory variables $\textbf{x}$. Models of form (\ref{eq-3.5.2}) are sometimes called 
+%\textit{data-driven} ones.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (3)}
+%\begin{itemize}
+%\item
+%\textbf{Markov-type transition models} follow from the additional assumption 
+%$P(Y_j=r|Y_1,\cdots, Y_{j-1},\textbf{x})=P(Y_j=r|Y_{j-1},\textbf{x})$.
+%\item
+%One such example for \textit{binary responses} is
+%\begin{eqnarray*}
+%\log\frac{P(y_1=1|\textbf{x})}{P(y_1=0|\textbf{x})}&\!\!\!=\!\!\!&\beta_{01}+\textbf{z}_1^T\mbox{\boldmath $\beta$}_1 \\
+%\log\frac{P(y_j=1|y_1,\cdots, y_{j-1}, \textbf{x})}{P(y_j=0|y_1,\cdots, y_{j-1},\textbf{x})} &\!\!\!=\!\!\!& \beta_{0j} 
+%+\textbf{z}_j^T\mbox{\boldmath $\beta$}_j+y_{j-1}\gamma_j, \quad j=2,\cdots, k.
+%\end{eqnarray*}
+%\item
+%It is called a \textbf{regressive logistic model} when
+%$$\log\frac{P(y_j=1|y_1,\cdots, y_{j-1}, \textbf{x})}{P(y_j=0|y_1,\cdots, y_{j-1},\textbf{x})} = \beta_{0} 
+%+\textbf{z}_j^T\mbox{\boldmath $\beta$}+\gamma_1 y_1+\cdots+\gamma_{j-1}y_{j-1}.$$
+%\item
+%Models of the type (\ref{eq-3.5.2}) may be embedded into the GLM framework, meaning some built-in
+%functions in \texttt{R} (e.g. \texttt{glm()}) may be used to do the computing.
+%\item
+%In general, however, you need to write your own program to do the analysis.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (4)}
+%\textbf{Example: Reported happiness}
+%Clogg (1982) investigated the association between gender ($x$), years in school
+%($Y_1$), and reported happiness ($Y_2$). The data are given in the following. Since
+%$x$ and $Y_1$ are prior to the statement about happiness, $Y_2$ is modelled conditionally on $Y_1$ and $x$.
+%\begin{table} [htbp]
+%\caption{Cross classification of gender, reported happiness, and years of schooling} \label{tab3.10}
+%\begin{center} {\small
+%\begin{tabular}{|crcccc|} \hline
+%&& \multicolumn{4}{c|}{Years of school completed} \\
+%Gender & Reported happiness & $<12$ & 12 & 13-16 & $\geq 17$ \\ \hline
+%Male & Not too happy & 40 & 21 & 14 & 3 \\
+%& Pretty happy & 131 & 116 & 112 & 27 \\
+%& Very happy & 82 & 61 & 55 & 27 \\
+%&&&&& \\
+%Female & Not too happy & 62 & 26 & 12 & 3 \\
+%& Pretty happy & 155 & 156 & 95 & 15 \\
+%& Very happy & 87 & 127 & 76 & 15 \\ \hline
+%\end{tabular}}
+%\end{center}
+%\end{table}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Conditional models: Symmetric models (1)}
+%\textbf{Symmetric models}
+%\begin{itemize}
+%\item
+%Suppose the response vector $\textbf{Y}=(y_1,\cdots, y_m)$.
+%\item
+%If there is no natural ordering among $y_1,\cdots, y_m$, or if one does not want to use this ordering,
+%models that treat response components in a symmetric way are more sensible.
+%An example is \textit{Visual Impairment Study} seen in Chapter~1.
+%\item
+%Now focus on the case where all $y_1,\cdots, y_m$ are \textbf{binary}. (General cases can be handled similarly.)
+%\item
+%\textbf{Symmetric conditional models} can be developed by specifying a conditional distribution to be used:
+%\begin{equation}
+%P(y_j=1|y_k, k\neq j; \textbf{x}_j), \quad j=1,\cdots, m
+%\label{eq-3.5.4}
+%\end{equation}
+%For binary responses such conditional distributions uniquely determine the joint distribution.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Example: Visual impairment study}
+%\begin{table} [!htbp]
+%\caption{Visual impairment data, from Liang, Zeger \& Qaqish (1992) \label{tab1.3}}
+%\begin{center}
+%\begin{scriptsize}
+%\begin{tabular}{|c|cccc|cccc|c|}
+%\hline
+%& \multicolumn{4}{c}{White} & \multicolumn{4}{c|}{Black} & \\
+%Visual &\multicolumn{8}{c|}{Age} & \\
+%impairment & 40-50 & 51-60 & 61-70 & 70+ & 40-50
+% & 51-60 & 61-70 & 70+ & Total \\ \hline
+%Left eye & &&&&&&&& \\
+%Yes & 15 & 24 & 42 & 139 & 29 & 38 & 50 & 85 & 422 \\
+%No & 617 & 557 & 789 & 673 & 750 & 574 & 473 & 344 & 4777 \\ \hline
+%Right eye & &&&&&&&& \\
+%Yes & 19 & 25 & 48 & 146 & 31 & 37 & 49 & 93 & 448 \\
+%No & 613 & 556 & 783 & 666 & 748 & 575 & 474 & 336 & 4751 \\ \hline
+%\end{tabular}
+%\end{scriptsize}
+%\end{center}
+%\end{table}
+%\begin{itemize}
+%\item
+%Vector binary \textbf{response} variable $(y_1, y_2)$, where $y_1=1$ if left-eye impaired, 0 otherwise;
+% $y_2=1$ if right-eye impaired, 0 otherwise.
+%\item
+%\textbf{Covariates}: \texttt{Age} (yrs.), \texttt{Race} (W or B).
+%\item
+%\textbf{Aim}: find the effect of race and age on visual impairment.
+%\item
+%\textbf{Complication}: $y_1$ and $y_2$ are correlated.
+%\item
+%\textbf{Methods}: multivariate models for correlated responses; conditional models; asymmetric
+%models, marginal models, GEE, etc..
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Conditional models: Symmetric models (2)}
+%\textbf{Symmetric models}
+%\begin{itemize}
+%\item
+%\textbf{Symmetric logistic models} are a natural choice for (\ref{eq-3.5.4}):
+%\begin{equation}
+%\pi=P(y_j=1|y_k, k\neq j; \textbf{x}_j)=h(\alpha(w_j; \mbox{\boldmath $\theta$})+
+%\textbf{x}_j^T\mbox{\boldmath $\beta$}_j),
+%\quad j=1,\cdots,m
+%\label{eq-3.5.5}
+%\end{equation}
+%where $\displaystyle h(t)=\frac{e^t}{1+e^t}$ is the logistic cdf; and $\alpha(\cdot)$ is some
+%function of a parameter $\theta$ and $w_j=\sum_{k\neq j} y_k$. 
+%\item
+%When $k=2$, 
+%\begin{equation}
+%\pi=P(y_j=1|y_k, k\neq j; \textbf{x}_j)=h(\theta_0+\theta_1 y_k+
+%\textbf{x}_j^T\mbox{\boldmath $\beta$}_j), \quad j,k=1,2.
+%\label{eq-3.5.6}
+%\end{equation}
+%\item
+%Full likelihood estimation procedure for (\ref{eq-3.5.5}) or (\ref{eq-3.5.6}) may be
+%computationally cumbersome, because of the normalising constant involved in the joint pmf.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Conditional models: Symmetric models (3)}
+%\begin{itemize}
+%\item
+%Instead, a quasi-likelihood approach (Conolly and Liang, 1988) may be used, with an \textit{independent
+%working} quasi-likelihood and quasi-score function for each cluster $i (=1,\cdots, n)$:
+%\begin{eqnarray*}
+%L_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}) &=& \prod_{j=1}^m\pi_{ij}^{y_{ij}}
+%(1-\pi_{ij})^{1-y_{ij}} \\
+%\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}) &=& \sum_{j=1}^m
+%\frac{\partial \pi_{ij}}{\partial (\mbox{\boldmath $\beta$}^T, \mbox{\boldmath $\theta$}^T)^T}
+%\sigma_{ij}^{-2}(y_{ij}-\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}))
+%\end{eqnarray*}
+%where $\textbf{y}_i=(y_{i1},\cdots,y_{ij},\cdots, y_{im})^T$ are the responses in cluster $i$,
+%$\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=P(y_{ij}=1|\cdot)$ is defined
+%by (\ref{eq-3.5.5}), and $\sigma^2_{ij}=\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})
+%(1-\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}))$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Conditional models: Symmetric models (4)}
+%\begin{itemize}
+%\item
+%Denoting $\displaystyle M_i=\mbox{diag}\left\{\frac{\partial \pi_{i1}}{\partial (\mbox{\boldmath $\beta$}^T, 
+%\mbox{\boldmath $\theta$}^T)^T}, \cdots, \frac{\partial \pi_{im}}{\partial (\mbox{\boldmath $\beta$}^T, 
+%\mbox{\boldmath $\theta$}^T)^T}\right\}$, $\Sigma_i=\mbox{diag}\{\sigma_{i1}^2,\cdots, \sigma_{im}^2\}$
+%and $\mbox{\boldmath $\pi$}=(\pi_{i1},\cdots, \pi_{im})^T$, we can rewrite 
+%$\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})$ in matrix form
+%$$\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=M_i\Sigma_i^{-1}
+%(\textbf{y}_i-\mbox{\boldmath $\pi$}_i)$$
+%which is a multivariate extension of the quasi-score. 
+%\item
+%Roots $(\hat{\mbox{\boldmath $\beta$}}, \hat{\mbox{\boldmath $\theta$}})$ of the resulting
+%generalised estimating equation (GEE)
+%$$\textbf{S}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=\sum_{i=1}^n
+%\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=\textbf{0}$$
+%are consistent \& asymptotically normal under regularity assumptions:
+%$$(\hat{\mbox{\boldmath $\beta$}}^T, \hat{\mbox{\boldmath $\theta$}}^T)^T\stackrel{a}{\sim}
+%N((\mbox{\boldmath $\beta$}^T, \mbox{\boldmath $\theta$}^T)^T, \hat{F}^{-1}\hat{V}\hat{F}^{-1})$$
+%with $\hat{F}=\sum_{i=1}^n \hat{M}_i\hat{\Sigma}_i^{-1}\hat{M}_i$ and 
+%$\hat{V}=\sum_{i=1}^n\hat{S}_i\hat{S}_i^T$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.1 Two drawbacks of the conditional models}
+%\begin{enumerate}
+%\item
+%They measure the effect of $\textbf{x}$ on a binary component $y_j$ conditional on incorporating into
+%the effects of other $y_k$, $k\neq j$. Thus the model is not able to provide prediction based on $\textbf{x}$ alone.
+%\item
+%Interpretation of the effects depends on the dimension of $\textbf{y}$.
+%\end{enumerate}
+%Both drawbacks can be avoided by using a marginal modelling approach.
+%\end{frame}
+%
+%\subsection{\S3.5.2 Margin models} \label{sec:3.5.2}
+%\begin{frame}{\S3.5.2 Marginal models}
+%\begin{itemize}
+%\item
+%In many situations the primary interest is to analyse the \textbf{marginal mean} of the response given
+%the covariates. The association between the responses is often of secondary interest. An example is
+%the \textit{visual impairment study}.
+%\item
+%Marginal models were first proposed by Liang \& Zeger (1986) and Zeger \& Liang (1986) in the context
+%of longitudinal data with many short time series. Their modelling and estimation approach is based on
+%GEE and has subsequently been modified and further developed.
+%\item
+%Focus in this subsection is on modelling and estimating marginal means of correlated and categorical 
+%response data by the first-order generalised estimating equations (GEE1).
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (1)}
+%\begin{itemize}
+%\item
+%In marginal models, the effects of covariates on responses and the association between responses
+%is modelled separately.
+%\item
+%Let $\textbf{y}_i=(y_{i1},\cdots, y_{im_i})^T$ be the vector of responses, and 
+%$$\textbf{x}_i^T=(\textbf{x}_{i1}^T, \cdots, \textbf{x}_{im_i}^T)$$
+%be the vector of covariates from cluster $i$, 
+%$i=1,\cdots, n$. Here the cluster size $m_i$ may vary with the cluster index $i$.
+%\item
+%Response observations within the same cluster are \textbf{correlated}. Response observations between
+%different clusters are assumed \textbf{independent} of each other.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (2)}
+%Specification of a \textbf{marginal model} is as following
+%\begin{enumerate}
+%\item
+%The \textbf{marginal means} of $y_{ij}$, $j=1,\cdots, m_i$, are assumed \textbf{correctly specified} by
+%common univariate response models:
+%\begin{equation}
+%\mu_{ij}(\mbox{\boldmath $\beta$})=E(y_{ij} | \textbf{x}_{ij})=h(\textbf{z}_{ij}^T\mbox{\boldmath $\beta$})
+%\label{eq-3.5.7}
+%\end{equation}
+%where $h(\cdot)$ is a response function, e.g. a logit function, and $\textbf{z}_{ij}$ is an 
+%appropriate design vector.
+%\item
+%The \textbf{marginal variance} of each $y_{ij}$ is specified as a function of $\mu_{ij}$:
+%\begin{equation}
+%\sigma_{ij}^2=\mbox{var}(y_{ij}|\textbf{x}_{ij})=v(\mu_{ij})\phi
+%\label{eq-3.5.8}
+%\end{equation}
+%where $v(\cdot)$ is the \textbf{variance function} of known form.
+%\item
+%The correlation between $y_{ij}$ and $y_{ik}$ is a function of $\mu_{ij}=\mu_{ij}(\mbox{\boldmath $\beta$})$,
+%$\mu_{ik}=\mu_{ik}(\mbox{\boldmath $\beta$})$ and perhaps of additional association parameters
+%$\mbox{\boldmath $\alpha$}$:
+%\begin{equation}
+%\mbox{corr}(y_{ij}, y_{ik})=c(\mu_{ij}, \mu_{ik}, \mbox{\boldmath $\alpha$})
+%\label{eq-3.5.9}
+%\end{equation}
+%with the function $c(\cdot,\cdot,\cdot)$ being of known form.
+%\end{enumerate}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (3)}
+%\begin{itemize}
+%\item
+%\textbf{Remarks:}
+%\begin{enumerate}
+%\item
+%Parameters $(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\alpha$})$ are the same for each cluster.
+%Hence marginal models are appropriate for analysing \textbf{population-averaged} effects.
+%\item
+%Marginal effects $\mbox{\boldmath $\beta$}$ can be consistently estimated even if the correlation function
+%is incorrectly specified. However, the efficiency of the estimator $\hat{\mbox{\boldmath $\beta$}}$ can
+%be compromised.
+%\end{enumerate}
+%\item
+%Since the primary scientific objective is often the regression relationship, it is important to \textbf{correctly
+%specify} the marginal mean structure (\ref{eq-3.5.7}), while $c(\mu_{ij}, \mu_{ik}, \mbox{\boldmath $\alpha$})$
+%only needs to be a \textbf{working correlation} for the association between $y_{ij}$ and $y_{ik}$.
+%Together with (\ref{eq-3.5.8}) a \textbf{working covariance matrix} $\mbox{cov}(\textbf{y}_i)
+%=\Sigma_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\alpha$})$ can be obtained, where an
+%additional dispersion parameter $\phi$ is involved but suppressed for presentation simplicity.
+%\item
+%Two main approaches for specifying the working correlations or covariances have been considered
+%in the literature.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (4)}
+%\textbf{First approach:} The variance structure (\ref{eq-3.5.8}) is supplemented by a 
+%\textbf{working correlation matrix} $R_i(\mbox{\boldmath $\alpha$})$, so that the \textbf{working
+%covariance matrix} is of the form 
+%$$\Sigma_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\alpha$})=C_i^{1/2}(\mbox{\boldmath $\beta$})
+%R_i(\mbox{\boldmath $\alpha$})C_i^{1/2}(\mbox{\boldmath $\beta$}),$$
+%where $C_i(\mbox{\boldmath $\beta$})=\mbox{diag}\left[\mbox{var}(y_{ij}|x_{ij})\right]
+%=\mbox{diag}\{\sigma_{i1}^2,\cdots, \sigma_{im_i}^2\}$. Common choices for $R_i(\mbox{\boldmath $\alpha$})$:
+%\begin{enumerate}
+%\item
+%\textbf{working independence model}: $R_i(\mbox{\boldmath $\alpha$})=I$, the identity matrix.
+%\item
+%\textbf{equicorrelation} (or \textbf{exchangeable}) model: $\mbox{corr}(y_{ij}, y_{ik})=\alpha$ for 
+%all $j\neq k$, i.e. $\mbox{\boldmath $\alpha$}$ reduces to be a scalar, and {\footnotesize
+%$\displaystyle R_i(\mbox{\boldmath $\alpha$})=\left[\begin{array}{cccc} 1 & \alpha & \cdots & \alpha
+%\\ \alpha & 1 & \cdots & \alpha \\ \vdots & \vdots & \ddots & \vdots \\ \alpha & \alpha & \cdots & 1\end{array}\right]$.}
+%\item
+%$R_i(\mbox{\boldmath $\alpha$})$ completely unspecified, except being positive definite, i.e. 
+%$\alpha_{jk}=\mbox{corr}(y_{ij}, y_{ik})$, $j<k$.
+%\end{enumerate}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (5)}
+%\textbf{Second approach:} For binary responses the odds ratio is an alternative measure of association
+%that is easier to interpret and has some desirable properties.
+%\begin{itemize}
+%\item
+%The odds ratio for $y_{ij}, y_{ik}$, $j,k=1,\cdots,m$, $j\neq k$, is defined as
+%$$\gamma_{ijk}=\frac{P(y_{ij}=1, y_{ik}=1)\cdot P(y_{ij}=0, y_{ik}=0)}{
+%P(y_{ij}=1, y_{ik}=0)\cdot P(y_{ij}=0, y_{ik}=1)}$$
+%\item
+%From this definition, the probability $P(y_{ij}=y_{ik}=1)$, denoted as $\pi_{i11}$, can be shown to satisfy
+%\begin{equation}
+%\pi_{i11}=E(y_{ij}y_{ik})=\left\{\begin{array}{lc} \frac{1-(\pi_{ij}+\pi_{ik})
+%(1-\gamma_{ijk})-s(\pi_{ij},\pi_{ik},\gamma_{ijk})}{2(\gamma_{ijk}-1)} & \mbox{if $\gamma_{ijk}\neq 1$} 
+%\\ \pi_{ij}\pi_{ik} &  \mbox{if $\gamma_{ijk}= 1$} \end{array}\right.
+%\label{eq-3.5.10}
+%\end{equation}
+%with $s(\pi_{ij},\pi_{ik},\gamma_{ijk})=\left(\left[1\!-\!(\pi_{ij}\!+\!\pi_{ik})(1\!-\!\gamma_{ijk})\right]^2-
+%4(\gamma_{ijk}\!-\!1)\gamma_{ijk}\pi_{ij}\pi_{ik}\right)^{1/2}$.
+%\item
+%It can be seen that the covariance matrix of $\textbf{y}_i=(y_{i1}\cdots, y_{im_i})^T$ can be expressed
+%as a function of $(\pi_{ij}, \pi_{ik}, \gamma_{ijk})$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (6)}
+%\begin{itemize}
+%\item
+%One advantage of the odds ratio is that it is unconstrained, being able to take any positive values.
+%In contrast,
+%$$\mbox{corr}(y_{ij}, y_{ik})=\frac{\pi_{i11}-\pi_{ij}\pi_{ik}}{\sqrt{\pi_{ij}(1-\pi_{ij})\pi_{ik}(1-\pi_{ik})}},$$
+%the correlation between $y_{ij}$ and $y_{ik}$ is constrained (i.e. its possible values may all fall into a subset of $[-1, 1]$), 
+%because the involved $\pi_{i11}$ is constrained by
+%$$\max (0, \pi_{ij}+\pi_{ik}-1) \leq \pi_{i11}\leq \min (\pi_{ij}, \pi_{ik}).$$
+%Note $\pi_{i11}=P(y_{ij}=1)+P(y_{ik}=1)-P(y_{ij}=1 \;\mbox{or}\; y_{ik}=1)\geq \pi_{ij}+\pi_{ik}-1$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (7)}
+%\begin{itemize}
+%\item
+%To reduce the number of unknown parameters involved in the odds ratio, we assume $\gamma_{ijk}=
+%\gamma_{ijk}(\mbox{\boldmath $\alpha$})$, a function of a vector parameter $\mbox{\boldmath $\alpha$}$.
+%\item
+%Common choices of $\gamma_{ijk}(\mbox{\boldmath $\alpha$})$:
+%\begin{enumerate}
+%\item
+%$\gamma_{ijk}=\gamma, \;\mbox{for all}\; i,j,k$.
+%\item
+%$\displaystyle \log\gamma_{ijk}=\mbox{\boldmath $\alpha$}^T\omega_{ijk}$.
+%\end{enumerate}
+%Using the relation (\ref{eq-3.5.10}), $\mbox{cov}(\textbf{y}_i)=\Sigma_i(\mbox{\boldmath $\beta$}, 
+%\mbox{\boldmath $\alpha$})$ is also a function of $\mbox{\boldmath $\beta$}$ and $\mbox{\boldmath $\alpha$}$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated univariate responses (8)}
+%\textbf{Some examples of marginal models:}
+%\begin{itemize}
+%\item[I]
+%Continuous responses:
+%$$\mu_{ij}(\mbox{\boldmath $\beta$})=E(y_{ij}|\textbf{x}_{ij})=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}; \quad
+%\mbox{var}(y_{ij}|\textbf{x}_{ij})=\phi=\sigma^2;\quad \mbox{corr}(y_{ij}, y_{ik})=\alpha_{jk}.$$
+%\item[II]
+%Binary responses: 
+%\begin{eqnarray*}
+%\mu_{ij}(\mbox{\boldmath $\beta$})=\pi_{ij}(\mbox{\boldmath $\beta$})=P(y_{ij}=1|\textbf{x}_{ij}),
+%\quad \log\frac{\pi_{ij}(\mbox{\boldmath $\beta$})}{1-\pi_{ij}(\mbox{\boldmath $\beta$})} 
+%=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}; \hspace{20pt}\\
+%\mbox{var}(y_{ij}|\textbf{x}_{ij})=\pi_{ij}(\mbox{\boldmath $\beta$})(1-\pi_{ij}(\mbox{\boldmath $\beta$}));
+%\hspace{100pt} \\
+%\mbox{corr}(y_{ij},y_{ik})=0\;\mbox{(independence struc.)}\quad \mbox{or}\quad \gamma_{ijk}=\alpha\; 
+%\mbox{(equal odds ratio)}.
+%\end{eqnarray*}
+%\item[III]
+%Count data:
+%\begin{eqnarray*}
+%\log\mu_{ij}(\mbox{\boldmath $\beta$})&=&\log E(y_{ij}|\textbf{x}_{ij})=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}; \\
+%\mbox{var}(y_{ij}|\textbf{x}_{ij})&=&\mu_{ij}(\mbox{\boldmath $\beta$})\phi; \\
+%\mbox{corr}(y_{ij},y_{ik})&=&\alpha\quad \mbox{(equicorrelation)}.
+%\end{eqnarray*}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.2 GEE approach in statistical inference (1)}
+%For cluster $i=1,\cdots,n$, let $\textbf{y}_i=(y_{i1},\cdots, y_{im_i})^T$, 
+%$\textbf{x}_i=(\textbf{x}_{i1}^T,\cdots, \textbf{x}_{im_i}^T)^T$,
+%$\mbox{\boldmath $\mu$}_i(\mbox{\boldmath $\beta$})=(\mu_{i1}(\mbox{\boldmath $\beta$}_1), \cdots,
+%\mu_{im_i}(\mbox{\boldmath $\beta$}_{m_i}))^T$ and $\Sigma_i(\mbox{\boldmath $\beta$},
+%\mbox{\boldmath $\alpha$})$ be defined as before.
+%\begin{itemize}
+%\item
+%In linear models for Gaussian responses, there is no problem to perform maximum likelihood estimation,
+%since specification of means and covariances determines the likelihood function.
+%\item
+%This is not the case with non-Gaussian data. Therefore a generalised estimating approach is proposed.
+%\item
+%Keeping the association parameter $\mbox{\boldmath $\alpha$}$ and $\phi$, if present, fixed for the
+%moment, the \textbf{generalised estimating equation} (GEE) for effect $\mbox{\boldmath $\beta$}$ is
+%\begin{equation}
+%\textbf{S}_{\mbox{\scriptsize \boldmath $\beta$}}(\mbox{\boldmath $\beta$},\mbox{\boldmath $\alpha$})
+%=\sum_{i=1}^n Z_i^TD_i(\mbox{\boldmath $\beta$}) \Sigma_i^{-1}(\mbox{\boldmath $\beta$},
+%\mbox{\boldmath $\alpha$})(\textbf{y}_i-\mbox{\boldmath $\mu$}_i(\mbox{\boldmath $\beta$}))=\textbf{0},
+%\label{eq-3.5.11}
+%\end{equation}
+%with $m_i$-row design matrix $Z_i=(\textbf{z}_{i1},\cdots,\textbf{z}_{im_i})^T$ and diagonal matrices
+%$D_i(\mbox{\boldmath $\beta$})=\mbox{diag}\{D_{ij}(\mbox{\boldmath $\beta$})\}$, 
+%$D_{ij}(\mbox{\boldmath $\beta$})=\frac{\partial h}{\partial \eta_{ij}}$ evaluated at
+%$\eta_{ij}=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}$. 
+%\item
+%Eq. (\ref{eq-3.5.11}) is a multivariate version
+%of the GEE introduced in \S2.3.1.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.2 GEE approach in statistical inference (2)}
+%A GEE estimate $\hat{\mbox{\boldmath $\beta$}}$ is computed by iterating a modified Fisher scoring
+%algorithm w.r.t. $\mbox{\boldmath $\beta$}$ and estimation of $\mbox{\boldmath $\alpha$}$ (and $\phi$):
+%
+%\begin{itemize}
+%\item[(i)]
+%Given current estimates $\hat{\mbox{\boldmath $\alpha$}}$ (and $\hat{\phi}$), the GEE (\ref{eq-3.5.11}) for
+%$\hat{\mbox{\boldmath $\beta$}}$ is solved by the iterations
+%$$\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\hat{\mbox{\boldmath $\beta$}}^{(k)}+
+%(\hat{F}^{(k)})^{-1}\hat{\textbf{S}}_{\mbox{\scriptsize \boldmath $\beta$}}(\hat{\mbox{\boldmath $\beta$}}^{(k)},
+%\hat{\mbox{\boldmath $\alpha$}}), \quad k=0,1,2, \cdots, $$
+%with 
+%$$\hat{F}^{(k)}=\sum_{i=1}^n Z_i^TD_i(\hat{\mbox{\boldmath $\beta$}}^{(k)}) \Sigma_i^{-1}(
+%\hat{\mbox{\boldmath $\beta$}}^{(k)}, \hat{\mbox{\boldmath $\alpha$}})
+%D_i(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z_i$$
+%being the observed quasi-information matrix.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.2 GEE approach in statistical inference (3)}
+%\begin{itemize}
+%\item[(ii)]
+%If $\mbox{\boldmath $\alpha$}$ is unknown, it can be consistently estimated by a method of moments based
+%on Pearson residuals $\displaystyle \hat{r}_{ij}=\frac{y_{ij}-\hat{\mu}_{ij}}{\sqrt{v(\hat{\mu}_{ij})}}$.
+%\begin{itemize}
+%\item
+%The dispersion parameter $\phi$ is estimated consistently by
+%$\displaystyle \hat{\phi}=\frac{1}{N-p}\sum_{i=1}^n\sum_{j=1}^{m_i}\hat{r}_{ij}^2$, 
+%with $N=\sum_{i=1}^n m_i$ and $p=\dim (\mbox{\boldmath $\beta$})$.
+%\item
+%Estimation of $\mbox{\boldmath $\alpha$}$ depends on the choice of $R_i(\mbox{\boldmath $\alpha$})$.
+%For exchangeable correlation matrix $R_i(\alpha)$ with $\dim (\alpha)=1$, 
+%$$\hat{\alpha}=\left[\hat{\phi}\left\{\sum_{i=1}^n\frac{1}{2}m_i(m_i-1)-p\right\}\right]^{-1}
+%\sum_{i=1}^n\sum_{k>j}\hat{r}_{ik}\hat{r}_{ij}.$$
+%\item
+%An unspecified working correlation matrix $R$ can be estimated by
+%$$\hat{R}=\frac{1}{n\hat{\phi}}\sum_{i=1}^n C_i^{-\frac{1}{2}}(\textbf{y}_i-\hat{\mbox{\boldmath
+%$\mu$}}_i)(\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)^TC_i^{-\frac{1}{2}}$$
+%if all cluster sizes $m_i=m$ and $m<<n$.
+%\end{itemize}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.2 GEE approach in statistical inference (4)}
+%\begin{itemize}
+%\item
+%Cycling between Fisher scoring steps for $\mbox{\boldmath $\beta$}$ and consistent estimation of
+%$\mbox{\boldmath $\alpha$}$ and $\phi$ leads to a consistent estimation of $\mbox{\boldmath $\beta$}$.
+%\item
+%Alternatively, $\mbox{\boldmath $\alpha$}$ (and possible $\phi$) can be estimated by simultaneously
+%solving an additional estimating equation. Details are not pursued here.
+%\item
+%Under regularity conditions, the GEE estimator $\hat{\mbox{\boldmath $\beta$}}$ satisfies
+%$$\hat{\mbox{\boldmath $\beta$}}\stackrel{a}{\sim} N(\mbox{\boldmath $\beta$}, F^{-1}VF^{-1})$$
+%with $F=\sum_{i=1}^nZ_i^TD_i\Sigma_i^{-1}D_iZ_i$ and $V=\sum_{i=1}^n Z_i^TD_i\Sigma_i^{-1}
+%S_i\Sigma_i^{-1}D_iZ_i$, where $S_i$ is the \textit{true} covariance matrix of $\textbf{y}_i$.
+%\item
+%$\mbox{cov}(\hat{\mbox{\boldmath $\beta$}})$ is approximated by the ``sandwich matrix":
+%$$\hat{A}=\hat{F}^{-1}\left\{\sum_{i=1}^n Z_i^T\hat{D}_i\hat{\Sigma}_i^{-1}
+%(\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)
+%(\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)^T\hat{\Sigma}_i^{-1}\hat{D}_iZ_i\right\}\hat{F}^{-1}$$
+%\item
+%$\mbox{cov}(\textbf{S}_{\scriptsize \mbox{\boldmath $\beta$}}(\mbox{\boldmath $\beta$},\mbox{\boldmath $\alpha$}))
+%=V$ and $\textbf{S}_{\scriptsize \mbox{\boldmath $\beta$}}(\mbox{\boldmath $\beta$},\mbox{\boldmath $\alpha$})
+%\stackrel{a}{\sim}N(0,V)$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (1)}
+%We use GEE approach to fit a marginal model to the visual impairment data. R packages \texttt{gee} with command 
+%\texttt{gee()} and \texttt{geepack} with command \texttt{geeglm()}
+%can be used. (There are a few problems with both packages).
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%library(gee); library(geepack)
+%VI.dat <- read.csv("D:/MAST90084/Visual-impairment.csv"); VI.dat
+%\end{Sinput} 
+%\begin{Soutput}
+%   ID Yes  No    Age  Race
+%1   1  15 617 40to50 White
+%2   1  19 613 40to50 White
+%3   2  24 557 51to60 White
+%4   2  25 556 51to60 White
+%5   3  42 789 61to70 White
+%6   3  48 783 61to70 White
+%7   4 139 673    70+ White
+%8   4 146 666    70+ White
+%9   5  29 750 40to50 Black
+%10  5  31 748 40to50 Black
+%11  6  38 574 51to60 Black
+%12  6  37 575 51to60 Black
+%13  7  50 473 61to70 Black
+%14  7  49 474 61to70 Black
+%15  8  85 344    70+ Black
+%16  8  93 336    70+ Black
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (2)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%VI1e<- gee(cbind(Yes, No) ~ Age + Race, id = ID,
+%           data = VI.dat, family = binomial, corstr = "exchangeable")
+%summary(VI1e)
+%\end{Sinput} 
+%\begin{Soutput}
+% GEE:  GENERALIZED LINEAR MODELS FOR DEPENDENT DATA
+% gee S-function, version 4.13 modified 98/01/27 (1998) 
+%
+%Model:
+% Link:                      Logit 
+% Variance to Mean Relation: Binomial 
+% Correlation Structure:     Exchangeable 
+%
+%Call:
+%gee(formula = cbind(Yes, No) ~ Age + Race, id = ID, data = VI.dat, 
+%    family = binomial, corstr = "exchangeable")
+%
+%Summary of Residuals:
+%   Min     1Q Median     3Q    Max 
+%  15.0   28.0   39.9   58.6  145.8 
+%
+%
+%Coefficients:
+%            Estimate Naive S.E. Naive z Robust S.E. Robust z
+%(Intercept)   -3.225     0.1125  -28.66      0.0254  -127.22
+%Age51to60      0.478     0.1451    3.30      0.0167    28.65
+%Age61to70      0.837     0.1348    6.21      0.0905     9.26
+%Age70+         1.973     0.1227   16.08      0.0531    37.13
+%RaceWhite     -0.350     0.0768   -4.56      0.0662    -5.28
+%
+%Estimated Scale Parameter:  0.571
+%Number of Iterations:  1
+%
+%Working Correlation
+%      [,1]  [,2]
+%[1,] 1.000 0.886
+%[2,] 0.886 1.000
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (3)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Soutput}
+%Call:
+%gee(formula = cbind(Yes, No) ~ Age + Race, id = ID, data = VI.dat, 
+%    family = binomial, corstr = "exchangeable")
+%
+%Summary of Residuals:  ###Residuals calculation is not correct in gee().
+%   Min     1Q Median     3Q    Max 
+%  15.0   28.0   39.9   58.6  145.8 
+%
+%Coefficients:
+%            Estimate Naive S.E. Naive z Robust S.E. Robust z
+%(Intercept)   -3.225     0.1125  -28.66      0.0254  -127.22
+%Age51to60      0.478     0.1451    3.30      0.0167    28.65
+%Age61to70      0.837     0.1348    6.21      0.0905     9.26
+%Age70+         1.973     0.1227   16.08      0.0531    37.13
+%RaceWhite     -0.350     0.0768   -4.56      0.0662    -5.28
+%
+%Estimated Scale Parameter:  0.571
+%Number of Iterations:  1
+%
+%Working Correlation
+%      [,1]  [,2]
+%[1,] 1.000 0.886
+%[2,] 0.886 1.000
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (4)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Soutput}
+%total=VI.dat$Yes+VI.dat$No
+%
+%pearson.res1e=
+%    (VI.dat$Yes-total*VI1e$fitted)/sqrt(total*(VI1e$fitted)*(1-VI1e$fitted))
+%
+%sum(pearson.res1e^2)/11
+%[1] 0.5708722 #estimate of \phi based on Pearson residuals
+%
+%> VI1e$scale
+%[1] 0.5708722
+%
+%(VI1e$scale*3)^(-1)*sum(pearson.res1e[2*(1:8)-1]*pearson.res1e[2*(1:8)])
+%[1] 0.8861748
+%
+%> VI1e$working.correlation
+%          [,1]      [,2]
+%[1,] 1.0000000 0.8861748
+%[2,] 0.8861748 1.0000000
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (5)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%VI3 <- geeglm(cbind(Yes, No)~Age + Race, family=binomial(link="logit"),
+%                     data=VI.dat, id=ID, corstr = "exchangeable", std.err="san.se")
+%summary(VI3)
+%\end{Sinput}
+%\begin{Soutput}
+%Call:
+%geeglm(formula = cbind(Yes, No) ~ Age + Race, family = binomial(link = "logit"), 
+%    data = VI.dat, id = ID, corstr = "exchangeable", std.err = "san.se")
+%Coefficients:
+%            Estimate Std.err    Wald Pr(>|W|)    
+%(Intercept)  -3.2253  0.0254 16184.7  < 2e-16 ***
+%Age51to60     0.4783  0.0167   820.7  < 2e-16 ***
+%Age61to70     0.8374  0.0905    85.7  < 2e-16 ***
+%Age70+        1.9728  0.0531  1378.3  < 2e-16 ***
+%RaceWhite    -0.3498  0.0662    27.9  1.3e-07 ***
+%---
+%Estimated Scale Parameters: #IScale seems defined differently in gee() and geeglm()
+%            Estimate  Std.err
+%(Intercept) 0.000604 0.000323
+%
+%Correlation: Structure = exchangeable  Link = identity 
+%Estimated Correlation Parameters:
+%      Estimate Std.err      #The estimation here is about half of that in gee().
+%alpha    0.441   0.274
+%Number of clusters:   8   Maximum cluster size: 2 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (6)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%pearson.res3=(VI.dat$Yes/total-VI3$fitted)/sqrt((VI3$fitted)*(1-VI3$fitted)/total)
+%phi.est=sum(pearson.res3^2)/11   #=0.5709
+%
+%sum((summary(VI3)$deviance.resid)^2)/11
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 0.577  #very close to 0.5709. 
+%               #Using deviance residuals or Pearson residuals give similar results.
+%\end{Soutput}
+%\begin{Sinput}
+%VI3$geese$gamma     #How is gamma defined?
+%\end{Sinput}
+%\begin{Soutput}
+%(Intercept) 
+%   0.000604 
+%\end{Soutput}
+%\begin{Sinput}
+%(phi.est*3)^(-1)*sum(pearson.res3[2*(1:8)-1]*pearson.res3[2*(1:8)])
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 0.8862  #estimated alpha
+%\end{Soutput}
+%\begin{Sinput}
+% (0.577*3)^(-1)*sum(summary(VI3)$devi[2*(1:8)-1]*summary(VI3)$devi[2*(1:8)])
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 0.872
+%\end{Soutput}
+%\begin{Sinput}
+%VI3$geese$alpha
+%\end{Sinput}
+%\begin{Soutput}
+% alpha 
+%0.4415 #approximately half of 0.8862. Then How is alpha defined here?
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated responses having $k$ categories (1)}
+%\begin{itemize}
+%\item
+%Suppose categorical responses $Y_{ij}$, $j=1,\cdots, m_i$, are observed in cluster $i$, $i=1,\cdots,n$.
+%\item
+%For simplicity, each $Y_{ij}$ has the same $k$ categories and is coded by a dummy vector
+%$$\textbf{y}_{ij}=(y_{ij1}, \cdots, y_{ijq})^T, \quad q=k-1$$
+%\item
+%Let $\textbf{y}_i^T=(\textbf{y}_{i1}^T, \cdots, \textbf{y}_{im_i}^T)$ be observations of $\textbf{y}_{ij}$
+%in cluster $i$; $\textbf{x}_i^T=(\textbf{x}_{i1}^T, \cdots, \textbf{x}_{im_i}^T)$ be the corresponding
+%covariate observations.
+%\item
+%For data involving categorical responses, a marginal categorical response model can be defined
+%for each response variable, and then supplemented by a working association model to relate to the
+%responses with each other with in each cluster.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated responses having $k$ categories (2)}
+%Here we focus on ordinal responses. Other types of categorical responses can be handled similarly.
+%\begin{itemize}
+%\item[(i)]
+%The vector of marginal means or categorical probabilities of $Y_{ij}$ is assumed being correctly
+%specified by an \textit{ordinal response model}:
+%$$\mbox{\boldmath $\pi$}_{ij}(\mbox{\boldmath $\beta$})=(\pi_{ij1}(\mbox{\boldmath $\beta$}),
+%\cdots, \pi_{ijq}(\mbox{\boldmath $\beta$}))^T=\textbf{h}(Z_{ij}\mbox{\boldmath $\beta$})$$
+%with $\pi_{ijr}=P(Y_{ij}=r|\textbf{x}_{ij})=P(y_{ijr}=1|\textbf{x}_{ij})$, and the response function
+%$\textbf{h}(\cdot)$ and design matrix $Z_{ij}$.
+%\item[(ii)]
+%The marginal covariance function of $\textbf{y}_{ij}$ is given by
+%$$\Sigma_{ij}=\mbox{cov}(\textbf{y}_{ij}|\textbf{x}_{ij})=\mbox{diag}(\mbox{\boldmath $\pi$}_{ij})
+%-\mbox{\boldmath $\pi$}_{ij}\mbox{\boldmath $\pi$}_{ij}^T$$
+%i.e. the covariance matrix of a multinomial random variable.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\large \S3.5.2 Marginal models for correlated responses having $k$ categories (3)}
+%\begin{itemize}
+%\item[(iii)]
+%{\small Association between $Y_{ij}$ and $Y_{ik}$ is modelled by a working correlation matrix $R_i$ or by
+%global cross-ratios. For example, the working matrix of exchangeable correlations is \vspace*{-8pt}
+%{\scriptsize
+%$$R_i(\mbox{\boldmath $\alpha$})=\left[\begin{array}{cccc} I & Q & \cdots & Q\\ Q^T & I & \cdots
+%& Q \\ \vdots & \vdots & \ddots & \vdots \\ Q^T & Q^T & \cdots & I\end{array}\right]\vspace*{-2pt}$$} 
+%where $Q_{q\times q}$ contains $\mbox{\boldmath $\alpha$}$ to be estimated by 
+%a method of moments.
+%
+%\textbf{Global cross-ratios} (GCR), for each pair of categories $\ell$ and $m$ of $Y_{ij}$ and $Y_{ik}$,
+%are defined as {\scriptsize
+%$$\gamma_{ijk}(\ell,m)=\frac{P(Y_{ij}\leq \ell, Y_{ik}\leq m)P(Y_{ij}>\ell, Y_{ik}>m)}{
+%P(Y_{ij}> \ell, Y_{ik}\leq m)P(Y_{ij}\leq \ell, Y_{ik}>m)}$$}
+%GCR can be modelled log-linearly, i.e. $\log(\gamma_{ijk}(\ell,m))=\alpha_{\ell m}$ or by 
+%a regression model including covariate effects.}
+%\end{itemize}
+%{\footnotesize
+%\begin{itemize}
+%\item
+%For the model specified by (i), (ii) and (iii), the involved regression and association parameters can be 
+%estimated by a multivariate extension of the GEE approach discussed before. Details not pursued here.
+%\item
+%R packages \texttt{multgee}, \texttt{geepack} and \texttt{repolr} may be used to fit the above model.
+%\end{itemize}}
+%\end{frame}
+%
+%\begin{frame}{\S3.5.2 Likelihood-based inference for marginal models}
+%\begin{itemize}
+%\item
+%The GEE approach is not likelihood-based as it does not require specification of the joint distribution
+%of multivariate response vector $\textbf{y}_i$, $i=1,\cdots, n$.
+%\item
+%Difficulty with the likelihood-based inference is due to the difficulty in formulating this joint distribution.
+%\item
+%So in general it is difficult to perform likelihood-based inference for marginal models.
+%\item 
+%But there are new developments:
+%\begin{itemize}
+%\item
+%Constructing joint multivariate distribution by copulas
+%\item
+%Vector GLM
+%\item
+%Bayesian inference.
+%\end{itemize}
+%\end{itemize}
+%\end{frame}
+\end{document}
+

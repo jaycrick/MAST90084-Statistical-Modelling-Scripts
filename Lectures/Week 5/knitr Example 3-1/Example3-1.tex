@@ -1,0 +1,344 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage{amsmath,amssymb,mathrsfs,amsthm}
+\usepackage{nopageno}
+\usepackage{fullpage}
+\usepackage{verbatim}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{enumerate}
+
+\newcommand{\norm}[1]{|\!| #1|\!|}
+\newcommand{\ip}[2]{\langle #1,#2 \rangle}
+\newcommand{\eps}{\epsilon}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\C}{\mathbb{C}}
+
+\title{Example 3.1 (Fharmeir and Tutz)}\author{}\date{}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\maketitle
+
+\pagestyle{plain}
+ 
+This .Rnw file (``Sweave" file) illustrate how one can embed R code into a \LaTeX document to dynamically generate a report where the R programing and \LaTeX ing are happening simultaneously. Basically, it is exactly the same as a normal \LaTeX document, except that you insert \texttt{R} ``code chunks" here and there while you are typing things up. To compile this .rnw file, simply open it in  \texttt{RStudio}, click the ``Compile PDF" (or in my own case, I use ``command + shift + k" as hotkey on my mac) button at the top of your script window (This ``weave" your document). Also, REMEMBER to go to ``Preferences ---$>$ Sweave", and then set ``Weave Rnw files using:" to be ``knitr". 
+
+\ \
+
+{\bf Again, you are very encouraged to learn it for doing your howework.} 
+
+\ \
+
+
+We will use the multinomial logit regression in Example 3.1 in F \& T for an illustration. First  I am going to load the C-section dataset with the code chunk below. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{setwd}\hlstd{(}\hlstr{"~/Dropbox/MAST 90084 S1 2020/Week 4/knitr Example 3-1"}\hlstd{)}
+\hlcom{# always a good practice to set into the right directory}
+\hlstd{Caes.dat} \hlkwb{<-} \hlkwd{read.csv}\hlstd{(}\hlstr{"Example3-1Caes.csv"}\hlstd{)}
+\hlkwd{head}\hlstd{(Caes.dat)}
+\end{alltt}
+\begin{verbatim}
+##   size noInf Inf1 Inf2 NoPlan Antib RiskF
+## 1   40    32    4    4      0     0     0
+## 2   58    30   11   17      0     0     1
+## 3    2     2    0    0      0     1     0
+## 4   18    17    0    1      0     1     1
+## 5    9     9    0    0      1     0     0
+## 6   26     3   10   13      1     0     1
+\end{verbatim}
+\begin{alltt}
+\hlkwd{is.data.frame}\hlstd{(Caes.dat)}
+\end{alltt}
+\begin{verbatim}
+## [1] TRUE
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+The code chunk is enclosed by ``$<<>>$" and ``@" in the Rnw file. Everything in the code chunk above is actual R code, and they will be run and reported in your  when you ``compile". Typically a  couple of options  go into the double angle bracket ``$<<>>$"(but it is fine if you leave that empty). The first is the name of this code chunk (\texttt{Loading Data}). Then what follow are a couple of options which control how your code will be displayed in the LaTeX document. I won't go into every one in details (you can learn more about these online). One worth mentioning is the ``echo" option, where if you turn it to be \texttt{FALSE}, then the output will hide your \texttt{R} source code and show what normally appears at your console, like below:
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+##   size noInf Inf1 Inf2 NoPlan Antib RiskF
+## 1   40    32    4    4      0     0     0
+## 2   58    30   11   17      0     0     1
+## 3    2     2    0    0      0     1     0
+## 4   18    17    0    1      0     1     1
+## 5    9     9    0    0      1     0     0
+## 6   26     3   10   13      1     0     1
+## [1] TRUE
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Note that you can't name two chunks with the same name, otherwise the file wouldn't successfully compile.The ``Example3-1Caes.csv" already contains the dataset in a clean form. Alternatively we can also grab the dataset from the \texttt{Fahrmeir} package and massage it with \texttt{dplyr} functionality to the same in preparation for the multinomial logit regression. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{caesar_df} \hlkwb{<-} \hlstd{dplyr}\hlopt{::}\hlkwd{tbl_df}\hlstd{(Fahrmeir}\hlopt{::}\hlstd{caesar)}
+
+\hlstd{caesar_grouped} \hlkwb{<-} \hlstd{dplyr}\hlopt{::}\hlkwd{group_by}\hlstd{(caesar_df, noplan, factor, antib)}
+
+\hlstd{caesar_summary} \hlkwb{<-} \hlstd{dplyr}\hlopt{::}\hlkwd{summarize}\hlstd{(caesar_grouped,} \hlkwc{size} \hlstd{=} \hlkwd{sum}\hlstd{(w),} \hlkwc{Noinf} \hlstd{= w[}\hlkwd{which}\hlstd{(y} \hlopt{==}
+    \hlnum{3}\hlstd{)],} \hlkwc{Inf1} \hlstd{= w[}\hlkwd{which}\hlstd{(y} \hlopt{==} \hlnum{1}\hlstd{)],} \hlkwc{Inf2} \hlstd{= w[}\hlkwd{which}\hlstd{(y} \hlopt{==} \hlnum{2}\hlstd{)])}
+
+\hlstd{caesar} \hlkwb{<-} \hlkwd{as.data.frame}\hlstd{(caesar_summary)}
+
+\hlstd{caesar} \hlkwb{=} \hlstd{caesar[}\hlkwd{which}\hlstd{(caesar}\hlopt{$}\hlstd{size} \hlopt{!=} \hlnum{0}\hlstd{), ]}
+
+\hlkwd{rownames}\hlstd{(caesar)} \hlkwb{=} \hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(caesar)}
+
+\hlstd{caesar}\hlopt{$}\hlstd{factor} \hlkwb{=} \hlkwd{as.integer}\hlstd{(caesar}\hlopt{$}\hlstd{factor} \hlopt{==} \hlstr{"risk factors"}\hlstd{)}
+\hlstd{caesar}\hlopt{$}\hlstd{noplan} \hlkwb{=} \hlkwd{as.integer}\hlstd{(caesar}\hlopt{$}\hlstd{noplan} \hlopt{==} \hlstr{"not"}\hlstd{)}
+\hlstd{caesar}\hlopt{$}\hlstd{antib} \hlkwb{=} \hlkwd{as.integer}\hlstd{(caesar}\hlopt{$}\hlstd{antib} \hlopt{==} \hlstr{"antibiotics"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{caesar}
+\end{alltt}
+\begin{verbatim}
+##   noplan factor antib size Noinf Inf1 Inf2
+## 1      1      1     1   98    87    4    7
+## 2      1      1     0   26     3   10   13
+## 3      1      0     0    9     9    0    0
+## 4      0      1     1   18    17    0    1
+## 5      0      1     0   58    30   11   17
+## 6      0      0     1    2     2    0    0
+## 7      0      0     0   40    32    4    4
+\end{verbatim}
+\begin{alltt}
+\hlstd{Caes.dat}
+\end{alltt}
+\begin{verbatim}
+##   size noInf Inf1 Inf2 NoPlan Antib RiskF
+## 1   40    32    4    4      0     0     0
+## 2   58    30   11   17      0     0     1
+## 3    2     2    0    0      0     1     0
+## 4   18    17    0    1      0     1     1
+## 5    9     9    0    0      1     0     0
+## 6   26     3   10   13      1     0     1
+## 7   98    87    4    7      1     1     1
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Note that \texttt{caesar} and \texttt{Caes.dat} are essentially the same, we will use \texttt{Caes.dat} in the analysis to follow. The package \texttt{nnet} has the function \texttt{multinom} (written by Ripley again) to do the job. 
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{library}\hlstd{(nnet)}  \hlcom{# to fit the a Multinomial log linear model, we will use the fucntion multinom}
+
+\hlcom{# one can also consider the "mlogit" package}
+\hlstd{Caes1}\hlkwb{=}\hlkwd{multinom}\hlstd{(}\hlkwd{as.matrix}\hlstd{(Caes.dat[,}\hlnum{2}\hlopt{:}\hlnum{4}\hlstd{])}\hlopt{~}\hlstd{NoPlan}\hlopt{+}\hlstd{Antib}\hlopt{+}\hlstd{RiskF,}\hlkwc{data}\hlstd{=Caes.dat)}
+\end{alltt}
+\begin{verbatim}
+## # weights:  15 (8 variable)
+## initial  value 275.751684 
+## iter  10 value 161.068578
+## final  value 160.937147 
+## converged
+\end{verbatim}
+\begin{alltt}
+\hlstd{Caes1}
+\end{alltt}
+\begin{verbatim}
+## Call:
+## multinom(formula = as.matrix(Caes.dat[, 2:4]) ~ NoPlan + Antib + 
+##     RiskF, data = Caes.dat)
+## 
+## Coefficients:
+##      (Intercept)    NoPlan     Antib    RiskF
+## Inf1   -2.621012 1.1742513 -3.520249 1.829241
+## Inf2   -2.559917 0.9959762 -3.087160 2.195458
+## 
+## Residual Deviance: 321.8743 
+## AIC: 337.8743
+\end{verbatim}
+\begin{alltt}
+\hlkwd{summary}\hlstd{(Caes1)}  \hlcom{# numbers are same as the book}
+\end{alltt}
+\begin{verbatim}
+## Call:
+## multinom(formula = as.matrix(Caes.dat[, 2:4]) ~ NoPlan + Antib + 
+##     RiskF, data = Caes.dat)
+## 
+## Coefficients:
+##      (Intercept)    NoPlan     Antib    RiskF
+## Inf1   -2.621012 1.1742513 -3.520249 1.829241
+## Inf2   -2.559917 0.9959762 -3.087160 2.195458
+## 
+## Std. Errors:
+##      (Intercept)    NoPlan     Antib     RiskF
+## Inf1   0.5567209 0.5213014 0.6717416 0.6023322
+## Inf2   0.5462995 0.4813634 0.5498675 0.5869601
+## 
+## Residual Deviance: 321.8743 
+## AIC: 337.8743
+\end{verbatim}
+\begin{alltt}
+\hlkwd{attributes}\hlstd{(Caes1)}
+\end{alltt}
+\begin{verbatim}
+## $names
+##  [1] "n"             "nunits"        "nconn"         "conn"         
+##  [5] "nsunits"       "decay"         "entropy"       "softmax"      
+##  [9] "censored"      "value"         "wts"           "convergence"  
+## [13] "fitted.values" "residuals"     "call"          "terms"        
+## [17] "weights"       "deviance"      "rank"          "lab"          
+## [21] "coefnames"     "vcoefnames"    "xlevels"       "edf"          
+## [25] "AIC"          
+## 
+## $class
+## [1] "multinom" "nnet"
+\end{verbatim}
+\begin{alltt}
+\hlstd{Caes1}\hlopt{$}\hlstd{residuals}
+\end{alltt}
+\begin{verbatim}
+##          noInf         Inf1         Inf2
+## 1 -0.069534679  0.036759432  0.032775247
+## 2  0.051608447 -0.021296019 -0.030312428
+## 3  0.005647940 -0.002140051 -0.003507889
+## 4 -0.012401124 -0.012827892  0.025229016
+## 5  0.307786484 -0.162899513 -0.144886971
+## 6 -0.114691994  0.047342349  0.067349645
+## 7  0.002162595  0.002399788 -0.004562382
+\end{verbatim}
+\begin{alltt}
+\hlcom{# resid(Caes1) does the same thing, = category means - fitted category probabilities.}
+
+\hlstd{Caes1.grp}\hlkwb{=}\hlstd{Caes.dat[,}\hlnum{2}\hlopt{:}\hlnum{4}\hlstd{]}
+\hlstd{Caes1.grp[,}\hlnum{1}\hlstd{]}\hlkwb{=}\hlstd{Caes.dat[,}\hlnum{2}\hlstd{]}\hlopt{/}\hlstd{Caes.dat[,}\hlnum{1}\hlstd{]}
+\hlstd{Caes1.grp[,}\hlnum{2}\hlstd{]}\hlkwb{=}\hlstd{Caes.dat[,}\hlnum{3}\hlstd{]}\hlopt{/}\hlstd{Caes.dat[,}\hlnum{1}\hlstd{]}
+\hlstd{Caes1.grp[,}\hlnum{3}\hlstd{]}\hlkwb{=}\hlstd{Caes.dat[,}\hlnum{4}\hlstd{]}\hlopt{/}\hlstd{Caes.dat[,}\hlnum{1}\hlstd{]}
+\hlstd{Caes1.grp}\hlopt{-}\hlstd{Caes1}\hlopt{$}\hlstd{fitted}
+\end{alltt}
+\begin{verbatim}
+##          noInf         Inf1         Inf2
+## 1 -0.069534679  0.036759432  0.032775247
+## 2  0.051608447 -0.021296019 -0.030312428
+## 3  0.005647940 -0.002140051 -0.003507889
+## 4 -0.012401124 -0.012827892  0.025229016
+## 5  0.307786484 -0.162899513 -0.144886971
+## 6 -0.114691994  0.047342349  0.067349645
+## 7  0.002162595  0.002399788 -0.004562382
+\end{verbatim}
+\begin{alltt}
+\hlcom{##This returns the residuals given by Caes1$residuals}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Basically we get the exact same estiamtes for the $\beta$ as in the book, and also the associated standard errors. We can also use the \texttt{predict.nnet()} (a method for the generic \texttt{predict()} for the class \texttt{nnet}) to do some predictions for covariate values not in the dataset.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{Caes1}\hlopt{$}\hlstd{deviance}
+\end{alltt}
+\begin{verbatim}
+## [1] 321.8743
+\end{verbatim}
+\begin{alltt}
+\hlkwd{predict}\hlstd{(Caes1,} \hlkwd{data.frame}\hlstd{(}\hlkwc{NoPlan}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{Antib}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{RiskF}\hlstd{=}\hlnum{0}\hlstd{),}\hlkwc{type}\hlstd{=}\hlstr{"probs"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##       noInf        Inf1        Inf2 
+## 0.983753294 0.006850796 0.009395909
+\end{verbatim}
+\begin{alltt}
+\hlkwd{predict}\hlstd{(Caes1,} \hlkwd{data.frame}\hlstd{(}\hlkwc{NoPlan}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{Antib}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{RiskF}\hlstd{=}\hlnum{0}\hlstd{),}\hlkwc{type}\hlstd{=}\hlstr{"class"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## [1] noInf
+## Levels: noInf Inf1 Inf2
+\end{verbatim}
+\begin{alltt}
+\hlstd{ratios} \hlkwb{=} \hlkwd{exp}\hlstd{(}\hlkwd{summary}\hlstd{(Caes1)}\hlopt{$}\hlstd{coeff}\hlopt{%*%}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{,} \hlnum{0}\hlstd{))}   \hlcom{# prob(Inf1)/prob(noInf) and prob(Inf2)/prob(noInf)}
+\hlstd{probNoInf} \hlkwb{=}   \hlnum{1}\hlopt{/}\hlstd{(}\hlkwd{sum}\hlstd{(ratios)}\hlopt{+}\hlnum{1}\hlstd{)}
+\hlcom{# just checking if prob of noInf is correctly given by predict() function, and it is}
+\hlcom{# compared with predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0),type="probs")}
+\hlkwd{predict}\hlstd{(Caes1,} \hlkwd{data.frame}\hlstd{(}\hlkwc{NoPlan}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{Antib}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{RiskF}\hlstd{=}\hlnum{0}\hlstd{),}\hlkwc{type}\hlstd{=}\hlstr{"probs"}\hlstd{,} \hlkwc{se.fit}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##       noInf        Inf1        Inf2 
+## 0.983753294 0.006850796 0.009395909
+\end{verbatim}
+\begin{alltt}
+\hlcom{# doesn't seem to have a difference }
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+
+To learn more, compile the \texttt{knitRdemo.Rnw} together with the accompanying dataset \texttt{demodata.csv} (They are on CANVAS). This is a nice piece of tutorial written by my friend Rebecca. 
+\end{document}

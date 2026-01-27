@@ -1,0 +1,1392 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+
+
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldeta}{{\boldsymbol \eta}}
+\newcommand{\boldpi}{{\boldsymbol \pi}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\boldmu}{{\boldsymbol \mu}}
+
+\renewcommand{\thesection}{3.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 3. Models for Multi-categorical Responses: Multivariate Extensions of GLM }
+\author[Multivariate GLM]{MAST90084 Statistical Modelling Slides}
+\vskip 1cm
+\institute[Ch3]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+
+
+\begin{frame} {Multivariate normal linear regression}
+
+\begin{itemize}
+%\item :  just linear regression under the normal error setup, except each response is \emph{\bf multivariate}.
+
+\item {\bf Multivariate} normal linear regression: 
+\[
+Y = X B + U,
+\]
+where
+\begin{itemize}
+\item $X$: $n \times p$ covariate matrix. Non-random. 
+\item $U$: $n \times q$ error matrix with i.i.d. rows; each row distributed as $N(0, \Sigma)$ for a $q \times q$ covariance matrix $\Sigma$.
+\item $B$: $p \times q$ regression coefficient matrix.
+
+\item $Y$: $n \times q$ matrix, {\bf each row being an independent multivariate response of length $q$}.
+
+\end{itemize}
+
+
+\item  The least-square/MLE  for $B$ has the form 
+\[
+\hat{B} = (X^T X )^{-1} X^T Y,
+\]
+similar to normal LM with univariate response in theory \cite[Ch. 6]{MKT2024}.
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+{\scriptsize
+\tableofcontents}
+\end{frame}
+
+
+
+\section{\S3.1 Multicategorical response models}\label{sec:3.1}
+\subsection{\S3.1.1 Multinomial distribution}
+
+\begin{frame}{\S3.1.1 Multinomial distribution (1)}
+\begin{wideitemize}
+\item
+Multi-categorical $Y$ has $k$ levels, i.e. $Y\in\{1,2,\cdots, k\}$. 
+\item
+$Y$ can be coded by $\displaystyle \textbf{y}=(y_1,\cdots, y_q)^T$ for $q=k-1$, where
+\[
+ y_r=\Bigg\{\begin{array}{cl} 1 & \mbox{if $Y=r$} \\ 0 & \mbox{otherwise}\end{array},  \quad r=1,\cdots,q.
+\]
+Hence, 
+\[
+Y=r \;\; \Longleftrightarrow \;\; \textbf{y}=(0,\cdots,0,\underbrace{1}_{r\text{-th}}, 0,\cdots,0)^T.
+\]
+
+\item  $\mbox{Pr}(Y=r)=\mbox{Pr}(y_r=1 \;\mbox{and $y_j=0$ for $j\neq r$})$.
+\item
+IID copies $Y_1,\cdots,Y_m$  can be represented
+by $\textbf{y}_1, \cdots, \textbf{y}_m$, with $\textbf{y}_i=(y_{i1},\cdots, y_{iq})^T$, where $y_{ir}=I(Y_i=r)$ for  each $i \in \{1,\cdots,m\}$.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S3.1.1 Multinomial distribution (2)}
+\begin{wideitemize}
+\item For each level $r \in \{1,\cdots,k\}$, let 
+\[
+\pi_r\equiv\mbox{Pr}(Y_i=r)
+\]
+ denote the level probability common for all $i=1,\cdots,m$. 
+\item  $\sum_{r=1}^k\pi_r=1$.
+\item
+Define ${\boldsymbol \pi}\equiv(\pi_1,\cdots, \pi_q)^T$, the probability vector of length $q=k-1$.
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{\S3.1.1 Multinomial distribution (3)}
+\begin{wideitemize}
+
+\item
+Let $\displaystyle \tilde{\textbf{y}} = (\tilde{y}_1, \dots, \tilde{y}_q)^T\equiv \sum_{i=1}^m \textbf{y}_i=\left(\sum_{i=1}^m y_{i1},
+\cdots, \sum_{i=1}^m y_{iq}\right)^T$.
+
+\item  $ \tilde{\textbf{y}}$ follows a multinomial distribution $M(m, \mbox{\boldmath $\pi$})$ with $m$ trials and probability vector ${\boldsymbol \pi}$. It has probability mass function {\small
+\begin{eqnarray*}
+\lefteqn{\mbox{Pr}\left(\tilde{\textbf{y}}=(m_1,\cdots,m_q)\right)=} & \\
+&& \frac{m!}{m_1!\cdots m_q!(m\!-\!m_1\!-\!\cdots\!-\!m_q)!}
+\pi_1^{m_1}\cdots \pi_q^{m_q}(1\!-\!\pi_1\!-\!\cdots\!-\!\pi_q)^{m\!-\!m_1\!-\!\cdots\!-\!m_q}
+\end{eqnarray*}}
+
+\item
+ $E(\tilde{\textbf{y}})=(m\pi_1,\cdots,m\pi_q)^T=m\mbox{\boldmath $\pi$}$.
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S3.1.1 Multinomial distribution (4)}
+\begin{wideitemize}
+
+
+\item $\tilde{\textbf{y}}$ has the covariance matrix: 
+ {\footnotesize
+$$\text{Cov}(\tilde{\textbf{y}})=m\left[\mbox{diag}(\mbox{\boldmath $\pi$})-\mbox{\boldmath $\pi$}
+\mbox{\boldmath $\pi$}^T\right]\!=\!\left[\begin{array}{cccc} m\pi_1(1\!-\!\pi_1) & -m\pi_1\pi_2 & \cdots
+& -m\pi_1\pi_q \\ -m\pi_2\pi_1 & m\pi_2(1\!-\!\pi_2) & \cdots & -m\pi_2\pi_q \\ \vdots & \vdots & \ddots 
+
+& \vdots \\ -m\pi_q\pi_1 & -m\pi_q\pi_2 & \cdots & m\pi_q(1\!-\!\pi_q)\end{array}\right]$$}
+
+
+\item
+Define $\bar{\textbf{y}}=\tilde{\textbf{y}}/m = (\bar{y}_1, \dots, \bar{y}_q)$,  the vector of relevant frequencies, then 
+\begin{multline*}
+E(\bar{\textbf{y}})= \mbox{\boldmath $\pi$}  = (\pi_1,\cdots,\pi_q)^T\\
+ \text{ and } \mbox{Cov}(\bar{\textbf{y}})=\frac{\mbox{Cov}(\tilde{\textbf{y}})}{m^2} =\frac{\left[\mbox{diag}(\mbox{\boldmath $\pi$})-\mbox{\boldmath $\pi$}
+\mbox{\boldmath $\pi$}^T\right]}{m}.
+\end{multline*}
+\end{wideitemize}
+\end{frame}
+
+
+% new frame
+\begin{frame} {Multinomial as a multivariate exponential family}
+\begin{itemize}
+\item
+The  probability mass function of the scaled multinomial $\bar{\textbf{y}}$ has the {\bf multivariate exponential-family} form
+\[
+f(\bar{\textbf{y}} | \mbox{\boldmath $\theta$}, \phi, \omega)=\exp\left\{\frac{\bar{\textbf{y}}^T
+ \mbox{\boldmath $\theta$} -b(\mbox{\boldmath $\theta$})}{\phi}\cdot \omega + 
+c(\tilde{\textbf{y}},\phi, \omega)\right\}, 
+\]
+where
+\begin{itemize}
+\item $\mbox{\boldmath $\theta$}=\left[\log\frac{\pi_1}{\pi_{k}}, \cdots, \log\frac{\pi_{q}}{\pi_{k}}\right]^T;
+\quad \pi_{k}=1-\sum_{j=1}^q\pi_{j}$
+\item $b(\mbox{\boldmath $\theta$})\!=\!-\log(1-\pi_{1}-\cdots -\pi_{q})=-\log\pi_{k}
+=\log\left(1\!+\!e^{\theta_{1}}\!+\!\cdots+\!e^{\theta_{q}}\right)$
+\item $c(\tilde{\textbf{y}},\phi,\omega)=\log\left(\frac{m!}{\tilde{y}_{1}!\cdots \tilde{y}_{q}!(m-\tilde{y}_1-\cdots-\tilde{y}_q)!}\right)$
+\item  $\omega=m$
+\item $\phi = 1$
+\end{itemize}
+
+
+
+\end{itemize}
+\end{frame}
+
+
+
+\subsection{\S3.1.2 Data}
+\begin{frame}{\S3.1.2 Data (1)}
+\noindent
+\textbf{Ungrouped data}
+{\small 
+\begin{center}
+\begin{tabular}{ccc}
+& Multivariate response  observations & Covariate observations  \\ \\
+Unit 1 &  \multirow{5}{*}{$\left[\begin{array}{ccc} y_{11} & \cdots & y_{1q} \\
+\vdots & \cdots & \vdots \\ y_{i1} & \cdots & y_{iq} \\ \vdots & \cdots & \vdots \\ 
+y_{n1} & \cdots & y_{nq} \end{array}\right]
+=\left[\begin{array}{c} \textbf{y}_1^T \\ \vdots \\ \textbf{y}_i^T \\ \vdots 
+\\ \textbf{y}_n^T\end{array}\right]_{n\times q}$,} & 
+\multirow{5}{*}{$\left[\begin{array}{ccc} x_{11} & \cdots & x_{1L} \\ 
+\vdots & \cdots & \vdots \\ x_{i1} & \cdots & x_{iL} \\ \vdots & \cdots & \vdots \\ x_{n1} & \cdots & x_{nL}
+\end{array}\right]=\left[\begin{array}{c} \textbf{x}_1^T \\ \vdots \\ \textbf{x}_i^T \\ \vdots 
+\\ \textbf{x}_n^T\end{array}\right]_{n\times L}$} \\ $\vdots$ & & \\ Unit $i$ & & \\ $\vdots$ & & \\ Unit $n$ & &
+\end{tabular}
+\end{center}}
+\end{frame}
+
+
+\begin{frame}{\S3.1.2 Data (2)}
+\noindent
+\textbf{Grouped data}
+\begin{wideitemize}
+\item
+Suppose $\textbf{y}_i^{(1)}, \cdots, \textbf{y}_i^{(n_i)}$ are response observations sharing the same  
+covariate value $\textbf{x}_i=(x_{i1},\cdots, x_{iL})^T$. 
+
+\item The common index $i$ means they belong in the same group.
+\item
+Let $\bar{\textbf{y}}_i=\frac{1}{n_i}\sum_{j=1}^{n_i} \textbf{y}_i^{(j)}$ be the mean vector over
+all the units in group $i$.
+
+
+\item
+Let $\tilde{\textbf{y}}_i=\sum_{j=1}^{n_i} \textbf{y}_i^{(j)}$ be the total vector over
+all the units in group $i$.
+
+\item For multi-categorical $\textbf{y}_i^{(1)}, \cdots, \textbf{y}_i^{(n_i)}$, $\bar{\textbf{y}}_i$  and $\tilde{\textbf{y}}_i$ are respectively  {\bf scaled multinomial} and  {\bf multinomial} vectors. 
+
+
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame}
+The \textbf{grouped data} have the  form \vspace*{-12pt}
+{\footnotesize 
+\begin{center}
+\begin{tabular}{cccc}
+Group & Size& Multivariate response  obs. & Covariate obs.  \\ \\
+1 & $n_1$ & \multirow{5}{*}{$\left[\!\begin{array}{ccc} y_{11}^* & \cdots & y_{1q}^* \\
+\vdots & \cdots & \vdots \\ y_{i1}^* & \cdots & y_{iq}^* \\ \vdots & \cdots & \vdots \\ 
+y_{g1}^* & \cdots & y_{gq}^* \end{array}\!\right]
+=\left[\!\begin{array}{c} \textbf{y}_1^{*T} \\ \vdots \\ \textbf{y}_i^{*T} \\ \vdots 
+\\ \textbf{y}_g^{*T}\end{array}\!\right]_{g\times q}$,} & 
+\multirow{5}{*}{$\left[\!\begin{array}{ccc} x_{11} & \cdots & x_{1L} \\ 
+\vdots & \cdots & \vdots \\ x_{i1} & \cdots & x_{iL} \\ \vdots & \cdots & \vdots \\ x_{g1} & \cdots & x_{gL}
+\end{array}\!\right]=\left[\!\begin{array}{c} \textbf{x}_1^T \\ \vdots \\ \textbf{x}_i^T \\ \vdots 
+\\ \textbf{x}_g^T\end{array}\!\right]_{g\times L}$} \\ $\vdots$ & $\vdots$ & & \\ $i$ & $n_i$ & & \\ 
+$\vdots$ & $\vdots$ & & \\ $g$ & $n_g$ & &
+\end{tabular}
+\end{center}}
+where 
+\[
+\text{$\textbf{y}_i^*$ is either the group mean $\bar{\textbf{y}}_i$ or the group total
+$\tilde{\textbf{y}}_i$}.
+\]
+ \ \
+ 
+{\bf \textcolor{red}{Note:}}  For multi-categorical responses, we   exclusively focus on modeling the group mean $\bar{\textbf{y}}_i$. 
+\end{frame}
+
+
+% new frame
+
+\begin{frame}{Multivariate generalized Linear Models (MGLM)}
+\begin{wideitemize}
+
+\item
+Consider a multivariate $q\times 1$ response variable $\textbf{y}_i$ for unit $i$. Let
+\[
+\boldmu_i \equiv E(\textbf{y}_i | \textbf{x}_i), \quad i=1,\cdots, n.
+\]
+\item
+\textbf{Distributional assumption:} Given $\textbf{x}_i$'s, the ${\bf y}_i$' are independent, with each having a multivariate exponential family density
+$$f(\textbf{y}_i | \mbox{\boldmath $\theta$}_i, \phi, \omega_i)=\exp\left\{\frac{\textbf{y}_i^T
+ \mbox{\boldmath $\theta$}_i-b(\mbox{\boldmath $\theta$}_i)}{\phi}\cdot \omega_i + 
+c(\textbf{y}_i,\phi, \omega_i)\right\}$$
+for the natural parameter $\mbox{\boldmath $\theta$}_i$.
+\end{wideitemize}
+\end{frame}
+
+% new frame
+\begin{frame} {Multivariate generalised linear models (MGLM)}
+\begin{itemize}
+\item
+\textbf{Structural assumption:} $\mbox{\boldmath $\mu$}_i$ depends on the linear predictor
+$\mbox{\boldmath $\eta$}_i=Z_i\mbox{\boldmath $\beta$}$ in the form
+$$\mbox{\boldmath $\mu$}_i=\textbf{h}(\mbox{\boldmath $\eta$}_i)=
+\textbf{h}(Z_i\mbox{\boldmath $\beta$})=\left[h_1(Z_i\mbox{\boldmath $\beta$}),
+\cdots,h_q(Z_i\mbox{\boldmath $\beta$})\right]^T, \quad i=1,\cdots,n$$
+where
+\begin{wideitemize}
+\item
+the response function $\textbf{h}: S\rightarrow M$ 
+has its domain $S \subset \mathbb{R}^q $ and range $M \subset \mathbb{R}^q$ that are both subsets of $\mathbb{R}^q$.
+
+
+\item
+$Z_i = Z_i({\bf x}_i)$ is a $q\times p$ design matrix for unit $i$;
+\item
+$\mbox{\boldmath $\beta$}=(\beta_1,\cdots,\beta_p)^T$ is an unknown parameter vector
+from $B\subset\mathbb{R}^p$.
+
+\item $\mbox{\boldmath $\eta$}_i= (\eta_{i1},\cdots,\eta_{iq})^T \equiv Z_i\mbox{\boldmath $\beta$}$: the $q\times 1$ vector  {\bf linear predictor}  for  $i$.
+\end{wideitemize}
+\end{itemize}
+
+\end{frame}
+
+
+\subsection{\S3.1.3 The multi-categorical logit model}\label{sec:3.1.3}
+\begin{frame}{\S3.1.3 The multi-categorical logit model (Definition) }
+\begin{wideitemize}
+\item The logistic regression model can be naturally generalized for multi-categorical responses.
+
+\item  With a slight abuse of notation,  we will throughout use 
+${\bf y}_i$ to denote the group mean $\bar{\textbf{y}}_i$, $i = 1, \dots, g$. Hence
+\[
+E(\textbf{y}_i|\textbf{x}_i) = \boldpi_i = (\pi_{i1},\cdots, \pi_{iq})^T \text{ for } i =1, \dots, g
+.
+\]
+
+
+\item A \textbf{multi-categorical logit model} is expressed as
+\[
+\pi_{ir}=P(Y_i=r)=\frac{\exp\left(\beta_{r0}+\textbf{z}_i^T\mbox{\boldmath $\beta$}_r\right)}{1+
+\sum_{s=1}^q \exp\left(\beta_{s0}+\textbf{z}_i^T\mbox{\boldmath $\beta$}_s\right)}, \quad r=1,2,\cdots, q.
+\]
+
+\item  $\textbf{z}_i$ is a $(a-1) \times 1$ covariate vector formed from ${\bf x}_i$.
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{ The multi-categorical logit model (Definition) }
+
+
+\begin{wideitemize}
+
+\item Equivalently,
+$$\log\frac{\pi_{ir}}{\pi_{ik}}=\log\frac{P(Y_i=r)}{P(Y_i=k)}=\beta_{r0}+\textbf{z}_i^T\mbox{\boldmath $\beta$}_r,
+\quad r=1,2,\cdots, q.$$
+These are also called \emph{baseline-category logits} \cite[Ch. 8]{Agresti2013}
+
+\item Note $\pi_{ik}=1-\sum_{s=1}^q\pi_{is}$ for all $i=1,\cdots,n$. 
+\item  Alternative name: \emph{multinomial logit/logistic regression model}
+
+\item Unsurprisingly, it  can be  seen as 
+ a special case of MGLM.
+\end{wideitemize}
+\end{frame}
+
+
+% new frame
+\begin{frame} {The multi-categorical logit model (linear predictors \& design matrix)}
+\begin{wideitemize}
+\item
+The  design matrix for each unit $i$ is
+$$Z_i=\left[\begin{array}{ccccccc}1 & \textbf{z}_i^T & 0 & \textbf{0}^T & \cdots & 0 & \textbf{0}^T \\ 
+0 & \textbf{0}^T & 1 & \textbf{z}_i^T & \cdots & 0 & \textbf{0}^T \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\ 0 & \textbf{0}^T & 0 & \textbf{0}^T & 
+\cdots & 1 & \textbf{z}_i^T\end{array} \right]_{q\times (aq)}$$
+
+\item $\boldbeta \equiv (\beta_{10}, \boldbeta_1^T, \cdots, \beta_{q0},
+\boldbeta_q^T)^T$  contains   $aq = p$ {\bf regression coefficients}.
+
+
+
+
+
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+%new frame
+\begin{frame}{The multi-categorical logit model (linear predictors \& design matrix)}
+\begin{itemize}
+
+\item $\mbox{vec}(\mbox{\boldmath $\eta$}_1,\cdots,\mbox{\boldmath $\eta$}_n)$ looks like
+
+\begin{eqnarray*}
+\left[\begin{array}{cc}\mbox{\boldmath $\eta$}_1 \\ \vdots \\ \mbox{\boldmath $\eta$}_n \end{array} \right]
+& = & \left[\mbox{\boldmath $\eta$}_1^T, \cdots, \mbox{\boldmath $\eta$}_n^T\right]^T
+=\left[\eta_{11},\cdots,\eta_{1q},\cdots, \eta_{n1},\cdots, \eta_{nq}\right]^T \\
+&=& \left[(Z_1\mbox{\boldmath $\beta$})^T, \cdots, (Z_n\mbox{\boldmath $\beta$})^T\right]^T
+\!=\!\left[\begin{array}{c} Z_1\mbox{\boldmath $\beta$} \\ \vdots \\ Z_n\mbox{\boldmath $\beta$} \end{array}\right]
+\!=\!\left[\!\begin{array}{c} Z_1 \\ \vdots \\ Z_n \end{array}\!\right] \mbox{\boldmath $\beta$}
+\end{eqnarray*}
+\end{itemize}
+\end{frame}
+
+
+% new frame
+\begin{frame} {The multi-categorical logit model (response \& link)}
+\begin{wideitemize}
+
+
+
+\item The  \emph{response function} $\textbf{h}=(h_1,\cdots, h_q)^T$ has components
+$$h_r=h_r(\mbox{\boldmath $\eta$}_i)=h_r(Z_i\mbox{\boldmath $\beta$})=
+\frac{\exp(\eta_{ir})}{1\!+\!\sum_{s=1}^q \exp(\eta_{is})}, \;\;  r\!=\!1,2,\cdots\!, q,$$
+for linear predictors $\eta_{ir}=\beta_{r0}+\textbf{z}_i^T\mbox{\boldmath $\beta$}_r$; also called  the {\bf softmax} function in the machine learning literature.
+
+
+
+\item The admissible range $M$ of ${\bf h}$:  
+$
+\left\{   (u_1, \dots, u_q) | 0  < u_i < 1, \ \   \sum_i u_i < 1  \right\}.
+$
+
+
+\item The  \emph{link function} $\textbf{g}=(g_1,\cdots, g_q)^T$ has components
+\[
+g_r=g_r(\pi_{i1},\cdots,\pi_{iq})=\log\frac{\pi_{ir}}{\pi_{ik}}=\log\frac{\pi_{ir}}{1-
+(\pi_{i1}+\cdots+\pi_{iq})}
+\]
+for $r=1,\cdots, q$.
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+
+
+
+%\begin{frame}{\S3.1.3 The multi-categorical logit model (4)}
+%\begin{itemize}
+%\item
+%Note that the vector link function of this multi-categorical logit model is
+%$\textbf{g}=(g_1,\cdots, g_q)^T$, where for each unit $i$,
+%$$g_r=g_r(\pi_{i1},\cdots,\pi_{iq})=\log\frac{\pi_{ir}}{\pi_{ik}}=\log\frac{\pi_{iir}}{1-
+%(\pi_{i1}+\cdots+\pi_{iq})};$$
+%$r=1,\cdots, q$ and $i=1,\cdots,n$.
+%\item
+%It shows that a multivariate GLM with multinomial responses is characterised by two specifications:
+%\begin{itemize}
+%\item
+%the vector response function $\textbf{h}$ (or the vector link function $\textbf{g}=\textbf{h}^{-1}$);
+%\item
+%the design matrix that depends on the covariates and the model.
+%\end{itemize}
+%\end{itemize}
+%\end{frame}
+
+
+
+
+
+\section{\S3.2 Models for nominal responses}
+\subsection{\S3.2.1 Principle of maximum random utility}
+\begin{frame}{\S3.2.1 Principle of maximum random utility}
+\begin{wideitemize}
+\item
+Models for a response variable $Y$ with unordered categories $1, \dots, k$ may be motivated by latent variables.
+%\item
+%In probabilistic choice theory: often assume an unobserved/latent utility $U_r$ is associated
+%with category $r$ of the response variable $Y$.
+\item
+For $r \in \{1,\dots, k\}$, let $U_r$ be  a latent (unobserevd) variable associated with the $r$-th category given by 
+\[
+U_r=u_r+\varepsilon_r,
+\]
+where 
+\begin{itemize}
+\item $u_r$ is a fixed value associated with the $r$-th category.
+\item $\varepsilon_1, \cdots, \varepsilon_k$ are i.i.d. random variables with continuous cdf $F$.
+\end{itemize}
+\item The \textbf{principle of maximum random utility} determines $Y$ by
+\[
+Y=r \quad \Leftrightarrow \quad U_r=\max\{ U_1, \cdots, U_k\},\quad r=1,\cdots, k.
+\]
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{ Principle of maximum random utility}
+\begin{wideitemize}
+
+\item Example from economics: If there are $k$ choices for transportation mode (e.g. bus, train, automobile), $U_r$ can be interpreted as a consumer's latent utility associated with the $r$-th transportation. 
+\item 
+It follows that {\small
+\begin{eqnarray*}
+P(Y=r) &=& P(U_r-U_1\geq 0, \, \cdots, U_r-U_k\geq 0) \\
+& = & P(\varepsilon_1\leq u_r-u_1+\varepsilon_r,\,\cdots, \varepsilon_k\leq u_r-u_k+\varepsilon_r) \\
+&=& \int_{-\infty}^{+\infty}\!\prod_{s\neq r} F(u_r\!-\!u_s\!+\!\varepsilon)\cdot f(\varepsilon)d\varepsilon,
+%\;\;\mbox{where $f\!=\!F^\prime$ is the pdf of $\varepsilon_r$.}
+\end{eqnarray*}}
+where $f\!=\!F^\prime$ is the density of $\varepsilon_r$. 
+\item
+Different distribution $F$ for $\varepsilon_r$'s yields different response function.
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{Latent utility representation for multinomial logit model}
+\begin{itemize}
+\item
+If each $\varepsilon_r$ follows the \textbf{extreme-value distribution}
+$$ F(x)=\exp\{-e^{-x}\}\;\mbox{with density}\;
+f(x)=\exp\{-e^{-x}\}\exp(-x),$$
+then the mean of $Y$ looks like
+\begin{multline*}
+P(Y\!=\!r)=\frac{e^{u_r}}{\sum_{s=1}^k e^{u_s}}=\frac{e^{u_r-u_k }}{1\!+\!\sum_{s=1}^q e^{u_s-u_k}}
+=\frac{e^{\tilde{u}_r}}{1\!+\!\sum_{s=1}^q e^{\tilde{u}_s}}, \\
+\;\mbox{with $\tilde{u}_r=u_r-u_k$;}
+\end{multline*}
+\item We get  the  multinomial logit model once modeling the dependence of $\tilde{u}_s$ on covariates. 
+\end{itemize}
+\end{frame}
+
+\begin{frame} {Latent utility representation for multinomial logit model}
+\begin{itemize}
+\item 
+\textbf{Proof.} {\footnotesize
+\begin{eqnarray*}
+&P(Y=r)& = \int_{-\infty}^{+\infty}\prod_{s\neq r}\exp\{-e^{-u_r+u_s-\varepsilon}\}\cdot \exp\{-e^{-
+\varepsilon}\}\cdot \exp\{-\varepsilon\} d\varepsilon \\
+&=& \int_{-\infty}^{+\infty}e^{-\sum_{s\neq r}e^{u_s-u_r-\varepsilon}-e^{-\varepsilon}}
+e^{-\varepsilon}d\varepsilon = \int_{-\infty}^{+\infty}e^{-\left[\sum_{s\neq r}e^{u_s-u_r}+1\right]e^{-\varepsilon}}
+e^{-\varepsilon}d\varepsilon \\
+&=& \left.\frac{e^{-\left[\sum_{s\neq r}e^{u_s-u_r}+1\right]e^{-\varepsilon}} }{\sum_{s\neq r}e^{u_s-u_r}+1}
+\right|_{\varepsilon = -\infty}^{\varepsilon = +\infty} =\frac{1}{\sum_{s\neq r}e^{u_s-u_r}+1}=\frac{e^{u_r}}{\sum_{s=1}^k e^{u_s}}.
+\end{eqnarray*}}
+
+\end{itemize}
+(Note that for  a constant $c$, \quad $\frac{d}{d \varepsilon} \frac{e^{-ce^{-\varepsilon} }}{c} = e^{- c e^{-\varepsilon}} e^{-\epsilon}$)
+\end{frame}
+
+\begin{frame}{Multinomial probit model}
+\begin{wideitemize}
+
+\item
+If the $\varepsilon_r$'s are i.i.d. normal, one gets independent \textbf{probit model} for $Y$.
+
+\item The mean  has the form 
+\begin{equation}\label{probit_mean}
+P(Y = r) = \int_{-\infty}^{\infty} \prod_{ s\neq r} \Phi(u_r - u_s + \varepsilon) \phi(\varepsilon) d \varepsilon, 
+\end{equation}
+where $\Phi(\cdot)$ and $\phi(\cdot)$ are the standard normal CDF and PDF.
+
+\item In general, finding the mean in  \eqref{probit_mean} requires numerical integration. For $k = 2$, however, one can easily derive 
+\[
+P(Y = 2) = P\Big(\frac{\varepsilon_1- \varepsilon_2}{\sqrt{2}}\leq \frac{u_2-u_1}{\sqrt{2}}\Big) = \Phi\Big(  \frac{u_2-u_1}{\sqrt{2}}\Big),
+\]
+which clearly implies a probit link function.
+
+\item  \cite{McFadden1984} has more info on such multinomial probit models that also allows correlated $\varepsilon_1, \dots, \varepsilon_k$.
+
+
+\end{wideitemize}
+\end{frame}
+
+
+
+\subsection{\S3.2.2 Modelling explanatory variables: choice of design matrix}
+
+
+
+
+
+\begin{frame}{\S3.2.2 Modeling of explanatory variables}
+\begin{wideitemize}
+\item 
+In $k$-category response models, both explanatory variables and their coefficients
+% in a linear predictor 
+%$\mbox{\boldmath $\eta$}_i=Z_i\mbox{\boldmath $\beta$}$
+ can be of different types.
+
+
+\item
+ \textit{Explanatory variables} can be classified into 2 types:
+\begin{enumerate}
+\item
+\textbf{global}: whose values depend on individuals but not the response categories;
+\item
+\textbf{category-specific} (also called ``{\bf alternative-specific}"): whose values depend on the response categories but not the individuals;
+%\item
+%neither (1) or (2); or both (1) and (2).
+\end{enumerate}
+
+\item
+The \textit{coefficient parameters} (which \emph{never} depend on individuals) are classified into
+\begin{enumerate}
+\item
+\textbf{global}: whose values don't depend on response categories;
+\item
+\textbf{category-specific}: whose values depend on categories. E.g. The categories are different modes of transportation, so income $(\bf z)$ affect the choices via different category-specific coefficient $(\bf \alpha_r)$
+\end{enumerate}
+%\item Let  $u_{ir}$ denote the utility of the $r$-th category for individual $i$, a simple linear model for it is
+%\[
+%u_{ir} = \alpha_{r0} + {\bf z}^T {\boldsymbol \alpha}_r
+%\]
+%where $ {\boldsymbol \alpha}_r$ 
+
+\end{wideitemize}
+\end{frame}
+
+% new frame
+%\begin{frame} {Modeling of explanatory variables}
+%
+%\begin{wideitemize}
+%
+%\end{wideitemize}
+%
+%
+%\end{frame}
+
+
+
+%\begin{frame} {Coefficient parameters}
+%\begin{wideitemize}
+%
+%\end{wideitemize}
+%\end{frame}
+
+\begin{frame}{}
+\textbf{Example.}
+\begin{itemize}
+\item
+Suppose the mean utility for individual $i$ is denoted $u_{ir}$, with a simple linear model
+$$u_{ir}=\alpha_{r0}+\textbf{z}_i^T\mbox{\boldmath $\alpha$}_r, \quad r=1,\cdots, k; \; i=1,\cdots,n.$$
+Then $\textbf{z}_i$ is \emph{global} and $\mbox{\boldmath $\alpha$}_r$ is \emph{category-specific}.
+\item
+The multinomial logit model becomes
+$$P(Y_i=r|\textbf{z}_i)=\frac{e^{\beta_{r0}+\textbf{z}_i^T\mbox{\scriptsize \boldmath $\beta$}_r}}{1+
+\sum_{s=1}^q e^{\beta_{s0}+\textbf{z}_i^T\mbox{\scriptsize \boldmath $\beta$}_s}}$$
+where $\tilde{u}_{ir}=u_{ir}-u_{ik}
+=\underbrace{(\alpha_{r0}-\alpha_{k0})}_{\beta_{r0}}+\textbf{z}_i^T \underbrace{(\mbox{\boldmath $\alpha$}_r-\mbox{\boldmath $\alpha$}_k)}_{\boldsymbol \beta_r} = \beta_{r0}+\textbf{z}_i^T\mbox{\boldmath $\beta$}_r$.
+
+\item So we really have recovered the multinomial logit model
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}
+\textbf{Example} (continued)
+\begin{itemize}
+\item
+The structural assumption of the associated GLM is
+$$\left[\begin{array}{c}\pi_{i1} \\ \vdots \\ \pi_{iq}\end{array}\right]=\left[\begin{array}{c}
+P(Y_i=1|\textbf{z}_i) \\ \vdots \\ P(Y_i=q|\textbf{z}_i)\end{array}\right]=
+\left[\begin{array}{c} \frac{e^{\eta_{i1}}}{1+\sum_{s=1}^q e^{\eta_{is}}} \\ \vdots \\ 
+\frac{e^{\eta_{iq}}}{1+\sum_{s=1}^q e^{\eta_{is}}} \end{array}\right]\stackrel{denoted}{=}
+\textbf{h}(\mbox{\boldmath $\eta$}_i)$$
+where the linear predictor $\mbox{\boldmath $\eta$}_i= ({\boldsymbol \eta}^T_{i1}, \dots, {\boldsymbol \eta}^T_{iq})^T= Z_i\mbox{\boldmath $\beta$}$, 
+with the design matrix for individual $i$ being
+$$Z_i=\left[\begin{array}{ccccccc}1 & \textbf{z}_i^T & 0 & \textbf{0}^T & \cdots & 0 & \textbf{0}^T \\ 
+0 & \textbf{0}^T & 1 & \textbf{z}_i^T & \cdots & 0 & \textbf{0}^T \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\ 0 & \textbf{0}^T & 0 & \textbf{0}^T & 
+\cdots & 1 & \textbf{z}_i^T\end{array} \right]_{q\times p}$$
+and $\mbox{\boldmath $\beta$}=(\beta_{10}, \mbox{\boldmath $\beta$}_1^T, \cdots, 
+\beta_{q0}, \mbox{\boldmath $\beta$}_q^T)^T$ is a $p\times 1$ parameter vector.
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{}
+\textbf{Example} (continued)
+\begin{wideitemize}
+\item
+$u_{ir}$ may also has  the form
+$$u_{ir}=\alpha_{r0}+\textbf{z}_i^T\mbox{\boldmath $\alpha$}_r+\textbf{w}_r^T\mbox{\boldmath $\gamma$},
+\quad r=1,\cdots, k; \; i=1,\cdots,n,
+$$
+where $\textbf{w}_r$ is a category-specific explanatory vector variable and $\mbox{\boldmath $\gamma$}$
+is a global parameter.  
+
+%
+%\item E.g Different ${\bf w}_r$ correspond to the prices of different mode of transportation. 
+
+
+\item
+Then $\tilde{u}_{ir}=u_{ir}-u_{ik}=\beta_{r0}+\textbf{z}_i^T\mbox{\boldmath $\beta$}_r+(\textbf{w}_r
+-\textbf{w}_k)^T\mbox{\boldmath $\gamma$}$.
+
+\end{wideitemize}
+\end{frame}
+
+
+
+%new frame
+\begin{frame}
+\begin{wideitemize}
+\item 
+The multinomial logit model will then have the following design matrix for individual $i$:
+$$Z_i=\left[\begin{array}{cccccccc}1 & \textbf{z}_i^T & 0 & \textbf{0}^T & \cdots & 0 & \textbf{0}^T & 
+(\textbf{w}_1-\textbf{w}_k)^T \\ 
+0 & \textbf{0}^T & 1 & \textbf{z}_i^T & \cdots & 0 & \textbf{0}^T & (\textbf{w}_2-\textbf{w}_k)^T \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots & \vdots \\ 0 & \textbf{0}^T & 0 & \textbf{0}^T & 
+\cdots & 1 & \textbf{z}_i^T & (\textbf{w}_q-\textbf{w}_k)^T\end{array} \right]_{q\times p}$$
+and the parameter is given by $\mbox{\boldmath $\beta$}=(\beta_{10}, \mbox{\boldmath $\beta$}_1^T, \cdots, 
+\beta_{q0}, \mbox{\boldmath $\beta$}_q^T, \mbox{\boldmath $\gamma$}^T )^T$.
+
+\item The R packages  \texttt{mlogit} \& \texttt{mnlogit}   allow us to fit these models with category-specific covariates. \cite{mlogit, mnlogit} 
+
+\item \texttt{mlogit} also provides an option to fit multinomial probit models.
+
+\end{wideitemize}
+
+\end{frame}
+
+
+%\begin{frame}
+%
+%\begin{itemize}
+%
+%\end{itemize}
+%\end{frame}
+
+
+
+\begin{frame} {Digression: Odds ratio}
+
+\begin{wideitemize}
+\item  Odds ratio is one of the several common measures that assess the association between two categorical random variables. 
+
+\item Suppose both $X$ and $Y$ have two possible levels, and  one possible combination of  levels for $(X, Y)$ is observed for each sample. Such data can be summarized  in a 2-by-2 {\bf contingency table}. 
+
+\item Example: $X = \text{Smoke}$, $Y = \text{Lung Cancer}$ and $n = 1418$.
+\includegraphics[width=.5\textwidth]{smoke_cancer}
+
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{Digression: Odds ratio}
+\begin{wideitemize}
+\item Let $n_{ij}$ be the count for the $(i, j)$-cell, each independently observed as a $Poi(\mu_{ij})$ variable (Poisson of mean $\mu_{ij}$), where $i =1, 2$ correspond to the two levels of $X$ and $j = 1, 2$ correspond to the two levels of $Y$. 
+
+\item The {\bf odd ratios} for this Poisson model can be defined as 
+\[
+\frac{ \mu_{11} / \mu_{12}}{\mu_{21} / \mu_{22}}.
+\]
+
+\item It measures association between $X$ and $Y$ since it tells you how the odds of $X$ changes with $Y$ (or vice versa since the definition is symmetric in $X$ and $Y$). 
+
+
+\end{wideitemize}
+
+
+
+\end{frame}
+
+
+\begin{frame}{Digression: Odds ratio}
+\begin{wideitemize}
+\item In Assignment 1, you have shown that given the total count $n = n_{11} + n_{12}  + n_{21} + n_{22}$, 
+\[
+(n_{11}, n_{12}, n_{21}, n_{22}) \sim M\left(n, \left(\frac{\mu_{11}}{\mu}, \frac{\mu_{12}}{\mu}, \frac{\mu_{21}}{\mu}, \frac{\mu_{22}}{\mu}\right)\right),
+\]
+where $\mu =\mu_{11}+\mu_{12}+ \mu_{21} + \mu_{22}$.
+
+\item Hence, one can also think of $n$ as a given sample size, and $n$ independent observations for $(X, Y)$ are tabulated by the contingency table.
+
+\end{wideitemize}
+\end{frame}
+
+
+% frame
+\begin{frame}
+\begin{wideitemize}
+\item Conditional on  the total count $n$, one can alternatively define the odds ratio  as
+\[
+\frac{ \pi_{11} / \pi_{12}}{\pi_{21} / \pi_{22}},
+\]
+in terms of the probabilities 
+\[
+\pi_{11}  = \frac{\mu_{11}}{\mu}, \quad \pi_{12} = \frac{\mu_{12}}{\mu}, \quad \pi_{21}  =  \frac{\mu_{21}}{\mu} \text{ and } \quad \pi_{22}  =  \frac{\mu_{22}}{\mu}
+\]
+for the respective values 
+\[
+(1, 1), (1, 2), (2, 1), (2, 2)
+\]
+ that each observation of $(X, Y)$ can take on.
+ 
+ \item It can be easily verified that when the odds ratio is $1$, $X$ and $Y$ are independent as Bernoulli random variables. 
+\end{wideitemize}
+\end{frame}
+
+% frame
+\begin{frame}{Digression: Odds ratio}
+\begin{wideitemize}
+
+\item  More generally, $X$ can have  $I$  levels,   and $Y$ can have $J$  levels.
+
+
+\item A {\bf local} odds ratio can be defined as
+\[
+\theta_{ii'jj'} =\frac{ \mu_{ij} / \mu_{ij'}}{\mu_{i'j} / \mu_{i' j'}}.
+\]
+for any  $\{i, i'\} \subset \{1, \dots, I\}$ and $\{j, j'\} \subset \{1, \dots, J\}$, where $i \not = i'$ and $j \not = j'$
+
+
+\item One can also show that if all these local odds ratios are $1$, $X$ and $Y$ are independent.
+\end{wideitemize}
+\end{frame}
+
+
+% new frame
+\begin{frame}{Digression: Odds ratio}
+
+\begin{wideitemize}
+\item Suppose there is a third categorical variable $Z$ which can take $K$ possible different values: $1, \dots, K$ (giving rise to a  $I \times J \times K $ table), 
+
+\item A \emph{local  odds ratio at a fixed level $k$ for $Z$} can be defined as 
+\[
+\theta_{ii'jj'|k} = \frac{ \mu_{ijk} / \mu_{ij'k}}{\mu_{i'jk} / \mu_{i' j'k}}.
+\]
+%for any  $\{i, i'\} \subset \{1, \dots, I\}$ and $\{j, j'\} \subset \{1, \dots, J\}$, where $i \not = i'$ and $j \not = j'$
+\item 
+One way to understand \emph{homogenous} $XY$ association is when
+\[
+\theta_{ii'jj'|1 } = \dots = \theta_{ii'jj'|K}
+\]
+for all $K$ levels  of $Z$ and all $(i, i', j, j')$, meaning that the $XY$ association  doesn't depend on $Z$. 
+
+
+
+\item Again, these local odds ratios can be alternatively defined in terms of multinomial probabilities, treating the total count as fixed. 
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+
+
+
+\begin{frame}{Example 3.1: Caesarian birth study}
+\begin{itemize}
+\item We now distinguish between type I and II infections. 
+\item
+$Y$ has 3 possible outcomes: 1 for type I infection, 2 for type II infection,
+and 3 for no infection.
+\item
+Treating no infection as reference, $Y_i$ coded by 2 dummies $(y_{i1},y_{i2})$, where 
+\begin{eqnarray*}
+y_{i1}&=& I(\mbox{the $i$th Caesarian was followed by infection I}) \\
+y_{i2} &=& I(\mbox{the $i$th Caesarian was followed by infection II})
+\end{eqnarray*}
+\item
+There are 3 binary covariates: \texttt{NoPlan}, \texttt{Antib}, \texttt{RiskF}, coded by 3 dummy variables:
+\begin{eqnarray*}
+\mbox{\texttt{NoPlan}} &=& I(\mbox{the Caesarian has not been planned}) \\
+\mbox{\texttt{Antib}}  &=& I(\mbox{antibiotics were given as a prophylaxis}) \\
+\mbox{\texttt{RiskF}}  &=& I(\mbox{risk factors were present}) 
+\end{eqnarray*}
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Example 3.1: Caesarian birth study}
+The data condensed in the grouped form, in terms of group total.
+\begin{center}
+\begin{tabular}{cccc}
+& Size&  Response variable obs. & Explanatory variables obs.   \vspace*{8pt} \\
+& & $(\tilde{y}_{i1}, \tilde{y}_{i2})$ & \texttt{NoPlan}, \texttt{Antib}, \texttt{RiskF}  \vspace*{10pt} \\
+Group 1 & $n_1=40$ & \multirow{7}{*}{$\left[\!\begin{array}{cc} 4 & 4 \\
+11 & 17 \\ 0 & 0 \\ 0 & 1 \\ 0 & 0 \\ 10 & 13 \\ 4 & 7 \end{array}\!\right]$} & 
+\multirow{7}{*}{$\left[\!\begin{array}{ccc} 0 & 0 & 0 \\ 
+0 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 1 & 1 \\ 1 & 0 & 0 \\ 1 & 0 & 1 \\ 1 & 1 & 1
+\end{array}\!\right]$} \\ 
+Group 2 & $n_2=58$ & & \\ Group 3 & $n_3=2$ & & \\ 
+Group 4 & $n_4=18$ & & \\ Group 5 & $n_5=9$ & & \\ Group 6 & $n_6=26$ & &\\ Group 7 & $n_7=98$ & &
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Example 3.1: Caesarian birth study}
+\begin{itemize}
+\item
+Fitting the multi-categorical logit model to the data {\footnotesize
+\begin{eqnarray*}
+\log\frac{\pi_{i1}}{\pi_{i3}}&=&\log\frac{P(\mbox{infection type I})}{P(\mbox{no infection})} 
+=\beta_{10}+\beta_{1N}\texttt{NoPlan}+\beta_{1A}\texttt{Antib}+\beta_{1R}\texttt{RiskF} \\
+\log\frac{\pi_{i2}}{\pi_{i3}}&=&\log\frac{P(\mbox{infection type II})}{P(\mbox{no infection})} 
+=\beta_{20}+\beta_{2N}\texttt{NoPlan}+\beta_{2A}\texttt{Antib}+\beta_{2R}\texttt{RiskF}
+\end{eqnarray*}}
+\item
+Equivalently,
+\begin{eqnarray*}
+\frac{P(\mbox{infection type}\; j)}{P(\mbox{no infection})} 
+=e^{\beta_{j0}}e^{\beta_{jN}\texttt{NoPlan}}e^{\beta_{jA}\texttt{Antib}}e^{\beta_{jR}\texttt{RiskF}}, \quad
+j=\mbox{I, II.} 
+\end{eqnarray*}
+\item
+The exponential of a parameter represents the \emph{contribution to the odds} as a multiplicative factor, if the corresponding
+explanatory variable takes value 1 instead of 0. 
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example 3.1: Caesarian birth study}
+\begin{itemize}
+\item
+Here with main effects only, the exponential of the parameter can be
+seen as an odds ratio,  conditioned on other covariates.
+
+\item
+For instance, for each given infection type $j \in \{I, II\}$, with respect to \texttt{NoPlan} one obtains
+\begin{eqnarray*}
+e^{\beta_{jN}}=\frac{\frac{P(\mbox{infection type $j$}\mid \texttt{NoPlan} = \textcolor{red}{1}, \texttt{Antib}, 
+\texttt{RiskF})}{P(\mbox{no infection} \mid \texttt{NoPlan} = \textcolor{red}{1}, \texttt{Antib}, \texttt{RiskF})}}{
+\frac{P(\mbox{infection type $j$} \mid \texttt{NoPlan} = \textcolor{red}{0}, \texttt{Antib}, \texttt{RiskF})}{
+P(\mbox{no infection} \mid \texttt{NoPlan} = \textcolor{red}{0}, \texttt{Antib}, \texttt{RiskF})}},\end{eqnarray*}
+where \texttt{Antib} and \texttt{RiskF} can take any fixed values.
+\item
+The  vector-valued link function for this model is
+$$\mathbf{g}(\pi_{i1},\pi_{i2})=\left(\log\frac{\pi_{i1}}{1-\pi_{i1}-\pi_{i2}}, \;
+\log\frac{\pi_{i2}}{1-\pi_{i1}-\pi_{i2}}\right)^T$$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example 3.1: Caesarian birth study}
+
+%The estimates of the parameters and their exponential are given in the following table
+\begin{table} [htbp]
+\caption{Parameter estimates in Caesarian birth study} \label{tab3.1}
+\begin{center}
+\begin{tabular}{|lcc|lcc|} \hline
+ & $\beta$ & $\exp(\beta)$ & & $\beta$ & $\exp(\beta)$ \\
+constant & -2.621 & 0.072 & constant & -2.560 & 0.077 \\
+\texttt{NoPlan (I)} & 1.174 & 3.235 & \texttt{NoPlan (II)} & 0.996 & 2.707 \\
+\texttt{Antib (I)} & -3.520 & 0.030 & \texttt{Antib (II)} & -3.087 & 0.046 \\
+\texttt{RiskF (I)} & 1.829 & 6.228 & \texttt{RiskF (II)} & 2.195 & 8.980 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\begin{itemize}
+
+\item
+\texttt{NoPlan} = 1 (Unplanned C-section)  increases the type I infection odds by a factor of 3.235.
+\item
+Taking \texttt{Antib} decreases both the type I and type II infection odds (resp. by the factor 0.03 and 0.046).
+\item
+\texttt{RiskF} increases the type I infection odds  by the factor 6.228, and the type II infection odds by the factor 8.980.
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\begin{itemize}
+
+\item Connections between Poisson loglinear and logistic regression models are more thoroughly explored in \cite[Sec. 9.5]{Agresti2013}. 
+
+%[MAY EXPAND ON IT FOR FUTURE B/C EASY TO WRITE EXAM PROBLEMS;THINK ABOUT THE EXAM PROBLEM AT THE SAME TIME]
+
+\end{itemize}
+
+\end{frame}
+
+
+% bibliography
+\begin{frame}[allowframebreaks]
+  \frametitle{References}    
+  \begin{thebibliography}{10}    
+
+
+%  \beamertemplatearticlebibitems
+%  \bibitem[Smyth, 2003]{smyth2003pearson}
+%    Smyth, Gordon K
+%    \newblock Pearson's goodness of fit statistic as a score test statistic
+%    \newblock {\em Lecture notes-monograph series (2003): 115-126.}
+    
+
+    
+
+       \beamertemplatearticlebibitems
+  \bibitem[Mardia, Kent and Taylor 2024]{MKT2024}
+Kanti V Mardia, John T Kent and Charles C Taylor
+    \newblock  Multivariate Analysis, 2nd Edition
+    \newblock {\em Wiley \& Hall (2024).}
+
+
+
+       \beamertemplatearticlebibitems
+  \bibitem[Agresti 2013]{Agresti2013}
+Alan Agresti
+    \newblock  Categorical Data Analysis, 3rd Edition
+    \newblock {\em Wiley (2013).}
+
+
+       \beamertemplatearticlebibitems
+  \bibitem[McFadden 1984]{McFadden1984}
+Daniel McFadden
+    \newblock  Econometric analysis of qualitative response models
+    \newblock {\em Handbook of econometrics, 2, pp.1395-1457.}
+    
+    
+           \beamertemplatearticlebibitems
+  \bibitem[Croissant 2020]{mlogit}
+ Yves Croissant
+    \newblock  Estimation of random utility models in R: the mlogit package
+    \newblock {\em Journal of Statistical Software 95 (2020): 1-41.}
+    
+               \beamertemplatearticlebibitems
+  \bibitem[Hasan, Wang, Mahani 2016]{mnlogit}
+ Hasan, A., Wang, Z., \& Mahani, A. S.
+    \newblock  Fast estimation of multinomial logit models: R package mnlogit.
+    \newblock {\em Journal of Statistical Software, 75(3), 1-24.}
+    
+  \end{thebibliography}
+\end{frame}
+
+
+
+%\begin{frame}
+%
+%Now we will work this short example out together with \texttt{knitr}. 
+%\end{frame}
+
+
+
+%
+%\begin{frame}
+%Old slides for F\& T Example  3.1(and also 3.11) below. Don't worry about them for now.
+%
+%\end{frame}
+%
+%
+%\begin{frame}{\S3.1.3 Example: Caesarian birth study (1)}
+%\begin{itemize}
+%\item Recall the C-section data set in the previous Chapter. Now we want to distinguish between type I and II infectionS. 
+%\item
+%$Y$ has 3 possible outcomes: 1 for type I infection, 2 for type II infection,
+%and 3 for no infection.
+%\item
+%Represent $Y_i$ by 2 dummy variables $(y_{i1},y_{i2})$, where 
+%\begin{eqnarray*}
+%y_{i1}&=& I(\mbox{the $i$th Caesarian was followed by infection I}) \\
+%y_{i2} &=& I(\mbox{the $i$th Caesarian was followed by infection I})
+%\end{eqnarray*}
+%\item
+%There are 3 binary covariates: \texttt{NoPlan}, \texttt{Antib}, \texttt{RiskF}, coded by 3 dummy variables:
+%\begin{eqnarray*}
+%\mbox{\texttt{NoPlan}} &=& I(\mbox{the Caesarian has not been planned}) \\
+%\mbox{\texttt{Antib}}  &=& I(\mbox{antibiotics were given as a prophylaxis}) \\
+%\mbox{\texttt{RiskF}}  &=& I(\mbox{risk factors were present}) 
+%\end{eqnarray*}
+%\end{itemize}
+%\end{frame}
+%
+%
+%
+%
+%\begin{frame}{\S3.1.3 Example: Caesarian birth study (2)}
+%The data can be condensed in the grouped data (group total) form.
+%\begin{center}
+%\begin{tabular}{cccc}
+%& Size&  Response variable obs. & Explanatory variables obs.   \vspace*{8pt} \\
+%& & $(\tilde{y}_{i1}, \tilde{y}_{i2})$ & \texttt{NoPlan}, \texttt{Antib}, \texttt{RiskF}  \vspace*{10pt} \\
+%Group 1 & $n_1=40$ & \multirow{7}{*}{$\left[\!\begin{array}{cc} 4 & 4 \\
+%11 & 17 \\ 0 & 0 \\ 0 & 1 \\ 0 & 0 \\ 10 & 13 \\ 4 & 7 \end{array}\!\right]$} & 
+%\multirow{7}{*}{$\left[\!\begin{array}{ccc} 0 & 0 & 0 \\ 
+%0 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 1 & 1 \\ 1 & 0 & 0 \\ 1 & 0 & 1 \\ 1 & 1 & 1
+%\end{array}\!\right]$} \\ 
+%Group 2 & $n_2=58$ & & \\ Group 3 & $n_3=2$ & & \\ 
+%Group 4 & $n_4=18$ & & \\ Group 5 & $n_5=9$ & & \\ Group 6 & $n_6=26$ & &\\ Group 7 & $n_7=98$ & &
+%\end{tabular}
+%\end{center}
+%\end{frame}
+%
+%\begin{frame}{\S3.1.3 Example: Caesarian birth study (3)}
+%\begin{itemize}
+%\item
+%We fit the following multi-categorical logit model to the data {\footnotesize
+%\begin{eqnarray*}
+%\log\frac{\pi_{i1}}{\pi_{i3}}&=&\log\frac{P(\mbox{infection type I})}{P(\mbox{no infection})} 
+%=\beta_{10}+\beta_{1N}\texttt{NoPlan}+\beta_{1A}\texttt{Antib}+\beta_{1R}\texttt{RiskF} \\
+%\log\frac{\pi_{i2}}{\pi_{i3}}&=&\log\frac{P(\mbox{infection type II})}{P(\mbox{no infection})} 
+%=\beta_{20}+\beta_{2N}\texttt{NoPlan}+\beta_{2A}\texttt{Antib}+\beta_{2R}\texttt{RiskF}
+%\end{eqnarray*}}
+%\item
+%Equivalently,
+%\begin{eqnarray*}
+%\frac{P(\mbox{infection type}\; j)}{P(\mbox{no infection})} 
+%=e^{\beta_{j0}}e^{\beta_{jN}\texttt{NoPlan}}e^{\beta_{jA}\texttt{Antib}}e^{\beta_{jR}\texttt{RiskF}}, \quad
+%j=\mbox{I, II.} 
+%\end{eqnarray*}
+%\item
+%Thus, the exponential of the parameter gives the factorial contribution to the odds if the corresponding
+%explanatory variable takes value 1 instead of 0. 
+%\item
+%Alternatively, the exponential of the parameter may be
+%seen as odds ratio between odds for value 1 and odds for value 0.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.1.3 Example: Caesarian birth study (4)}
+%\begin{itemize}
+%\item
+%For example, for \texttt{NoPlan} one obtains
+%\begin{eqnarray*}
+%e^{\beta_{jN}}=\frac{\frac{P(\mbox{infection type $j$}\mid \texttt{NoPlan} =1, \texttt{Antib}, 
+%\texttt{RiskF})}{P(\mbox{no infection} \mid \texttt{NoPlan} =1, \texttt{Antib}, \texttt{RiskF})}}{
+%\frac{P(\mbox{infection type $j$} \mid \texttt{NoPlan} =0, \texttt{Antib}, \texttt{RiskF})}{
+%P(\mbox{no infection} \mid \texttt{NoPlan} =0, \texttt{Antib}, \texttt{RiskF})}}, \quad
+%j=\mbox{I, II.} 
+%\end{eqnarray*}
+%where \texttt{Antib} and \texttt{RiskF} can take any fixed values.
+%\item
+%Note the vector-valued link function for this model is
+%$$\mathbf{g}(\pi_{i1},\pi_{i2})=\left(\log\frac{\pi_{i1}}{1-\pi_{i1}-\pi_{i2}}, \;
+%\log\frac{\pi_{i2}}{1-\pi_{i1}-\pi_{i2}}\right)^T$$
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S3.1.3 Example: Caesarian birth study (5)}
+%\begin{itemize}
+%\item
+%The estimates of the parameters and their exponential are given in the following table
+%\begin{table} [htbp]
+%\caption{Parameter estimates in Caesarian birth study} \label{tab3.1}
+%\begin{center}
+%\begin{tabular}{|lcc|lcc|} \hline
+% & $\beta$ & $\exp(\beta)$ & & $\beta$ & $\exp(\beta)$ \\
+%constant & -2.621 & 0.072 & constant & -2.560 & 0.077 \\
+%\texttt{NoPlan (I)} & 1.174 & 3.235 & \texttt{NoPlan (II)} & 0.996 & 2.707 \\
+%\texttt{Antib (I)} & -3.520 & 0.030 & \texttt{Antib (II)} & -3.087 & 0.046 \\
+%\texttt{RiskF (I)} & 1.829 & 6.228 & \texttt{RiskF (II)} & 2.195 & 8.980 \\ \hline
+%\end{tabular}
+%\end{center}
+%\end{table}
+%\item
+%\texttt{NoPlan} of 1 vs. 0 increases the type I infection odds by a factor of 3.235.
+%\item
+%Taking \texttt{Antib} decreases the type I infection OR to 0.030 (from 1).
+%\item
+%\texttt{RiskF} increases the type I infection odds ratio to 6.228.
+%\item
+%Similar things can be said of the type II infection odds ratio.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.1.3 Example: Caesarian birth study (6)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%Caes.dat <- read.csv("D:/MAST90084/Example3-1Caes.csv")
+%is.data.frame(Caes.dat)   #TRUE
+%Caes.dat
+%\end{Sinput}
+%\begin{Soutput}
+%  size noInf Inf1 Inf2 NoPlan Antib RiskF
+%1   40    32    4    4      0     0     0
+%2   58    30   11   17      0     0     1
+%3    2     2    0    0      0     1     0
+%4   18    17    0    1      0     1     1
+%5    9     9    0    0      1     0     0
+%6   26     3   10   13      1     0     1
+%7   98    87    4    7      1     1     1
+%\end{Soutput}
+%\begin{Sinput}
+%library(nnet)  
+%    ##package nnet is used for fitting multinomial log-linear model 
+%    ##or multi-categorical logit model.
+%
+%Caes1=multinom(as.matrix(Caes.dat[,2:4])~NoPlan+Antib+RiskF,data=Caes.dat)
+%\end{Sinput} 
+%\begin{Soutput}
+%# weights:  15 (8 variable)
+%initial  value 275.751684 
+%iter  10 value 161.068578
+%final  value 160.937147 
+%converged
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.1.3 Example: Caesarian birth study (7)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%Caes1=multinom(as.matrix(Caes.dat[,2:4])~NoPlan+Antib+RiskF,data=Caes.dat)
+%summary(Caes1)
+%\end{Sinput}
+%\begin{Soutput}
+%Call:
+%multinom(formula=as.matrix(Caes.dat[,2:4]) ~ NoPlan + Antib + RiskF, data=Caes.dat)
+%Coefficients:
+%     (Intercept)    NoPlan     Antib    RiskF
+%Inf1   -2.621012 1.1742513 -3.520249 1.829241
+%Inf2   -2.559917 0.9959762 -3.087160 2.195458
+%Std. Errors:
+%     (Intercept)    NoPlan     Antib     RiskF
+%Inf1   0.5567209 0.5213014 0.6717416 0.6023322
+%Inf2   0.5462995 0.4813634 0.5498675 0.5869601
+%
+%Residual Deviance: 321.8743     AIC: 337.8743 
+%\end{Soutput}
+%\begin{Sinput}
+%attributes(Caes1)
+%\end{Sinput} 
+%\begin{Soutput}
+%$names
+% [1] "n"             "nunits"        "nconn"         "conn"          "nsunits"      
+% [6] "decay"         "entropy"       "softmax"       "censored"      "value"        
+%[11] "wts"           "convergence"   "fitted.values" "residuals"     "call"         
+%[16] "terms"         "weights"       "deviance"      "rank"          "lab"          
+%[21] "coefnames"     "vcoefnames"    "xlevels"       "edf"           "AIC"          
+%$class
+%[1] "multinom" "nnet"  
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.1.3 Example: Caesarian birth study (8)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%Caes1$fitted    ##fitted category probabilities
+%\end{Sinput}
+%\begin{Soutput}
+%      noInf        Inf1        Inf2
+%1 0.8695347 0.063240568 0.067224753
+%2 0.4656329 0.210951192 0.323415876
+%3 0.9943521 0.002140051 0.003507889
+%4 0.9568456 0.012827892 0.030326540
+%5 0.6922135 0.162899513 0.144886971
+%6 0.2300766 0.337273035 0.432650355
+%7 0.8855925 0.038416539 0.075990954
+%\end{Soutput}
+%\begin{Sinput}
+%Caes1$residuals   
+% #resid(Caes1) does the same thing, = category means - fitted category probabilities.
+%\end{Sinput} 
+%\begin{Soutput}
+%         noInf         Inf1         Inf2
+%1 -0.069534679  0.036759432  0.032775247
+%2  0.051608447 -0.021296019 -0.030312428
+%3  0.005647940 -0.002140051 -0.003507889
+%4 -0.012401124 -0.012827892  0.025229016
+%5  0.307786484 -0.162899513 -0.144886971
+%6 -0.114691994  0.047342349  0.067349645
+%7  0.002162595  0.002399788 -0.004562382
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.1.3 Example: Caesarian birth study (9)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%Caes1$deviance    #residual deviance of the model, also given by deviance(Caes1)
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 321.8743
+%\end{Soutput}
+%\begin{Sinput}
+%Caes1$edf
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 8
+%\end{Soutput}
+%\begin{Sinput}
+%predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0), type="probs")
+%\end{Sinput} 
+%\begin{Soutput}
+%      noInf        Inf1        Inf2 
+%0.983753294 0.006850796 0.009395909 
+%\end{Soutput}
+%\begin{Sinput}
+%predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0), type="class")
+%\end{Sinput} 
+%\begin{Soutput}
+% [1] noInf
+%Levels: noInf Inf1 Inf2
+%\end{Soutput}
+%\begin{Sinput}
+%predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0), type="probs", se.fit=TRUE)
+%\end{Sinput} 
+%\begin{Soutput}
+%      noInf        Inf1        Inf2 
+%0.983753294 0.006850796 0.009395909 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.1.3 Example: Caesarian birth study (10)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%step(Caes1)
+%\end{Sinput}
+%\begin{Soutput}
+%Start:  AIC=337.87
+%as.matrix(Caes.dat[, 2:4]) ~ NoPlan + Antib + RiskF
+%
+%trying - NoPlan 
+%# weights:  12 (6 variable)
+%...................................................................
+%converged
+%         Df      AIC
+%<none>    8 337.8743
+%- NoPlan  6 340.8649
+%- RiskF   6 358.3103
+%- Antib   6 397.4663
+%
+%###The model ~ NoPlan + Antib + RiskF has the smallest AIC and is the best model.
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.1.3 Example: Caesarian birth study (11)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%Caes2=multinom(as.matrix(Caes.dat[,2:4])~NoPlan+Antib,data=Caes.dat)
+%summary(Caes2)
+%\end{Sinput}
+%\begin{Soutput}
+%Coefficients:
+%     (Intercept)   NoPlan     Antib
+%Inf1   -1.431678 1.255595 -2.962218
+%Inf2   -1.058278 1.086508 -2.484319
+%
+%Std. Errors:
+%     (Intercept)    NoPlan     Antib
+%Inf1   0.2870129 0.4954738 0.6408664
+%Inf2   0.2470012 0.4475669 0.5136334
+%
+%Residual Deviance: 346.3103 
+%AIC: 358.3103 
+%\end{Soutput}
+%\begin{Sinput}
+%Caes2$edf
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 6
+%\end{Soutput}
+%\begin{Sinput}
+%Caes2$deviance-Caes1$deviance
+%\end{Sinput} 
+%\begin{Soutput}
+%[1] 24.43605
+%\end{Soutput}
+%\begin{Sinput}
+%1-pchisq(24.43605,2)
+%\end{Sinput} 
+%\begin{Soutput}
+%[1] 4.940594e-06
+%## Hence RiskF has significant effect on the response variable.
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+\end{document}
+

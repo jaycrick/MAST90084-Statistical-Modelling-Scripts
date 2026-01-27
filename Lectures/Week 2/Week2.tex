@@ -1,0 +1,1154 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{2.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\bolddelta}{{\boldsymbol \delta}}
+\newcommand{\bR}{\mathbb{R}}
+
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 2.Univariate Generalised Linear Models (GLM)}
+\author[univariate GLM]{MAST90084 Statistical Modelling}
+\vskip 1cm
+\institute[Ch2]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+\tableofcontents
+\end{frame}
+
+\section{\S2.2 Likelihood Inference}\label{sec:2.2}
+\begin{frame}{\S2.2 Likelihood Inference}
+\begin{wideitemize}
+\item
+Given its full distributional assumption, regression analysis with GLMs can be based on the full \textbf{likelihood}. 
+\item
+Inference tasks include
+\begin{itemize}
+\item parameter point estimation
+\item constructing confidence intervals
+\item hypothesis testing
+\item  goodness-of-fit tests 
+\end{itemize}
+\item
+For now we assume the model is completely and correctly specified, i.e., the GLM assumptions are all ``true" (to be relaxed when we cover quasi-likelihood).  
+\end{wideitemize}
+\end{frame}
+
+\subsection{\S2.2.1 Maximum likelihood estimation}\label{sec:2.2.1}
+\begin{frame}{\S2.2.1 Maximum likelihood estimation (MLE)}
+\begin{wideitemize}
+\item
+Data:  response $y_i$, covariates $\textbf{x}_i$ and design
+vector $\textbf{z}_i = {\bf z}_i(\textbf{x}_i)$, $i=1,2,\cdots, n$.
+%\item
+%Model:  GLM where $E(y_i|\textbf{x}_i)=\mu_i=h(\eta_i)=h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})$,
+%with response function $h(\cdot)$ and unknown coefficient $p\times 1$ vector $\mbox{\boldmath $\beta$}$. 
+\item
+Assumptions: 
+\begin{wideitemize}
+\item  design matrix $Z = Z_{n\times p}=(\textbf{z}_1,\cdots,\textbf{z}_n)^T$ has (full) rank $p$
+\item  scale/dispersion parameter $\phi$ is
+assumed known or otherwise consistently estimated. 
+\end{wideitemize}
+
+\item 
+(Recall : we treat the design vectors as non-random)
+
+\item We will estimate $\mbox{\boldmath $\beta$}$ by the {\bf maximum likelihood estimate} (MLE) $\hat{\boldsymbol \beta}$. 
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame}{\S2.2.1 MLE (log-likelihood)}
+
+%The focus is estimating $\mbox{\boldmath $\beta$}$. 
+The MLE maximizes the log-likelihood, treated as a function in $\boldsymbol \beta$. Now the log-likelihood function is {\footnotesize
+\begin{eqnarray*}
+\ell(\mbox{\boldmath $\beta$})&=&\sum_{i=1}^n\ell_i(\mbox{\boldmath $\beta$})
+=\sum_{i=1}^n \log f(y_i|\theta_i,\phi,\omega_i) \\
+&=&\sum_{i=1}^n \frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot\omega_i
++(\mbox{terms not involving $\theta_i$'s} )\\
+&=& \sum_{i=1}^n \frac{y_i\theta (\mu_i)-b(\theta(\mu_i))}{\phi}\cdot\omega_i  + (ditto)\\
+&=&\sum_{i=1}^n \frac{y_i\theta (h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))-
+b(\theta(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})))}{\phi}\cdot\omega_i + (ditto)
+\end{eqnarray*}}
+
+
+
+ We find $\hat{\boldsymbol \beta}$ by solving for the root  of the derivative of $\ell$. 
+\end{frame}
+
+\begin{frame}{\S2.2.1  MLE (Score function)}
+\begin{itemize}
+\item
+The \textbf{score function} is the first derivative of $\ell$: {\footnotesize
+\begin{eqnarray*}
+\textbf{s}(\mbox{\boldmath $\beta$})&\!\!\!=\!\!\!& \frac{\partial \ell(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath 
+$\beta$}}=\sum_{i=1}^n\frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath $\beta$}}
+=\sum_{i=1}^n  \frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\theta_i}\cdot
+\frac{\partial \theta_i}{\partial\mu_i}\cdot \frac{\partial \mu_i}{\partial\eta_i} \cdot
+\frac{\partial \eta_i}{\partial\mbox{\boldmath $\beta$}}\\
+&\!\!\!=\!\!\!&\sum_{i=1}^n \left(\frac{y_i-b^\prime(\theta_i)}{\phi}\cdot\omega_i\right)\cdot
+\left[v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))\right]^{-1}\cdot
+ \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot \underbrace{ \textbf{z}_i }_{ = \frac{\partial \eta_i}{ \partial {\boldsymbol \beta}}}\\
+&\!\!\!=\!\!\!& \sum_{i=1}^n \textbf{z}_i\cdot \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot
+\left[ \underbrace{\frac{\phi v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))}{\omega_i}}_{\sigma^2_i({\boldsymbol \beta})}\right]^{-1}\cdot
+\left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right]
+\end{eqnarray*}},
+where
+\begin{align*}
+& \mu_i=b^\prime(\theta_i) \Rightarrow \quad \frac{\partial \mu_i}{\partial\theta_i}=
+b^{\prime\prime}(\theta_i)=v(\mu_i)=v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})) \\
+&\Rightarrow \quad   \frac{\partial \theta_i}{\partial\mu_i} 
+\underset{\Big(\substack{inverse \\ function\\ theorem}\Big)}{=}
+\left(\frac{\partial \mu_i}{\partial\theta_i}\right)^{-1} = [v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})) ]^{-1} %\quad \text{(inverse function theorem)}
+\end{align*}
+\end{itemize}
+
+
+
+
+\end{frame}
+
+
+\begin{frame}{\S2.2.1 MLE (Score function)}
+
+\begin{itemize}
+
+\item
+{\footnotesize Denote $\displaystyle D_i(\mbox{\boldmath $\beta$})=\frac{\partial \mu_i}{\partial\eta_i}
+=\frac{\partial h(\eta_i)}{\partial\eta_i}\mid_{\eta_i=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}}$\;
+,
+$i=1,\cdots, n$ ($1,\cdots, g$ for grouped data).}
+\item
+{\footnotesize Denote $\displaystyle D(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+\{D_1(\mbox{\boldmath $\beta$}), \cdots, D_n(\mbox{\boldmath $\beta$})\}$}
+\item
+{\footnotesize Denote $\displaystyle \Sigma(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$})\!\! & & \\
+& \!\!\!\ddots\!\!\! & \\ & & \!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+\{\sigma_1^2(\mbox{\boldmath $\beta$}), \cdots, \sigma_n^2(\mbox{\boldmath $\beta$})\}$}
+
+
+\end{itemize}
+In matrix form we get:
+\begin{eqnarray*}
+%&\!\!\!\stackrel{denoted}{=} \!\!\!& \sum_{i=1}^n \textbf{z}_i D_i(\mbox{\boldmath $\beta$})
+%\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] \\
+\textbf{s}(\mbox{\boldmath $\beta$})&\!\!\!=\!\!\!&  \underbrace{\left[\textbf{z}_1, \cdots, \textbf{z}_n\right] }_{Z^T} \left[\!\begin{array}{ccc}
+\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\!\right] 
+\left[\begin{array}{ccc}\!\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$}) \!\!\! & & \\
+&\!\!\!\!\ddots \!\!\!\!& \\ & & \!\!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]^{\!\!-1}
+\left[\begin{array}{c} \!\!\!y_1\!-\!\mu_1(\mbox{\boldmath $\beta$}) \!\!\!\! \\
+\!\!\!\vdots \!\!\!\! \\ \!\!\! y_n\!-\!\mu_n(\mbox{\boldmath $\beta$})\!\!\!\!\end{array}\!\right] \\
+&\!\!\!\stackrel{\mbox{}}{=} \!\!\!& Z^TD(\mbox{\boldmath $\beta$})\Sigma^{-1}(\mbox{\boldmath $\beta$})
+\left[\textbf{y}-\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})\right] = \sum_{i=1}^n {\bf z}_i D_i(\boldbeta) \sigma_i(\boldbeta)^{-2} (y_i - \mu_i (\boldbeta)).
+\end{eqnarray*}
+\end{frame}
+
+\begin{frame}{\S2.2.1 MLE (Fisher information)}
+
+The \textbf{Fisher information} matrix is defined as the covariance of the score function at the point $\mbox{\boldmath $\beta$}$: 
+\begin{eqnarray*}
+F(\mbox{\boldmath $\beta$})&:=& \mbox{cov}\left(\textbf{s}(\mbox{\boldmath $\beta$})\right)= Z^T D \Sigma^{-1}({\boldsymbol \beta}) \Sigma({\boldsymbol \beta})  \Sigma^{-1}({\boldsymbol \beta}) D^T Z  \\
+&= &
+ Z^T \underbrace{D\Sigma^{-1}({\boldsymbol \beta}) D^T }_{\text{(is diagonal)}}Z = \sum_{i=1}^n \textbf{z}_i D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) 
+\textbf{z}_i^T=\sum_{i=1}^n \textbf{z}_i w_i(\mbox{\boldmath $\beta$})\textbf{z}_i^T \\
+&=& \left[\textbf{z}_1, \cdots, \textbf{z}_n\right]  \left[\begin{array}{ccc}
+\!\!\!w_1(\mbox{\boldmath $\beta$})\!\! & & \\
+& \!\!\!\ddots\!\!\! & \\ & & \!\!\!w_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right] 
+\left[\begin{array}{c} \textbf{z}_1^T \\ \vdots \\ \textbf{z}_n^T\end{array}\right]
+=Z^TW(\mbox{\boldmath $\beta$})Z,
+\end{eqnarray*}
+ where 
+ \[
+ w_i(\mbox{\boldmath $\beta$}):=D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \quad \text{ and } \quad 
+ W(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+\!\!\!w_1(\mbox{\boldmath $\beta$})\!\! & & \\
+& \!\!\!\ddots\!\!\! & \\ & & \!\!\!w_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right].
+ \]
+%  and 
+%
+%\[ W(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%\!\!\!w_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!w_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]
+%%=\mbox{diag}
+%%\{w_1(\mbox{\boldmath $\beta$}), \cdots, w_n(\mbox{\boldmath $\beta$})\}
+%\]
+
+\end{frame}
+
+\begin{frame}{\S2.2.1 MLE (Fisher information in normal LM)}
+
+\begin{wideitemize}
+%\item If you have no prior experience with Fisher information, it will become clear that this matrix carries information about the asymptotic covariance structure of our MLE estimate. 
+
+
+\item Recall in normal linear model (LM), we have 
+\[
+\hat{\boldsymbol \beta} \sim N({\boldsymbol \beta}, 
+\sigma^2({Z}^T{Z} )^{-1} ).
+\]
+
+\item $D_i = \frac{\partial \mu_i}{\partial \eta_i} = 1$ implies $W = \sigma^{-2} I_n$;  the scaled \emph{Gram} matrix 
+\[
+\frac{1}{\sigma^2}{ Z}^T{ Z}
+\]
+ is in fact the Fisher information for LM. 
+
+
+\item So  the \emph{inverse} of the Fisher info tells us how well our MLE $\hat{\boldsymbol \beta}$ estimates the true ${\boldsymbol \beta}$ \end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S2.2.1 MLE (Observed Fisher information)}
+\begin{itemize}
+\item A sample-based version of the Fisher info matrix is the {\bf observed information matrix}, defined as
+%\item
+%The \textbf{observed information} matrix with respect to $\mbox{\boldmath $\beta$}$ is
+ {\footnotesize
+\begin{eqnarray*}
+& \!\!\! F_{\mbox{obs}}(\mbox{\boldmath $\beta$})& \\
+& \!\!\!:= \!\!\!& -\frac{\partial^2\ell(\mbox{\boldmath $\beta$})}{
+\partial \mbox{\boldmath $\beta$}\partial \mbox{\boldmath $\beta$}^T}=
+-\frac{\partial \textbf{s}(\mbox{\boldmath $\beta$})}{\partial \mbox{\boldmath $\beta$}^T} \\
+& \!\!\!\underset{\text{(product rule)}}{ =} \!\!\!& -\sum_{i=1}^n \textbf{z}_i \frac{\partial \{D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(
+\mbox{\boldmath $\beta$})\} }{\partial \mbox{\boldmath $\beta$}^T}[y_i-\mu_i(\mbox{\boldmath $\beta$})]
++\sum_{i=1}^n \textbf{z}_i D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \cdot
+\underbrace{\frac{\partial\mu_i}{\partial \eta_i}}_{= D_i}\cdot \frac{\partial\eta_i}{\partial \mbox{\boldmath $\beta$}^T} \\
+& \!\!\!= \!\!\!& -\sum_{i=1}^n \textbf{z}_i \frac{\partial}{\partial \mbox{\boldmath $\beta$}^T}
+\{D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$})\}\cdot
+\underbrace{[y_i-\mu_i(\mbox{\boldmath $\beta$})] }_{\text{only random part}}+\sum_{i=1}^n \textbf{z}_i D_i^2(\mbox{\boldmath $\beta$})
+\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \cdot \textbf{z}_i^T
+\end{eqnarray*}}
+\item $E[y_i-\mu_i(\mbox{\boldmath $\beta$})] = 0$ implies:
+\[E\left[F_{\mbox{obs}}(\mbox{\boldmath $\beta$})\right]=\sum_{i=1}^n \textbf{z}_i 
+D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \textbf{z}_i^T
+=F(\mbox{\boldmath $\beta$})=\mbox{cov}\left(\textbf{s}(\mbox{\boldmath $\beta$})\right), \]
+i.e.  The expectation of the obs. Fisher info. equals the Fisher info.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.2.1 MLE (Natural link)}
+\begin{wideitemize}
+\item
+\underline{When natural link is used},  $\theta_i = \eta_i$ and $h(\cdot) = b'(\cdot)$.
+
+\item $\Rightarrow D_i (\boldbeta) = \frac{\partial h(\eta_i)}{\partial \eta_i}  = b''(\theta_i) = v_i (\mu_i)$.
+
+\item Then,  $\textbf{s}(\mbox{\boldmath $\beta$})$ and $F(\mbox{\boldmath $\beta$})$ further
+simplify to
+\begin{eqnarray*}
+\textbf{s}(\mbox{\boldmath $\beta$})&= & \frac{1}{\phi}\sum_{i=1}^n \omega_i\textbf{z}_i
+[y_i-\mu_i(\mbox{\boldmath $\beta$})]=\frac{1}{\phi}Z^T\Omega \left[\textbf{y}-\mbox{\boldmath $\mu$}
+(\mbox{\boldmath $\beta$})\right] \\
+F(\mbox{\boldmath $\beta$}) &= & \frac{1}{\phi}\sum_{i=1}^n \omega_iv(\mu_i(\mbox{\boldmath $\beta$}))
+\textbf{z}_i\textbf{z}_i^T=\frac{1}{\phi}Z^T\Omega V(\mbox{\boldmath $\beta$})Z
+\end{eqnarray*}
+where 
+\begin{equation*}
+\Omega \equiv \text{diag}\{\omega_1,\cdots,\omega_n\}  \text{ and }
+V({\boldbeta})
+=\text{diag}\{v(\mu_1),\cdots, v(\mu_n)\}.
+\end{equation*}
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{\S2.2.1 MLE (Natural link)}
+
+\begin{itemize}
+\item By differentiating the score function one more time wrt to ${\boldsymbol \beta}$ and take a -ve sign, we 
+get
+\begin{align*}
+- \frac{\partial }{ \partial {\boldsymbol \beta}} {\bf s}({\boldsymbol \beta}) &=  \frac{1}{\phi} \sum_{i=1}^n \omega_i {\bf z}_i \frac{\partial \mu_i}{\partial {\boldsymbol \beta}^T} \\
+&=  \frac{1}{\phi} \sum_{i=1}^n \omega_i {\bf z}_i  \underbrace{\frac{\partial \mu_i}{\partial \eta_i}}_{v(\mu_i)}  \underbrace{ \frac{\partial \eta_i}{\partial {\boldsymbol \beta}^T} }_{{\bf z}_i^T }  = \frac{1}{\phi} \sum_{i=1}^n \omega_i  v(\mu_i) {\bf z}_i   {\bf z}_i^T.
+\end{align*}
+So we
+have the exact equality
+\[
+F({\boldsymbol \beta}) = F_{obs}({\boldsymbol \beta}),
+\]
+not just $E[F_{obs}] = F({\boldsymbol \beta})$. 
+
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{\S2.2.1 MLE (Fisher scoring)}
+\begin{itemize}
+\item
+MLE $\hat{\mbox{\boldmath $\beta$}}$ is the one maximizing $\ell(\mbox{\boldmath $\beta$})$
+
+\item Often obtained by solving the \textbf{estimating equation} $\textbf{s}(\mbox{\boldmath $\beta$})=0$, using the iterative \textbf{Fisher scoring method}: {\scriptsize
+\begin{eqnarray*}
+\hat{\mbox{\boldmath $\beta$}}^{(k+1)}&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+
+F^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \textbf{s}(\hat{\mbox{\boldmath $\beta$}}^{(k)}) \\
+&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+ 
+\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+ Z^TD(\hat{\mbox{\boldmath $\beta$}}^{(k)})\Sigma^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right] \\
+&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+ 
+\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+ Z^TD^2(\hat{\mbox{\boldmath $\beta$}}^{(k)})\Sigma^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)}) 
+\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right] \\
+&\!\!\!\!\!\!=\!\!\!\!\!\! & \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}\left\{
+Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z \hat{\mbox{\boldmath $\beta$}}^{(k)}
++Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)}) D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]\!\right\} \\
+&\!\!\!\!\!\!=\!\!\!\!\!\!& \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}\left\{
+Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\left[Z \hat{\mbox{\boldmath $\beta$}}^{(k)}
++ D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]\right]\right\} \\
+&\!\!\!\!\!\!\stackrel{denoted}{=}\!\!\!\!\!\! & \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}
+\end{eqnarray*}}
+where $\tilde{\textbf{y}}^{(k)}=(\tilde{y}_1^{(k)},\cdots, \tilde{y}_n^{(k)})^T
+=Z \hat{\mbox{\boldmath $\beta$}}^{(k)}+ D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]$
+is the \textbf{working observation vector} at iteration $k$, $k=0,1,2,\cdots$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.2.1 MLE (Fisher scoring)}
+
+\begin{wideitemize}
+\item If  we use $F_{obs} (\cdot)$ instead of $F (\cdot)$, we get the standard Newton-Raphson procedure; the two procedures coincide if the natural link  is used.
+
+\item For non-canonical links, $F(\boldbeta)$ is generally easier to evaluate than $F_{obs} (\boldbeta)$ (the latter involves taking second derivatives) and  positive definite enough over a large region in the parameter space (easy to invert numerically).
+\end{wideitemize}
+
+
+\end{frame}
+\begin{frame}{\S2.2.1 MLE (Fisher scoring) }
+\begin{enumerate}
+\item
+Start with an initial estimate $\hat{\mbox{\boldmath $\beta$}}^{(0)}$, often chosen as the unweighted
+least squares (LS) estimate from $(g(y_i),\textbf{z}_i)$, $i=1,\cdots,n$, where $g(\cdot)$ is the link (modified if $g(y_i)$ is undefined, such as when $y_i = 0$ in Poisson regression, where the natural link is $\log(\cdot)$).
+
+\ \
+\item
+For $k=0,1,2,\cdots$ compute 
+$$\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}$$
+until $\frac{\|\hat{\boldsymbol \beta}^{(k+1 )} - \hat{\boldsymbol \beta}^{(k)}\|}{\|\hat{\boldsymbol \beta}^{(k)}\|} \leq \epsilon $ for some prechosen small $\epsilon > 0$ (``convergence").
+
+\ \
+
+\item Also called a  \textbf{iteratively reweighted least squares (IRLS)} method. 
+\end{enumerate}
+
+\end{frame}
+
+
+\begin{frame}{\S2.2.1 MLE (Fisher scoring) }
+
+\begin{itemize}
+
+\item 
+Each component of the working observation vector is a linearization of $g(y_i)$ at $\boldbeta = \hat{\boldbeta}^{(k)}$:
+
+\begin{align*}
+g(y_i) &\approx g(\mu) +g'(\mu) (y_i - \mu) \\
+&= {\bf z}_i^T{\boldsymbol \beta} +  \left( \underbrace{\frac{\partial h}{ \partial \eta} ({\bf z}_i^T{\boldsymbol \beta} )}_{= D_i ({\boldsymbol \beta})}\right)^{-1}  (y_i - \mu_i ({\boldsymbol \beta}))
+\end{align*}
+(Generalized Linear Models, 2nd ed, McCullagh and Nelder, p.40)
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.2.1 MLE (Asymptotic properties)}
+Under  ``regularity" assumptions, we have these nice properties:
+\begin{wideitemize}
+\item
+\textit{\textcolor{red}{Asymptotic existence and uniqueness}}: With probability tending to $1$ as $n \rightarrow \infty$,  the MLE $\hat{\mbox{\boldmath $\beta$}}$ exists
+and is (locally) unique. 
+\item
+\textit{\textcolor{red}{Consistency}}. If $\mbox{\boldmath $\beta$}$ is the ``true'' value, then 
+$\hat{\mbox{\boldmath $\beta$}}\rightarrow \mbox{\boldmath $\beta$}$ in probability (\textit{weak consistency}),
+or $\hat{\mbox{\boldmath $\beta$}}\rightarrow \mbox{\boldmath $\beta$}$ with probability 1 (
+\textit{strong consistency}).
+
+\item
+\textit{\textcolor{red}{Asymptotic normality}}. $\hat{\mbox{\boldmath $\beta$}}\stackrel{a}{\sim} N
+\left(\mbox{\boldmath $\beta$}, F^{-1}(\boldbeta)\right)$, i.e. $\hat{\boldbeta}$ is approximately normal with mean $\boldbeta$ and  covariance matrix $F^{-1} (\boldbeta)$. Replacing $\boldbeta$ by $\hat{\boldbeta}$ gives an approximate covariance that can be used in practice, i.e. 
+\[
+\text{cov}(\hat{\boldbeta}) \stackrel{a}{=} F^{-1}(\hat{\boldbeta}).
+\]
+
+
+\end{wideitemize}
+
+\begin{enumerate}
+\item $\stackrel{a}{=}$  means ``approximately equal to" 
+\item $\stackrel{a}{\sim}$ means ``approximately distributed as"
+\end{enumerate}
+\end{frame}
+
+
+
+
+% new frame
+
+\begin{frame} {\S2.2.1  MLE (Asymptotic properties)}
+
+The following discussion comes from F \&T (p.46 and  appendix A.2), but cannot replace a rigorous course on asymptotic statistics \cite{ferguson1996}.
+
+\ \
+
+\begin{itemize}
+
+\item
+Note that both the score function and Fisher information matrix are sums of $n$ independent terms:
+\begin{align*}
+{\bf s}({\boldsymbol \beta}) &= {\bf s}_n ({\boldsymbol \beta}) = \sum_{i=1}^n {\bf z}_i^T D_i(\boldbeta) \sigma_i(\boldbeta)^{-2} (y_i - \mu_i) \\
+F({\boldsymbol \beta}) &= F_n({\boldsymbol \beta})  =  \sum_{i=1}^n {\bf z}_i w_i(\boldbeta){\bf z}_i^T \\
+\end{align*}
+\item Caveat: The summands are generally not identically distributed because ${\bf x}_i$ are different for different $i$.
+
+\end{itemize}
+
+\end{frame}
+
+% new frame
+\begin{frame} {\S2.2.1  Consistency}
+\begin{itemize}
+\item Since $E[y_i] = \mu_i(\boldbeta)$ for the ``true" $\boldbeta$, it follows that
+\[
+E[{\bf s}({\boldsymbol \beta})] = \sum_{i=1}^n {\bf z}_i^T D_i(\boldbeta) \sigma_i(\boldbeta)^{-2}  E[y_i - \mu_i] = 0
+\]
+
+
+\item By some law of large numbers, ${\bf s} (\boldbeta)/n =  {\bf s}_n (\boldbeta)/n \longrightarrow 0$ in probability, at the true $\boldbeta$. Since 
+\[
+{\bf s} (\hat{\boldbeta}) = 0
+\]
+ for the MLE $\hat{\boldbeta}$, it can be expected that 
+ \[
+ \hat{\boldbeta} \rightarrow \boldbeta \text{ in probability,}
+ \]
+   i.e.  we have the  consistency as claimed. 
+\end{itemize}
+\end{frame}
+
+\begin{frame} {\S2.2.1  Asymptotic normality}
+
+
+\begin{itemize}
+
+
+
+\item One ``standard" regularity assumption is that
+\[
+%\frac{F_n(\boldbeta)}{n} \text{ converges to a positive definite limit, i.e.  }
+ \frac{F(\boldbeta)}{n}  \longrightarrow F_{limit} \text{ for some limiting positive definite matrix } F_{limit}.
+\]
+
+\item Along with other weak conditions, the score function is asymptotically normal:
+\[
+n^{-1/2} {\bf s} (\boldbeta) \longrightarrow_d N(0, F_{limit}(\boldbeta))
+\]
+
+
+\item By Taylor expansion, we have 
+\begin{equation*}
+0 = {\bf s} (\hat{\boldbeta}) \approx  {\bf s}(\boldbeta) -  F_{obs} (\boldbeta)(\hat{\boldbeta} - \boldbeta) \approx   {\bf s}(\boldbeta) -  F (\boldbeta)(\hat{\boldbeta} - \boldbeta).
+\end{equation*}
+Therefore, one can expect
+\[
+\sqrt{n} (\hat{\boldbeta} - \boldbeta) \approx \sqrt{n} F^{-1}(\boldbeta){\bf s} (\boldbeta) \rightarrow_d N(0, F_{limit}^{-1} (\boldbeta)),
+\]
+and hence the approximate normality $\hat{\boldbeta} \stackrel{a}{\sim} N
+\left(\mbox{\boldmath $\beta$}, F^{-1}(\hat{\mbox{\boldmath $\beta$}})\right)$.
+\end{itemize}
+
+
+
+\end{frame}
+
+%new frame
+\begin{frame}{\S2.2.1 Asymptotic efficiency of MLE}
+
+\begin{itemize}
+\item In mathematical statistics, one fundamental result is the \textcolor{red}{Cramer-Rao lower bound}.
+
+\item It says that, under suitable regularity conditions, for any unbiased estimator  $\bolddelta (y_1, \dots, y_n; {\bf x}_1, \dots, {\bf x}_n)$ of $\boldbeta$, it must be the case that
+\[
+\text{cov}(\bolddelta) - F^{-1} (\boldbeta) \geq 0,
+\]
+i.e., $\text{cov}(\bolddelta) - F^{-1} (\boldbeta)$, as a matrix, is positive semi-definite.
+
+\item In particular, for any vector ${\bf c} \in \mathbb{R}^p$, it is true that
+\[
+\text{Var} ({\bf c}^T \bolddelta) = {\bf c}^T \text{cov}(\bolddelta)  {\bf c} \geq  {\bf c}^T  F^{-1} (\boldbeta){\bf c}.
+\]
+i.e. $F^{-1} (\boldbeta)$ is the ``lowest" variance an unbiased est'r of $\boldbeta$ can achieve. 
+\item That $\hat{\boldbeta} \stackrel{a}{\sim} N
+\left(\mbox{\boldmath $\beta$}, F^{-1}(\boldbeta)\right)$ means 
+\[
+\text{ the MLE is \emph{asymptotically unbiased and efficient}.}
+\]
+\end{itemize}
+
+
+
+
+
+\end{frame}
+
+
+\begin{frame} {\S2.2.1  Delta method}
+
+\begin{itemize}
+
+ 
+\item Let  $t: \mathbb{R}^p \rightarrow \bR$ be any smooth (possibly multivariate) function in  $\boldbeta$.
+
+\item The \emph{delta method} says, if 
+\[
+\sqrt{n}(\hat{\boldbeta} - \boldbeta) \longrightarrow_d  N(0, F_{limit}^{-1} (\boldbeta)),
+\]
+then 
+\[
+\sqrt{n}(t(\hat{\boldbeta}) - t(\boldbeta)) \longrightarrow_d  N( 0,   \nabla t(\boldbeta)^T F_{limit}^{-1} (\boldbeta)  \nabla t(\boldbeta)),
+\]
+where $\nabla t(\cdot)$ here denotes the gradient of $t(\cdot)$.
+
+\item In our context, it means 
+\[
+t(\hat{\boldbeta}) \sim_a N(t(\boldbeta) ,   \nabla t(\boldbeta)^T F^{-1}(\boldbeta) \nabla t(\boldbeta)).
+\]
+
+
+
+
+\item One can then construct confidence interval for $t(\boldbeta)$ based on the estimate $t(\hat{\boldbeta})$, using the estimated  variance $\nabla t(\hat{\boldbeta})^T F^{-1}(\hat{\boldbeta}) \nabla t(\hat{\boldbeta})$. 
+
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame} {\S2.2.1 For grouped data..}
+
+
+\begin{wideitemize}
+
+
+
+
+
+\item Another regularity assumption concerns grouped data: Assume a fixed number $g$  of groups and that for each $i \in \{1, \dots, g\}$, $\frac{n_i}{n} \rightarrow \lambda_i $, where $\lambda_i >0$. 
+
+\item However, this assumption is likely violated if there is a continuous covariate. 
+
+
+
+\end{wideitemize}
+
+
+
+\end{frame}
+
+
+
+\begin{frame} {\S2.2.1 Estimation of $\phi$}
+\begin{wideitemize}
+\item We also note that $\phi$ only appears as a factor in $W$, and falls out from the expression
+
+ \[\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}\]
+\item But we need $\phi$ for computing the Fisher info, to construct the approximate covariance of the MLE. 
+
+\item\[\hat{\phi}=\frac{1}{g-p}\sum_{i=1}^g\frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}\]
+is a consistent estimator of $\phi$, with $\hat{\mu}_i = h({\bf z}_i^T \hat{\boldbeta})$.
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame} {\S2.2.1 Estimation of $\phi$}
+\begin{itemize}
+
+
+\item A conventional  (no grouping) moment estimator for $\hat{\phi}$ is
+\[
+\frac{1}{n - p} \sum_{i = 1}^n (y_i - \hat{\mu}_i)^2 /v_i(\hat{\mu}_i)
+ \]
+(MuCullagh and Nelder 1989, p.328).  \end{itemize}
+\end{frame}
+
+\subsection{\S2.2.2 Linear hypothesis testing in GLM}
+
+\begin{frame}{\S2.2.2 Testing linear hypotheses}
+\begin{itemize}
+\item
+Most testing problems concerning $\mbox{\boldmath $\beta$}$ have the form of \textit{linear hypothesis}:
+$$H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$} \quad\mbox{vs.}\quad
+H_1: C\mbox{\boldmath $\beta$}\neq\mbox{\boldmath $\xi$}$$
+where $C$ is a known matrix of full row rank $s\leq p$, and $\mbox{\boldmath $\xi$}$ is a known vector.
+\item
+A special case is 
+$$H_0: \mbox{\boldmath $\beta$}_r=0 \quad\mbox{vs.}\quad
+H_1: \mbox{\boldmath $\beta$}_r\neq 0$$
+where $\mbox{\boldmath $\beta$}_r$ is a sub-vector of $\mbox{\boldmath $\beta$}$. This compares the full GLM  with its sub-model that assumes $\boldbeta_r = 0$.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (1)}
+\begin{wideitemize}
+\item
+Suppose we are to test the linear hypothesis:
+\[
+H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$}
+\;\mbox{vs }\; H_1: C\mbox{\boldmath $\beta$}\neq\mbox{\boldmath $\xi$}
+\]
+
+\item Let $\tilde{\boldbeta} \equiv \underset{\boldbeta: C \boldbeta = {\boldsymbol \xi}}{\text{argmax}} \hspace{1mm}\ell(\boldbeta)$ be the (restricted) MLE of
+$\boldbeta$  under $H_0$
+
+\item Let  $\hat{\boldbeta} \equiv \underset{\boldbeta}{\text{argmax}} \hspace{1mm} \ell(\boldbeta)$ be the (unrestricted) MLE of
+$\boldbeta$ 
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (2)}
+\begin{enumerate}
+\item
+\textbf{LR test statistic}:
+ \[\lambda=-2\left\{\ell(\tilde{\mbox{\boldmath $\beta$}}) -\ell(\hat{
+\mbox{\boldmath $\beta$}})\right\}.
+\]
+ 
+\ \
+ 
+%
+%$\lambda$ needs to be divided by $\hat{\phi}$ for over-dispersion models.
+\item
+\textbf{Wald test statistic}: \[W=\left(C\hat{\mbox{\boldmath $\beta$}}-\mbox{\boldmath $\xi$}\right)^T
+\left[CF^{-1}(\hat{\mbox{\boldmath $\beta$}})C^T \right]^{-1}
+\left(C\hat{\mbox{\boldmath $\beta$}}-\mbox{\boldmath $\xi$}\right)
+\] 
+
+\ \
+
+\item
+\textbf{Score test statistic}: $U=\textbf{s}^T(\tilde{\mbox{\boldmath $\beta$}})F^{-1}(\tilde{\mbox{\boldmath $\beta$}})
+\textbf{s}(\tilde{\mbox{\boldmath $\beta$}})$.
+\end{enumerate}
+
+\end{frame}
+
+
+
+
+\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (3)}
+\begin{wideitemize}
+%\item  The  exponential model is assumed for the LR test; not defined for over-dispersion model such as the quasi likelihood (to be covered). 
+%
+%\item 
+%Wald and Score test statistics are properly defined for over-dispersion models, since they are based on the score ${\bf s}$ (Again, more on this later)
+
+
+\item Wald and Score are computationally attractive; both eliminate the need to compute one of $\tilde{\boldsymbol \beta}$ or $\hat{\boldsymbol \beta}$ 
+
+\begin{wideitemize}
+
+\item
+ Wald is good when $H_1$ has been fitted.
+ 
+ \item Score is good when $H_0$ has been fitted. 
+ 
+ \end{wideitemize}
+\item When the null $H_0$ is true, under  suitable ``regularity conditions", 
+
+\[
+\lambda, W \text{ and }
+U \text{ all follow a } \chi^2(s) \text{ distribution asymptotically.}
+\]
+
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame} {Some theoretical backdrop for LR, Wald and score}
+\begin{wideitemize}
+\item LR, Wald and score are asymptotically equivalent, i.e. they are close to each other as $n \rightarrow \infty$. 
+
+\item Hence they  have the same limiting null distribution.
+
+\item For  a simple hypothesis $H_0: \boldbeta = \boldbeta_0$, upon Taylor expansion, we have
+\begin{align*}
+\lambda &= - 2(\ell(\boldbeta_0) - \ell(\hat{\boldbeta})) \\
+&=  \underbrace{(\hat{\boldbeta} - \boldbeta_0)^T F(\hat{\boldbeta})(\hat{\boldbeta} - \boldbeta_0)}_{W}+ O_p(n^{-1/2}) \\
+& =  \underbrace{{\bf s}^T(\boldbeta) F^{-1}(\boldbeta) {\bf s}(\boldbeta) }_{U} + O_p(n^{-1/2})
+\end{align*}
+ (F\&T, p.440).
+
+\end{wideitemize}
+
+
+
+\end{frame}
+
+\begin{frame}{Some theoretical backdrop for LR, Wald and score}
+\begin{wideitemize}
+
+\item Discrepancies between the three statistics in finite sample $n$:
+\begin{figure}
+ \centering
+\includegraphics[width=0.5\textwidth]{quadratic}
+% \label{figure:example}
+\end{figure}
+
+\item For composite null hypothesis, $\lambda = -2\left\{\ell(\tilde{\mbox{\boldmath $\beta$}}) -\ell(\hat{
+\mbox{\boldmath $\beta$}})\right\}$ can be expressed as the difference of two quadratic forms, which is asymptotically $\chi^2$ with the correct degree of freedom \cite{CH1974}. 
+
+\end{wideitemize}
+\end{frame}
+
+%
+%\begin{frame}{Some theoretical backdrop for LR, Wald and score}
+%\begin{wideitemize}
+%
+%\item Discrepancies between the three statistics in finite sample $n$:
+%\begin{figure}
+% \centering
+%\includegraphics[width=0.5\textwidth]{quadratic}
+%% \label{figure:example}
+%\end{figure}
+%
+%\item For composite null hypothesis, $\lambda = $
+%
+%\end{wideitemize}
+%\end{frame}
+
+\subsection{\S2.2.3 Deviance, residuals and goodness-of-fit measure in GLM} \label{sec:2.2.3}
+
+\begin{frame} {\S2.2.3 Model adequacy measure in GLM}
+\begin{wideitemize}
+\item One can assess the model adequacy, or \emph{goodness-of-fit},  of a GLM. 
+
+\item
+In the normal linear model (LM), goodness-of-fit  is measured by the sum of squared residuals 
+$\mbox{SSE}\!=\!\sum_{i=1}^n(y_i-\hat{\mu}_i)^2$. 
+
+\item SSE puts equal weights on the squared residuals $(y_i-\hat{\mu}_i)^2$
+
+\item $\Rightarrow$ not quite reasonable as a goodness-of-fit measure if $\mbox{var}(y)$ 
+varies with $\mu$, such as in GLM.
+
+\item Two goodness-of-fit measures for GLMs: {\bf deviance} and {\bf Pearson statistics}.
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{\S2.2.3 Deviance }
+\begin{itemize}
+
+\item
+The {\bf scaled deviance} $D^*$ is twice the difference between the maximum log-likelihoods achievable by the \underline{saturated model} and by
+the \underline{GLM}, i.e. for $\boldtheta = (\theta_1, \dots, \theta_g)$,
+\[
+D^*=2\left[\ell(\tilde{\boldtheta},\phi ; \bar{\bf y})
+-\ell(\mbox{\boldmath $\hat{\theta}$},\phi ; \bar{\bf y})\right],
+\]
+where
+\[
+\ell({\boldsymbol \theta}, \phi; \bar{\bf y}) = \sum_{i =1}^g \log f( \bar{y}_i |\theta_i, \phi, \omega_i)
+\]
+for the grouped data vector $\bar{\bf y} = (\bar{y}_1, \dots, \bar{y}_g)$ and the exponential density form $f( \cdot |\theta_i, \phi, \omega_i)$ of the GLM.
+
+
+
+%\item (Remark: we have grouped data in mind here)
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.2.3 Deviance }
+
+\begin{itemize}
+\item
+
+ $\mbox{\boldmath $\hat{\theta}$}$ is the MLE of
+$\mbox{\boldmath $\theta$}$ under the GLM, i.e., for  $\hat{\mu}_i = h({\bf z}_i^T \hat{\boldbeta})$,
+\[
+\hat{\boldtheta} = (b'^{-1} (\hat{\mu}_1), \dots, b'^{-1} (\hat{\mu}_g)),
+\]
+where $b'^{-1}(\cdot)$ means the inverse function of $b'(\cdot)$. In particular, we have the \emph{structural assumptions} $\mu_i = h({\bf z}_i^T \boldbeta)$ in mind when we refer to the ``GLM".
+
+
+\item $\tilde{\boldtheta}=(\tilde{\theta}_1,\cdots, \tilde{\theta}_g)$ is defined as
+\[
+(\tilde{\theta}_1,\cdots, \tilde{\theta}_g) \equiv 
+\left(b'^{-1}(\bar{y}_1),\cdots,b'^{-1}(\bar{y}_g) \right);
+\]
+it is the MLE in the {\bf saturated model}.
+
+\item The {\bf saturated model}: Defined by the exponential family density of the GLM, but \textcolor{red}{without} the structural assumptions. In particular, it is parametrized by $\boldtheta$ directly, not by $\boldbeta$.
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{\S2.2.3 Deviance  }
+\begin{itemize}
+
+\item
+By differentiating $\ell$ with respect to $\boldtheta = (\theta_1, \dots, \theta_g)$ and equating  to zero, we get
+\[
+\frac{\partial \ell}{ \partial \theta_i} =  \frac{\bar{y}_i - b'(\theta_i)}{ \phi} \omega_i = 0 \quad \text{ for each } \quad i = 1, \dots, g;
+\]
+so the MLE $\tilde{\boldtheta}$ of the saturated model
+must satisfy $\bar{y}_i=b^\prime(\tilde{\theta}_i)$. 
+
+
+\item
+
+The maximum likelihood of the saturated model must be no less than that of the  GLM with structural assumptions, because the former maximizes the likelihood in the least restrictive way.
+Therefore, 
+
+\[
+D^*\geq 0.
+\] 
+\item
+
+By convention
+\[
+D:=\phi D^*
+\]
+is defined as  the \textbf{deviance}.
+
+
+
+\end{itemize}
+\end{frame}
+
+
+
+
+\begin{frame}{\S2.2.3 Deviances for several important distributions}
+\textbf{Deviances for several important distributions in GLM.}
+\begin{eqnarray*}
+\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & D=
+\sum_{i=1}^n (y_i-\hat{\mu}_i)^2 \text{ (coincides with SSE)}\\ 
+\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  D=2\sum_{i=1}^n
+\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\} \\
+\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & D=2\sum_{i=1}^n
+\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\} \\
+\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & D=2\sum_{i=1}^n
+\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}
+\end{eqnarray*}
+\end{frame}
+
+
+
+\begin{frame}{\S2.2.3 Pearson statistics }
+\begin{wideitemize}
+
+\item
+The \textbf{Pearson $\chi^2$ statistic} takes the form 
+\[
+\chi^2=\sum_{i=1}^g \frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}
+\]
+where  $n_i$ is the size of group $i$.
+
+\item An intuitive generalization of the SSE
+
+\item This can be derived as the {\bf score test} for comparing the GLM with the saturated model \cite{smyth2003pearson, Lovison2005}.
+
+\item  So the relationship between the Pearson and deviance  statistics is the relationship between the score test and likelihood ratio statistics. 
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame}{\S2.2.3  Asymptotics for deviance and Pearson statistics  }
+\begin{wideitemize}
+
+\item
+Asymptotically, 
+\[
+\phi^{-1}\chi^2, \phi^{-1}D\sim_a\chi^2(g-p),
+\] 
+
+where $p$ is the number of parameters in $\boldbeta$ 
+when
+\begin{itemize}
+\item  the GLM  is indeed true,
+\item the group sizes $n_i$ are all large enough, and 
+\item under other ``usual" regularity conditions.
+\end{itemize}
+
+
+\item In the canonical normal linear model 
+\[
+y_i  = {\bf z}_i^T \boldbeta + \epsilon_i
+\]
+for i.i.d. $\epsilon_1, \dots, \epsilon_n \sim N(0, \sigma^2)$,
+\[
+\phi^{-1}\chi^2= \phi^{-1}D = \frac{ \sum_{i=1}^n(y_i-{\bf z}_i^T \hat{\boldbeta})^2}{\sigma^2} \sim \chi^2 (n - p),
+\]
+where the last distributive law is exact  \cite[Sec 4]{SeberLee2003}.
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{Digression: Wilks' theorem (1) }
+\begin{wideitemize}
+
+\item
+The chi-square asymptotics above are based on what is known as {\bf Wilks' theorem}.
+
+
+\item In a general setup with log-likelihoods $\ell(\theta)$ indexed by a parameter $\theta$ in the space $\Theta$, suppose we test
+\[
+H_0: \theta \in \Theta_0 ,
+\]
+ where $\Theta_0$ is a lower dimensional subspace of the ambient space $\Theta$.
+
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Digression: Wilks' theorem (2) }
+\begin{wideitemize}
+
+\item Let 
+\[
+\lambda = \sup_{\theta \in \Theta} \sum_i \ell_i(\theta) -  \sup_{\theta \in \Theta_0} \sum_i \ell_i(\theta)
+\] be the log maximized likelihood ratio, where $\ell_i$ is the log-likelihood for an individual sample.
+
+\item Under suitable regularity conditions and when $H_0$ is true, Wilks' theorem says  
+\[
+2 \lambda \text{ converges in distribution to }\chi^2(d-d_0)
+\]
+ as samples grow, where $d = \dim (\Theta)$ and $d_0 = \dim (\Theta_0)$ are the respective dimensions of the two spaces.
+
+
+\item For the goodness-of-fit tests above, $d = g$ and $d_0 = p$.
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{\S2.2.3  Asymptotics for deviance and Pearson statistics  }
+\begin{wideitemize}
+
+
+
+\item
+If $n$ is large but $n_i$'s are small (in particular when $n_i=1$, as in ungrouped data), the chi-square asymptotics 
+\[
+\phi^{-1}\chi^2, \phi^{-1}D\sim_a\chi^2(g-p),
+\]
+ may not be valid. 
+
+\item In particular, large $D$ or $\chi^2$ may not necessarily invalidate the GLM.  
+
+
+\item If $n_i$ are too small, the dimension of the ambient parameter space (for the saturated model)  keeps growing. For the null model (the GLM), the parameter space $\Theta_0 = \Theta(\boldbeta)$ is a (one-to-one, at least locally) function of $\boldbeta$, so it must have dimension $p$.
+
+
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame}{\S2.2.3  Asymptotics for deviance and Pearson statistics  }
+\begin{wideitemize}
+
+
+
+\item $\Rightarrow$ $\phi^{-1}D$ (and asymp. equivalently, $\phi^{-1}\chi^2$) cannot possibly converge to a stable chi-square distribution even if the GLM is true!
+
+
+\item McCullagh and Nelder (p.118-119) also discussed how the asymptotic theory breaks down
+
+
+\item McCullagh and Nelder (p.34) also makes the general remark:
+ \ \
+
+``\emph{The deviance has a general advantage as a measure of discrepancy in that it is additive for nested sets of models if MLE's are used, where as $\chi^2$ in general is not. However, $\chi^2$ may sometimes be preferred because of its more direct interpretation.} "
+\end{wideitemize}
+\end{frame}
+
+
+
+
+
+\begin{frame}{\S2.2.3  Asymptotics for testing linear hypotheses under the GLM, revisited }
+
+\begin{wideitemize}
+\item Wilks' theorem can also be used to understand the  chi-square asymptotic for testing 
+\[
+H_0: C{\boldmath \boldbeta}={\boldmath \xi} 
+\] 
+where $C$ is a $s \times p$ matrix with full row rank $s$ (so $s \leq p$), against the full GLM model with no restriction on $\boldbeta$.
+
+\item Recall that 
+$\lambda, W$ and
+$U$  follow the $\chi^2(s)$ distribution asymptotically under the null. How do we get the degree $s$ in the limiting $\chi^2$?
+
+\item The unrestricted full GLM model has dimension $p$.
+\end{wideitemize}
+
+
+\end{frame}
+
+
+\begin{frame}{\S2.2.3  Asymptotics for testing linear hypotheses under the GLM, revisited }
+
+\begin{itemize}
+
+
+\item The restricted GLM under $H_0$ has the same dimension as the space of all $\boldbeta$ satisfying $C{\boldmath \boldbeta}={\boldmath \xi}$.
+
+\item Since $C$ is a $s \times p$ matrix with full row rank, by elementary linear algebra,  the $s \times s$ matrix $C C^T$ is invertible. Hence, $H_0$ is  equivalent to
+\[
+C{\boldmath \boldbeta} -  C C^T (C C^T)^{-1} \xi = C (\boldbeta - \xi') = 0,
+\]
+where $\xi' := C^T (C C^T)^{-1} \xi$.
+
+\item Hence, under $H_0$, $\boldbeta - \xi'$ lies in the linear null space of $C$,which has dimension $p-s$.
+
+\item So $\boldbeta$ lies in this $p-s$ dimensional space shifted by $\xi'$, which has the same dimension.
+
+
+\item The chi-square df is hence $p - (p -s) = s$, by Wilk's theorem.
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]
+  \frametitle{References}    
+  \begin{thebibliography}{10}    
+
+%   \beamertemplatearticlebibitems
+%  \bibitem[Lang, 1990]{Lang2014}
+%    Lang, Joseph B
+%    \newblock The Pearson Score Statistic for Multinomial- Poisson Models
+%    \newblock \emph{Communications in Statistics-Theory and Methods 43.21 (2014): 4471-4491}
+  \beamertemplatearticlebibitems
+  \bibitem[Smyth, 2003]{smyth2003pearson}
+    Smyth, Gordon K
+    \newblock Pearson's goodness of fit statistic as a score test statistic
+    \newblock {\em Lecture notes-monograph series (2003): 115-126.}
+    
+      \beamertemplatearticlebibitems
+  \bibitem[Lovison, 2005]{Lovison2005}
+   Lovison, Gianfranco. 
+    \newblock On Rao score and Pearson X 2 statistics in generalized linear models.
+    \newblock {\em Statistical Papers 46 (2005): 555-574.}
+    
+      \beamertemplatearticlebibitems
+  \bibitem[Cox and Hinkley 1974]{CH1974}
+    David R. Cox, David V. Hinkley
+    \newblock Theoretical Statistics
+    \newblock {\em Chapman \& Hall (1974).}
+    
+       \beamertemplatearticlebibitems
+  \bibitem[Ferguson 1996]{ferguson1996}
+    Thomas S. Ferguson
+    \newblock A Course in Large Sample Theory
+    \newblock {\em Chapman \& Hall (1996).}
+    
+         \beamertemplatearticlebibitems
+  \bibitem[Seber and Lee 2003]{SeberLee2003}
+    George A. F. Seber \& Alan J. Lee
+    \newblock Linear Regression Analysis, Second Edition
+    \newblock {\em Wiley (2003).}
+
+%    
+%      \beamertemplatearticlebibitems
+%  \bibitem[Moore, 1977]{moore}
+%    Moore David S
+%    \newblock Generalized inverses, Wald's method, and the construction of chi-squared tests of fit
+%    \newblock {\emph Journal of the American Statistical Association 72.357 (1977): 131-137}
+%    
+    
+%            \beamertemplatearticlebibitems
+%  \bibitem[Seber and Lee, 2003]{seberleelinear}
+%   Seber, G. A., \& Lee, A. J.
+%    \newblock Linear regression analysis, Second edition.
+%    \newblock {\emph John Wiley \& Sons. 2003. }
+%    
+%    
+%            \beamertemplatearticlebibitems
+%  \bibitem[Rao and Mitra, 1972]{radhakrishna1972generalized}
+% Radhakrishna Rao, C., and Sujit Kumar Mitra
+%    \newblock Generalized inverse of a matrix and its applications
+%    \newblock {In Proceedings of the Berkeley Symposium on Mathematical Statistics and Probability, vol. 1, pp. 601-620. University of California Press, Berkeley, 1972. }
+    
+    
+  \end{thebibliography}
+\end{frame}
+\end{document}
+

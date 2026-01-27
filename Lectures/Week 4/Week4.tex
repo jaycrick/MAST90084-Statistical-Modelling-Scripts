@@ -1,0 +1,3668 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{2.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\boldmu}{{\boldsymbol \mu}}
+
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 2.Univariate Generalised Linear Models (GLM)}
+\author[univariate GLM]{MAST90084 Statistical Modelling}
+\vskip 1cm
+\institute[Ch2]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+%
+%\begin{frame}
+%
+%\begin{itemize}
+%\item Last time I did make a mistake when I explained (in handwriting) that in ANOVA with orthogonal design matrix, the $\Delta SS$ associated with  a particular covariate is invariant to the order in which the covariates show up in the ANOVA table. Apologize for the confusion. 
+%
+%\item A student was right about the orthogonal vectors in question need to be normalized before my argument can carry through....
+%
+%\item Let me fix this today. 
+%\end{itemize}
+%\end{frame}
+%
+%
+%\begin{frame} {Regression in a LM with orthogonal design}
+%\begin{itemize}
+%
+%\item Setup: We have  a response vector ${y}$ ($n \times 1$), and  $p$ covariate vectors $z_1, \dots z_p$ (each $n \times 1$).
+%
+%\item Also defined $u_i = z_i /\|z_i\|$ for $i =1, \dots, p$, the normalized versions. 
+%
+%\item Suppose we only pick a subset  $\{\tilde{z}_1, \dots, \tilde{z}_q\} \subset \{z_1, \dots z_p\}$, and let $\tilde{u}_1, \dots, \tilde{u}_q$ be the corresponding normalized version among the $u_i$'s. 
+%
+%
+%\item Let $\tilde{Z} = [\tilde{z}_1 | ....|\tilde{z}_q ]$ be the design matrix that aligns these $\tilde{z}_i$'s together. 
+%
+%\item We know that the fitted vector $\tilde{y} =\tilde{Z} (\tilde{Z}' \tilde{Z})^{-1}\tilde{Z}' y = \sum_{i = 1}^q  \langle y , \tilde{u}_i \rangle\tilde{u}_i$. The last equality comes from the orthogonality of the $z_i$'s. 
+%\end{itemize}
+%
+%
+%\end{frame}
+%
+%
+%\begin{frame}
+%\begin{wideitemize}
+%\item So now suppose we also regress $y$ on $\tilde{z}_1, \dots, \tilde{z}_q, z_a$, where $z_a$ is an additional element from the original set $z_1, \dots, z_p$. Also use $u_a$ to denote the normalized version for this $z_a$
+%
+%\item Analogously we will have fitted value vector $y_a = \sum_{i= 1}^q \langle y , \tilde{u}_i\rangle\tilde{u}_i + \langle y , {u}_a\rangle{u}_a$
+%
+%\item Now the sum of squared residuals from the first regression is \[\| y- \tilde{y}\|^2 = \langle  y - \tilde{y} , y- \tilde{y}\rangle = \langle y, y\rangle - \sum_{i = 1}^q \langle y , \tilde{u}_i  \rangle^2 \]
+%
+%\item Analogous, sum of squared residuals from the second regression is
+%\[
+%\| y- y_a\|^2  =  \langle y, y\rangle - \sum_{i = 1}^q \langle y , \tilde{u}_i  \rangle^2 - \langle y, {u}_a\rangle^2
+%\]
+%
+%\end{wideitemize}
+%
+%\end{frame}
+%
+%\begin{frame}
+%\begin{wideitemize}
+%\item Now it is clear that the additional reduction in $SSE$ brought by $z_a$ is precisely $ \langle y, {u}_a\rangle^2
+%$
+%
+%\item This is independent of what we have picked in our set $\tilde{z}_1, \dots \tilde{z}_q$ in the first place. 
+%
+%\item The upshot: the reduction in $SSE$ brought by each covariate is independent of the order the covariates are augmented to the rows of the ANOVA table, when we start with an orthogonal design. 
+%
+%\item But this is NOT true for ANODEV. 
+%\end{wideitemize}
+
+
+%\end{frame}
+
+
+
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+\tableofcontents
+\end{frame}
+%
+%\begin{frame}
+%We will continue our discourse on  GLMs
+%
+%\begin{figure}
+% \centering
+%\includegraphics[width=0.5\textwidth]{NandW}
+%% \label{figure:example}
+%\end{figure}
+%
+%
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{Outline}
+%\tableofcontents
+%\end{frame}
+%%
+%%\section{\S2.1 Univariate GLM}\label{sec:2.1}
+%%%\subsection{\S2.1.1 Data}
+%%%
+%%%\begin{frame}{\S2.1.1 Data (ungrouped)}
+%%%\begin{itemize}
+%%%\item
+%%%$y$, univariate response
+%%%
+%%%\item  $\textbf{x}=(x_1,\cdots,x_m)^T$, $m$ covariate variables
+%%%
+%%%\item
+%%%A sample of $n$ individuals: 
+%%%$$(y_i, \textbf{x}_i^T)=(y_i, x_{i1},\cdots, x_{im}), \quad i=1,2,\cdots,n$$
+%%% in matrix form
+%%%\begin{equation*}
+%%%\textbf{y}=\left[\begin{array}{c} y_1 \\ \vdots \\ y_i \\ \vdots \\ y_n\end{array}\right], \quad
+%%%X=\left[\begin{array}{ccc} x_{11} & \cdots & x_{1m} \\ \vdots & \cdots & \vdots \\
+%%%x_{i1} & \cdots & x_{im} \\ \vdots & \cdots & \vdots \\ x_{n1} & \cdots & x_{nm} \end{array}
+%%%\right]_{n\times m}
+%%%\end{equation*}
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.1 Data (grouped)}
+%%%\begin{itemize}
+%%%\item 
+%%%Sometimes two or more individuals have covariate values, i.e. some rows of $X$ are identical
+%%%
+%%%\item Individuals with  same $\bf x$ (say $n_i$ of them)  can be grouped. The group mean $\bar{y}$ responses is taken to be the group response. 
+%%%
+%%%
+%%%\item $g = $ number of different ${\bf x}_i$
+%%%\ \
+%%%
+%%%
+%%%
+%%%\begin{center}
+%%%\begin{tabular}{cccc}
+%%%& sizes & group means &  \\ \\
+%%%Group 1 &  \multirow{5}{*}{$\left[\begin{array}{c} n_1 \\ \vdots \\ n_i \\ \vdots \\ n_g\end{array}\right]$,} 
+%%%& \multirow{5}{*}{$\bar{\textbf{y}}=\left[\begin{array}{c} \bar{y}_1 \\ \vdots \\ \bar{y}_i \\ \vdots 
+%%%\\ \bar{y}_g\end{array}\right]$,} & \multirow{5}{*}{$X=\left[\begin{array}{ccc} x_{11} & \cdots & x_{1m} \\ 
+%%%\vdots & \cdots & \vdots \\ x_{i1} & \cdots & x_{im} \\ \vdots & \cdots & \vdots \\ x_{g1} & \cdots & x_{gm}
+%%%\end{array}\right]_{g\times m}$} \\ $\vdots$ & & & \\ Group $i$ & & & \\ $\vdots$ & & & \\ Group $g$ & & &
+%%%\end{tabular}
+%%%\end{center}
+%%%
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\subsection{\S2.1.2 GLM}
+%%%\begin{frame}{\S2.1.2 GLM (Its form)}
+%%%\noindent
+%%%\textbf{1. Distributional assumption}
+%%%\begin{itemize}
+%%%\item
+%%%Given $\textbf{x}_i$'s, the $y_i$'s are (conditionally) independent.
+%%%
+%%%\item
+%%%The (conditional) pdf of $y_i$ is
+%%%$$f(y_i|\theta_i, \phi, \omega_i)=\exp\left\{\frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot \omega_i +
+%%%c(y_i,\phi, \omega_i)\right\}, \quad \mbox{where}$$
+%%%\begin{itemize}
+%%%\item
+%%%$\theta_i$ -- \textit{natural} (or \textit{canonical}) parameter;
+%%%\item
+%%%$\phi$ --  \textit{scale} (or \textit{dispersion}) parameter;
+%%%\item
+%%%$b(\cdot)$ and $c(\cdot)$ --  specific functions determined by the actual distribution of $y_i$;
+%%%\item
+%%%$\omega_i$ is the \textit{weight}. 
+%%%\begin{itemize}
+%%%\item for ungrouped data, $\omega_i=1$ ; 
+%%%\item for grouped data, $\omega_i$ equals $n_i$ when the group mean is the response, and equals $1/n_i$
+%%%when group total is the response; 
+%%%\end{itemize}
+%%%\end{itemize}
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}
+%%%
+%%%\begin{itemize}
+%%%\item Jorgensen (1992) also calls this an exponential dispersion model
+%%%\item $\mu_i = E(y_i|\textbf{x}_i)$ still denotes the mean
+%%%\item We will model the dependence of $\mu_i $ on covariates via a link/response function
+%%%%The (conditional) distribution of $y_i$ belongs to a \textit{simple exponential family} with  
+%%%%$E(y_i|\textbf{x}_i)=\mu_i$, and possibly a common \textit{scale} (or \textit{dispersion}) parameter $\phi$.
+%%%\end{itemize}
+%%%
+%%%\end{frame}
+%%%
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Mean structure via link)}
+%%%\noindent
+%%%\textbf{2. Structural assumption}
+%%%
+%%%Mean $\mu_i$ is related to the \textit{linear predictor} $\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$}$ by
+%%%$$\mu_i=h(\eta_i)=h(\textbf{z}_i^T\mbox{\boldmath $\beta$}), \quad\mbox{respectively},\quad
+%%%\eta_i=g(\mu_i)$$
+%%%where
+%%%\begin{itemize}
+%%%\item
+%%%$h(\cdot)$ is the \textit{response function};
+%%%\item
+%%%$g(\cdot)$ is the \textit{link function}, $g=h^{-1}$;
+%%%\item
+%%%$\mbox{\boldmath $\beta$}$ is a $p\times 1$ unknown \textit{parameter} vector;
+%%%\item
+%%%$\textbf{z}_i$ is a $p\times 1$ unknown \textit{design} vector, $\textbf{z}_i=\textbf{z}(\textbf{x}_i)$ (a transformation of $\textbf{x}_i$ ).
+%%%\end{itemize}
+%%%
+%%%
+%%%\end{frame}
+%%%
+%%%
+%%%\begin{frame}
+%%%\begin{itemize}
+%%%
+%%%\item
+%%%Thus a  GLM has  3 components
+%%%\begin{enumerate}
+%%%\item
+%%%type of the exponential family
+%%%\item
+%%%the response/link function
+%%%\item
+%%%the design vector 
+%%%\end{enumerate}
+%%%\item 
+%%%Obviously, ${\bf z}(\textbf{x}_i)$ determines the mean $\mu_i$ via the link
+%%%
+%%%\item The exponential family construction must also have led to a relationship between $\mu_i$ and the exponential family parameters. What is this relationship?
+%%%\end{itemize}
+%%%
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Mean determines variance)}
+%%%\noindent
+%%%\textbf{Remark 1.}
+%%%\begin{itemize}
+%%%\item
+%%%One can derive that
+%%%$$\mu_i=b^\prime (\theta_i)=\frac{\partial b(\theta_i)}{\partial \theta_i} \quad
+%%%\mbox{and}\quad \mbox{var} (y_i|\textbf{x}_i)\stackrel{\mbox{\scriptsize denoted}}{=}\sigma^2(\mu_i)=\frac{\phi}{\omega_i} v(\mu_i)$$
+%%%with
+%%%$v(\mu)=b^{\prime\prime}(\theta)=\frac{\partial^2 b(\theta)}{\partial \theta^2}$ being called the 
+%%%\textit{variance function}.
+%%%
+%%%\item (see blackboard derivation)
+%%%
+%%%\item  $Note: $$b'$ is invertible mapping from $\theta$ to $\mu$, since $b''(\theta)$, being a variance, is $>0$.  (Hence the notation $v(\mu)$)
+%%%\item
+%%%$\Rightarrow$ Modeling the  mean  as $\mu=h(\textbf{z}^T\mbox{\boldmath $\beta$})$  also determines the variance structure
+%%%
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}
+%%%\begin{itemize}
+%%%\item
+%%%different from linear models (LM) where $E(y|\textbf{x})$ and 
+%%%$\mbox{var}(y|\textbf{x})$ are unrelated. 
+%%%\item \textbf{quasi-likelihood} approach (Ch2.3) allows us to model the mean and variance structure separately. 
+%%%%The relation between $\mu$ and $v(\mu)$ may also be specified through empirical evidence,
+%%%%resulting in the so-called \textbf{quasi-likelihood} approach.
+%%%\end{itemize}
+%%%
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Natural/canonical link)}
+%%%\noindent
+%%%\textbf{Remark 2.}
+%%%\begin{wideitemize}
+%%%\item
+%%%Choosing $h(\cdot)$ and $g(\cdot)$ should depend on the specific distribution of $y$.
+%%%\item
+%%%Note that assuming $\theta\equiv \theta(\mu)=\eta\equiv \textbf{z}^T\mbox{\boldmath $\beta$}$
+%%%makes estimating $\mbox{\boldmath $\beta$}$ much easier.
+%%%
+%%%%Since $\mu=b^\prime(\theta)$ implies $\theta=(b^\prime)^{-1}(\mu)$, it follows that
+%%%%$\eta=\theta(\mu)=(b^\prime)^{-1}(\mu)$ and $g(\mu)=(b^\prime)^{-1}(\mu)$ under this assumption.
+%%%\item
+%%%We call $\eta=(b^\prime)^{-1}(\mu)$ the \textit{natural} (or \textit{canonical}) link function,
+%%%and $\mu=b^{\prime}(\eta)$ the \textit{natural response function}.
+%%%%\item
+%%%%It can be shown that the natural link function is
+%%%%\begin{enumerate}
+%%%%\item
+%%%%$\eta=\mu$ if $y\sim \mbox{Normal}(\mu, \sigma^2)$; \textit{identity link};
+%%%%\item
+%%%%$\eta=\log\mu$ if $y\sim \mbox{Poisson}(\mu)$; \textit{log link};
+%%%%\item
+%%%%$\eta=\log\frac{p}{1-p}=\log\frac{\mu}{n_g-\mu}$ if $y\sim\mbox{Binomial}(n_g, p)$; \textit{logit (or logistic) link}.
+%%%%\end{enumerate}
+%%%\end{wideitemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (design vector specifics)}
+%%%\noindent
+%%%\textbf{Remark 3.}
+%%%\begin{itemize}
+%%%\item
+%%%Concerning the design vector, an intercept term is often included
+%%%$$\textbf{z}=(1,\textbf{z}^{*T})^T$$
+%%%where $\textbf{z}^*=\textbf{z}^*(\textbf{x})$ is a function of $\textbf{x}$, including e.g. $\log(x_1)$,
+%%%$x_2^2$, $\sin (x_m)$ etc. as well as $\textbf{x}$ itself.
+%%%%\item
+%%%%A categorical covariate with $k$ levels has to be coded by a $(k-1)\times 1$ dummy vector, or an equivalent
+%%%%vector of size $q=k-1$ for it to be properly included in the design vector.
+%%%\item A categorical covariate with $k$ levels can  be coded by a dummy vector ${\bf x} = (x^{(1)}, \dots, x^{(k-1)})$ of length $k-1$, where
+%%%\[ x^{(j)} =
+%%%  \begin{cases}
+%%%    1      & \quad \text{if } j = 1, \dots, k-1\\
+%%%   0  & \quad \text{if } j = k
+%%%  \end{cases}
+%%%\]
+%%%(k-th category reserved as reference)
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Grouped and ungrouped)}
+%%%\noindent
+%%%\textbf{Remark 4.}
+%%%\begin{itemize}
+%%%
+%%%\item 
+%%%Suppose ungrouped data 
+%%%$(y_i, \textbf{x}_i^T)$, $i=1,\cdots, n$, are modelled by a GLM with
+%%%$$E(y_i|\textbf{x}_i)=\mu_i=h(\textbf{z}^T\mbox{\boldmath $\beta$}), \quad
+%%%\mbox{var}(y_i|\textbf{x}_i)=\phi v(\mu_i).$$
+%%%\item
+%%%If the data are grouped, so  $\bar{y}_i$ is  the response observation for group $i$ of
+%%%size $n_i$ with covariate vector $\textbf{x}_i$, then
+%%%% the distribution of $\bar{y}_i$ is within the exponential
+%%%%family again, and
+%%%$$E(\bar{y}_i|\textbf{x}_i)=\mu_i=h(\textbf{z}^T\mbox{\boldmath $\beta$}), \quad
+%%%\mbox{var}(\bar{y}_i|\textbf{x}_i)=n_i^{-1}\phi v(\mu_i).$$
+%%%So the same GLM applies to the grouped data as well if the variance function is properly adjusted 
+%%%by a factor of $n_i^{-1}$, i.e. defining the weight $\omega_i=n_i$.
+%%%\item By same token, if the group \emph{total} is used as response, one should define $\omega_i=1/n_i$.
+%%%\end{itemize}
+%%%\end{frame}
+%%
+%%%\begin{frame}{GLM  Common exponential families}
+%%%
+%%%Recall the table from last time
+%%%\begin{table} [!htbp]
+%%%\caption{Common exponential families} \label{tab2.1}
+%%%\begin{center}
+%%%{\tiny
+%%%\begin{tabular}{|c|c|c|c|c|c|c|}
+%%%\hline
+%%%Distribution & $\theta (\mu)$ & $b(\theta)$ & $\phi$ & $E(y)=b^\prime(\theta)$ & $v(\mu)=b^{\prime\prime}(\theta)$
+%%%& $\mbox{var}(y)=b^{\prime\prime}(\theta)\phi/\omega$ \\ \hline
+%%%$\begin{array}{c} \mbox{Normal} \\ N(\mu,\sigma^2)\end{array}$ & $\mu$ & $\theta^2/2$ & $\sigma^2$ 
+%%%& $\mu=\theta$ & 1 & $\sigma^2/\omega$ \\
+%%%\hline
+%%%$\begin{array}{c} \mbox{Bernoullil} \\ B(1,\pi)\end{array}$ & $\log\frac{\pi}{1\!-\!\pi}$ 
+%%%& $\log (1\!+\!e^\theta)$ & 1 & $\pi=\frac{e^\theta}{1+e^\theta}$ &
+%%%$\pi(1-\pi)$ & $\pi(1-\pi)/\omega$ \\ \hline
+%%%$\begin{array}{c} \mbox{Poisson} \\ P(\lambda)\end{array}$ & $\log\lambda$ & $e^\theta$ 
+%%%& 1 & $\lambda=e^\theta$ & $\lambda$ & $\lambda/\omega$ \\
+%%%\hline
+%%%$\begin{array}{c} \mbox{Gamma} \\ G(\mu,\nu)\end{array}$ & $-1/\mu$ & $-\log(-\theta)$ & $\nu^{-1}$ 
+%%%& $\mu=-1/\theta$ & $\mu^2$ & $\mu^2\nu^{-1}/\omega$ \\ \hline
+%%%$\begin{array}{c} \mbox{InverseGaussian} \\ IG(\mu,\sigma^2)\end{array}$ & $-1/2\mu^2$ & $-(-2\theta)^{1/2}$
+%%%& $\sigma^2$ &  $\mu=(-2\theta)^{-1/2}$ & $\mu^3$ & $\mu^3\sigma^2/\omega$ \\ \hline
+%%%\end{tabular}}
+%%%\end{center}
+%%%\end{table}
+%%%%Remember that if $\theta = \eta = \textbf{z}^T\mbox{\boldmath $\beta$}$
+%%%%\begin{itemize}
+%%%%\item 2nd column gives the canonical link function
+%%%%\item 3rd column gives the canonical response function
+%%%%\end{itemize}
+%%%\end{frame}
+%%
+%%
+%%%\subsection{\S2.1.3 GLM for continuous responses}\label{sec:2.1.3}
+%%%\begin{frame}{\large \S2.1.3 GLM for normal, Gamma \& inverse Gaussian responses }
+%%%
+%%%When $y\sim \mbox{Normal}(\mu,\sigma^2)$, $\mu=\eta=\textbf{z}^T\mbox{\boldmath $\beta$}$
+%%%if the natural link is used. Also $\theta=\mu$, $b(\theta)=\frac{1}{2}\theta^2$, $\phi=\sigma^2$ and
+%%%$v(\mu)=1$.
+%%%
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\large \S2.1.3 GLM for normal, Gamma \& inverse Gaussian responses}
+%%%When $y$ has a Gamma distribution (e.g. survival time, insurance claims, amount of rainfall, etc.), the pdf is
+%%%$$f(y|\mu,\nu)=\frac{1}{\Gamma(\nu)}\left(\frac{\nu}{\mu}\right)^\nu y^{\nu-1}\exp\left(-\frac{\nu}{\mu}y\right),
+%%%\quad y\geq 0,$$
+%%%where $\mu>0$ is the mean parameter, and $\nu>0$ the shape parameter.
+%%%\begin{itemize}
+%%%\item
+%%%The natural link is $\eta=-\theta=\mu^{-1}$. Linear predictor $\eta=\textbf{z}^T\mbox{\boldmath $\beta$}$.
+%%%Hence $\mu^{-1}=\textbf{z}^T\mbox{\boldmath $\beta$}$.
+%%%\item
+%%%Alternatively, identical link $\eta=\mu$ and log-link $\eta=\log \mu$ can be used to avoid the restriction. (These will give positive mean $\mu$ so they are allowed)
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\large \S2.1.3 GLM for normal, Gamma \& inverse Gaussian responses }
+%%%\begin{itemize}
+%%%\item
+%%%When $y$ has an inverse Gaussian distribution $\mbox{IG}(\mu,\sigma^2)$ (useful for modelling life time etc.), the pdf is
+%%%\begin{eqnarray*}
+%%%f(y|\mu,\sigma^2) &\!\!\!=\!\!\!&\left(\frac{1}{2\pi\sigma^2 y^3}\right)^{1/2}\exp\left(-\frac{(y-\mu)^2}{2\sigma^2\mu^2y}
+%%%\right), \quad\!\!\! y>0, \mu>0, \sigma^2>0 \\
+%%%&\!\!\!=\!\!\!& \left(\frac{1}{2\pi\sigma^2 y^3}\right)^{1/2}\exp\left\{\frac{-y\frac{1}{2\mu^2}+\frac{1}{\mu}}{\sigma^2}
+%%%-\frac{1}{2\sigma^2 y}\right\}
+%%%\end{eqnarray*}
+%%%\item
+%%%Hence natural parameter $\theta=-\frac{1}{2\mu^2}$;  dispersion parameter $\phi=\sigma^2$.
+%%%\begin{eqnarray*}
+%%%b(\theta)=-\frac{1}{\mu}=-(-2\theta)^{1/2} \quad \Rightarrow \quad b^\prime(\theta)=(-2\theta)^{-1/2}=\mu \\
+%%%\Rightarrow \; b^{\prime\prime}(\theta)\!=\!(-2\theta)^{-3/2}\!=\!\mu^3 \;\; \Rightarrow \;\;
+%%%v(\mu)\!=\!\mu^3 \;\; \Rightarrow \;\; \mbox{Var}(y)\!=\!\sigma^2\mu^3
+%%%\end{eqnarray*}
+%%%The natural link is obtained by setting $\eta=\theta, \quad\Rightarrow\quad \eta=-\frac{1}{2\mu^2}$, i.e.
+%%%$$\eta=\theta=(b^\prime)^{-1}(\mu)=-(2\mu^2)^{-1}.$$
+%%%In practice $\eta=\mu^{-2}$ is used as the natural link.
+%%%\end{itemize}
+%%%\end{frame}
+%%
+%%\subsection{\S2.1.4 GLM for binary and binomial responses}\label{sec:2.1.4}
+%%\begin{frame}{\S2.1.4 GLM for binary and binomial responses }
+%%\begin{wideitemize}
+%%\item
+%%Suppose $y_i|\textbf{x}_i \sim \mbox{Binomial}(m_i,\pi_i)$ and $\bar{y}_i=\frac{y_i}{m_i}$ (scaled binomial) are used as the
+%%response, $i=1,\cdots,n$. Then the pmf is {\footnotesize
+%%$$f(y_i|m_i, \pi_i,\textbf{x}_i)\!=\!{m_i\choose y_i}\pi_i^{y_i}(1-\pi_i)^{m_i\!-\!y_i}\!=\!{m_i\choose y_i}\exp\left\{
+%%m_i\bar{y}_i\log\frac{\pi_i}{1\!-\!\pi_i}+m_i\log (1\!-\!\pi_i)\right\}$$}
+%%\item
+%%Natural parameter $\theta_i=\log\frac{\pi_i}{1-\pi_i}$; dispersion $\phi=1$; weight $\omega_i=m_i$.
+%%\item The scaled binomial distribution may treated as the average from grouped binary observations. (group size $ = m_i$ )
+%%\end{wideitemize}
+%%\end{frame}
+%%
+%%
+%%
+%%\begin{frame}
+%%\begin{itemize}
+%%\item
+%%$\mu_i^*=E(y_i|\textbf{x}_i)=m_i\pi_i=m_i\frac{\exp(\theta_i)}{1+\exp(\theta_i)}$
+%%{\small $$\Rightarrow \quad \mu_i=E(\bar{y}_i|\textbf{x}_i)=\pi_i=\frac{\exp(\theta_i)}{1+\exp(\theta_i)}$$}
+%%\item
+%%Also $b(\theta_i)=-\log (1-\pi_i)=\log (1+e^{\theta_i}) \quad \Rightarrow \quad 
+%%b^\prime(\theta_i)=\frac{e^{\theta_i}}{1+e^{\theta_i}}=\pi_i$
+%%{\small $$\Rightarrow\quad b^{\prime\prime}(\theta_i)=\frac{e^{\theta_i}}{(1+e^{\theta_i})^2}=\pi_i(1-\pi_i)
+%%=v(\pi_i)$$}
+%%$\Rightarrow\quad \mbox{Var}(\bar{y}_i|\textbf{x}_i)=\sigma^2(\mu_i)=\phi v(\mu_i)/\omega_i
+%%=m_i^{-1}\pi_i(1-\pi_i)$.
+%%
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%
+%%\begin{frame}{\S2.1.4 GLM for binary and binomial responses }
+%%\begin{itemize}
+%%\item
+%%The natural link is the logit link
+%%\[\eta_i=\theta_i=\log\frac{\pi_i}{1-\pi_i}=(b^\prime)^{-1}(\pi_i),\]
+%%called the \textbf{logit} (or \textbf{logistic}) \textbf{link}, with the corresponding {\bf logistic} response function
+%%\[
+%%\pi_i = \frac{\exp(\eta_i)}{1 + \exp(\eta_i)}. 
+%%\]
+%%
+%%This gives the well-known \textit{logit regression model}:
+%%$\displaystyle \log\frac{\pi_i}{1-\pi_i}\!=\!\textbf{z}_i^T\!\mbox{\boldmath $\beta$}$
+%%
+%%
+%%
+%%
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%
+%%\begin{frame}
+%%
+%%Other models of the form 
+%%\[
+%%\pi = h(\eta)
+%%\]
+%%for  strictly monotonous distribution functions $h$  on the real line:
+%%\begin{enumerate} 
+%%\item
+%%\textbf{Probit Model}:  \[\pi_i = \Phi(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}), \] where $\Phi(\cdot)$ is the N(0,1) cdf. 
+%%% $\eta_i=\Phi^{-1}(\pi_i)$, where 
+%% 
+%%% This results in the
+%%%\textit{probit model} $$\Phi^{-1}(\pi_i)=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}.$$
+%%\item
+%%\textbf{Complementary log-log Model}:
+%%\[
+%%\pi_i = h(\eta_i)\!=\!1\!-\!\exp(\!-\!\exp(\!\eta_i\!)\!)
+%%\]
+%%with link function 
+%%$
+%% \textbf{z}_i^T\!\mbox{\boldmath $\beta$}= \log (-\log(1-\pi_i)).
+%%$
+%%%
+%%%
+%%% $\eta_i=g(\pi_i)=\log (-\log(1-\pi_i))$, resulting in the
+%%%\textit{complementary log-log model} 
+%%%$$\log (-\log(1-\pi_i))=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}.$$
+%%%Note the corresponding \textbf{response function} is $h(\eta_i)\!=\!1\!-\!\exp(\!-\!\exp(\!\eta_i\!)\!)$.
+%%\item
+%%\textbf{Complementary log Model} 
+%%\[
+%% \pi_i = h(\eta_i)  = 
+%%  \begin{cases} 
+%%   1 - \exp(- \eta_i) & \text{if } \eta_i \geq 0 \\
+%%   0       & \text{if } \eta_i < 0
+%%  \end{cases}
+%%\]
+%%
+%%%\[
+%%%\pi_i = h(\eta_i) = 
+%%%\eta_i=g(\pi_i)=-\log(1-\pi_i),
+%%%\] 
+%%%resulting in the
+%%%\textit{complementary log model}
+%%with link function $-\log(1-\pi_i)=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}.$
+%%%\item
+%%%Any inverse cdf can serve as a link function for GLM with binomial responses.
+%%\end{enumerate}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%
+%%
+%%
+%%\begin{figure}
+%% \centering
+%%\includegraphics[width=1\textwidth]{BinaryResponseFunctions.png}
+%% \label{figure:example}
+%%\end{figure}
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.1.4 Over-dispersion in binomial GLM}
+%%\begin{itemize}
+%%
+%%\item In applications it often happens that $\mbox{var}(\bar{y}_i|\textbf{x}_i) > m_i^{-1}\pi_i(1-\pi_i)$,  making the binomial modeling not accurate. 
+%%
+%%\item Two main reasons for this  \textbf{over-dispersion}:
+%%\begin{itemize}
+%%\item
+%%Unobserved heterogeneity, i.e. different Bernoulli trials in the data have different probabilities of ``success".
+%%\item
+%%Positive correlation between individual Bernoulli trials. (For example, different units in a group may be correlated, such as members in a household)
+%%\end{itemize}
+%%%
+%%%\item
+%%%Sometimes $\mbox{var}(\bar{y}_i|\textbf{x}_i) > m_i^{-1}\pi_i(1-\pi_i)$, so-called \textbf{over-dispersion},
+%%%where $\bar{y}_i=m_i^{-1}y_i$ and $y_i$ is the number of ``successes" in $m_i$ Bernoulli trials.
+%%%This implies the actual distribution of $y_i$ is not binomial. Two causes for this happening in practice.
+%%%\begin{enumerate}
+%%%\item
+%%%Unobserved heterogeneity, i.e. different Bernoulli trials in the data have different probabilities of ``success".
+%%%\item
+%%%Positive correlation between individual Bernoulli trials.
+%%%\end{enumerate}
+%%
+%%%\[\mbox{var}(\bar{y}_i|\textbf{x}_i) =\phi\cdot\frac{\pi_i(1-\pi_i)}{m_i},\quad
+%%%\mbox{with $\phi>0$ an over-dispersion parameter.}
+%%%\]
+%%
+%%%Since the actual distribution for $y_i$ is difficult to get in this situation, the simplest way to account
+%%%for this over-dispersion is assuming
+%%%$$\mbox{var}(\bar{y}_i|\textbf{x}_i) =\phi\cdot\frac{\pi_i(1-\pi_i)}{m_i},\quad
+%%%\mbox{with $\phi>0$ an over-dispersion parameter.}$$
+%%%\item
+%%%\textbf{Remark}. Assuming a \textbf{beta-binomial distribution} for $y_i$ can be used to account for the
+%%%over-dispersion.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}
+%%\begin{itemize}
+%%\item
+%%One can account for this by assuming 
+%%\[\mbox{var}(\bar{y}_i|\textbf{x}_i) =\phi\cdot\frac{\pi_i(1-\pi_i)}{m_i},\quad
+%%\mbox{with $\phi>0$ an over-dispersion parameter.}
+%%\]
+%%with the over-dispersion parameter $\phi>1$
+%%
+%%\item Remark: Not same as setting $\phi \not= 1$ in the exponential family form of the binomial distribution! You wouldn't get a proper density this way. However, a genuine likelihood is not actually needed for inference; more on this later when we cover \emph{quasi-likelihood}. 
+%%
+%%%
+%%%
+%%%\item However, 
+%%
+%%
+%%\item One  may assume  a \textbf{beta-binomial distribution}, which allow for variance of the form $\phi \frac{\pi_i(1-\pi_i)}{m_i}$
+%%\end{itemize}
+%%
+%%\end{frame}
+%%
+%%\subsection{\S2.1.5 GLM for count responses}\label{sec:2.1.5}
+%%\begin{frame}{\S2.1.5 GLM for count responses}
+%%\begin{itemize}
+%%\item
+%%If $y_i|\textbf{x}_i \sim \mbox{Poisson}(\lambda=\mu_i)$ with $E(y_i|\textbf{x}_i)=\mu_i$
+%%and $\mbox{var}(y_i|\textbf{x}_i)=\mu_i$.
+%%
+%%\item The natural/canonical parameter is
+%%$\theta_i=\log\mu_i$
+%%
+%%\item This leads to the natural link  \textbf{log-link} $\eta_i=\log\mu_i$, resulting in
+%%the \textbf{log linear model}:
+%%\[
+%%\log\mu_i=\eta_i=\textbf{z}_i^T\!\mbox{\boldmath $\beta$} \quad \iff \quad
+%%\mu_i=\exp(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})=\exp(\eta_i).
+%%\]
+%%
+%%
+%%\item Overdispersion can occur for similar reasons as for binomial data; can be accounted for
+%%by introducing an over-dispersion parameter $\phi$ such that $\mbox{var}(y_i|\textbf{x}_i)=\phi\mu_i$.
+%%
+%%\item (a topic of quasi-likelihood later)
+%%
+%%\item Again, some distributions for count data do exist in the exponential family that allow for over-dispersion, such as the negative binomial distribution. 
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\section{\S2.2 Likelihood Inference}\label{sec:2.2}
+%%\begin{frame}{\S2.2 Likelihood Inference}
+%%\begin{itemize}
+%%\item
+%%Regression analysis with GLMs is based on \textbf{likelihood maximization}. 
+%%\item
+%%It includes 
+%%\begin{itemize}
+%%\item parameter point estimation, 
+%%\item confidence intervals, 
+%%\item hypothesis testing,
+%%\item  goodness-of-fit tests and 
+%%\item  variable selection (or model selection).
+%%
+%%\end{itemize}
+%%\item
+%%For now we assume the model is completely and correctly specified, i.e., the GLM assumption is ``true".
+%%
+%%\item 
+%%This can  be relaxed when we cover quasi-likelihood. 
+%%\end{itemize}
+%%\end{frame}
+%\section{\S2.2 Likelihood Inference}\label{sec:2.2}
+%%\subsection{\S2.2.1 Maximum likelihood estimation}\label{sec:2.2.1}
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation}
+%%\begin{itemize}
+%%\item
+%%Data:  response $y_i$, covariates $\textbf{x}_i$ and design
+%%vector $\textbf{z}_i = {\bf z}_i(\textbf{x}_i)$, $i=1,2,\cdots, n$.
+%%\item
+%%Model:  GLM where $E(y_i|\textbf{x}_i)=\mu_i=h(\eta_i)=h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})$,
+%%with response function $h(\cdot)$ and unknown coefficient $p\times 1$ vector $\mbox{\boldmath $\beta$}$. 
+%%\item
+%%Assumption:  design matrix $Z = Z_{n\times p}=(\textbf{z}_1,\cdots,\textbf{z}_n)^T$ has (full) rank $p$
+%%and scale/dispersion parameter $\phi$ is
+%%assumed known or otherwise consistently estimated. 
+%%%\item
+%%%Now the log-likelihood function is {\footnotesize
+%%%\begin{eqnarray*}
+%%%\ell(\mbox{\boldmath $\beta$})&=&\sum_{i=1}^n\ell_i(\mbox{\boldmath $\beta$})
+%%%=\sum_{i=1}^n f(y_i|\theta_i,\phi,\omega_i) \\
+%%%&=&\sum_{i=1}^n \frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot\omega_i
+%%%+\mbox{terms not involving $\theta_i$'s} \\
+%%%&=& \sum_{i=1}^n \frac{y_i\theta (\mu_i)-b(\theta(\mu_i))}{\phi}\cdot\omega_i
+%%%=\sum_{i=1}^n \frac{y_i\theta (h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))-
+%%%b(\theta(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})))}{\phi}\cdot\omega_i
+%%%\end{eqnarray*}}
+%%\end{itemize}
+%%
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation}
+%%
+%%The focus is estimating $\mbox{\boldmath $\beta$}$. 
+%%Now the log-likelihood function is {\footnotesize
+%%\begin{eqnarray*}
+%%\ell(\mbox{\boldmath $\beta$})&=&\sum_{i=1}^n\ell_i(\mbox{\boldmath $\beta$})
+%%=\sum_{i=1}^n f(y_i|\theta_i,\phi,\omega_i) \\
+%%&=&\sum_{i=1}^n \frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot\omega_i
+%%+\mbox{terms not involving $\theta_i$'s} \\
+%%&=& \sum_{i=1}^n \frac{y_i\theta (\mu_i)-b(\theta(\mu_i))}{\phi}\cdot\omega_i
+%%=\sum_{i=1}^n \frac{y_i\theta (h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))-
+%%b(\theta(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})))}{\phi}\cdot\omega_i
+%%\end{eqnarray*}}
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (2)}
+%%\begin{itemize}
+%%\item
+%%The \textbf{score function} is the first derivative: {\footnotesize
+%%\begin{eqnarray*}
+%%\textbf{s}(\mbox{\boldmath $\beta$})&\!\!\!=\!\!\!& \frac{\partial \ell(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath 
+%%$\beta$}}=\sum_{i=1}^n\frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath $\beta$}}
+%%=\sum_{i=1}^n  \frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\theta_i}\cdot
+%%\frac{\partial \theta_i}{\partial\mu_i}\cdot \frac{\partial \mu_i}{\partial\eta_i} \cdot
+%%\frac{\partial \eta_i}{\partial\mbox{\boldmath $\beta$}}\\
+%%&\!\!\!=\!\!\!&\sum_{i=1}^n \left(\frac{y_i-b^\prime(\theta_i)}{\phi}\cdot\omega_i\right)\cdot
+%%\left[v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))\right]^{-1}\cdot
+%% \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot \textbf{z}_i \\
+%%&\!\!\!=\!\!\!& \sum_{i=1}^n \textbf{z}_i\cdot \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot
+%%\left[\frac{\phi v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))}{\omega_i}\right]^{-1}\cdot
+%%\left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] \\
+%%&\!\!\!\stackrel{denoted}{=} \!\!\!& \sum_{i=1}^n \textbf{z}_i D_i(\mbox{\boldmath $\beta$})
+%%\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] \\
+%%&\!\!\!=\!\!\!& \left[\textbf{z}_1, \cdots, \textbf{z}_n\right]  \left[\!\begin{array}{ccc}
+%%\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\!\right] 
+%%\left[\begin{array}{ccc}\!\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$}) \!\!\! & & \\
+%%&\!\!\!\!\ddots \!\!\!\!& \\ & & \!\!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]^{\!\!-1}
+%%\left[\begin{array}{c} \!\!\!y_1\!-\!\mu_1(\mbox{\boldmath $\beta$}) \!\!\!\! \\
+%%\!\!\!\vdots \!\!\!\! \\ \!\!\! y_n\!-\!\mu_n(\mbox{\boldmath $\beta$})\!\!\!\!\end{array}\!\right] \\
+%%&\!\!\!\stackrel{\mbox{matrix form}}{=} \!\!\!& Z^TD(\mbox{\boldmath $\beta$})\Sigma^{-1}(\mbox{\boldmath $\beta$})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})\right]
+%%\end{eqnarray*}}
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (3)}
+%%Supporting arguments for the derivation of $s(\mbox{\boldmath $\beta$})$
+%%\begin{itemize}
+%%\item
+%%$\displaystyle \mu_i=b^\prime(\theta_i) \quad \Rightarrow\quad \frac{\partial \mu_i}{\partial\theta_i}=
+%%b^{\prime\prime}(\theta_i)=v(\mu_i)=v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))$
+%%\item
+%%Also $\displaystyle \frac{\partial \theta_i}{\partial\mu_i}=\left(\frac{\partial \mu_i}{\partial\theta_i}\right)^{-1}$ 
+%%and $\displaystyle \frac{\partial \eta_i}{\partial\mbox{\boldmath $\beta$}}=\textbf{z}_i$.
+%%\item
+%%{\footnotesize Denote $\displaystyle D_i(\mbox{\boldmath $\beta$})=\frac{\partial \mu_i}{\partial\eta_i}
+%%=\frac{\partial h(\eta_i)}{\partial\eta_i}\mid_{\eta_i=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}}$,\;
+%%$\sigma_i^2(\mbox{\boldmath $\beta$})=\omega_i^{-1}\phi v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))$
+%%,
+%%$i=1,\cdots, n$ (or $i=1,\cdots, g$ for grouped data).}
+%%\item
+%%{\footnotesize Denote $\displaystyle D(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%%\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%%\{D_1(\mbox{\boldmath $\beta$}), \cdots, D_n(\mbox{\boldmath $\beta$})\}$}
+%%\item
+%%{\footnotesize Denote $\displaystyle \Sigma(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%%\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%%\{\sigma_1^2(\mbox{\boldmath $\beta$}), \cdots, \sigma_n^2(\mbox{\boldmath $\beta$})\}$}
+%%
+%%
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (4)}
+%%
+%%The \textbf{Fisher information} matrix is the covariance of the score function at the point $\mbox{\boldmath $\beta$}$: 
+%%\begin{eqnarray*}
+%%F(\mbox{\boldmath $\beta$})&=& \mbox{cov}\left(\textbf{s}(\mbox{\boldmath $\beta$})\right)=
+%%\sum_{i=1}^n \textbf{z}_i D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) 
+%%\textbf{z}_i^T=\sum_{i=1}^n \textbf{z}_i w_i(\mbox{\boldmath $\beta$})\textbf{z}_i^T \\
+%%&=& \left[\textbf{z}_1, \cdots, \textbf{z}_n\right]  \left[\begin{array}{ccc}
+%%\!\!\!w_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!w_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right] 
+%%\left[\begin{array}{c} \textbf{z}_1^T \\ \vdots \\ \textbf{z}_n^T\end{array}\right]
+%%=Z^TW(\mbox{\boldmath $\beta$})Z,
+%%\end{eqnarray*}
+%% where $w_i(\mbox{\boldmath $\beta$}):=D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$})$ and 
+%%
+%%\[ W(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%%\!\!\!w_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!w_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%%\{w_1(\mbox{\boldmath $\beta$}), \cdots, w_n(\mbox{\boldmath $\beta$})\}\]
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (5)}
+%%\begin{itemize}
+%%\item
+%%The \textbf{observed information} matrix with respect to $\mbox{\boldmath $\beta$}$ is {\footnotesize
+%%\begin{eqnarray*}
+%%F_{\mbox{obs}}(\mbox{\boldmath $\beta$})& \!\!\!= \!\!\!& -\frac{\partial^2\ell(\mbox{\boldmath $\beta$})}{
+%%\partial \mbox{\boldmath $\beta$}\partial \mbox{\boldmath $\beta$}^T}=
+%%-\frac{\partial \textbf{s}(\mbox{\boldmath $\beta$})}{\partial \mbox{\boldmath $\beta$}^T} \\
+%%& \!\!\!= \!\!\!& -\sum_{i=1}^n \textbf{z}_i \frac{\partial \{D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(
+%%\mbox{\boldmath $\beta$})\} }{\partial \mbox{\boldmath $\beta$}^T}[y_i-\mu_i(\mbox{\boldmath $\beta$})]
+%%+\sum_{i=1}^n \textbf{z}_i D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \cdot
+%%\frac{\partial\mu_i}{\partial \eta_i}\cdot \frac{\partial\eta_i}{\partial \mbox{\boldmath $\beta$}^T} \\
+%%& \!\!\!= \!\!\!& -\sum_{i=1}^n \textbf{z}_i \frac{\partial}{\partial \mbox{\boldmath $\beta$}^T}
+%%\{D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$})\}\cdot
+%%[y_i-\mu_i(\mbox{\boldmath $\beta$})] +\sum_{i=1}^n \textbf{z}_i D_i^2(\mbox{\boldmath $\beta$})
+%%\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \cdot \textbf{z}_i^T
+%%\end{eqnarray*}}
+%%\item
+%%Hence $E\left[F_{\mbox{obs}}(\mbox{\boldmath $\beta$})\right]=\sum_{i=1}^n \textbf{z}_i 
+%%D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \textbf{z}_i^T
+%%=F(\mbox{\boldmath $\beta$})=\mbox{cov}\left(\textbf{s}(\mbox{\boldmath $\beta$})\right)$.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (6)}
+%%\begin{itemize}
+%%\item
+%%When natural link is used, $\textbf{s}(\mbox{\boldmath $\beta$})$ and $F(\mbox{\boldmath $\beta$})$ can be
+%%simplified to
+%%\begin{eqnarray*}
+%%\textbf{s}(\mbox{\boldmath $\beta$})&= & \frac{1}{\phi}\sum_{i=1}^n \omega_i\textbf{z}_i
+%%[y_i-\mu_i(\mbox{\boldmath $\beta$})]=\frac{1}{\phi}Z^T\Omega \left[\textbf{y}-\mbox{\boldmath $\mu$}
+%%(\mbox{\boldmath $\beta$})\right] \\
+%%F(\mbox{\boldmath $\beta$}) &= & \frac{1}{\phi}\sum_{i=1}^n \omega_iv(\mu_i(\mbox{\boldmath $\beta$}))
+%%\textbf{z}_i\textbf{z}_i^T=\frac{1}{\phi}Z^T\Omega V(\mbox{\boldmath $\beta$})Z
+%%\end{eqnarray*}
+%%where $\Omega=\mbox{diag}\{\omega_1,\cdots,\omega_n\}$ and $V(\mbox{\boldmath $\beta$})
+%%=\mbox{diag}\{v(\mu_1),\cdots, v(\mu_n)\}$.
+%%\item
+%%For natural links, $\theta_i=\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$} \quad \Rightarrow\quad
+%%\mu_i=b^\prime (\theta_i)=b^\prime(\textbf{z}_i^T\mbox{\boldmath $\beta$})\equiv 
+%%h(\textbf{z}_i^T\mbox{\boldmath $\beta$})$
+%%
+%%$\Rightarrow \quad D_i(\mbox{\boldmath $\beta$})=\frac{\partial h(\eta_i)}{\partial \eta_i}
+%%=b^{\prime\prime}(\textbf{z}_i^T\mbox{\boldmath $\beta$})=v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))$
+%%
+%%$\Rightarrow \quad D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$})
+%%=v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))\cdot\frac{\omega_i}{\phi
+%%v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))}=\frac{\omega_i}{\phi}$ and
+%%
+%%$\Rightarrow \quad w_i(\mbox{\boldmath $\beta$})=D_i^2(\mbox{\boldmath $\beta$})
+%%\sigma_i^{-2}(\mbox{\boldmath $\beta$})=D_i(\mbox{\boldmath $\beta$})\cdot \frac{\omega_i}{\phi}
+%%=\frac{1}{\phi}\omega_i v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))$.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%We'll continue our discussion on MLE estimate for GLMs. 
+%%
+%%\end{frame}
+%%
+%%
+%%\begin{frame}{\S2.2.1 Numerical computation of the MLE $\hat{\mbox{\boldmath $\beta$}}$ by IRLS}
+%%\begin{itemize}
+%%\item
+%%MLE $\hat{\mbox{\boldmath $\beta$}}$ is the one maximizing $\ell(\mbox{\boldmath $\beta$})$, and often 
+%%is obtained by solving the \textbf{estimating equation} $\textbf{s}(\mbox{\boldmath $\beta$})=0$, which uses 
+%%the iterative \textbf{Fisher scoring method}: {\scriptsize
+%%\begin{eqnarray*}
+%%\hat{\mbox{\boldmath $\beta$}}^{(k+1)}&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+
+%%F^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \textbf{s}(\hat{\mbox{\boldmath $\beta$}}^{(k)}) \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+ 
+%%\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%% Z^TD(\hat{\mbox{\boldmath $\beta$}}^{(k)})\Sigma^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right] \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+ 
+%%\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%% Z^TD^2(\hat{\mbox{\boldmath $\beta$}}^{(k)})\Sigma^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)}) 
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right] \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\! & \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}\left\{
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z \hat{\mbox{\boldmath $\beta$}}^{(k)}
+%%+Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)}) D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]\!\right\} \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\!& \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}\left\{
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\left[Z \hat{\mbox{\boldmath $\beta$}}^{(k)}
+%%+ D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]\right]\right\} \\
+%%&\!\!\!\!\!\!\stackrel{denoted}{=}\!\!\!\!\!\! & \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}
+%%\end{eqnarray*}}
+%%where $\tilde{\textbf{y}}^{(k)}=(\tilde{y}_1^{(k)},\cdots, \tilde{y}_n^{(k)})^T
+%%=Z \hat{\mbox{\boldmath $\beta$}}^{(k)}+ D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]$
+%%is the \textbf{working observation vector} at iteration $k$, $k=0,1,2,\cdots$.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}{\S2.2.1 Implementing Fisher scoring for computing $\hat{\mbox{\boldmath $\beta$}}$}
+%%\begin{enumerate}
+%%\item
+%%Start with an initial estimate $\hat{\mbox{\boldmath $\beta$}}^{(0)}$, often chosen as the unweighted
+%%least squares (LS) estimate from $(g(y_i),\textbf{z}_i)$, $i=1,\cdots,n$, where $g(\cdot)$ is the link (modified if $g(y_i)$ is undefined, such as when $yi = 0$ in Poisson regression).
+%%\item
+%%For $k=0,1,2,\cdots$ compute 
+%%$$\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}$$
+%%until $\frac{\|\hat{\boldsymbol \beta}^{(k+1 )} - \hat{\boldsymbol \beta}^{(k)}\|}{\|\hat{\boldsymbol \beta}^{(k)}\|} \leq \epsilon $ for some prechosen small $\epsilon > 0$ (``convergence").
+%%
+%%\item It is hence called a  \textbf{iteratively reweighted least squares (IRLS) method}. 
+%%\end{enumerate}
+%%%Fisher scoring method in GLM estimation is also called the \textbf{iteratively reweighted least squares (IRLS) method}.
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%
+%%\begin{itemize}
+%%
+%%\item 
+%%Each component of the working observation vector is simply a linearization of $g(y_i)$ at $\hat{\boldsymbol \beta}^{(k)}$
+%%
+%%\begin{align*}
+%%g(y_i) &\approx g(\mu) +g'(\mu) (y_i - \mu) \\
+%%&= {\bf z}_i^T{\boldsymbol \beta} +  \left(\frac{\partial h}{ \partial \eta} ({\bf z}_i^T{\boldsymbol \beta} )\right)^{-1}  (y_i - \mu_i ({\boldsymbol \beta}))
+%%\end{align*}
+%%(Generalized Linear Models, 2nd ed, McCullagh and Nelder, p.40)
+%%
+%%\item If use $F_{obs} (\cdot)$ instead of $F (\cdot)$, we get the standard Newton-Raphson procedure. ( These two procedures coincide if natural link function is used)
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Asymptotic properties associated with the MLE $\hat{\mbox{\boldmath $\beta$}}$}
+%%Under suitable ``regularity" assumptions, we have these nice properties:
+%%\begin{enumerate}
+%%\item
+%%\textit{Asymptotic existence and uniqueless}. The MLE $\hat{\mbox{\boldmath $\beta$}}$ exists
+%%and (locally) unique w/ probability tending to 1. 
+%%\item
+%%\textit{Consistency}. If $\mbox{\boldmath $\beta$}$ is the ``true'' value, then 
+%%$\hat{\mbox{\boldmath $\beta$}}\rightarrow \mbox{\boldmath $\beta$}$ in probability 1 (\textit{weak consistency}),
+%%or $\hat{\mbox{\boldmath $\beta$}}\rightarrow \mbox{\boldmath $\beta$}$ with probability 1 (or almost surely,
+%%\textit{strong consistency}).
+%%
+%%%\item
+%%%Estimating $\phi$: 
+%%%$\displaystyle \hat{\phi}=\frac{1}{g-p}\sum_{i=1}^g\frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}$
+%%%is a consistent estimator of $\phi$. (This is true for grouped data only.)
+%%\end{enumerate}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%{\S2.2.1 Asymptotic properties associated with the MLE $\hat{\mbox{\boldmath $\beta$}}$}
+%%
+%%\begin{enumerate}[3]
+%%\item
+%%\textit{Asymptotic normality}. $\hat{\mbox{\boldmath $\beta$}}\stackrel{a}{\sim} \mbox{Normal}
+%%\left(\mbox{\boldmath $\beta$}, F^{-1}(\hat{\mbox{\boldmath $\beta$}})\right)$, equivalently
+%%$$F^{1/2}(\hat{\mbox{\boldmath $\beta$}})\left(\hat{\mbox{\boldmath $\beta$}}-
+%%\mbox{\boldmath $\beta$}\right)\stackrel{d}{\rightarrow} N(0,1) \quad\mbox{as $n\rightarrow\infty$}.$$
+%%This implies $\mbox{cov}(\hat{\mbox{\boldmath $\beta$}})\stackrel{a}{=}A(\hat{\mbox{\boldmath $\beta$}})
+%%= F^{-1}(\hat{\mbox{\boldmath $\beta$}})$. (The proof uses the property $\textbf{s}(\mbox{\boldmath $\beta$})
+%%\stackrel{a}{\sim} \mbox{Normal}\left(0, F(\mbox{\boldmath $\beta$})\right)$.)
+%%\end{enumerate}
+%% \ \
+%% 
+%%(Now recall in the linear model case, the Fisher information is $\sigma^{-2} {\bf Z}^T {\bf Z}$)
+%%
+%%\end{frame}
+%%
+%%\begin{frame} {\S2.2.1 Estimation of $\phi$}
+%%\begin{itemize}
+%%\item We also note that $\phi$ only appears as a factor in $W$, and falls out of the expression
+%%
+%% \[\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}\]
+%%\item But we need $\phi$ for computing the Fisher info for the limiting covariance of the MLE. 
+%%
+%%\item\[\hat{\phi}=\frac{1}{g-p}\sum_{i=1}^g\frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}\]
+%%is a consistent estimator of $\phi$. (This is true for grouped data only.)
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\subsection{\S2.2.2 Linear hypothesis testing in GLM}
+%%
+%%\begin{frame}{\S2.2.2 Testing linear hypotheses}
+%%\begin{itemize}
+%%\item
+%%Most testing problems concerning $\mbox{\boldmath $\beta$}$ have the form of \textit{linear hypothesis}:
+%%$$H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$} \quad\mbox{vs.}\quad
+%%H_1: C\mbox{\boldmath $\beta$}\neq\mbox{\boldmath $\xi$}$$
+%%where $C$ is a known matrix of full row rank $s\leq p$, and $\mbox{\boldmath $\xi$}$ is a known vector.
+%%\item
+%%A special case is 
+%%$$H_0: \mbox{\boldmath $\beta$}_r=0 \quad\mbox{vs.}\quad
+%%H_1: \mbox{\boldmath $\beta$}_r\neq 0$$
+%%where $\mbox{\boldmath $\beta$}_r$ is a sub-vector of $\mbox{\boldmath $\beta$}$. This is
+%%equivalent to comparing the full model with one of its sub-models.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (1)}
+%%\begin{itemize}
+%%\item
+%%Three types of tests are available for testing $H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$}
+%%\;\mbox{vs.}\; H_1: C\mbox{\boldmath $\beta$}\neq\mbox{\boldmath $\xi$}$:
+%%
+%%\begin{center}
+%%\textbf{Likelihood ratio (LR) test}, \textbf{Wald test}, and \textbf{score test}.
+%%\end{center}
+%%\item
+%%A special case is 
+%%$$H_0: \mbox{\boldmath $\beta$}_r=0 \quad\mbox{vs.}\quad
+%%H_1: \mbox{\boldmath $\beta$}_r\neq 0$$
+%%where $\mbox{\boldmath $\beta$}_r$ is a sub-vector of $\mbox{\boldmath $\beta$}$. This is
+%%equivalent to comparing the full model with one of its sub-models.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (2)}
+%%\begin{enumerate}
+%%\item
+%%\textbf{LR test statistic}:
+%% \[\lambda=-2\left\{\ell(\tilde{\mbox{\boldmath $\beta$}}) -\ell(\hat{
+%%\mbox{\boldmath $\beta$}})\right\},\] 
+%%where $\tilde{\mbox{\boldmath $\beta$}}$ is the MLE of
+%%$\mbox{\boldmath $\beta$}$ under $H_0$, and $\hat{\mbox{\boldmath $\beta$}}$ is the MLE of
+%%$\mbox{\boldmath $\beta$}$ under $H_1$; also $\hat{\mbox{\boldmath $\beta$}}$ is the unrestricted MLE of
+%%$\mbox{\boldmath $\beta$}$. 
+%%
+%%%
+%%%$\lambda$ needs to be divided by $\hat{\phi}$ for over-dispersion models.
+%%\item
+%%\textbf{Wald test statistic}: \[W=\left(C\hat{\mbox{\boldmath $\beta$}}-\mbox{\boldmath $\xi$}\right)^T
+%%\left[CF^{-1}(\hat{\mbox{\boldmath $\beta$}})C^T \right]^{-1}
+%%\left(C\hat{\mbox{\boldmath $\beta$}}-\mbox{\boldmath $\xi$}\right),\] where $\hat{\mbox{\boldmath $\beta$}}$
+%%is the unrestricted MLE of $\mbox{\boldmath $\beta$}$.
+%%\item
+%%\textbf{Score test statistic}: $U=\textbf{s}^T(\tilde{\mbox{\boldmath $\beta$}})F^{-1}(\tilde{\mbox{\boldmath $\beta$}})
+%%\textbf{s}(\tilde{\mbox{\boldmath $\beta$}})$, where $\tilde{\mbox{\boldmath $\beta$}}$
+%%is the MLE of $\mbox{\boldmath $\beta$}$ under $H_0$.
+%%\end{enumerate}
+%%%\begin{itemize}
+%%%
+%%%
+%%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (3)}
+%%\begin{itemize}
+%%\item  The  exponential model is assumed for the LR test; not defined for over-dispersion model such as the quasi likelihood to be covered. 
+%%
+%%\item 
+%%Wald and score test statistics are properly defined for over-dispersion models, since they are based on the score ${\bf s}$ (More on this later again)
+%%
+%%\item Wald and score are quadratic approximation of the LR test (see blackboard derivation). 
+%%
+%%\item Wald and Score are computationally attractive; both eliminate the need to compute one of $\tilde{\boldsymbol \beta}$ or $\hat{\boldsymbol \beta}$. Wald is good when $H_1$ has been fitted, score is good when $H_0$ has been fitted. 
+%%
+%%
+%%\end{itemize}
+%%
+%%\end{frame}
+%%
+%%\begin{frame} {\S2.2.2 Likelihood ratio (LR), Wald and score tests (4)}
+%%\begin{itemize}
+%%\item
+%%Under \[H_0: C{\boldmath \beta}={\boldmath \xi} \text{ with } \text{rank}(C)=s, \] $\lambda, W$ and
+%%$U$ all follow a $\chi^2(s)$ distribution asymptotically under `regularity conditions'.
+%%%\item
+%%%$\lambda/\hat{\phi}$, $W$ and $U$ can be used for \textbf{analysis of deviance} (i.e. comparing nested
+%%%models) as a special case of testing linear hypotheses.
+%%
+%%\end{itemize}
+%%
+%%
+%%\end{frame}
+%
+%\subsection{\S2.2.3 Deviance, residuals and goodness-of-fit measure in GLM} \label{sec:2.2.3}
+%
+%\begin{frame} {Model adequacy measure in GLM}
+%\begin{itemize}
+%\item First of all, testing model fit only makes sense when over-dispersion is not assumed, since we don't assume the exponential model form is true anyway. Again a topic of quasi-likelihood covered later.   
+%
+%\item In the sequel, ``goodness-of-fit" and ``model adequacy" mean the same thing.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM }
+%\begin{itemize}
+%\item
+%In linear model, goodness-of-fit  is measured by the sum of squared residuals (or errors)
+%$\mbox{SSE}\!=\!\sum_{i=1}^n(y_i-\hat{\mu}_i)^2$. SSE is no longer a reasonable measure if $\mbox{Var}(y)$ 
+%varies with $\mu$.
+%\item
+%A generalisation of SSE to GLM  is the \textbf{Pearson $\chi^2$ statistic}, taking the form
+%$$\chi^2=\sum_{i=1}^g \frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}$$
+%where $\bar{y}_i$ is the group mean, $v(\hat{\mu}_i)$ is the estimated variance function, and $n_i$ is the size of group $i$.
+%\end{itemize}
+%\end{frame}
+%
+%
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM }
+%\begin{itemize}
+%%\item
+%%Pearson $\chi^2$ statistic is often an appropriate model adequacy measure (or discrepancy measure, or goodness-of-fit
+%%measure).
+%\item
+%Asymptotically (i.e. all $n_i$'s are large),
+% \[\chi^2/\phi \sim_a \chi^2(g-p)\] if the GLM model is true. $p = $  number of coefficient parameters in the GLM.
+%\item
+%If $n$ is large but $n_i$'s are small (in particular when $n_i=1$), it is dangerous to use the Pearson
+%$\chi^2$ statistics to test model adequacy.
+%
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM}
+%\begin{itemize}
+%\item
+%Another model adequacy measure is the {\bf deviance}. 
+%\item
+%It is twice the difference between the maximum log-likelihood achievable in a saturated model and that in
+%the current model, i.e.
+%$$D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\left[\ln L(\mbox{\boldmath $\theta$}^*,\phi\mid\textbf{y}_n)
+%-\ln L(\mbox{\boldmath $\hat{\theta}$},\phi\mid\textbf{y}_n)\right]$$
+%which is called the \textbf{scaled deviance}. Just a special case the likelihood ratio statistic. 
+%
+%% Here {\small \vspace{-3pt}
+%%\begin{equation*}
+%%L(\mbox{\boldmath $\theta$},\phi\mid\textbf{y}_n)=\exp\left\{\sum_{i=1}^n\frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot
+%%\omega_i +\sum_{i=1}^nc(y_i,\phi, \omega_i)\right\} \vspace{-3pt}
+%%\label{eq-8.4}
+%%\end{equation*}}
+%%is the likelihood function for the data $\textbf{y}_n=(y_1,\cdots,y_n)^T$.
+%\item Remark: we are having grouped data in mind here
+%
+%\item
+%%$\mbox{\boldmath $\theta$}\!=\!(\theta_1,\cdots,\theta_n)^T$, $\mbox{\boldmath $\mu$}\!=\!(\mu_1,\cdots,\mu_n)^T
+%%\!=\!(b^\prime(\theta_1),\cdots, b^\prime(\theta_n))^T$,
+%
+% $\mbox{\boldmath $\hat{\theta}$}$ is the MLE of
+%$\mbox{\boldmath $\theta$}$ under the GLM
+%\item $\mbox{\boldmath $\theta$}^*=(\theta_1^*,\cdots, \theta_g^*)^T$ is such that 
+%\[
+%(\bar{y}_1,\cdots,\bar{y}_g)^T
+%=(b^\prime(\theta_1^*),\cdots,b^\prime(\theta_g^*))^T = ({\mu}^*_1, \dots, {\mu}^*_g).\]
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviance measure in GLM (2)}
+%\begin{itemize}
+%\item
+%We call $\mbox{\boldmath $\theta$}^*$ the MLE of $\mbox{\boldmath $\theta$}$ in the \textbf{saturated model}, a full model with $g$ parameters (as many parameters as there are observsations).
+%\item
+%In a saturated model, from the likelihood expression we see that in this case, the MLE of 
+%$\theta_i$ needs to satisfy $\bar{y}_i=b^\prime(\theta_i^*) = {\mu}^*_i$.
+%\item
+%In GLM, $\theta_1,\cdots,\theta_g$ are determined by the regression parameters $\beta_1,\cdots,\beta_p$
+%and the independent variables $x_1,\cdots,x_p$. So the MLE of $\beta_1,\cdots,\beta_p$ are to be obtained first, 
+%the MLE $\mbox{\boldmath $\hat{\theta}$}$ are then obtained.
+%\item
+%%The saturated model provides the best fit to the data because it has the same number of independent parameters
+%%and the observations.
+%Maximum likelihood from the saturated model must be at least as large as that from a usual GLM.
+%Therefore, the scaled deviance $D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})\geq 0$. 
+%%and measures
+%%the adequacy of fit of a GLM.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviance measure in GLM (3)}
+%\begin{itemize}
+%\item
+%%Consider a random sample $\textbf{y}_n=(y_1,\cdots,y_n)^T$ and a GLM as being formulated so far.
+%By convention
+%$$D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$}):=\phi D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$$
+%%and call $D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$ 
+%as the \textbf{deviance} of the GLM under consideration.
+%\item
+%Asymptotically, $$\phi^{-1}D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})\sim_a\chi^2(g-p)$$ 
+%asymptotically when the GLM  for $Y$ is correct  + when group sizes $n_i$ are all large enough + ``regularity conditions". 
+%\item
+%But when $n_i$ is small (e.g. $n_i = 1$), use of the chi-square limit is dangerous. 
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviances for several important distributions}
+%\textbf{Deviances for several important distributions in GLM.}
+%\begin{eqnarray*}
+%\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=
+%\sum_{i=1}^n (y_i-\hat{\mu}_i)^2 \\
+%\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\} \\
+%\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\} \\
+%\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}
+%\end{eqnarray*}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (1)}
+%\begin{itemize}
+%\item
+%An analysis of variance (ANOVA) table can be constructed for each linear regression model as we have seen
+%in a linear model course. 
+%\item
+%Similar to this, an \textbf{analysis of deviance (ANODEV)} table can be constructed for each GLM.
+%\item
+%Generally speaking, tests performed on ANOVA and ANODEV tables are likelihood ratio tests.
+%\item
+%However, there are some differences in interpreting ANOVA and ADODEV tables.
+%\item
+%Consider a $3\times 3$ factorial design, of two treatment factors A and B, with 2 replicates at each combination
+%level of A and B. So there will be in total 18 observations for the response variable $y$. ($3\times 3$ factorial design means that each of treatment $A$ or $B$ has 3 levels)
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (2)}
+%If it is appropriate to fit the 18 $y$ observations by linear regression models, an ANOVA table 
+%would typically look like the following:
+%
+%\begin{center} Analysis of Variance (ANOVA)\end{center}
+%
+%{\small
+%\begin{tabular}{|cccccc|}\hline
+%Model & df & SSE & $\Delta$SS & $\Delta$df & Effect Source \\ \hline
+%1 & 17 & 1000 & - & -  & - \\ \hline
+%A & 15 & 400 & $600=1000-400$ & $2=17-15$ & A \\ \hline
+%A+B & 13 & 300 & $100=400-300$ & $2=15-13$ & B \\ \hline
+%A+B+A:B & 9 & 100 & $200=300-100$ & $4=13-9$ & A:B \\ \hline 
+%\end{tabular}}
+%\begin{itemize}
+%\item
+%$\Delta$SS is the reduction of SSE as an additional term is added to the model.
+%$\Delta\mbox{SS}\stackrel{d}{=}\chi^2(\Delta\mbox{df})$. Effects are assessed by
+%$F$ tests.
+%\item
+%$\Delta$df is the reduction of the model degrees of freedom.
+%\item
+%The effects of A, B and A:B on $Y$ are orthogonal.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (3)}
+%If it is more appropriate to fit the 18 $y$ observations by GLM, an ANODEV table would typically look like the following:
+%
+%\begin{center} Analysis of Deviance (ANODEV)\end{center}
+%
+%{\footnotesize
+%\begin{tabular}{|cccccc|}\hline
+%Model & df & Deviance & $\Delta D$ & $\Delta$df & Effect Source \\ \hline
+%1 & 17 & 1200 & - & - & - \\ \hline
+%A & 15 & 800 & $400\!=\!1200\!-\!800$ & $2\!=\!17\!-\!15$ & A ignoring B \\ \hline
+%A+B & 13 & 500 & $300\!=\!800\!-\!500$ & $2\!=\!15\!-\!13$ & B eliminating A\\ \hline
+%A+B+A:B & 9 & 200 & $300\!=\!500\!-\!200$ & $4\!=\!13\!-\!9$ & A:B eliminating \\ 
+%& & & &  & A \& B \\ \hline 
+%\end{tabular}}
+%\begin{itemize}
+%\item
+%$\Delta D=D_0-D_1$ is the reduction of deviance between two nested models $M_0\subseteq M_1$.
+%$\Delta D\stackrel{d}{\approx}\chi^2(\Delta\mbox{df})$ if $M_0$ is adequate.
+%\item
+%$\Delta$df is the reduction of the model degrees of freedom.
+%\item
+%Effects of A, B and A:B on $Y$ are not orthogonal, depend on their positions in the model, and
+%are assessed by $\chi^2$ or $F$ tests.
+%\end{itemize}
+%\end{frame}
+%
+%%\section{\S8.4 Residuals}
+%%\label{sec:residuals}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (1)}
+%\begin{itemize}
+%\item
+%In a linear regression model $y=E(y)+\varepsilon =\mu+\varepsilon=\sum_{j=1}^p x_j\beta_j+\varepsilon$,
+%the residual is defined as $r_i=y_i-\hat{\mu}_i$ for an observation $y_i$, with $\hat{\mu}_i=\hat{y}_i$ being the 
+%fitted value of $y_i$.
+%The residual $r_i$ measures the goodness of fit to $y_i$ by the model if $\mbox{Var}(y)$ is constant.
+%\item
+%In GLM the residual of $y_i$ has to be defined differently to accommodate the cases
+%where the variance function $v(\mu)$ is no longer constant.
+%\item
+%At least four types of residual are defined for GLM: \textbf{Pearson}, \textbf{deviance}, \textbf{working}, and
+%\textbf{response}. All these residuals can be computed using the \texttt{R} function \texttt{residuals.glm()}.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (2)}
+%\begin{itemize}
+%\item
+%\textbf{Pearson residual}: $r_{_{Pi}}=\frac{\bar{y}_i-\hat{\mu}_i}{\sqrt{v(\hat{\mu})/n_i}}$.
+%
+%Therefore $\sum_{i=1}^g r^2_{_{Pi}}=\sum_{i=1}^g \frac{(y_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}=\chi^2$, the
+%Pearson $\chi^2$ statistic. 
+%\item
+%\textbf{Deviance residual}: $r_{_{Di}}=\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{d_i}$, \\ where $d_i$'s are such that
+%$\displaystyle \sum_{i=1}^n d_i=D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$. In particular, deviance residuals for
+%the following distributions are:
+%{\footnotesize
+%\begin{eqnarray*}
+%\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)
+%|y_i-\hat{\mu}_i|\!=\!y_i-\hat{\mu}_i \\
+%\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2\left\{y_i
+%\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\}} \\
+%\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\}} \\
+%\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+%\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}}
+%\end{eqnarray*}}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (3)}
+%\begin{itemize}
+%\item
+%\textbf{Working residual}: $r_{_{Wi}}=(y_i-\hat{\mu}_i)\frac{d\eta_i}{d\mu_i}\mid_{\mu_i=\hat{\mu}_i}
+%\approx g(y_i)-g(\hat{\mu}_i)$, \\
+%where $g(\mu_i)$ is the link function and $\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$}$ is the linear predictor in GLM.
+%
+%The working residual is used during computing the MLE of $\mbox{\boldmath $\beta$}$.
+%\item
+%\textbf{response residual}: $r_{_{Ri}}=y_i-\hat{\mu}_i$, \\
+%which is not a right measure except when the GLM reduces to a linear model.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (1)}
+%For the data of Caesarian birth study we combine categories I and II of the response variable into
+%one category \texttt{Infection}. Then fit logistic models to the reorganized data where the new response
+%variable has only two categories \texttt{Infection} and \texttt{Non-infection}.
+%
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> Caes.dat <- read.csv("D:/MAST90084/Example2-Caes.csv")
+%> is.data.frame(Caes.dat)
+%\end{Sinput} 
+%\begin{Soutput}
+%[1] TRUE
+%\end{Soutput}
+%\begin{Sinput}
+%> Caes.dat
+%\end{Sinput} 
+%\begin{Soutput}
+%  Infection total Antib RiskF Plan
+%1         1    18     1     1    1
+%2         0     2     1     0    1
+%3        28    58     0     1    1
+%4         8    40     0     0    1
+%5        11    98     1     1    0
+%6         0     0     1     0    0
+%7        23    26     0     1    0
+%8         0     9     0     0    0
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (2)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> Caes1=glm(Infection/total~Antib+RiskF+Plan,family=binomial, weight=total, data=Caes.dat)
+%> summary(Caes1)
+%\end{Sinput} 
+%\begin{Soutput}
+%Deviance Residuals: 
+%       1         2         3         4         5         7         8  
+% 0.26470  -0.15231  -0.78520   1.21563  -0.07162   1.49623  -2.56229  
+%
+%Coefficients:
+%            Estimate Std. Error z value Pr(>|z|)    
+%(Intercept)  -0.8207     0.4947  -1.659   0.0971 .  
+%Antib        -3.2544     0.4813  -6.761 1.37e-11 ***
+%RiskF         2.0299     0.4553   4.459 8.25e-06 ***
+%Plan         -1.0720     0.4254  -2.520   0.0117 *  
+%---
+%Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1  ' ' 1
+%
+%(Dispersion parameter for binomial family taken to be 1)
+%
+%    Null deviance: 83.491  on 6  degrees of freedom
+%Residual deviance: 10.997  on 3  degrees of freedom
+%  (1 observation deleted due to missingness)
+%AIC: 36.178
+%Number of Fisher Scoring iterations: 5
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (3)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> anova(Caes1, test="Chi")
+%\end{Sinput} 
+%\begin{Soutput}
+%Analysis of Deviance Table; Model: binomial, link: logit; Response: Infection/total
+%Terms added sequentially (first to last)
+%
+%      Df Deviance Resid. Df Resid. Dev  Pr(>Chi)    
+%NULL                      6     83.491              
+%Antib  1   38.736         5     44.756 4.852e-10 ***
+%RiskF  1   26.881         4     17.874 2.164e-07 ***
+%Plan   1    6.878         3     10.997  0.008728 ** 
+%\end{Soutput}
+%\begin{Sinput}
+%> resid(Caes1,type="deviance")
+%\end{Sinput}
+%\begin{Soutput}
+%       1        2        3        4        5        7        8 
+% 0.26470 -0.15231 -0.78520  1.21563 -0.07162  1.49623 -2.56229
+%\end{Soutput}
+%\begin{Sinput}
+%> resid(Caes1,type="pearson")
+%\end{Sinput}
+%\begin{Soutput}
+%       1        2        3        4        5        7        8 
+% 0.27684 -0.10786 -0.78635  1.29465 -0.07141  1.38710 -1.99030
+%\end{Soutput}
+%\begin{Sinput}
+%> sum(resid(Caes1,type="deviance")^2)    #[1] 10.99674
+%> sum(resid(Caes1,type="pearson")^2)/(7-4)    #[1] 2.757724
+%> 1-pchisq(sum(resid(Caes1,type="pearson")^2),3)   #[1] 0.04069089
+%> 1-pchisq(sum(resid(Caes1,type="deviance")^2),3)   #[1] 0.01174351
+%\end{Sinput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (4)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%Caes2=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,family=binomial, 
+%                         weight=total, data=Caes.dat)
+%summary(Caes2);  anova(Caes2,test="Chi")
+%sum(resid(Caes2,type="pearson")^2)/(7-5)
+%1-pchisq(sum(resid(Caes2,type="pearson")^2),2)
+%1-pchisq(sum(resid(Caes2,type="deviance")^2),2)
+%
+%Caes3=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,
+%            family=binomial(link="probit"), weight=total, data=Caes.dat)
+%summary(Caes3); anova(Caes3, test="Chi")
+%
+%Caes4=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,
+%           family=binomial(link="probit"), weight=total, data=Caes.dat[-6,])
+%summary(Caes4); anova(Caes3, test="Chi")
+%
+%Caes5=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,family=quasibinomial, 
+%              weight=total, data=Caes.dat[-6,])
+%summary(Caes5); anova(Caes5, test="F")
+%
+%sum(resid(Caes5,type="pearson")^2)/(7-5)
+%
+%Caes6=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,family=quasibinomial, 
+%           weight=total, data=Caes.dat, subset=c(1,2,3,4,5,7,8))
+%summary(Caes6);  anova(Caes6, test="F")
+%\end{Sinput} 
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+
+\section{\S2.3 Some extensions of GLM: quasi-likelihood and Bayesian method}
+\subsection{\S2.3.1 Quasi-likelihood models}
+\begin{frame}{\S2.3.1 Quasi-likelihood models}
+\begin{wideitemize}
+\item In a GLM, the mean  necessarily implies a certain variance structure. 
+
+\item e.g. Poisson model: we must have $\sigma^2 = \mu $, since $\phi$ is forced to be 1. 
+% such as the Poisson model, 
+%\[
+%E(y|\textbf{x})=\mu=h(\textbf{z}^T\mbox{\boldmath $\beta$}), \ \ \mbox{var}(y|\textbf{x})=\phi v(\mu)/\omega, 
+%\]
+%so the aassociation between $E(y|\textbf{x})$ and  $\mbox{var}(y|\textbf{x})$ confined. May be insufficient for practical use.
+%Assuming that the response variable $y$ in GLM belongs to a specific exponential family
+%confines the association between $E(y|\textbf{x})=\mu=h(\textbf{z}^T\mbox{\boldmath $\beta$})$
+%and $\mbox{var}(y|\textbf{x})=\phi v(\mu)/\omega$ to be of a specific type, which sometimes is
+%insufficient for practical use.
+\item
+{\bf Quasi-likelihood models}: 
+
+\begin{wideitemize}
+\item 
+Drop the exponential family (i.e. distributional) assumption\\
+ $\Rightarrow$ separate the mean and
+variance structures.
+
+
+
+\item Only entails  mean and variance structural specifications (akin to structural assumptions in GLMs). 
+
+
+\item Assuming that
+\begin{enumerate}
+\item the mean structure has been correctly specified, and
+\item other appropriate regularity conditions are satisfied,
+\end{enumerate}
+parameters can  be estimated consistently,
+and asymptotic inference is possible.
+
+\end{wideitemize}
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {Structural specifications}
+%{\S2.3.1 Quasi-likelihood models}
+\begin{wideitemize}
+\item
+The mean and variance specifications take the  forms
+\begin{eqnarray}
+E(y_i|\textbf{x}_i)&=&\mu_i=h(\textbf{z}_i^T\mbox{\boldmath $\beta$}) \label{mean_struct}\\
+\mbox{Var}(y_i|\textbf{x}_i) &=&  \sigma^2(\mu_i)=\phi v(\mu_i)/\omega_i=\sigma^2_i(\mbox{\boldmath $\beta$})  \label{var_struct}
+\end{eqnarray}
+where $v(\cdot)$ is some variance function \underline{of choice}. 
+
+\item {\bf Key feature}:  $\phi$ is not restricted to be particular number (unlike some exponential-family distributions such as Poisson where $\phi$ must be $1$). 
+
+
+
+%\item But  $ \sigma_i^2 =  \sigma^2(\mu_i)= \phi v(\mu_i)/\omega_i$ is not necessarily correct(i.e. true). We call it a ``working" variance function. The true ( usually unknown) variance  $\sigma^2_{oi}(\textbf{x}_i) \equiv \mbox{Var}(y_i|\textbf{x}_i)$ can be different.
+%
+
+
+\item  Only the mean structure \eqref{mean_struct} is assumed to be correctly specified. 
+
+\item The variance structure \eqref{var_struct} is not necessarily correct, i.e. it is a ``{\bf working}" variance function. The true  variance  structure
+\[
+\sigma^2_{oi}(\textbf{x}_i) \equiv \mbox{Var}(y_i|\textbf{x}_i)
+\] can be different.
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {Quasi-score function}
+
+\begin{wideitemize}
+
+\item \underline{Define} the {\bf quasi-score/generalized estimating }function (GEE):
+\begin{align*}
+\textbf{s}(\mbox{\boldmath $\beta$})= \sum_{i = 1}^n  {\bf s}_i({\boldsymbol \beta})  &\equiv \sum_{i=1}^n\textbf{z}_i D_i(\mbox{\boldmath $\beta$})
+\sigma_i^{-2}(\mbox{\boldmath $\beta$})\left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] \\
+&=Z^TD(\mbox{\boldmath $\beta$})\Sigma^{-1}(\mbox{\boldmath $\beta$})\left[\textbf{y}-
+\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})\right],
+\end{align*}
+
+where 
+
+\begin{wideitemize}
+\item $D_i({\boldsymbol \beta})$ is  $h'(\cdot)$ evaluated at $\eta_i$
+\item  $\sigma^2_i({\boldsymbol \beta})$ is the working variance for $i$
+\item $D = \text{diag}(D_1, \dots, D_n)$
+\item $\Sigma (\boldbeta) = \text{diag}(\sigma_1(\boldbeta)^2, \dots, \sigma_n(\boldbeta)^2)$
+\item $Z^T = [{\bf z}_1, \dots, {\bf z}_n]$
+\end{wideitemize}
+
+
+\ \
+
+
+\end{wideitemize}
+
+
+\end{frame} 
+% new frame
+\begin{frame}{Quasi-score function}
+\begin{wideitemize}
+\item Very similar in form to the score function for a GLM 
+
+\item However,  since the variance structure 
+\[
+\mbox{Var}(y_i|\textbf{x}_i)   =\phi v(\mu_i)/\omega_i
+\]
+can be of any wild form you \emph{specify}, it does not have  to be (and is generally not) the derivative of a proper log-likelihood function.  
+
+
+
+\item \emph{Remark}:  some books filter the dispersion parameter $\phi$, which is embedded as a scale in $\Sigma$,  out of ${\bf s} ({\boldsymbol \beta})$
+
+\end{wideitemize}
+
+\end{frame}
+
+%new frame
+\begin{frame} {Estimation}
+\begin{itemize}
+\item The true $\boldbeta$ is estimated by ${\boldsymbol \hat{\boldsymbol \beta}}$, the {\bf quasi}-MLE (qMLE) that solves the \emph{estimating equation}:
+\[
+{\bf s}({\boldsymbol \beta}) = 0.
+\] 
+
+\ \
+\item
+$\hat{\mbox{\boldmath $\beta$}}$ can be found using a Newton-Raphson-like algorithm.
+
+\ \
+\item Turns out, the qMLE ${\boldsymbol \hat{\boldsymbol \beta}}$ can still consistently estimate $\boldbeta$ under regularity assumptions, despite the minimalist assumption of a correctly specified mean structure only.
+
+
+\ \
+
+
+
+\item Where does the estimation consistency come from?
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Estimation}
+\begin{wideitemize}
+
+\item Suppose $\boldbeta_0$ is the underlying true value for $\boldbeta$.
+
+\item As a  \emph{random} vector-valued function in $\boldbeta$, each
+\[
+{\bf s}_i ({\boldsymbol \beta}) = \textbf{z}_i D_i(\mbox{\boldmath $\beta$})
+\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right], \]
+ has expectation $0$ at  the true value of  $\boldsymbol \beta$, because {\bf the mean structure is assumed to be correct} and hence
+ \[
+ E[y_i - \mu_i (\boldbeta_0)] = 0.
+ \]
+
+
+\end{wideitemize}
+
+\end{frame}
+
+% new frame
+
+
+\begin{frame} {Estimation}
+\begin{wideitemize}
+
+
+
+\item One may expect, under appropriate regularity conditions, by the law of large numbers, $n^{-1} \sum_{i = 1}^n {\bf s}_i ({\boldsymbol \beta})$ may converge to a  \emph{deterministic} function ${\bf s}_0 (\boldsymbol \beta)$ in $\boldsymbol \beta$, where ${\bf s}_0 $ is such that
+\[
+{\bf s}_0  (\boldbeta_0) = 0.
+\] 
+
+
+\item Hence ${\boldsymbol \hat{\boldsymbol \beta}}$ should be close to the true $\boldbeta_0$. 
+
+
+\item   $\hat{\boldbeta}$ is also called a Z-estimator, for \emph{zeroing} out  the estimating equation. Refer to \cite[Chapter 5]{VDV1998}  for the rigorous theory. 
+
+\end{wideitemize}
+
+\end{frame}
+% new frame
+\begin{frame} {A historical note }
+
+
+\begin{wideitemize}
+\item Originally, \cite{wedderburn1974} did assume that the variance structure is also correctly specified. 
+
+\item
+A \textbf{quasi-likelihood} (more precisely, a quasi {\bf log}-likelihood) function can be constructed as
+$\displaystyle Q(\mbox{\boldmath $\mu$}; \textbf{y})=\sum_{i=1}^n
+\underbrace{\int_{y_i}^{\mu_i}\frac{y_i-t}{\omega_i^{-1} 
+\phi v(t)}dt}_{\equiv Q_i (\mu_i, y_i)}$.
+
+\item If you differentiate $Q({\boldsymbol \mu}; {\bf y})$ with respect to $\boldsymbol \beta$, 
+\[
+\frac{\partial Q({\boldsymbol \mu}; \textbf{y})}{\partial \boldbeta} = \sum_{i=1}^n \frac{\partial Q_i}{ \partial \mu_i} \frac{\partial \mu_i}{ \partial \boldbeta_i} = \sum_{i=1}^n
+\underbrace{\textbf{z}_i D_i(\mbox{\boldmath $\beta$}) }_{\frac{\partial \mu_i}{\partial \boldbeta_i}}
+ \cdot
+  \underbrace{\frac{y_i - \mu_i}{ \phi v(\mu_i)/\omega_i}}_{ \frac{\partial Q_i}{ \partial \mu_i}  },
+\]
+which is  just ${\bf s}({\boldsymbol \beta})$.
+
+\end{wideitemize}
+\end{frame}
+
+% another frame
+
+% new frame
+\begin{frame} {A historical note }
+
+
+\begin{wideitemize}
+
+\item 
+Note $-2Q(\mbox{\boldmath $\mu$}; \textbf{y})$ is called the \textbf{scaled quasi-deviance}.
+And the \textbf{quasi-deviance} is
+\[
+D(\textbf{y}, \mbox{\boldmath $\mu$})=-2\phi Q(\mbox{\boldmath $\mu$}; \textbf{y})
+=-2\sum_{i=1}^n\int_{y_i}^{\mu_i}\frac{y_i-t}{\omega_i^{-1} v(t)}dt
+\]
+
+\item  Note that
+\[
+D({\bf y}, {\bf y}) = 0
+\]
+by setting $\boldmu = {\bf y}$.
+
+\item  This   is analogous to the deviance in the full likelihood models, because the saturated model also estimates $\boldmu$ by ${\bf y}$ and  has deviance $0$. 
+
+
+
+\item Different $v(\cdot)$ functions give different quasi log-likelihoods, and some correspond to real log-likelihoods for known distributions; see \cite[Chapter 9, Table 9.1]{GLM1989}.
+\end{wideitemize}
+\end{frame}
+
+%
+%\begin{frame}{\S2.3.1 Quasi-likelihood models (3)}
+%\begin{itemize}
+%\item
+%The \textbf{quasi-score function} or \textbf{generalised estimating equation (GEE) function} is defined as
+%$\displaystyle \textbf{s}(\mbox{\boldmath $\beta$})=\frac{\partial Q(\mbox{\boldmath $\mu$}; \textbf{y})}{\partial
+%\mbox{\boldmath $\beta$}}$.
+%\item
+%It is not difficult to show that
+%$$\textbf{s}(\mbox{\boldmath $\beta$})=\sum_{i=1}^n\textbf{z}_i D_i(\mbox{\boldmath $\beta$})
+%\sigma_i^{-2}(\mbox{\boldmath $\beta$})\left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right]
+%=Z^TD(\mbox{\boldmath $\beta$})\Sigma^{-1}(\mbox{\boldmath $\beta$})\left[\textbf{y}-
+%\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})\right]$$
+%where $\mu_i(\mbox{\boldmath $\beta$})=h(\textbf{z}_i^T\mbox{\boldmath $\beta$})$ is assumed
+%to be correctly specified, and $\sigma^2(\mu_i)=\phi v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))/\omega_i$
+%is only the \textit{working} one. Refer to page~21 for definitions of $D_i(\mbox{\boldmath $\beta$})$,
+%$D(\mbox{\boldmath $\beta$})$ and $\Sigma(\mbox{\boldmath $\beta$})$.
+%\item
+%This $\textbf{s}(\mbox{\boldmath $\beta$})$ has the same form as we see in GLM with exponential
+%family response, but has a generalised conception over that in GLM.
+%\item
+%Note in some papers/books, the dispersion parameter $\phi$ is filtered out of $\textbf{s}(\mbox{\boldmath $\beta$})$,
+%which does not affect the estimation of $\mbox{\boldmath $\beta$}$.
+%\end{itemize}
+%\end{frame}
+
+\begin{frame}{Information matrix and variance}
+\begin{wideitemize}
+
+\item
+The \textbf{expected quasi-information} function is
+\[
+F(\boldbeta)\equiv E\left(-\frac{\partial \textbf{s}(\mbox{\boldmath $\beta$})}{\partial
+\mbox{\boldmath $\beta$}^T}\right)=\sum_{i=1}^n\textbf{z}_i\textbf{z}_i^Tw_i(\mbox{\boldmath $\beta$})
+=Z^TW(\mbox{\boldmath $\beta$})Z,
+\]
+where $W({\boldsymbol \beta}) = \text{diag}(w_1({\boldsymbol \beta}), \dots, w_n({\boldsymbol \beta}))$ for 
+$
+w_i ({\boldsymbol \beta}) \equiv D_i^2({\boldsymbol \beta}) \sigma_i^{-2}({\boldsymbol \beta})$.
+ 
+
+\item
+The variance of $\textbf{s}(\mbox{\boldmath $\beta$})$ is
+$$V(\mbox{\boldmath $\beta$})\equiv\mbox{cov}(\textbf{s}(\mbox{\boldmath $\beta$}))=
+\sum_{i=1}^n\textbf{z}_i\textbf{z}_i^TD_i^2(\mbox{\boldmath $\beta$})\cdot\frac{\sigma_{oi}^2(\textbf{x}_i)}{
+\sigma_i^4(\mbox{\boldmath $\beta$})}.$$
+\item
+Both $E(\cdot)$ and $\text{cov} (\cdot)$ are with respect to the true distribution of the data $\textbf{y} = (y_1, \dots, y_n)$. 
+
+\item In general, $F(\mbox{\boldmath $\beta$})\neq V(\mbox{\boldmath $\beta$})$ unless 
+$\sigma_{oi}^2(\textbf{x}_i)=\sigma_i^2(\mbox{\boldmath $\beta$})$, i.e. the variance function 
+is correctly specified.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Covariance structure of $\hat{\boldsymbol \beta}$ }
+\begin{itemize}
+\item
+Under regularity conditions, 
+\[
+\hat{\boldbeta} \stackrel{a}{\sim} N\left(\mbox{\boldmath $\beta$}, \hat{F}^{-1}\hat{V}
+\hat{F}^{-1}\right),
+\]
+where 
+\[\hat{V}=\sum_{i=1}^n\textbf{z}_i\textbf{z}_i^T 
+D_i^2(\hat{\boldbeta})\cdot\frac{[y_i-h(\textbf{z}_i^T\hat{\boldbeta})]^2}{
+\sigma_i^4(\hat{\boldbeta})}\]
+and
+\[
+\hat{F} = F(\hat{\boldbeta})
+\]
+are estimates for  $V(\boldbeta)$ and $F(\boldbeta)$.
+
+\ \
+
+\item $\hat{F}^{-1}\hat{V}
+\hat{F}^{-1}$ is famously known as a
+\begin{itemize}
+\item {\bf sandwich} estimator (for $\hat{V}$ being the ``ham"),  or 
+\item {\bf robust} estimator (for its asymptotic validity regardless of whether $\text{Var}(y_i| {\bf x}_i)$ is correctly specified).
+\end{itemize}
+
+
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Covariance structure of $\hat{\boldsymbol \beta}$ }
+
+\begin{itemize}
+\item By Taylor's approximation, we have
+\[
+0 = {\bf s} (\hat{\boldsymbol \beta}) \sim_a   {\bf s} ({\boldsymbol \beta})  - F({\boldsymbol \beta})(\hat{\boldsymbol \beta} - {\boldsymbol \beta}).
+\]
+(Apparently, we have replaced the Hessian by its expectation)
+
+\ \
+
+\item Hence,
+\[
+\text{cov } (\hat{\boldsymbol \beta} - {\boldsymbol \beta}) \approx F^{-1}({\boldsymbol \beta}) V(\boldbeta) F^{-1}({\boldsymbol \beta})
+\]
+
+\ \
+\item However, if the variance structure happens to be  correctly specified, we have $F(\boldbeta)  = V(\boldbeta)$, which gives
+\[
+\text{cov } (\hat{\boldsymbol \beta} - {\boldsymbol \beta}) \approx F^{-1}({\boldsymbol \beta})
+\]
+
+\ \
+\item In fact, this heuristics also explains the  covariance structure  $F^{-1}(\boldbeta)$ of the MLE $\hat{\boldbeta}$, where $F(\boldbeta)$ is the actual Fisher information under the full set of GLM assumptions.
+
+
+
+\end{itemize}
+
+
+\end{frame}
+
+
+
+
+\begin{frame}{Covariance structure of $\hat{\boldsymbol \beta}$ (Summary)}
+\begin{itemize}
+\item If only the mean structure \eqref{mean_struct} is correctly specified:
+
+\ \
+\begin{wideitemize}
+\item $\hat{\boldbeta} \sim_a N( \boldbeta, \hat{F}^{-1} \hat{V} \hat{F}^{-1})$ ({\bf robust/sandwich } covariance estimate)
+\item By tracing where $\phi$ figures in $F$ and $V$, no $\phi$ appears in $\hat{F}^{-1} \hat{V} \hat{F}^{-1}$ due to cancellation. 
+\item $\Rightarrow$  No need to estimate $\phi$ in practice! Note that our Pearson-residual-based estimator $\hat{\phi}$ only makes sense when the variance structure is correctly specified.
+\end{wideitemize}
+
+\ \
+
+\item If  both the mean and variance structures \eqref{mean_struct} and \eqref{var_struct} are correctly specified:
+
+\ \
+
+\begin{wideitemize}
+\item $\hat{\boldbeta} \sim_a N( \boldbeta, \hat{F}^{-1} )$ ({\bf naive}/{\bf model based } covariance estimate)
+
+\item In this case, both $\hat{F}^{-1} $ and $\hat{F}^{-1} \hat{V} \hat{F}^{-1}$ are  (asymptotically) valid and they should also be close in value.  However, one may argue that $\hat{F}^{-1} $ is slightly favored  since less estimation is needed. 
+\end{wideitemize}
+
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Efficiency (1) }
+
+
+
+\begin{wideitemize}
+\item Question: When we assume both the mean and variance structures are correctly specified, $F^{-1}$, the inverse of the quasi-information,  is a valid covariance matrix for $\hat{\boldbeta}$. But then, $F$ is also a proper Fisher information matrix when there exists a GLM  (a full-blown likelihood model) that admits the value of the  dispersion parameter $\phi$ embedded in $F$. Intuitively, shouldn't we lose some efficiency (i.e. having a smaller ``information matrix", in matrix sense) since now we've only correctly assumed the first two moments?  
+
+
+
+
+
+\item Answer: Generally, we do lose efficiency. In particular, the quasi information $F$ is generally ``less"  (in matrix sense) than the Fisher information, $- E[\frac{\partial^2 \ell }{\partial \boldbeta^2}]$,   defined by the true (unknown) log-likelihood $\ell$. However, if $\ell$ {\bf happens to be an exponential family} log-likelihood, then we're lucky enough not to lose efficiency, because the qMLE coincides with the MLE which already exploits all distributional information by design.
+
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {Efficiency (2)}
+Under the minimal assumptions of a correctly specified mean structure and certain regularity conditions, one can show that 
+\[
+\left(\sum_{i=1}^n\textbf{z}_i\textbf{z}_i^TD_i^2(\mbox{\boldmath $\beta$})\cdot\frac{1}{
+\sigma_{oi}^2(\mbox{\boldmath $\beta$})} \right)^{-1}.
+\]
+is a lower bound (in matrix sense) for the limiting-covariance of a quasi-likelihood type estimator; see Section 5  of \cite{GMT1984}  for a proof. 
+
+\ \
+
+Hence if we can correctly specify the variance structure, we can get $V^{-1}$ to be the matrix in display, and thus achieve efficiency. 
+
+
+
+
+
+
+\end{frame} 
+
+\begin{frame} {Testing in  quasi-likelihood model}
+\begin{itemize}
+
+\item
+Testing $H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$}$ vs. $H_1:C\mbox{\boldmath $\beta$}
+\neq \mbox{\boldmath $\xi$}$ is still possible by properly modified Wald or score statistics, e.g. a modified
+Wald statistic is 
+$$W_m=(C\hat{\boldbeta}-\mbox{\boldmath $\xi$})^T[C
+\hat{F}^{-1}\hat{V}\hat{F}^{-1}C^T]^{-1}
+(C\hat{\boldbeta}-\mbox{\boldmath $\xi$}),$$
+with limiting distribution still being $\chi^2(r)$, $r=\mbox{Rank}(C)$.
+
+\ \
+
+\item
+Quasi-LR (likelihood ratio) test statistic in general is not equivalent to modified Wald or modified
+score test, and may not have a limiting $\chi^2$ distribution (Foutz \& Srivastava, 1977).
+
+
+\end{itemize}
+
+
+\end{frame}
+
+
+
+\begin{frame} {Variance function with unknown parameter}
+
+\begin{wideitemize}
+\item So far,  the working variance function is a known function of the mean, $v(\mu_i)$.
+
+\item Some authors (e.g. Nelder \& Pregibon, 1987) relaxed this and specify
+\[
+var(y_i | {\bf x}_i) = \phi v(\mu_i, \theta)/\omega_i,
+\]
+i.e., $v(\cdot)$ has an extra  parameter $\theta$ (not to be confused with the canonical parameters in the GLM!). 
+
+\item We will investigate this in the example to follow. 
+
+\end{wideitemize}
+\end{frame}
+
+
+\subsection{Example: Cell Differentiation Data}
+
+%\begin{frame}{Agenda today}
+%\begin{itemize}
+%\item introduce \texttt{knitr}
+%
+%
+%
+%\item Look at cell differentiation data (Example 2.3, 2.6, 2.7) in F \& T. 
+%
+%%\item Finish Example 2.7 in F \& T on log linear Poisson model, with \texttt{R}. (Recall log linear link means $\mu = \exp(\eta)$)
+%
+%
+%\item  Reference:  ``Modern Applied Statistics  With S"  by {\bf Venables and Ripley} ({\bf V \& R} ), downloadable from unimelb library. 
+%
+%\end{itemize}
+%\end{frame}
+
+
+\begin{frame}{Cell Differentiation data (F \& T, Example 2.3, 2.6, 2.7)}
+
+
+%\item Study the immuno-activating effect of  two agents, TNF (tumor necrosis factor) and TFN (interferon) on inducing cell differentiation
+%
+%\item Log-linear Poisson mean model:
+%\[
+%\mu = E[y|TNF, IFN] = \exp( \beta_0 + \beta_1 TNF + \beta_2 IFN + \beta_3 TNF*IFN)
+%\]
+ \includegraphics[height=8cm]{celldiff}
+
+\end{frame}
+
+\begin{frame}
+
+A handy reference  relevant to our R code associated with  these examples is 
+\[
+\text{``Modern Applied Statistics  With S"  by {\bf Venables and Ripley} ({\bf V \& R})},
+\]
+downloadable from unimelb library. 
+\end{frame}
+
+\begin{frame}{Cell Differentiation data (F \& T, Ex 2.3, 2.6, 2.7)}
+
+\begin{itemize}
+\item Study the immuno-activating effect of  two agents, TNF (tumor necrosis factor) and TFN (interferon) on inducing cell differentiation
+
+\ \
+
+\item Log-linear Poisson mean model:
+\[
+\mu = E[y|TNF, IFN] = \exp( \beta_0 + \beta_1 TNF + \beta_2 IFN + \beta_3 TNF*IFN)
+\]
+
+\ \
+
+\item Doses of TNF  and IFN are treated as numbers (instead of factors)
+
+\ \
+
+\item Regression with both the  Poisson GLM (Ex. 2.3 and 2.6) and quasi-likelihood approaches (Ex. 2.7).
+
+
+\end{itemize}
+
+\end{frame}
+
+
+%
+%
+%\begin{frame} {Recap a few quick facts first..}
+%In the quasi-likelihood inference world, we only assume the mean and variance structure forms:
+%\[
+%E(y|{\bf x}) = \mu = h(z'\beta), \ \ Var(y|{\bf x}) = \sigma^2(\mu) = \phi v(\mu)
+%\]
+%\begin{wideitemize}
+%\item Generally, for consistent $\beta$ estimate, we only need to have the mean structure correctly specified. In this case, 
+%\begin{wideitemize}
+%\item $\hat{\beta} \sim_a N( \beta, \hat{F}^{-1} \hat{V} \hat{F}^{-1})$ ({\bf robust/sandwich } covariance estimate)
+%\end{wideitemize}
+%\item But Wedderburn(1974) originally assumed both mean and variance structures are correctly specified. In this case
+%\begin{wideitemize}
+%\item $\hat{\beta} \sim_a N( \beta, \hat{F}^{-1} )$ ({\bf model based } covariance estimate)
+%
+%\item (In principle, both $\hat{F}^{-1} $ and $\hat{F}^{-1} \hat{V} \hat{F}^{-1}$ are valid and they should also be close in value.  However, one may argue that $\hat{F}^{-1} $ is slightly favored in this case since less estimation is needed. )
+%\end{wideitemize}
+%\end{wideitemize}
+%\end{frame}
+
+\begin{frame} { Poisson GLM (full likelihood) inference (Ex. 2.3 \& 2.6)}
+
+\begin{itemize}
+\item F \& T used  a $\chi^2(\underbrace{12}_{n - p})$ reference null to test the full Poisson GLM against the saturated model, and reject the Poisson GLM based on the deviance 142.4 . 
+
+
+\ \
+\item However, the dimension of the saturated model $n$ is the sample size (16) itself, so chi-squared asymptotic isn't necessarily valid (dimensionality growing with $n$). \\
+
+\ \
+
+$\Rightarrow$ take $\chi^2$ test with a grain of salt. (The biostatistician Johnathan Bartlett pointed out the same issue: \href{https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/}{\textcolor{red}{click link here}})
+
+\ \
+
+%\item Recall: for binomial data we also prefer that sample size is large and each group has enough data 
+
+\item The $\chi^2$ asymptotic MAY be reliable for Poisson regression deviance when the mean for each data point $y_i$ is large enough; see the discussion of Bartlett above and $V\& R$ (p.187) for the detail. 
+
+\end{itemize}
+
+
+\end{frame}
+
+
+
+
+%
+%\begin{frame}
+%We will continue our discourse on  GLMs
+%
+%\begin{figure}
+% \centering
+%\includegraphics[width=0.5\textwidth]{NandW}
+%% \label{figure:example}
+%\end{figure}
+%
+%
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{Outline}
+%\tableofcontents
+%\end{frame}
+%%
+%%\section{\S2.1 Univariate GLM}\label{sec:2.1}
+%%%\subsection{\S2.1.1 Data}
+%%%
+%%%\begin{frame}{\S2.1.1 Data (ungrouped)}
+%%%\begin{itemize}
+%%%\item
+%%%$y$, univariate response
+%%%
+%%%\item  $\textbf{x}=(x_1,\cdots,x_m)^T$, $m$ covariate variables
+%%%
+%%%\item
+%%%A sample of $n$ individuals: 
+%%%$$(y_i, \textbf{x}_i^T)=(y_i, x_{i1},\cdots, x_{im}), \quad i=1,2,\cdots,n$$
+%%% in matrix form
+%%%\begin{equation*}
+%%%\textbf{y}=\left[\begin{array}{c} y_1 \\ \vdots \\ y_i \\ \vdots \\ y_n\end{array}\right], \quad
+%%%X=\left[\begin{array}{ccc} x_{11} & \cdots & x_{1m} \\ \vdots & \cdots & \vdots \\
+%%%x_{i1} & \cdots & x_{im} \\ \vdots & \cdots & \vdots \\ x_{n1} & \cdots & x_{nm} \end{array}
+%%%\right]_{n\times m}
+%%%\end{equation*}
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.1 Data (grouped)}
+%%%\begin{itemize}
+%%%\item 
+%%%Sometimes two or more individuals have covariate values, i.e. some rows of $X$ are identical
+%%%
+%%%\item Individuals with  same $\bf x$ (say $n_i$ of them)  can be grouped. The group mean $\bar{y}$ responses is taken to be the group response. 
+%%%
+%%%
+%%%\item $g = $ number of different ${\bf x}_i$
+%%%\ \
+%%%
+%%%
+%%%
+%%%\begin{center}
+%%%\begin{tabular}{cccc}
+%%%& sizes & group means &  \\ \\
+%%%Group 1 &  \multirow{5}{*}{$\left[\begin{array}{c} n_1 \\ \vdots \\ n_i \\ \vdots \\ n_g\end{array}\right]$,} 
+%%%& \multirow{5}{*}{$\bar{\textbf{y}}=\left[\begin{array}{c} \bar{y}_1 \\ \vdots \\ \bar{y}_i \\ \vdots 
+%%%\\ \bar{y}_g\end{array}\right]$,} & \multirow{5}{*}{$X=\left[\begin{array}{ccc} x_{11} & \cdots & x_{1m} \\ 
+%%%\vdots & \cdots & \vdots \\ x_{i1} & \cdots & x_{im} \\ \vdots & \cdots & \vdots \\ x_{g1} & \cdots & x_{gm}
+%%%\end{array}\right]_{g\times m}$} \\ $\vdots$ & & & \\ Group $i$ & & & \\ $\vdots$ & & & \\ Group $g$ & & &
+%%%\end{tabular}
+%%%\end{center}
+%%%
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\subsection{\S2.1.2 GLM}
+%%%\begin{frame}{\S2.1.2 GLM (Its form)}
+%%%\noindent
+%%%\textbf{1. Distributional assumption}
+%%%\begin{itemize}
+%%%\item
+%%%Given $\textbf{x}_i$'s, the $y_i$'s are (conditionally) independent.
+%%%
+%%%\item
+%%%The (conditional) pdf of $y_i$ is
+%%%$$f(y_i|\theta_i, \phi, \omega_i)=\exp\left\{\frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot \omega_i +
+%%%c(y_i,\phi, \omega_i)\right\}, \quad \mbox{where}$$
+%%%\begin{itemize}
+%%%\item
+%%%$\theta_i$ -- \textit{natural} (or \textit{canonical}) parameter;
+%%%\item
+%%%$\phi$ --  \textit{scale} (or \textit{dispersion}) parameter;
+%%%\item
+%%%$b(\cdot)$ and $c(\cdot)$ --  specific functions determined by the actual distribution of $y_i$;
+%%%\item
+%%%$\omega_i$ is the \textit{weight}. 
+%%%\begin{itemize}
+%%%\item for ungrouped data, $\omega_i=1$ ; 
+%%%\item for grouped data, $\omega_i$ equals $n_i$ when the group mean is the response, and equals $1/n_i$
+%%%when group total is the response; 
+%%%\end{itemize}
+%%%\end{itemize}
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}
+%%%
+%%%\begin{itemize}
+%%%\item Jorgensen (1992) also calls this an exponential dispersion model
+%%%\item $\mu_i = E(y_i|\textbf{x}_i)$ still denotes the mean
+%%%\item We will model the dependence of $\mu_i $ on covariates via a link/response function
+%%%%The (conditional) distribution of $y_i$ belongs to a \textit{simple exponential family} with  
+%%%%$E(y_i|\textbf{x}_i)=\mu_i$, and possibly a common \textit{scale} (or \textit{dispersion}) parameter $\phi$.
+%%%\end{itemize}
+%%%
+%%%\end{frame}
+%%%
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Mean structure via link)}
+%%%\noindent
+%%%\textbf{2. Structural assumption}
+%%%
+%%%Mean $\mu_i$ is related to the \textit{linear predictor} $\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$}$ by
+%%%$$\mu_i=h(\eta_i)=h(\textbf{z}_i^T\mbox{\boldmath $\beta$}), \quad\mbox{respectively},\quad
+%%%\eta_i=g(\mu_i)$$
+%%%where
+%%%\begin{itemize}
+%%%\item
+%%%$h(\cdot)$ is the \textit{response function};
+%%%\item
+%%%$g(\cdot)$ is the \textit{link function}, $g=h^{-1}$;
+%%%\item
+%%%$\mbox{\boldmath $\beta$}$ is a $p\times 1$ unknown \textit{parameter} vector;
+%%%\item
+%%%$\textbf{z}_i$ is a $p\times 1$ unknown \textit{design} vector, $\textbf{z}_i=\textbf{z}(\textbf{x}_i)$ (a transformation of $\textbf{x}_i$ ).
+%%%\end{itemize}
+%%%
+%%%
+%%%\end{frame}
+%%%
+%%%
+%%%\begin{frame}
+%%%\begin{itemize}
+%%%
+%%%\item
+%%%Thus a  GLM has  3 components
+%%%\begin{enumerate}
+%%%\item
+%%%type of the exponential family
+%%%\item
+%%%the response/link function
+%%%\item
+%%%the design vector 
+%%%\end{enumerate}
+%%%\item 
+%%%Obviously, ${\bf z}(\textbf{x}_i)$ determines the mean $\mu_i$ via the link
+%%%
+%%%\item The exponential family construction must also have led to a relationship between $\mu_i$ and the exponential family parameters. What is this relationship?
+%%%\end{itemize}
+%%%
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Mean determines variance)}
+%%%\noindent
+%%%\textbf{Remark 1.}
+%%%\begin{itemize}
+%%%\item
+%%%One can derive that
+%%%$$\mu_i=b^\prime (\theta_i)=\frac{\partial b(\theta_i)}{\partial \theta_i} \quad
+%%%\mbox{and}\quad \mbox{var} (y_i|\textbf{x}_i)\stackrel{\mbox{\scriptsize denoted}}{=}\sigma^2(\mu_i)=\frac{\phi}{\omega_i} v(\mu_i)$$
+%%%with
+%%%$v(\mu)=b^{\prime\prime}(\theta)=\frac{\partial^2 b(\theta)}{\partial \theta^2}$ being called the 
+%%%\textit{variance function}.
+%%%
+%%%\item (see blackboard derivation)
+%%%
+%%%\item  $Note: $$b'$ is invertible mapping from $\theta$ to $\mu$, since $b''(\theta)$, being a variance, is $>0$.  (Hence the notation $v(\mu)$)
+%%%\item
+%%%$\Rightarrow$ Modeling the  mean  as $\mu=h(\textbf{z}^T\mbox{\boldmath $\beta$})$  also determines the variance structure
+%%%
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}
+%%%\begin{itemize}
+%%%\item
+%%%different from linear models (LM) where $E(y|\textbf{x})$ and 
+%%%$\mbox{var}(y|\textbf{x})$ are unrelated. 
+%%%\item \textbf{quasi-likelihood} approach (Ch2.3) allows us to model the mean and variance structure separately. 
+%%%%The relation between $\mu$ and $v(\mu)$ may also be specified through empirical evidence,
+%%%%resulting in the so-called \textbf{quasi-likelihood} approach.
+%%%\end{itemize}
+%%%
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Natural/canonical link)}
+%%%\noindent
+%%%\textbf{Remark 2.}
+%%%\begin{wideitemize}
+%%%\item
+%%%Choosing $h(\cdot)$ and $g(\cdot)$ should depend on the specific distribution of $y$.
+%%%\item
+%%%Note that assuming $\theta\equiv \theta(\mu)=\eta\equiv \textbf{z}^T\mbox{\boldmath $\beta$}$
+%%%makes estimating $\mbox{\boldmath $\beta$}$ much easier.
+%%%
+%%%%Since $\mu=b^\prime(\theta)$ implies $\theta=(b^\prime)^{-1}(\mu)$, it follows that
+%%%%$\eta=\theta(\mu)=(b^\prime)^{-1}(\mu)$ and $g(\mu)=(b^\prime)^{-1}(\mu)$ under this assumption.
+%%%\item
+%%%We call $\eta=(b^\prime)^{-1}(\mu)$ the \textit{natural} (or \textit{canonical}) link function,
+%%%and $\mu=b^{\prime}(\eta)$ the \textit{natural response function}.
+%%%%\item
+%%%%It can be shown that the natural link function is
+%%%%\begin{enumerate}
+%%%%\item
+%%%%$\eta=\mu$ if $y\sim \mbox{Normal}(\mu, \sigma^2)$; \textit{identity link};
+%%%%\item
+%%%%$\eta=\log\mu$ if $y\sim \mbox{Poisson}(\mu)$; \textit{log link};
+%%%%\item
+%%%%$\eta=\log\frac{p}{1-p}=\log\frac{\mu}{n_g-\mu}$ if $y\sim\mbox{Binomial}(n_g, p)$; \textit{logit (or logistic) link}.
+%%%%\end{enumerate}
+%%%\end{wideitemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (design vector specifics)}
+%%%\noindent
+%%%\textbf{Remark 3.}
+%%%\begin{itemize}
+%%%\item
+%%%Concerning the design vector, an intercept term is often included
+%%%$$\textbf{z}=(1,\textbf{z}^{*T})^T$$
+%%%where $\textbf{z}^*=\textbf{z}^*(\textbf{x})$ is a function of $\textbf{x}$, including e.g. $\log(x_1)$,
+%%%$x_2^2$, $\sin (x_m)$ etc. as well as $\textbf{x}$ itself.
+%%%%\item
+%%%%A categorical covariate with $k$ levels has to be coded by a $(k-1)\times 1$ dummy vector, or an equivalent
+%%%%vector of size $q=k-1$ for it to be properly included in the design vector.
+%%%\item A categorical covariate with $k$ levels can  be coded by a dummy vector ${\bf x} = (x^{(1)}, \dots, x^{(k-1)})$ of length $k-1$, where
+%%%\[ x^{(j)} =
+%%%  \begin{cases}
+%%%    1      & \quad \text{if } j = 1, \dots, k-1\\
+%%%   0  & \quad \text{if } j = k
+%%%  \end{cases}
+%%%\]
+%%%(k-th category reserved as reference)
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\S2.1.2 GLM (Grouped and ungrouped)}
+%%%\noindent
+%%%\textbf{Remark 4.}
+%%%\begin{itemize}
+%%%
+%%%\item 
+%%%Suppose ungrouped data 
+%%%$(y_i, \textbf{x}_i^T)$, $i=1,\cdots, n$, are modelled by a GLM with
+%%%$$E(y_i|\textbf{x}_i)=\mu_i=h(\textbf{z}^T\mbox{\boldmath $\beta$}), \quad
+%%%\mbox{var}(y_i|\textbf{x}_i)=\phi v(\mu_i).$$
+%%%\item
+%%%If the data are grouped, so  $\bar{y}_i$ is  the response observation for group $i$ of
+%%%size $n_i$ with covariate vector $\textbf{x}_i$, then
+%%%% the distribution of $\bar{y}_i$ is within the exponential
+%%%%family again, and
+%%%$$E(\bar{y}_i|\textbf{x}_i)=\mu_i=h(\textbf{z}^T\mbox{\boldmath $\beta$}), \quad
+%%%\mbox{var}(\bar{y}_i|\textbf{x}_i)=n_i^{-1}\phi v(\mu_i).$$
+%%%So the same GLM applies to the grouped data as well if the variance function is properly adjusted 
+%%%by a factor of $n_i^{-1}$, i.e. defining the weight $\omega_i=n_i$.
+%%%\item By same token, if the group \emph{total} is used as response, one should define $\omega_i=1/n_i$.
+%%%\end{itemize}
+%%%\end{frame}
+%%
+%%%\begin{frame}{GLM  Common exponential families}
+%%%
+%%%Recall the table from last time
+%%%\begin{table} [!htbp]
+%%%\caption{Common exponential families} \label{tab2.1}
+%%%\begin{center}
+%%%{\tiny
+%%%\begin{tabular}{|c|c|c|c|c|c|c|}
+%%%\hline
+%%%Distribution & $\theta (\mu)$ & $b(\theta)$ & $\phi$ & $E(y)=b^\prime(\theta)$ & $v(\mu)=b^{\prime\prime}(\theta)$
+%%%& $\mbox{var}(y)=b^{\prime\prime}(\theta)\phi/\omega$ \\ \hline
+%%%$\begin{array}{c} \mbox{Normal} \\ N(\mu,\sigma^2)\end{array}$ & $\mu$ & $\theta^2/2$ & $\sigma^2$ 
+%%%& $\mu=\theta$ & 1 & $\sigma^2/\omega$ \\
+%%%\hline
+%%%$\begin{array}{c} \mbox{Bernoullil} \\ B(1,\pi)\end{array}$ & $\log\frac{\pi}{1\!-\!\pi}$ 
+%%%& $\log (1\!+\!e^\theta)$ & 1 & $\pi=\frac{e^\theta}{1+e^\theta}$ &
+%%%$\pi(1-\pi)$ & $\pi(1-\pi)/\omega$ \\ \hline
+%%%$\begin{array}{c} \mbox{Poisson} \\ P(\lambda)\end{array}$ & $\log\lambda$ & $e^\theta$ 
+%%%& 1 & $\lambda=e^\theta$ & $\lambda$ & $\lambda/\omega$ \\
+%%%\hline
+%%%$\begin{array}{c} \mbox{Gamma} \\ G(\mu,\nu)\end{array}$ & $-1/\mu$ & $-\log(-\theta)$ & $\nu^{-1}$ 
+%%%& $\mu=-1/\theta$ & $\mu^2$ & $\mu^2\nu^{-1}/\omega$ \\ \hline
+%%%$\begin{array}{c} \mbox{InverseGaussian} \\ IG(\mu,\sigma^2)\end{array}$ & $-1/2\mu^2$ & $-(-2\theta)^{1/2}$
+%%%& $\sigma^2$ &  $\mu=(-2\theta)^{-1/2}$ & $\mu^3$ & $\mu^3\sigma^2/\omega$ \\ \hline
+%%%\end{tabular}}
+%%%\end{center}
+%%%\end{table}
+%%%%Remember that if $\theta = \eta = \textbf{z}^T\mbox{\boldmath $\beta$}$
+%%%%\begin{itemize}
+%%%%\item 2nd column gives the canonical link function
+%%%%\item 3rd column gives the canonical response function
+%%%%\end{itemize}
+%%%\end{frame}
+%%
+%%
+%%%\subsection{\S2.1.3 GLM for continuous responses}\label{sec:2.1.3}
+%%%\begin{frame}{\large \S2.1.3 GLM for normal, Gamma \& inverse Gaussian responses }
+%%%
+%%%When $y\sim \mbox{Normal}(\mu,\sigma^2)$, $\mu=\eta=\textbf{z}^T\mbox{\boldmath $\beta$}$
+%%%if the natural link is used. Also $\theta=\mu$, $b(\theta)=\frac{1}{2}\theta^2$, $\phi=\sigma^2$ and
+%%%$v(\mu)=1$.
+%%%
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\large \S2.1.3 GLM for normal, Gamma \& inverse Gaussian responses}
+%%%When $y$ has a Gamma distribution (e.g. survival time, insurance claims, amount of rainfall, etc.), the pdf is
+%%%$$f(y|\mu,\nu)=\frac{1}{\Gamma(\nu)}\left(\frac{\nu}{\mu}\right)^\nu y^{\nu-1}\exp\left(-\frac{\nu}{\mu}y\right),
+%%%\quad y\geq 0,$$
+%%%where $\mu>0$ is the mean parameter, and $\nu>0$ the shape parameter.
+%%%\begin{itemize}
+%%%\item
+%%%The natural link is $\eta=-\theta=\mu^{-1}$. Linear predictor $\eta=\textbf{z}^T\mbox{\boldmath $\beta$}$.
+%%%Hence $\mu^{-1}=\textbf{z}^T\mbox{\boldmath $\beta$}$.
+%%%\item
+%%%Alternatively, identical link $\eta=\mu$ and log-link $\eta=\log \mu$ can be used to avoid the restriction. (These will give positive mean $\mu$ so they are allowed)
+%%%\end{itemize}
+%%%\end{frame}
+%%%
+%%%\begin{frame}{\large \S2.1.3 GLM for normal, Gamma \& inverse Gaussian responses }
+%%%\begin{itemize}
+%%%\item
+%%%When $y$ has an inverse Gaussian distribution $\mbox{IG}(\mu,\sigma^2)$ (useful for modelling life time etc.), the pdf is
+%%%\begin{eqnarray*}
+%%%f(y|\mu,\sigma^2) &\!\!\!=\!\!\!&\left(\frac{1}{2\pi\sigma^2 y^3}\right)^{1/2}\exp\left(-\frac{(y-\mu)^2}{2\sigma^2\mu^2y}
+%%%\right), \quad\!\!\! y>0, \mu>0, \sigma^2>0 \\
+%%%&\!\!\!=\!\!\!& \left(\frac{1}{2\pi\sigma^2 y^3}\right)^{1/2}\exp\left\{\frac{-y\frac{1}{2\mu^2}+\frac{1}{\mu}}{\sigma^2}
+%%%-\frac{1}{2\sigma^2 y}\right\}
+%%%\end{eqnarray*}
+%%%\item
+%%%Hence natural parameter $\theta=-\frac{1}{2\mu^2}$;  dispersion parameter $\phi=\sigma^2$.
+%%%\begin{eqnarray*}
+%%%b(\theta)=-\frac{1}{\mu}=-(-2\theta)^{1/2} \quad \Rightarrow \quad b^\prime(\theta)=(-2\theta)^{-1/2}=\mu \\
+%%%\Rightarrow \; b^{\prime\prime}(\theta)\!=\!(-2\theta)^{-3/2}\!=\!\mu^3 \;\; \Rightarrow \;\;
+%%%v(\mu)\!=\!\mu^3 \;\; \Rightarrow \;\; \mbox{Var}(y)\!=\!\sigma^2\mu^3
+%%%\end{eqnarray*}
+%%%The natural link is obtained by setting $\eta=\theta, \quad\Rightarrow\quad \eta=-\frac{1}{2\mu^2}$, i.e.
+%%%$$\eta=\theta=(b^\prime)^{-1}(\mu)=-(2\mu^2)^{-1}.$$
+%%%In practice $\eta=\mu^{-2}$ is used as the natural link.
+%%%\end{itemize}
+%%%\end{frame}
+%%
+%%\subsection{\S2.1.4 GLM for binary and binomial responses}\label{sec:2.1.4}
+%%\begin{frame}{\S2.1.4 GLM for binary and binomial responses }
+%%\begin{wideitemize}
+%%\item
+%%Suppose $y_i|\textbf{x}_i \sim \mbox{Binomial}(m_i,\pi_i)$ and $\bar{y}_i=\frac{y_i}{m_i}$ (scaled binomial) are used as the
+%%response, $i=1,\cdots,n$. Then the pmf is {\footnotesize
+%%$$f(y_i|m_i, \pi_i,\textbf{x}_i)\!=\!{m_i\choose y_i}\pi_i^{y_i}(1-\pi_i)^{m_i\!-\!y_i}\!=\!{m_i\choose y_i}\exp\left\{
+%%m_i\bar{y}_i\log\frac{\pi_i}{1\!-\!\pi_i}+m_i\log (1\!-\!\pi_i)\right\}$$}
+%%\item
+%%Natural parameter $\theta_i=\log\frac{\pi_i}{1-\pi_i}$; dispersion $\phi=1$; weight $\omega_i=m_i$.
+%%\item The scaled binomial distribution may treated as the average from grouped binary observations. (group size $ = m_i$ )
+%%\end{wideitemize}
+%%\end{frame}
+%%
+%%
+%%
+%%\begin{frame}
+%%\begin{itemize}
+%%\item
+%%$\mu_i^*=E(y_i|\textbf{x}_i)=m_i\pi_i=m_i\frac{\exp(\theta_i)}{1+\exp(\theta_i)}$
+%%{\small $$\Rightarrow \quad \mu_i=E(\bar{y}_i|\textbf{x}_i)=\pi_i=\frac{\exp(\theta_i)}{1+\exp(\theta_i)}$$}
+%%\item
+%%Also $b(\theta_i)=-\log (1-\pi_i)=\log (1+e^{\theta_i}) \quad \Rightarrow \quad 
+%%b^\prime(\theta_i)=\frac{e^{\theta_i}}{1+e^{\theta_i}}=\pi_i$
+%%{\small $$\Rightarrow\quad b^{\prime\prime}(\theta_i)=\frac{e^{\theta_i}}{(1+e^{\theta_i})^2}=\pi_i(1-\pi_i)
+%%=v(\pi_i)$$}
+%%$\Rightarrow\quad \mbox{Var}(\bar{y}_i|\textbf{x}_i)=\sigma^2(\mu_i)=\phi v(\mu_i)/\omega_i
+%%=m_i^{-1}\pi_i(1-\pi_i)$.
+%%
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%
+%%\begin{frame}{\S2.1.4 GLM for binary and binomial responses }
+%%\begin{itemize}
+%%\item
+%%The natural link is the logit link
+%%\[\eta_i=\theta_i=\log\frac{\pi_i}{1-\pi_i}=(b^\prime)^{-1}(\pi_i),\]
+%%called the \textbf{logit} (or \textbf{logistic}) \textbf{link}, with the corresponding {\bf logistic} response function
+%%\[
+%%\pi_i = \frac{\exp(\eta_i)}{1 + \exp(\eta_i)}. 
+%%\]
+%%
+%%This gives the well-known \textit{logit regression model}:
+%%$\displaystyle \log\frac{\pi_i}{1-\pi_i}\!=\!\textbf{z}_i^T\!\mbox{\boldmath $\beta$}$
+%%
+%%
+%%
+%%
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%
+%%\begin{frame}
+%%
+%%Other models of the form 
+%%\[
+%%\pi = h(\eta)
+%%\]
+%%for  strictly monotonous distribution functions $h$  on the real line:
+%%\begin{enumerate} 
+%%\item
+%%\textbf{Probit Model}:  \[\pi_i = \Phi(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}), \] where $\Phi(\cdot)$ is the N(0,1) cdf. 
+%%% $\eta_i=\Phi^{-1}(\pi_i)$, where 
+%% 
+%%% This results in the
+%%%\textit{probit model} $$\Phi^{-1}(\pi_i)=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}.$$
+%%\item
+%%\textbf{Complementary log-log Model}:
+%%\[
+%%\pi_i = h(\eta_i)\!=\!1\!-\!\exp(\!-\!\exp(\!\eta_i\!)\!)
+%%\]
+%%with link function 
+%%$
+%% \textbf{z}_i^T\!\mbox{\boldmath $\beta$}= \log (-\log(1-\pi_i)).
+%%$
+%%%
+%%%
+%%% $\eta_i=g(\pi_i)=\log (-\log(1-\pi_i))$, resulting in the
+%%%\textit{complementary log-log model} 
+%%%$$\log (-\log(1-\pi_i))=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}.$$
+%%%Note the corresponding \textbf{response function} is $h(\eta_i)\!=\!1\!-\!\exp(\!-\!\exp(\!\eta_i\!)\!)$.
+%%\item
+%%\textbf{Complementary log Model} 
+%%\[
+%% \pi_i = h(\eta_i)  = 
+%%  \begin{cases} 
+%%   1 - \exp(- \eta_i) & \text{if } \eta_i \geq 0 \\
+%%   0       & \text{if } \eta_i < 0
+%%  \end{cases}
+%%\]
+%%
+%%%\[
+%%%\pi_i = h(\eta_i) = 
+%%%\eta_i=g(\pi_i)=-\log(1-\pi_i),
+%%%\] 
+%%%resulting in the
+%%%\textit{complementary log model}
+%%with link function $-\log(1-\pi_i)=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}.$
+%%%\item
+%%%Any inverse cdf can serve as a link function for GLM with binomial responses.
+%%\end{enumerate}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%
+%%
+%%
+%%\begin{figure}
+%% \centering
+%%\includegraphics[width=1\textwidth]{BinaryResponseFunctions.png}
+%% \label{figure:example}
+%%\end{figure}
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.1.4 Over-dispersion in binomial GLM}
+%%\begin{itemize}
+%%
+%%\item In applications it often happens that $\mbox{var}(\bar{y}_i|\textbf{x}_i) > m_i^{-1}\pi_i(1-\pi_i)$,  making the binomial modeling not accurate. 
+%%
+%%\item Two main reasons for this  \textbf{over-dispersion}:
+%%\begin{itemize}
+%%\item
+%%Unobserved heterogeneity, i.e. different Bernoulli trials in the data have different probabilities of ``success".
+%%\item
+%%Positive correlation between individual Bernoulli trials. (For example, different units in a group may be correlated, such as members in a household)
+%%\end{itemize}
+%%%
+%%%\item
+%%%Sometimes $\mbox{var}(\bar{y}_i|\textbf{x}_i) > m_i^{-1}\pi_i(1-\pi_i)$, so-called \textbf{over-dispersion},
+%%%where $\bar{y}_i=m_i^{-1}y_i$ and $y_i$ is the number of ``successes" in $m_i$ Bernoulli trials.
+%%%This implies the actual distribution of $y_i$ is not binomial. Two causes for this happening in practice.
+%%%\begin{enumerate}
+%%%\item
+%%%Unobserved heterogeneity, i.e. different Bernoulli trials in the data have different probabilities of ``success".
+%%%\item
+%%%Positive correlation between individual Bernoulli trials.
+%%%\end{enumerate}
+%%
+%%%\[\mbox{var}(\bar{y}_i|\textbf{x}_i) =\phi\cdot\frac{\pi_i(1-\pi_i)}{m_i},\quad
+%%%\mbox{with $\phi>0$ an over-dispersion parameter.}
+%%%\]
+%%
+%%%Since the actual distribution for $y_i$ is difficult to get in this situation, the simplest way to account
+%%%for this over-dispersion is assuming
+%%%$$\mbox{var}(\bar{y}_i|\textbf{x}_i) =\phi\cdot\frac{\pi_i(1-\pi_i)}{m_i},\quad
+%%%\mbox{with $\phi>0$ an over-dispersion parameter.}$$
+%%%\item
+%%%\textbf{Remark}. Assuming a \textbf{beta-binomial distribution} for $y_i$ can be used to account for the
+%%%over-dispersion.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}
+%%\begin{itemize}
+%%\item
+%%One can account for this by assuming 
+%%\[\mbox{var}(\bar{y}_i|\textbf{x}_i) =\phi\cdot\frac{\pi_i(1-\pi_i)}{m_i},\quad
+%%\mbox{with $\phi>0$ an over-dispersion parameter.}
+%%\]
+%%with the over-dispersion parameter $\phi>1$
+%%
+%%\item Remark: Not same as setting $\phi \not= 1$ in the exponential family form of the binomial distribution! You wouldn't get a proper density this way. However, a genuine likelihood is not actually needed for inference; more on this later when we cover \emph{quasi-likelihood}. 
+%%
+%%%
+%%%
+%%%\item However, 
+%%
+%%
+%%\item One  may assume  a \textbf{beta-binomial distribution}, which allow for variance of the form $\phi \frac{\pi_i(1-\pi_i)}{m_i}$
+%%\end{itemize}
+%%
+%%\end{frame}
+%%
+%%\subsection{\S2.1.5 GLM for count responses}\label{sec:2.1.5}
+%%\begin{frame}{\S2.1.5 GLM for count responses}
+%%\begin{itemize}
+%%\item
+%%If $y_i|\textbf{x}_i \sim \mbox{Poisson}(\lambda=\mu_i)$ with $E(y_i|\textbf{x}_i)=\mu_i$
+%%and $\mbox{var}(y_i|\textbf{x}_i)=\mu_i$.
+%%
+%%\item The natural/canonical parameter is
+%%$\theta_i=\log\mu_i$
+%%
+%%\item This leads to the natural link  \textbf{log-link} $\eta_i=\log\mu_i$, resulting in
+%%the \textbf{log linear model}:
+%%\[
+%%\log\mu_i=\eta_i=\textbf{z}_i^T\!\mbox{\boldmath $\beta$} \quad \iff \quad
+%%\mu_i=\exp(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})=\exp(\eta_i).
+%%\]
+%%
+%%
+%%\item Overdispersion can occur for similar reasons as for binomial data; can be accounted for
+%%by introducing an over-dispersion parameter $\phi$ such that $\mbox{var}(y_i|\textbf{x}_i)=\phi\mu_i$.
+%%
+%%\item (a topic of quasi-likelihood later)
+%%
+%%\item Again, some distributions for count data do exist in the exponential family that allow for over-dispersion, such as the negative binomial distribution. 
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\section{\S2.2 Likelihood Inference}\label{sec:2.2}
+%%\begin{frame}{\S2.2 Likelihood Inference}
+%%\begin{itemize}
+%%\item
+%%Regression analysis with GLMs is based on \textbf{likelihood maximization}. 
+%%\item
+%%It includes 
+%%\begin{itemize}
+%%\item parameter point estimation, 
+%%\item confidence intervals, 
+%%\item hypothesis testing,
+%%\item  goodness-of-fit tests and 
+%%\item  variable selection (or model selection).
+%%
+%%\end{itemize}
+%%\item
+%%For now we assume the model is completely and correctly specified, i.e., the GLM assumption is ``true".
+%%
+%%\item 
+%%This can  be relaxed when we cover quasi-likelihood. 
+%%\end{itemize}
+%%\end{frame}
+%\section{\S2.2 Likelihood Inference}\label{sec:2.2}
+%%\subsection{\S2.2.1 Maximum likelihood estimation}\label{sec:2.2.1}
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation}
+%%\begin{itemize}
+%%\item
+%%Data:  response $y_i$, covariates $\textbf{x}_i$ and design
+%%vector $\textbf{z}_i = {\bf z}_i(\textbf{x}_i)$, $i=1,2,\cdots, n$.
+%%\item
+%%Model:  GLM where $E(y_i|\textbf{x}_i)=\mu_i=h(\eta_i)=h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})$,
+%%with response function $h(\cdot)$ and unknown coefficient $p\times 1$ vector $\mbox{\boldmath $\beta$}$. 
+%%\item
+%%Assumption:  design matrix $Z = Z_{n\times p}=(\textbf{z}_1,\cdots,\textbf{z}_n)^T$ has (full) rank $p$
+%%and scale/dispersion parameter $\phi$ is
+%%assumed known or otherwise consistently estimated. 
+%%%\item
+%%%Now the log-likelihood function is {\footnotesize
+%%%\begin{eqnarray*}
+%%%\ell(\mbox{\boldmath $\beta$})&=&\sum_{i=1}^n\ell_i(\mbox{\boldmath $\beta$})
+%%%=\sum_{i=1}^n f(y_i|\theta_i,\phi,\omega_i) \\
+%%%&=&\sum_{i=1}^n \frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot\omega_i
+%%%+\mbox{terms not involving $\theta_i$'s} \\
+%%%&=& \sum_{i=1}^n \frac{y_i\theta (\mu_i)-b(\theta(\mu_i))}{\phi}\cdot\omega_i
+%%%=\sum_{i=1}^n \frac{y_i\theta (h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))-
+%%%b(\theta(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})))}{\phi}\cdot\omega_i
+%%%\end{eqnarray*}}
+%%\end{itemize}
+%%
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation}
+%%
+%%The focus is estimating $\mbox{\boldmath $\beta$}$. 
+%%Now the log-likelihood function is {\footnotesize
+%%\begin{eqnarray*}
+%%\ell(\mbox{\boldmath $\beta$})&=&\sum_{i=1}^n\ell_i(\mbox{\boldmath $\beta$})
+%%=\sum_{i=1}^n f(y_i|\theta_i,\phi,\omega_i) \\
+%%&=&\sum_{i=1}^n \frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot\omega_i
+%%+\mbox{terms not involving $\theta_i$'s} \\
+%%&=& \sum_{i=1}^n \frac{y_i\theta (\mu_i)-b(\theta(\mu_i))}{\phi}\cdot\omega_i
+%%=\sum_{i=1}^n \frac{y_i\theta (h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))-
+%%b(\theta(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$})))}{\phi}\cdot\omega_i
+%%\end{eqnarray*}}
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (2)}
+%%\begin{itemize}
+%%\item
+%%The \textbf{score function} is the first derivative: {\footnotesize
+%%\begin{eqnarray*}
+%%\textbf{s}(\mbox{\boldmath $\beta$})&\!\!\!=\!\!\!& \frac{\partial \ell(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath 
+%%$\beta$}}=\sum_{i=1}^n\frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\mbox{\boldmath $\beta$}}
+%%=\sum_{i=1}^n  \frac{\partial \ell_i(\mbox{\boldmath $\beta$})}{\partial\theta_i}\cdot
+%%\frac{\partial \theta_i}{\partial\mu_i}\cdot \frac{\partial \mu_i}{\partial\eta_i} \cdot
+%%\frac{\partial \eta_i}{\partial\mbox{\boldmath $\beta$}}\\
+%%&\!\!\!=\!\!\!&\sum_{i=1}^n \left(\frac{y_i-b^\prime(\theta_i)}{\phi}\cdot\omega_i\right)\cdot
+%%\left[v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))\right]^{-1}\cdot
+%% \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot \textbf{z}_i \\
+%%&\!\!\!=\!\!\!& \sum_{i=1}^n \textbf{z}_i\cdot \frac{\partial h(\eta_i)}{\partial\eta_i}\cdot
+%%\left[\frac{\phi v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))}{\omega_i}\right]^{-1}\cdot
+%%\left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] \\
+%%&\!\!\!\stackrel{denoted}{=} \!\!\!& \sum_{i=1}^n \textbf{z}_i D_i(\mbox{\boldmath $\beta$})
+%%\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \left[y_i-\mu_i(\mbox{\boldmath $\beta$})\right] \\
+%%&\!\!\!=\!\!\!& \left[\textbf{z}_1, \cdots, \textbf{z}_n\right]  \left[\!\begin{array}{ccc}
+%%\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\!\right] 
+%%\left[\begin{array}{ccc}\!\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$}) \!\!\! & & \\
+%%&\!\!\!\!\ddots \!\!\!\!& \\ & & \!\!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]^{\!\!-1}
+%%\left[\begin{array}{c} \!\!\!y_1\!-\!\mu_1(\mbox{\boldmath $\beta$}) \!\!\!\! \\
+%%\!\!\!\vdots \!\!\!\! \\ \!\!\! y_n\!-\!\mu_n(\mbox{\boldmath $\beta$})\!\!\!\!\end{array}\!\right] \\
+%%&\!\!\!\stackrel{\mbox{matrix form}}{=} \!\!\!& Z^TD(\mbox{\boldmath $\beta$})\Sigma^{-1}(\mbox{\boldmath $\beta$})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\mbox{\boldmath $\beta$})\right]
+%%\end{eqnarray*}}
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (3)}
+%%Supporting arguments for the derivation of $s(\mbox{\boldmath $\beta$})$
+%%\begin{itemize}
+%%\item
+%%$\displaystyle \mu_i=b^\prime(\theta_i) \quad \Rightarrow\quad \frac{\partial \mu_i}{\partial\theta_i}=
+%%b^{\prime\prime}(\theta_i)=v(\mu_i)=v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))$
+%%\item
+%%Also $\displaystyle \frac{\partial \theta_i}{\partial\mu_i}=\left(\frac{\partial \mu_i}{\partial\theta_i}\right)^{-1}$ 
+%%and $\displaystyle \frac{\partial \eta_i}{\partial\mbox{\boldmath $\beta$}}=\textbf{z}_i$.
+%%\item
+%%{\footnotesize Denote $\displaystyle D_i(\mbox{\boldmath $\beta$})=\frac{\partial \mu_i}{\partial\eta_i}
+%%=\frac{\partial h(\eta_i)}{\partial\eta_i}\mid_{\eta_i=\textbf{z}_i^T\!\mbox{\boldmath $\beta$}}$,\;
+%%$\sigma_i^2(\mbox{\boldmath $\beta$})=\omega_i^{-1}\phi v(h(\textbf{z}_i^T\!\mbox{\boldmath $\beta$}))$
+%%,
+%%$i=1,\cdots, n$ (or $i=1,\cdots, g$ for grouped data).}
+%%\item
+%%{\footnotesize Denote $\displaystyle D(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%%\!\!\!D_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!D_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%%\{D_1(\mbox{\boldmath $\beta$}), \cdots, D_n(\mbox{\boldmath $\beta$})\}$}
+%%\item
+%%{\footnotesize Denote $\displaystyle \Sigma(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%%\!\!\!\sigma_1^2(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!\sigma_n^2(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%%\{\sigma_1^2(\mbox{\boldmath $\beta$}), \cdots, \sigma_n^2(\mbox{\boldmath $\beta$})\}$}
+%%
+%%
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (4)}
+%%
+%%The \textbf{Fisher information} matrix is the covariance of the score function at the point $\mbox{\boldmath $\beta$}$: 
+%%\begin{eqnarray*}
+%%F(\mbox{\boldmath $\beta$})&=& \mbox{cov}\left(\textbf{s}(\mbox{\boldmath $\beta$})\right)=
+%%\sum_{i=1}^n \textbf{z}_i D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) 
+%%\textbf{z}_i^T=\sum_{i=1}^n \textbf{z}_i w_i(\mbox{\boldmath $\beta$})\textbf{z}_i^T \\
+%%&=& \left[\textbf{z}_1, \cdots, \textbf{z}_n\right]  \left[\begin{array}{ccc}
+%%\!\!\!w_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!w_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right] 
+%%\left[\begin{array}{c} \textbf{z}_1^T \\ \vdots \\ \textbf{z}_n^T\end{array}\right]
+%%=Z^TW(\mbox{\boldmath $\beta$})Z,
+%%\end{eqnarray*}
+%% where $w_i(\mbox{\boldmath $\beta$}):=D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$})$ and 
+%%
+%%\[ W(\mbox{\boldmath $\beta$})=\left[\begin{array}{ccc}
+%%\!\!\!w_1(\mbox{\boldmath $\beta$})\!\! & & \\
+%%& \!\!\!\ddots\!\!\! & \\ & & \!\!\!w_n(\mbox{\boldmath $\beta$})\!\!\!\end{array}\right]=\mbox{diag}
+%%\{w_1(\mbox{\boldmath $\beta$}), \cdots, w_n(\mbox{\boldmath $\beta$})\}\]
+%%
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (5)}
+%%\begin{itemize}
+%%\item
+%%The \textbf{observed information} matrix with respect to $\mbox{\boldmath $\beta$}$ is {\footnotesize
+%%\begin{eqnarray*}
+%%F_{\mbox{obs}}(\mbox{\boldmath $\beta$})& \!\!\!= \!\!\!& -\frac{\partial^2\ell(\mbox{\boldmath $\beta$})}{
+%%\partial \mbox{\boldmath $\beta$}\partial \mbox{\boldmath $\beta$}^T}=
+%%-\frac{\partial \textbf{s}(\mbox{\boldmath $\beta$})}{\partial \mbox{\boldmath $\beta$}^T} \\
+%%& \!\!\!= \!\!\!& -\sum_{i=1}^n \textbf{z}_i \frac{\partial \{D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(
+%%\mbox{\boldmath $\beta$})\} }{\partial \mbox{\boldmath $\beta$}^T}[y_i-\mu_i(\mbox{\boldmath $\beta$})]
+%%+\sum_{i=1}^n \textbf{z}_i D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \cdot
+%%\frac{\partial\mu_i}{\partial \eta_i}\cdot \frac{\partial\eta_i}{\partial \mbox{\boldmath $\beta$}^T} \\
+%%& \!\!\!= \!\!\!& -\sum_{i=1}^n \textbf{z}_i \frac{\partial}{\partial \mbox{\boldmath $\beta$}^T}
+%%\{D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$})\}\cdot
+%%[y_i-\mu_i(\mbox{\boldmath $\beta$})] +\sum_{i=1}^n \textbf{z}_i D_i^2(\mbox{\boldmath $\beta$})
+%%\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \cdot \textbf{z}_i^T
+%%\end{eqnarray*}}
+%%\item
+%%Hence $E\left[F_{\mbox{obs}}(\mbox{\boldmath $\beta$})\right]=\sum_{i=1}^n \textbf{z}_i 
+%%D_i^2(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$}) \textbf{z}_i^T
+%%=F(\mbox{\boldmath $\beta$})=\mbox{cov}\left(\textbf{s}(\mbox{\boldmath $\beta$})\right)$.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Maximum likelihood estimation (6)}
+%%\begin{itemize}
+%%\item
+%%When natural link is used, $\textbf{s}(\mbox{\boldmath $\beta$})$ and $F(\mbox{\boldmath $\beta$})$ can be
+%%simplified to
+%%\begin{eqnarray*}
+%%\textbf{s}(\mbox{\boldmath $\beta$})&= & \frac{1}{\phi}\sum_{i=1}^n \omega_i\textbf{z}_i
+%%[y_i-\mu_i(\mbox{\boldmath $\beta$})]=\frac{1}{\phi}Z^T\Omega \left[\textbf{y}-\mbox{\boldmath $\mu$}
+%%(\mbox{\boldmath $\beta$})\right] \\
+%%F(\mbox{\boldmath $\beta$}) &= & \frac{1}{\phi}\sum_{i=1}^n \omega_iv(\mu_i(\mbox{\boldmath $\beta$}))
+%%\textbf{z}_i\textbf{z}_i^T=\frac{1}{\phi}Z^T\Omega V(\mbox{\boldmath $\beta$})Z
+%%\end{eqnarray*}
+%%where $\Omega=\mbox{diag}\{\omega_1,\cdots,\omega_n\}$ and $V(\mbox{\boldmath $\beta$})
+%%=\mbox{diag}\{v(\mu_1),\cdots, v(\mu_n)\}$.
+%%\item
+%%For natural links, $\theta_i=\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$} \quad \Rightarrow\quad
+%%\mu_i=b^\prime (\theta_i)=b^\prime(\textbf{z}_i^T\mbox{\boldmath $\beta$})\equiv 
+%%h(\textbf{z}_i^T\mbox{\boldmath $\beta$})$
+%%
+%%$\Rightarrow \quad D_i(\mbox{\boldmath $\beta$})=\frac{\partial h(\eta_i)}{\partial \eta_i}
+%%=b^{\prime\prime}(\textbf{z}_i^T\mbox{\boldmath $\beta$})=v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))$
+%%
+%%$\Rightarrow \quad D_i(\mbox{\boldmath $\beta$})\sigma_i^{-2}(\mbox{\boldmath $\beta$})
+%%=v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))\cdot\frac{\omega_i}{\phi
+%%v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))}=\frac{\omega_i}{\phi}$ and
+%%
+%%$\Rightarrow \quad w_i(\mbox{\boldmath $\beta$})=D_i^2(\mbox{\boldmath $\beta$})
+%%\sigma_i^{-2}(\mbox{\boldmath $\beta$})=D_i(\mbox{\boldmath $\beta$})\cdot \frac{\omega_i}{\phi}
+%%=\frac{1}{\phi}\omega_i v(h(\textbf{z}_i^T\mbox{\boldmath $\beta$}))$.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%We'll continue our discussion on MLE estimate for GLMs. 
+%%
+%%\end{frame}
+%%
+%%
+%%\begin{frame}{\S2.2.1 Numerical computation of the MLE $\hat{\mbox{\boldmath $\beta$}}$ by IRLS}
+%%\begin{itemize}
+%%\item
+%%MLE $\hat{\mbox{\boldmath $\beta$}}$ is the one maximizing $\ell(\mbox{\boldmath $\beta$})$, and often 
+%%is obtained by solving the \textbf{estimating equation} $\textbf{s}(\mbox{\boldmath $\beta$})=0$, which uses 
+%%the iterative \textbf{Fisher scoring method}: {\scriptsize
+%%\begin{eqnarray*}
+%%\hat{\mbox{\boldmath $\beta$}}^{(k+1)}&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+
+%%F^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \textbf{s}(\hat{\mbox{\boldmath $\beta$}}^{(k)}) \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+ 
+%%\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%% Z^TD(\hat{\mbox{\boldmath $\beta$}}^{(k)})\Sigma^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right] \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\! & \hat{\mbox{\boldmath $\beta$}}^{(k)}+ 
+%%\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%% Z^TD^2(\hat{\mbox{\boldmath $\beta$}}^{(k)})\Sigma^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)}) 
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right] \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\! & \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}\left\{
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z \hat{\mbox{\boldmath $\beta$}}^{(k)}
+%%+Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)}) D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]\!\right\} \\
+%%&\!\!\!\!\!\!=\!\!\!\!\!\!& \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}\left\{
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\left[Z \hat{\mbox{\boldmath $\beta$}}^{(k)}
+%%+ D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]\right]\right\} \\
+%%&\!\!\!\!\!\!\stackrel{denoted}{=}\!\!\!\!\!\! & \left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}
+%%\end{eqnarray*}}
+%%where $\tilde{\textbf{y}}^{(k)}=(\tilde{y}_1^{(k)},\cdots, \tilde{y}_n^{(k)})^T
+%%=Z \hat{\mbox{\boldmath $\beta$}}^{(k)}+ D^{-1}(\hat{\mbox{\boldmath $\beta$}}^{(k)})
+%%\left[\textbf{y}-\mbox{\boldmath $\mu$}(\hat{\mbox{\boldmath $\beta$}}^{(k)})\right]$
+%%is the \textbf{working observation vector} at iteration $k$, $k=0,1,2,\cdots$.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}{\S2.2.1 Implementing Fisher scoring for computing $\hat{\mbox{\boldmath $\beta$}}$}
+%%\begin{enumerate}
+%%\item
+%%Start with an initial estimate $\hat{\mbox{\boldmath $\beta$}}^{(0)}$, often chosen as the unweighted
+%%least squares (LS) estimate from $(g(y_i),\textbf{z}_i)$, $i=1,\cdots,n$, where $g(\cdot)$ is the link (modified if $g(y_i)$ is undefined, such as when $yi = 0$ in Poisson regression).
+%%\item
+%%For $k=0,1,2,\cdots$ compute 
+%%$$\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}$$
+%%until $\frac{\|\hat{\boldsymbol \beta}^{(k+1 )} - \hat{\boldsymbol \beta}^{(k)}\|}{\|\hat{\boldsymbol \beta}^{(k)}\|} \leq \epsilon $ for some prechosen small $\epsilon > 0$ (``convergence").
+%%
+%%\item It is hence called a  \textbf{iteratively reweighted least squares (IRLS) method}. 
+%%\end{enumerate}
+%%%Fisher scoring method in GLM estimation is also called the \textbf{iteratively reweighted least squares (IRLS) method}.
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%
+%%\begin{itemize}
+%%
+%%\item 
+%%Each component of the working observation vector is simply a linearization of $g(y_i)$ at $\hat{\boldsymbol \beta}^{(k)}$
+%%
+%%\begin{align*}
+%%g(y_i) &\approx g(\mu) +g'(\mu) (y_i - \mu) \\
+%%&= {\bf z}_i^T{\boldsymbol \beta} +  \left(\frac{\partial h}{ \partial \eta} ({\bf z}_i^T{\boldsymbol \beta} )\right)^{-1}  (y_i - \mu_i ({\boldsymbol \beta}))
+%%\end{align*}
+%%(Generalized Linear Models, 2nd ed, McCullagh and Nelder, p.40)
+%%
+%%\item If use $F_{obs} (\cdot)$ instead of $F (\cdot)$, we get the standard Newton-Raphson procedure. ( These two procedures coincide if natural link function is used)
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.1 Asymptotic properties associated with the MLE $\hat{\mbox{\boldmath $\beta$}}$}
+%%Under suitable ``regularity" assumptions, we have these nice properties:
+%%\begin{enumerate}
+%%\item
+%%\textit{Asymptotic existence and uniqueless}. The MLE $\hat{\mbox{\boldmath $\beta$}}$ exists
+%%and (locally) unique w/ probability tending to 1. 
+%%\item
+%%\textit{Consistency}. If $\mbox{\boldmath $\beta$}$ is the ``true'' value, then 
+%%$\hat{\mbox{\boldmath $\beta$}}\rightarrow \mbox{\boldmath $\beta$}$ in probability 1 (\textit{weak consistency}),
+%%or $\hat{\mbox{\boldmath $\beta$}}\rightarrow \mbox{\boldmath $\beta$}$ with probability 1 (or almost surely,
+%%\textit{strong consistency}).
+%%
+%%%\item
+%%%Estimating $\phi$: 
+%%%$\displaystyle \hat{\phi}=\frac{1}{g-p}\sum_{i=1}^g\frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}$
+%%%is a consistent estimator of $\phi$. (This is true for grouped data only.)
+%%\end{enumerate}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}
+%%{\S2.2.1 Asymptotic properties associated with the MLE $\hat{\mbox{\boldmath $\beta$}}$}
+%%
+%%\begin{enumerate}[3]
+%%\item
+%%\textit{Asymptotic normality}. $\hat{\mbox{\boldmath $\beta$}}\stackrel{a}{\sim} \mbox{Normal}
+%%\left(\mbox{\boldmath $\beta$}, F^{-1}(\hat{\mbox{\boldmath $\beta$}})\right)$, equivalently
+%%$$F^{1/2}(\hat{\mbox{\boldmath $\beta$}})\left(\hat{\mbox{\boldmath $\beta$}}-
+%%\mbox{\boldmath $\beta$}\right)\stackrel{d}{\rightarrow} N(0,1) \quad\mbox{as $n\rightarrow\infty$}.$$
+%%This implies $\mbox{cov}(\hat{\mbox{\boldmath $\beta$}})\stackrel{a}{=}A(\hat{\mbox{\boldmath $\beta$}})
+%%= F^{-1}(\hat{\mbox{\boldmath $\beta$}})$. (The proof uses the property $\textbf{s}(\mbox{\boldmath $\beta$})
+%%\stackrel{a}{\sim} \mbox{Normal}\left(0, F(\mbox{\boldmath $\beta$})\right)$.)
+%%\end{enumerate}
+%% \ \
+%% 
+%%(Now recall in the linear model case, the Fisher information is $\sigma^{-2} {\bf Z}^T {\bf Z}$)
+%%
+%%\end{frame}
+%%
+%%\begin{frame} {\S2.2.1 Estimation of $\phi$}
+%%\begin{itemize}
+%%\item We also note that $\phi$ only appears as a factor in $W$, and falls out of the expression
+%%
+%% \[\hat{\mbox{\boldmath $\beta$}}^{(k+1)}=\left[Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})Z\right]^{-1}
+%%Z^TW(\hat{\mbox{\boldmath $\beta$}}^{(k)})\cdot \tilde{\textbf{y}}^{(k)}\]
+%%\item But we need $\phi$ for computing the Fisher info for the limiting covariance of the MLE. 
+%%
+%%\item\[\hat{\phi}=\frac{1}{g-p}\sum_{i=1}^g\frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}\]
+%%is a consistent estimator of $\phi$. (This is true for grouped data only.)
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\subsection{\S2.2.2 Linear hypothesis testing in GLM}
+%%
+%%\begin{frame}{\S2.2.2 Testing linear hypotheses}
+%%\begin{itemize}
+%%\item
+%%Most testing problems concerning $\mbox{\boldmath $\beta$}$ have the form of \textit{linear hypothesis}:
+%%$$H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$} \quad\mbox{vs.}\quad
+%%H_1: C\mbox{\boldmath $\beta$}\neq\mbox{\boldmath $\xi$}$$
+%%where $C$ is a known matrix of full row rank $s\leq p$, and $\mbox{\boldmath $\xi$}$ is a known vector.
+%%\item
+%%A special case is 
+%%$$H_0: \mbox{\boldmath $\beta$}_r=0 \quad\mbox{vs.}\quad
+%%H_1: \mbox{\boldmath $\beta$}_r\neq 0$$
+%%where $\mbox{\boldmath $\beta$}_r$ is a sub-vector of $\mbox{\boldmath $\beta$}$. This is
+%%equivalent to comparing the full model with one of its sub-models.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (1)}
+%%\begin{itemize}
+%%\item
+%%Three types of tests are available for testing $H_0: C\mbox{\boldmath $\beta$}=\mbox{\boldmath $\xi$}
+%%\;\mbox{vs.}\; H_1: C\mbox{\boldmath $\beta$}\neq\mbox{\boldmath $\xi$}$:
+%%
+%%\begin{center}
+%%\textbf{Likelihood ratio (LR) test}, \textbf{Wald test}, and \textbf{score test}.
+%%\end{center}
+%%\item
+%%A special case is 
+%%$$H_0: \mbox{\boldmath $\beta$}_r=0 \quad\mbox{vs.}\quad
+%%H_1: \mbox{\boldmath $\beta$}_r\neq 0$$
+%%where $\mbox{\boldmath $\beta$}_r$ is a sub-vector of $\mbox{\boldmath $\beta$}$. This is
+%%equivalent to comparing the full model with one of its sub-models.
+%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (2)}
+%%\begin{enumerate}
+%%\item
+%%\textbf{LR test statistic}:
+%% \[\lambda=-2\left\{\ell(\tilde{\mbox{\boldmath $\beta$}}) -\ell(\hat{
+%%\mbox{\boldmath $\beta$}})\right\},\] 
+%%where $\tilde{\mbox{\boldmath $\beta$}}$ is the MLE of
+%%$\mbox{\boldmath $\beta$}$ under $H_0$, and $\hat{\mbox{\boldmath $\beta$}}$ is the MLE of
+%%$\mbox{\boldmath $\beta$}$ under $H_1$; also $\hat{\mbox{\boldmath $\beta$}}$ is the unrestricted MLE of
+%%$\mbox{\boldmath $\beta$}$. 
+%%
+%%%
+%%%$\lambda$ needs to be divided by $\hat{\phi}$ for over-dispersion models.
+%%\item
+%%\textbf{Wald test statistic}: \[W=\left(C\hat{\mbox{\boldmath $\beta$}}-\mbox{\boldmath $\xi$}\right)^T
+%%\left[CF^{-1}(\hat{\mbox{\boldmath $\beta$}})C^T \right]^{-1}
+%%\left(C\hat{\mbox{\boldmath $\beta$}}-\mbox{\boldmath $\xi$}\right),\] where $\hat{\mbox{\boldmath $\beta$}}$
+%%is the unrestricted MLE of $\mbox{\boldmath $\beta$}$.
+%%\item
+%%\textbf{Score test statistic}: $U=\textbf{s}^T(\tilde{\mbox{\boldmath $\beta$}})F^{-1}(\tilde{\mbox{\boldmath $\beta$}})
+%%\textbf{s}(\tilde{\mbox{\boldmath $\beta$}})$, where $\tilde{\mbox{\boldmath $\beta$}}$
+%%is the MLE of $\mbox{\boldmath $\beta$}$ under $H_0$.
+%%\end{enumerate}
+%%%\begin{itemize}
+%%%
+%%%
+%%%\end{itemize}
+%%\end{frame}
+%%
+%%\begin{frame}{\S2.2.2 Likelihood ratio (LR), Wald and score tests (3)}
+%%\begin{itemize}
+%%\item  The  exponential model is assumed for the LR test; not defined for over-dispersion model such as the quasi likelihood to be covered. 
+%%
+%%\item 
+%%Wald and score test statistics are properly defined for over-dispersion models, since they are based on the score ${\bf s}$ (More on this later again)
+%%
+%%\item Wald and score are quadratic approximation of the LR test (see blackboard derivation). 
+%%
+%%\item Wald and Score are computationally attractive; both eliminate the need to compute one of $\tilde{\boldsymbol \beta}$ or $\hat{\boldsymbol \beta}$. Wald is good when $H_1$ has been fitted, score is good when $H_0$ has been fitted. 
+%%
+%%
+%%\end{itemize}
+%%
+%%\end{frame}
+%%
+%%\begin{frame} {\S2.2.2 Likelihood ratio (LR), Wald and score tests (4)}
+%%\begin{itemize}
+%%\item
+%%Under \[H_0: C{\boldmath \beta}={\boldmath \xi} \text{ with } \text{rank}(C)=s, \] $\lambda, W$ and
+%%$U$ all follow a $\chi^2(s)$ distribution asymptotically under `regularity conditions'.
+%%%\item
+%%%$\lambda/\hat{\phi}$, $W$ and $U$ can be used for \textbf{analysis of deviance} (i.e. comparing nested
+%%%models) as a special case of testing linear hypotheses.
+%%
+%%\end{itemize}
+%%
+%%
+%%\end{frame}
+%
+%\subsection{\S2.2.3 Deviance, residuals and goodness-of-fit measure in GLM} \label{sec:2.2.3}
+%
+%\begin{frame} {Model adequacy measure in GLM}
+%\begin{itemize}
+%\item First of all, testing model fit only makes sense when over-dispersion is not assumed, since we don't assume the exponential model form is true anyway. Again a topic of quasi-likelihood covered later.   
+%
+%\item In the sequel, ``goodness-of-fit" and ``model adequacy" mean the same thing.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM }
+%\begin{itemize}
+%\item
+%In linear model, goodness-of-fit  is measured by the sum of squared residuals (or errors)
+%$\mbox{SSE}\!=\!\sum_{i=1}^n(y_i-\hat{\mu}_i)^2$. SSE is no longer a reasonable measure if $\mbox{Var}(y)$ 
+%varies with $\mu$.
+%\item
+%A generalisation of SSE to GLM  is the \textbf{Pearson $\chi^2$ statistic}, taking the form
+%$$\chi^2=\sum_{i=1}^g \frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}$$
+%where $\bar{y}_i$ is the group mean, $v(\hat{\mu}_i)$ is the estimated variance function, and $n_i$ is the size of group $i$.
+%\end{itemize}
+%\end{frame}
+%
+%
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM }
+%\begin{itemize}
+%%\item
+%%Pearson $\chi^2$ statistic is often an appropriate model adequacy measure (or discrepancy measure, or goodness-of-fit
+%%measure).
+%\item
+%Asymptotically (i.e. all $n_i$'s are large),
+% \[\chi^2/\phi \sim_a \chi^2(g-p)\] if the GLM model is true. $p = $  number of coefficient parameters in the GLM.
+%\item
+%If $n$ is large but $n_i$'s are small (in particular when $n_i=1$), it is dangerous to use the Pearson
+%$\chi^2$ statistics to test model adequacy.
+%
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM}
+%\begin{itemize}
+%\item
+%Another model adequacy measure is the {\bf deviance}. 
+%\item
+%It is twice the difference between the maximum log-likelihood achievable in a saturated model and that in
+%the current model, i.e.
+%$$D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\left[\ln L(\mbox{\boldmath $\theta$}^*,\phi\mid\textbf{y}_n)
+%-\ln L(\mbox{\boldmath $\hat{\theta}$},\phi\mid\textbf{y}_n)\right]$$
+%which is called the \textbf{scaled deviance}. Just a special case the likelihood ratio statistic. 
+%
+%% Here {\small \vspace{-3pt}
+%%\begin{equation*}
+%%L(\mbox{\boldmath $\theta$},\phi\mid\textbf{y}_n)=\exp\left\{\sum_{i=1}^n\frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot
+%%\omega_i +\sum_{i=1}^nc(y_i,\phi, \omega_i)\right\} \vspace{-3pt}
+%%\label{eq-8.4}
+%%\end{equation*}}
+%%is the likelihood function for the data $\textbf{y}_n=(y_1,\cdots,y_n)^T$.
+%\item Remark: we are having grouped data in mind here
+%
+%\item
+%%$\mbox{\boldmath $\theta$}\!=\!(\theta_1,\cdots,\theta_n)^T$, $\mbox{\boldmath $\mu$}\!=\!(\mu_1,\cdots,\mu_n)^T
+%%\!=\!(b^\prime(\theta_1),\cdots, b^\prime(\theta_n))^T$,
+%
+% $\mbox{\boldmath $\hat{\theta}$}$ is the MLE of
+%$\mbox{\boldmath $\theta$}$ under the GLM
+%\item $\mbox{\boldmath $\theta$}^*=(\theta_1^*,\cdots, \theta_g^*)^T$ is such that 
+%\[
+%(\bar{y}_1,\cdots,\bar{y}_g)^T
+%=(b^\prime(\theta_1^*),\cdots,b^\prime(\theta_g^*))^T = ({\mu}^*_1, \dots, {\mu}^*_g).\]
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviance measure in GLM (2)}
+%\begin{itemize}
+%\item
+%We call $\mbox{\boldmath $\theta$}^*$ the MLE of $\mbox{\boldmath $\theta$}$ in the \textbf{saturated model}, a full model with $g$ parameters (as many parameters as there are observsations).
+%\item
+%In a saturated model, from the likelihood expression we see that in this case, the MLE of 
+%$\theta_i$ needs to satisfy $\bar{y}_i=b^\prime(\theta_i^*) = {\mu}^*_i$.
+%\item
+%In GLM, $\theta_1,\cdots,\theta_g$ are determined by the regression parameters $\beta_1,\cdots,\beta_p$
+%and the independent variables $x_1,\cdots,x_p$. So the MLE of $\beta_1,\cdots,\beta_p$ are to be obtained first, 
+%the MLE $\mbox{\boldmath $\hat{\theta}$}$ are then obtained.
+%\item
+%%The saturated model provides the best fit to the data because it has the same number of independent parameters
+%%and the observations.
+%Maximum likelihood from the saturated model must be at least as large as that from a usual GLM.
+%Therefore, the scaled deviance $D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})\geq 0$. 
+%%and measures
+%%the adequacy of fit of a GLM.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviance measure in GLM (3)}
+%\begin{itemize}
+%\item
+%%Consider a random sample $\textbf{y}_n=(y_1,\cdots,y_n)^T$ and a GLM as being formulated so far.
+%By convention
+%$$D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$}):=\phi D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$$
+%%and call $D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$ 
+%as the \textbf{deviance} of the GLM under consideration.
+%\item
+%Asymptotically, $$\phi^{-1}D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})\sim_a\chi^2(g-p)$$ 
+%asymptotically when the GLM  for $Y$ is correct  + when group sizes $n_i$ are all large enough + ``regularity conditions". 
+%\item
+%But when $n_i$ is small (e.g. $n_i = 1$), use of the chi-square limit is dangerous. 
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviances for several important distributions}
+%\textbf{Deviances for several important distributions in GLM.}
+%\begin{eqnarray*}
+%\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=
+%\sum_{i=1}^n (y_i-\hat{\mu}_i)^2 \\
+%\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\} \\
+%\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\} \\
+%\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}
+%\end{eqnarray*}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (1)}
+%\begin{itemize}
+%\item
+%An analysis of variance (ANOVA) table can be constructed for each linear regression model as we have seen
+%in a linear model course. 
+%\item
+%Similar to this, an \textbf{analysis of deviance (ANODEV)} table can be constructed for each GLM.
+%\item
+%Generally speaking, tests performed on ANOVA and ANODEV tables are likelihood ratio tests.
+%\item
+%However, there are some differences in interpreting ANOVA and ADODEV tables.
+%\item
+%Consider a $3\times 3$ factorial design, of two treatment factors A and B, with 2 replicates at each combination
+%level of A and B. So there will be in total 18 observations for the response variable $y$. ($3\times 3$ factorial design means that each of treatment $A$ or $B$ has 3 levels)
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (2)}
+%If it is appropriate to fit the 18 $y$ observations by linear regression models, an ANOVA table 
+%would typically look like the following:
+%
+%\begin{center} Analysis of Variance (ANOVA)\end{center}
+%
+%{\small
+%\begin{tabular}{|cccccc|}\hline
+%Model & df & SSE & $\Delta$SS & $\Delta$df & Effect Source \\ \hline
+%1 & 17 & 1000 & - & -  & - \\ \hline
+%A & 15 & 400 & $600=1000-400$ & $2=17-15$ & A \\ \hline
+%A+B & 13 & 300 & $100=400-300$ & $2=15-13$ & B \\ \hline
+%A+B+A:B & 9 & 100 & $200=300-100$ & $4=13-9$ & A:B \\ \hline 
+%\end{tabular}}
+%\begin{itemize}
+%\item
+%$\Delta$SS is the reduction of SSE as an additional term is added to the model.
+%$\Delta\mbox{SS}\stackrel{d}{=}\chi^2(\Delta\mbox{df})$. Effects are assessed by
+%$F$ tests.
+%\item
+%$\Delta$df is the reduction of the model degrees of freedom.
+%\item
+%The effects of A, B and A:B on $Y$ are orthogonal.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (3)}
+%If it is more appropriate to fit the 18 $y$ observations by GLM, an ANODEV table would typically look like the following:
+%
+%\begin{center} Analysis of Deviance (ANODEV)\end{center}
+%
+%{\footnotesize
+%\begin{tabular}{|cccccc|}\hline
+%Model & df & Deviance & $\Delta D$ & $\Delta$df & Effect Source \\ \hline
+%1 & 17 & 1200 & - & - & - \\ \hline
+%A & 15 & 800 & $400\!=\!1200\!-\!800$ & $2\!=\!17\!-\!15$ & A ignoring B \\ \hline
+%A+B & 13 & 500 & $300\!=\!800\!-\!500$ & $2\!=\!15\!-\!13$ & B eliminating A\\ \hline
+%A+B+A:B & 9 & 200 & $300\!=\!500\!-\!200$ & $4\!=\!13\!-\!9$ & A:B eliminating \\ 
+%& & & &  & A \& B \\ \hline 
+%\end{tabular}}
+%\begin{itemize}
+%\item
+%$\Delta D=D_0-D_1$ is the reduction of deviance between two nested models $M_0\subseteq M_1$.
+%$\Delta D\stackrel{d}{\approx}\chi^2(\Delta\mbox{df})$ if $M_0$ is adequate.
+%\item
+%$\Delta$df is the reduction of the model degrees of freedom.
+%\item
+%Effects of A, B and A:B on $Y$ are not orthogonal, depend on their positions in the model, and
+%are assessed by $\chi^2$ or $F$ tests.
+%\end{itemize}
+%\end{frame}
+%
+%%\section{\S8.4 Residuals}
+%%\label{sec:residuals}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (1)}
+%\begin{itemize}
+%\item
+%In a linear regression model $y=E(y)+\varepsilon =\mu+\varepsilon=\sum_{j=1}^p x_j\beta_j+\varepsilon$,
+%the residual is defined as $r_i=y_i-\hat{\mu}_i$ for an observation $y_i$, with $\hat{\mu}_i=\hat{y}_i$ being the 
+%fitted value of $y_i$.
+%The residual $r_i$ measures the goodness of fit to $y_i$ by the model if $\mbox{Var}(y)$ is constant.
+%\item
+%In GLM the residual of $y_i$ has to be defined differently to accommodate the cases
+%where the variance function $v(\mu)$ is no longer constant.
+%\item
+%At least four types of residual are defined for GLM: \textbf{Pearson}, \textbf{deviance}, \textbf{working}, and
+%\textbf{response}. All these residuals can be computed using the \texttt{R} function \texttt{residuals.glm()}.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (2)}
+%\begin{itemize}
+%\item
+%\textbf{Pearson residual}: $r_{_{Pi}}=\frac{\bar{y}_i-\hat{\mu}_i}{\sqrt{v(\hat{\mu})/n_i}}$.
+%
+%Therefore $\sum_{i=1}^g r^2_{_{Pi}}=\sum_{i=1}^g \frac{(y_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}=\chi^2$, the
+%Pearson $\chi^2$ statistic. 
+%\item
+%\textbf{Deviance residual}: $r_{_{Di}}=\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{d_i}$, \\ where $d_i$'s are such that
+%$\displaystyle \sum_{i=1}^n d_i=D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$. In particular, deviance residuals for
+%the following distributions are:
+%{\footnotesize
+%\begin{eqnarray*}
+%\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)
+%|y_i-\hat{\mu}_i|\!=\!y_i-\hat{\mu}_i \\
+%\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2\left\{y_i
+%\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\}} \\
+%\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\}} \\
+%\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+%\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}}
+%\end{eqnarray*}}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (3)}
+%\begin{itemize}
+%\item
+%\textbf{Working residual}: $r_{_{Wi}}=(y_i-\hat{\mu}_i)\frac{d\eta_i}{d\mu_i}\mid_{\mu_i=\hat{\mu}_i}
+%\approx g(y_i)-g(\hat{\mu}_i)$, \\
+%where $g(\mu_i)$ is the link function and $\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$}$ is the linear predictor in GLM.
+%
+%The working residual is used during computing the MLE of $\mbox{\boldmath $\beta$}$.
+%\item
+%\textbf{response residual}: $r_{_{Ri}}=y_i-\hat{\mu}_i$, \\
+%which is not a right measure except when the GLM reduces to a linear model.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (1)}
+%For the data of Caesarian birth study we combine categories I and II of the response variable into
+%one category \texttt{Infection}. Then fit logistic models to the reorganized data where the new response
+%variable has only two categories \texttt{Infection} and \texttt{Non-infection}.
+%
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> Caes.dat <- read.csv("D:/MAST90084/Example2-Caes.csv")
+%> is.data.frame(Caes.dat)
+%\end{Sinput} 
+%\begin{Soutput}
+%[1] TRUE
+%\end{Soutput}
+%\begin{Sinput}
+%> Caes.dat
+%\end{Sinput} 
+%\begin{Soutput}
+%  Infection total Antib RiskF Plan
+%1         1    18     1     1    1
+%2         0     2     1     0    1
+%3        28    58     0     1    1
+%4         8    40     0     0    1
+%5        11    98     1     1    0
+%6         0     0     1     0    0
+%7        23    26     0     1    0
+%8         0     9     0     0    0
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (2)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> Caes1=glm(Infection/total~Antib+RiskF+Plan,family=binomial, weight=total, data=Caes.dat)
+%> summary(Caes1)
+%\end{Sinput} 
+%\begin{Soutput}
+%Deviance Residuals: 
+%       1         2         3         4         5         7         8  
+% 0.26470  -0.15231  -0.78520   1.21563  -0.07162   1.49623  -2.56229  
+%
+%Coefficients:
+%            Estimate Std. Error z value Pr(>|z|)    
+%(Intercept)  -0.8207     0.4947  -1.659   0.0971 .  
+%Antib        -3.2544     0.4813  -6.761 1.37e-11 ***
+%RiskF         2.0299     0.4553   4.459 8.25e-06 ***
+%Plan         -1.0720     0.4254  -2.520   0.0117 *  
+%---
+%Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1  ' ' 1
+%
+%(Dispersion parameter for binomial family taken to be 1)
+%
+%    Null deviance: 83.491  on 6  degrees of freedom
+%Residual deviance: 10.997  on 3  degrees of freedom
+%  (1 observation deleted due to missingness)
+%AIC: 36.178
+%Number of Fisher Scoring iterations: 5
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (3)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> anova(Caes1, test="Chi")
+%\end{Sinput} 
+%\begin{Soutput}
+%Analysis of Deviance Table; Model: binomial, link: logit; Response: Infection/total
+%Terms added sequentially (first to last)
+%
+%      Df Deviance Resid. Df Resid. Dev  Pr(>Chi)    
+%NULL                      6     83.491              
+%Antib  1   38.736         5     44.756 4.852e-10 ***
+%RiskF  1   26.881         4     17.874 2.164e-07 ***
+%Plan   1    6.878         3     10.997  0.008728 ** 
+%\end{Soutput}
+%\begin{Sinput}
+%> resid(Caes1,type="deviance")
+%\end{Sinput}
+%\begin{Soutput}
+%       1        2        3        4        5        7        8 
+% 0.26470 -0.15231 -0.78520  1.21563 -0.07162  1.49623 -2.56229
+%\end{Soutput}
+%\begin{Sinput}
+%> resid(Caes1,type="pearson")
+%\end{Sinput}
+%\begin{Soutput}
+%       1        2        3        4        5        7        8 
+% 0.27684 -0.10786 -0.78635  1.29465 -0.07141  1.38710 -1.99030
+%\end{Soutput}
+%\begin{Sinput}
+%> sum(resid(Caes1,type="deviance")^2)    #[1] 10.99674
+%> sum(resid(Caes1,type="pearson")^2)/(7-4)    #[1] 2.757724
+%> 1-pchisq(sum(resid(Caes1,type="pearson")^2),3)   #[1] 0.04069089
+%> 1-pchisq(sum(resid(Caes1,type="deviance")^2),3)   #[1] 0.01174351
+%\end{Sinput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (4)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%Caes2=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,family=binomial, 
+%                         weight=total, data=Caes.dat)
+%summary(Caes2);  anova(Caes2,test="Chi")
+%sum(resid(Caes2,type="pearson")^2)/(7-5)
+%1-pchisq(sum(resid(Caes2,type="pearson")^2),2)
+%1-pchisq(sum(resid(Caes2,type="deviance")^2),2)
+%
+%Caes3=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,
+%            family=binomial(link="probit"), weight=total, data=Caes.dat)
+%summary(Caes3); anova(Caes3, test="Chi")
+%
+%Caes4=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,
+%           family=binomial(link="probit"), weight=total, data=Caes.dat[-6,])
+%summary(Caes4); anova(Caes3, test="Chi")
+%
+%Caes5=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,family=quasibinomial, 
+%              weight=total, data=Caes.dat[-6,])
+%summary(Caes5); anova(Caes5, test="F")
+%
+%sum(resid(Caes5,type="pearson")^2)/(7-5)
+%
+%Caes6=glm(Infection/total~Antib+RiskF+Plan+RiskF:Plan,family=quasibinomial, 
+%           weight=total, data=Caes.dat, subset=c(1,2,3,4,5,7,8))
+%summary(Caes6);  anova(Caes6, test="F")
+%\end{Sinput} 
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\section{\S2.3 Some extensions of GLM: quasi-likelihood and Bayesian method}
+%\subsection{\S2.3.1 Quasi-likelihood models}
+%\begin{frame}{\S2.3.1 Quasi-likelihood models}
+%\begin{wideitemize}
+%\item In GLM, the mean  necessarily implies a certain variance structure. 
+%
+%\item e.g. Poisson model: we must have $\sigma^2 = \mu $ (dispersion parameter $\phi$ forced to be 1. )
+% such as the Poisson model, 
+%\[
+%E(y|\textbf{x})=\mu=h(\textbf{z}^T\mbox{\boldmath $\beta$}), \ \ \mbox{var}(y|\textbf{x})=\phi v(\mu)/\omega, 
+%\]
+%so the aassociation between $E(y|\textbf{x})$ and  $\mbox{var}(y|\textbf{x})$ confined. May be insufficient for practical use.
+%Assuming that the response variable $y$ in GLM belongs to a specific exponential family
+%confines the association between $E(y|\textbf{x})=\mu=h(\textbf{z}^T\mbox{\boldmath $\beta$})$
+%and $\mbox{var}(y|\textbf{x})=\phi v(\mu)/\omega$ to be of a specific type, which sometimes is
+%insufficient for practical use.
+%\item
+%Quasi-likelihood models: drop the exponential family assumption, as such, separate the mean and
+%variance structure.
+%
+%\item No full distributional assumptions; only the first and second moments have
+%to be specified. 
+%
+%\item Under appropriate conditions, parameters can still be estimated consistently,
+%and asymptotic inference is still possible.
+%\end{wideitemize}
+%\end{frame}
+
+
+\begin{frame}{Quasi-likelihood inference (Ex. 2.7)}
+\begin{wideitemize}
+\item  Three working variance-mean relationships are explored:
+\begin{itemize}
+\item $\sigma^2 (\mu) = \phi \mu$
+\item $\sigma^2 (\mu) = \phi \mu^2$
+\item $\sigma^2 (\mu)  = \mu + \theta \mu^2 $
+\end{itemize}
+
+
+\item \text{CellDiff.R} works out the first two variance structures.
+
+\item We can compute the sandwich covariance matrix ``by hand", using the formula $\hat{F}^{-1} \hat{V}\hat{F}^{-1}$, where
+\[\hat{V}=\sum_{i=1}^n\textbf{z}_i\textbf{z}_i^T 
+D_i^2(\hat{\mbox{\boldmath $\beta$}})\cdot\frac{[y_i-h(\textbf{z}_i^T\hat{\mbox{\boldmath $\beta$}})]^2}{
+\sigma_i^4(\hat{\boldsymbol \beta})}\text{ and } D_i(\hat{\boldsymbol \beta}) = \frac{\partial h}{\partial \eta} ({\bf z}_i^T \hat{\boldsymbol \beta}).\]
+This should be same as the \texttt{robust.variance} reported by the \texttt{gee} object.
+
+\end{wideitemize}
+\end{frame}
+
+
+
+%
+%\begin{frame}{The variance function $\sigma^2 (\mu)= \mu + \theta \mu^2 $}
+%
+%The third column in Table 2.7 of F \& T assumes 
+%the log-linear mean structure (exp. resp. function)
+%\[
+%\mu = \exp(\eta)
+%\]
+%
+%and
+% the working quadratic variance structure
+%\[
+%var(y) = \mu + \theta \mu^2 
+%\] 
+%(So dispersion $\phi$ is fixed to be $1$ already )
+%\end{frame}
+
+\begin{frame} {The variance function $\sigma^2 (\mu)= \mu + \theta \mu^2 $}
+\begin{wideitemize}
+\item This is in fact the variance structure of the NB distribution
+\[
+f(y; \kappa, \mu) = \frac{\Gamma(\kappa + y)}{\Gamma(\kappa) y!}\frac{\mu^y \kappa^\kappa}{(\mu + \kappa)^{\kappa + y}},
+\]
+which has mean and the variance structure
+\[
+E[y] = \mu, \ \ var(y) = \mu + \mu^2/\kappa
+\]
+(Done in Assignment 1!)
+
+\item So our variance structure $var(y_i | {\bf x}_i) = \mu_i + \theta \mu_i^2 $ is really the variance structure of a NB distribution with $\theta = 1/\kappa$
+
+
+\item Moreover, the dispersion $\phi$ is fixed at 1 for this variance function.
+
+\item {\bf You will work out the quasi-likelihood inference for this variance structure in Assignment 2}.
+
+\end{wideitemize}
+
+
+\end{frame}
+
+\begin{frame} {The variance function $\sigma^2 (\mu)= \mu + \theta \mu^2 $}
+\begin{wideitemize}
+\item NB distribution is not of the exponential family. However, {\bf when $\kappa$ is fixed}, {\bf it does become an exponential family}. So we can have a GLM with NB-distributed $y$  when $\kappa$'s fixed.
+\item V \& R has written a function \texttt{negative.binomial()} in the \texttt{MASS} package, which for a given $\kappa$ creates a negative binomial \texttt{family} object that can be submitted to the $\texttt{glm}$ function for GLM estimation. 
+
+\item Hence, we can leverage this to perform \emph{quasi-likelihood} estimation of $\beta$ when $\theta$(or $\kappa$) is fixed; \textcolor{red}{\emph{recall that, up a multiplicative free dispersion parameter, the score function of a GLM is same as the quasi-score function defined by the same mean and variance structures of that GLM}}. 
+
+\item {\bf CAVEAT}: Confusingly, V\&R denotes the $\kappa$ here by $\theta$ in their book and the R manual of \texttt{negative.binomial()}, be {\bf EXTREMELY careful}.
+\end{wideitemize}
+
+
+
+\end{frame}
+
+
+\begin{frame}{The variance function $\sigma^2 (\mu)= \mu + \theta \mu^2 $}
+
+\begin{wideitemize}
+
+\item Of course, even $\phi = 1$ is known, both $\boldbeta$ and $\theta$ are to be estimated.
+
+\begin{wideitemize}
+\item This can be done by alternating between estimation of $\boldbeta$ given $\theta$ and estimation of $\theta$ given $\boldbeta$. Given $\theta$, an estimate of $\boldbeta$ can be obtained by a Newton-Rhapson-like method as before. Given $\boldbeta$, $\theta$ can be estimated by some ``methods of moments" 
+
+
+\item (However, I am {\bf NOT} able to find an R package that readily implements this methodology. In particular, when defining a \texttt{family} object with the function \texttt{quasi()}, the only allowable \texttt{variance} forms are \texttt{constant}, \texttt{mu(1-mu)}, \texttt{mu}, 
+\texttt{mu\^{}2} and \texttt{mu\^{}3}. Hence I cannot define a quasi family with the variance form that contains an extra parameter $\theta$ to plug into the \texttt{gee()} function. )
+
+\item You will code this iterative algorithm.
+%\item According to $V \& R$ (section 7.4), estimation of $\theta$ is via ``maximum likelihood method" provided by the function \texttt{glm.nb} in the \texttt{MASS} package.
+\end{wideitemize}
+
+
+\end{wideitemize}
+
+
+
+\end{frame}
+
+\begin{frame} {The variance function $\sigma^2 (\mu)= \mu + \theta \mu^2 $}
+\begin{wideitemize}
+\item  For a given $\hat{\boldbeta}$, method of moment should give
+
+\[
+\hat{\theta} = \frac{1}{n - p} \sum_{i = 1}^n \frac{[(y_i - \mu_i (\hat{\boldbeta}))^2 -  \mu_i (\hat{\boldbeta})]}{ \mu_i (\hat{\boldbeta})^2}
+\]
+(In the same spirit as the method of moments estimate for $\phi$ )
+\item For given $\hat{\theta}$, we estimate $\hat{\boldbeta}$ by solving the score function of a NB GLM with the given $\hat{\theta}$; this is done by \texttt{glm()} and \texttt{negative.binomial()} in \texttt{R}. 
+
+\item Iterate until $\hat{\theta}$ converges.
+
+\end{wideitemize}
+
+\end{frame}
+
+
+
+\begin{frame} {The variance function $\sigma^2 (\mu)= \mu + \theta \mu^2 $}
+
+\begin{wideitemize}
+\item Of course, we need a reasonable initialization for, say,  $\theta$ (or equivalently $\kappa= 1/\theta$). 
+
+
+\item Fortunately, V \& R has written another function \texttt{glm.nb} in the MASS package, a modification of \texttt{glm}, that produces MLE of $\boldbeta$ and $\kappa$ based on NB distributional assumption on $y$. We  can  take the reasonable $\kappa$ such produced to initialize our alternating algorithm.
+
+
+\item  (Not sure \texttt{glm.nb} is a good name for such a function, because NB doesn't belong to the exponential family when $\theta$ is not fixed.)
+
+\item {\bf CAVEAT}: We should NOT just treat the $(\boldbeta, \theta)$ produced by \texttt{glm.nb} as our final estimates; they are produced based on NB distributional assumption on $y$. Our alternating procedure, although leveraging the functions \texttt{glm} and  \texttt{negative.binomial}, only assumes the mean and variance structures, which is all moment-based in spirit. 
+
+%\item ( Go to  \texttt{CellDiff.R} and  the documentation of \texttt{glm.nb} together)
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {The variance function $\sigma^2 (\mu)= \mu + \theta \mu^2 $}
+
+Also read p.58 of F \& T when in doubt!
+
+\end{frame}
+
+
+% bibliography
+\begin{frame}[allowframebreaks]
+  \frametitle{References}    
+  \begin{thebibliography}{10}    
+
+
+%  \beamertemplatearticlebibitems
+%  \bibitem[Smyth, 2003]{smyth2003pearson}
+%    Smyth, Gordon K
+%    \newblock Pearson's goodness of fit statistic as a score test statistic
+%    \newblock {\em Lecture notes-monograph series (2003): 115-126.}
+    
+
+    
+
+       \beamertemplatearticlebibitems
+  \bibitem[McCullagh and Nelder 1989]{GLM1989}
+ P. McCullagh and J.A. Nelder
+    \newblock  Generalized Linear Models
+    \newblock {\em Chapman \& Hall (1989).}
+
+      \beamertemplatearticlebibitems
+  \bibitem[van der Vaart 1998]{VDV1998}
+ A. W. van der Vaart
+    \newblock  Asymptotic statistics
+    \newblock {\em Cambridge University Press (1998).}
+       
+       \beamertemplatearticlebibitems
+  \bibitem[Wedderburn 1974]{wedderburn1974}
+R.W. Wedderburn
+    \newblock  Quasi-likelihood functions, generalized linear models, and the Gauss—Newton method.
+    \newblock {\em Biometrika 61, no. 3 (1974): 439-447.}
+    
+    
+           \beamertemplatearticlebibitems
+  \bibitem[Gourieroux, Monfort and Trognon 1984]{GMT1984}
+Gourieroux C, Monfort A, Trognon A.
+    \newblock  Pseudo maximum likelihood methods: Theory.
+    \newblock {\em Econometrica: journal of the Econometric Society (1984): 681-700.}
+    
+  \end{thebibliography}
+\end{frame}
+
+\end{document}
+

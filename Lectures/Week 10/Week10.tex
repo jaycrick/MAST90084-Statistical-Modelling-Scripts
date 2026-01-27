@@ -1,0 +1,1828 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{3.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+\newcounter{example}
+\renewcommand{\theexample}{8.\arabic{example}}
+
+
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldalpha}{{\boldsymbol \alpha}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\boldgamma}{{\boldsymbol \gamma}}
+\newcommand{\boldmu}{{\boldsymbol \mu}}
+\newcommand{\boldpi}{{\boldsymbol \pi}}
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+\newcommand{\examp}{\refstepcounter{example}
+       { \textbf{Example 8.\arabic{example}.}\ }}
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 8 Survival Analysis}
+\author[Random Effects Models]{MAST90084 Statistical Modelling Slides}
+\vskip 1cm
+\institute[Ch7]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+
+ \begin{figure}
+  \caption{Sir David Cox, 1924 - 2022}
+  \centering
+    \includegraphics[width=0.3\textheight]{david_cox}
+\end{figure}
+\end{frame}
+
+\begin{frame} \frametitle{References}
+
+
+\begin{wideitemize}
+
+
+
+%
+%\item Dobson and Barnett {\it An introduction to Generalized Linear Models}, Chapter 10. CRC Press. 
+%\item R.G. Miller (1981) {\it Survival analysis.}  Wiley, New York.
+%
+%\item J. F. Lawless (1982) {\it Statistical models and methods for
+%    lifetime data.}  Wiley, New York.
+
+%\item D.G. Kleinbaum (1996) {\it Survival analysis, a self-learning
+%    text.} Springer, New York.
+%
+%\item D. Collett (1994) {\it Modelling survival data in medical
+%    research.}  Chapman and Hall, London.
+%
+
+\item  Cox and Oakes. (1984) {\it Analysis of Survival Data}. Chapman and Hall. 
+
+\item Kalbfleisch, J. D. and Prentice, R. L. (1980) {\it The
+    statistical analysis of failure time data.}  Wiley, New York.
+%
+\item W. N. Venables and B. D. Ripley (2003). Chapter 13, {\it Modern applied
+    statistics with S. 4th Ed.}  Springer-Verlag, New York. (V \& R)
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+{\normalsize
+\tableofcontents}
+\end{frame}
+
+
+
+
+\section{Introduction}
+
+\begin{frame} \frametitle{Survival time and survival analysis}
+\begin{wideitemize}
+\item
+Analysing
+life-time data, 
+\begin{itemize}
+\item time from diagnosis of illness to death
+
+\item  time to
+the failure of a component (mechanical or electrical).
+\end{itemize}
+
+ 
+
+%\item Also called
+%survival data or failure-time data. 
+\item
+$T$:
+a non-negative random variable representing the time between a point of origin and the
+occurrence of an event of interest.
+\item
+Interested in the distribution of $T$ and how it's affected by covariates
+\item
+We will primarily focus on  \emph{continuous} $T$ 
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} \frametitle{Example 1: Leukemia, Gehan (1965)}
+
+
+%  compared to a placebo with respect to the ability to maintain
+%  remission in acute leukemia patients, gave the following remission
+%  times (in weeks) for two groups of 21 patients each, one group given
+%  the placebo and the other the drug 6MP. Censored survival times are
+%  labelled with an asterisk.
+  
+  \begin{wideitemize}
+  \item A classical dataset referenced in Cox and Oakes (1984, p.8).
+  
+  \item Two groups of 21 patients each, one given
+  the placebo and the other the drug 6MP (6-mercaptopurine).
+  
+  \item Compare the two drugs' ability to maintain
+  remission (reduction in symptoms) time (in weeks) in acute leukemia patients.
+  
+  \end{wideitemize}
+
+\begin{scriptsize}
+\begin{table}
+\begin{center}
+\caption{Times of remission of leukemia patients. (* : censored)} \vspace{0.15cm}
+  \begin{tabular}{l*{11}{c}} 6MP & 6 & 6 & 6 & 6* & 7 & 9* & 10 & 10*
+    & 11* & 13 & 16\\ & 17* & 19* & 20* & 22 & 23 & 25* & 32* & 32* &
+    34* & 35*\\ Placebo & 1 & 1 & 2 & 2 & 3 & 4 & 4 & 5 & 5 & 8 & 8\\
+    & 8 & 8 & 11 & 11 & 12 & 12 & 15 & 17 & 22 & 23 \end{tabular}
+\end{center}
+\end{table}
+\end{scriptsize}
+
+\end{frame}
+
+\begin{frame} \frametitle{Example 2: Breast cancer, Leathern and Brooks (1987)}
+%
+% \examp\label{ex-1.4} 
+ 
+ \begin{wideitemize}
+ 
+ \item Referenced in the textbook \emph{Modelling survival data in medical research} by Collett (2003, 3ed, p. 7). 
+ 
+ \item A retrospective study of 45 women who had received mastectomy (breast removal) for breast cancer
+ 
+ \item Tumor cells removed from each woman classified according to positive or negative staining by a histochemical marker HPA (Helix pomatia aggutinin)
+ 
+ \item HPA binds to cancer cells associated with metastasis to nearby lymph nodes $\Rightarrow$ positive staining corresponds to potential of metastasis. 
+ 
+ \item Interest: the relationship between HPA staining and survival time. 
+ \end{wideitemize}
+ 
+% An investigation was carried out to evaluate a 
+% histochemical marker which discriminates between primary breast cancer 
+% that has metastasized and that which has not.  The marker was {\it Helix
+%    pomatia} aggutinin (HPA) which binds those breast cancer cells
+%  associated with metastasis to nearby lymph nodes. The HPA stained
+%  cells can be identified by microscopic examination.  The data given
+%  below refer to the survival in months of women who had received a
+%  simple or radical mastectomy to treat a tumour of Grade II, III or
+%  IV, between January 1969 and December 1971.  Censored survival times
+%  are labelled with an asterisk.
+
+\end{frame}
+
+\begin{frame} \frametitle{Example 2: Breast cancer (Data)}
+
+\begin{scriptsize}
+\begin{table}
+\begin{center}
+\caption{Survival times of women with breast cancer data. (* : censored)} \vspace{0.15cm}
+  \begin{tabular}{l*{11}{c}}
+    Negative staining: & 23 & 47 & 69 & 70* & 71* & 100* & 101* & 148 & 181\\
+    & 198* & 208* &  212* & 224*\\
+
+    Positive staining: &   5 &  8 &  10 &  13 & 18 &  24 &  26 &  26 & 31\\ 
+    &  35 &  40 &  41 & 48 &  50 &  59 &  61 &  68 & 71\\ 
+    & 76* & 105* & 107* & 109* & 113 & 116* & 118 & 143 & 154*\\ 
+    &  162* &  188* &  212* &  217* &  225*\\
+  \end{tabular}
+\end{center}
+\end{table}
+\end{scriptsize}
+\end{frame}
+
+
+
+\section{Basic concepts and Models}
+%\section[\S8.2 Concepts \& Models]{\S8.2 Basic concepts and Models}
+\subsection{Functions for describing failure time distribution}
+
+\begin{frame} \frametitle{Descriptive functions}
+
+ $T = $  lifetime of an individual in some population
+\begin{description}
+\item [density function] $f(t)= \lim_{\Delta t \rightarrow 0} 
+  \frac{\Pr(t \leq T < t+\Delta t)}{\Delta t}; \quad t\geq 0.$
+\item [distribution function] $F(t) = \Pr(T < t)\quad \mbox{[$=\Pr(T\leq t)$ if $T$ continuous].}$ 
+\begin{itemize}
+\item $f(t) = \frac{d}{dt} F(t)$
+\item $F(t) = \int_{-\infty}^t f(x) dx=\int_0^t f(x)dx.$
+\end{itemize}
+\item [survival function] $S(t) = \Pr(T \geq t)$
+\begin{itemize}
+\item $S(t) = 1 - F(t) = \int^{\infty}_t f(x) dx$
+\end{itemize}
+\item [hazard function] $h(t) = \lim_{\Delta t
+  \rightarrow 0} \frac{\Pr(t \leq T < t+\Delta t \mid T \geq
+  t)}{\Delta t}$
+\begin{itemize}
+\item $h(t) = \frac{f(t)}{S(t)}$
+\item $S(t)=\exp\{-\int_0^t h(x)dx\}$.
+
+
+\end{itemize}
+\item  [cumulative hazard function] $H(t) = \int_0^th(x)dx  $
+
+\end{description}
+
+\end{frame}
+
+\begin{frame} \frametitle{Descriptive functions: Interpretations}
+
+\begin{wideitemize}
+\item \emph{Note:} We have followed the convention of  Cox and Oakes (1984) by defining $S(t) = \Pr(T \geq t)$ instead of $S(t) = \Pr(T > t)$. Of course, for continuous $T$, the distinction won't matter. 
+\item $S(t)$: probability of surviving past the time $t$
+\item $h(t)$ : instantaneous rate of death or failure at time $t$, given survival up to time $t$
+\item $h(t)\Delta t$: approximate \textit{conditional} probability of death or
+failure in $[t, t+\Delta t)$, given survival beyond time $t$.
+\item $f(t)\Delta t$:  \textit{unconditional} probability of death or
+failure in $[t, t+\Delta t)$.
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+% another frame
+\begin{frame} \frametitle{Descriptive functions: Relationships}
+\begin{wideitemize}
+\item    Each of the four functions $f(t)$, $F(t)$, $S(t)$,  $h(t)$ and $H(t)$ uniquely defines
+the distribution of $T$. 
+
+
+\item  Relationship between {\bf hazard} and {\bf survival}:
+
+ 
+\begin{equation} \label{equ_for_h}
+h(t)  = - \frac{d}{dt} \log(S(t))
+\end{equation}
+
+\item (Useful!) Relationship between {\bf cumulative hazard} and  {\bf survival}:
+
+\[ S(t) = \exp[-H(t)] \qquad \text{ or, equivalently, } \qquad H(t) = -\log S(t).\]
+
+
+\item Rk: Integrating both sides of \eqref{equ_for_h} give that $H(t) = C - \log S(t)$ for some constant C. However, that $S(0) = 1$ and $H(0) = 0$ implies that $C = 0$
+\end{wideitemize}
+\end{frame}
+
+
+% another frame
+\begin{frame} \frametitle{Descriptive functions: Snapshots (1)}
+
+\includegraphics[width=11cm]{fig-1-1.pdf}
+
+Some probability densities and corresponding hazard functions.  These curves
+are all derived from Beta distributions.
+
+\end{frame}
+
+
+\begin{frame} \frametitle{Descriptive functions: Snapshots (2)}
+
+\includegraphics[width=11cm]{fig-1-2.pdf}
+
+$h(t)$ for (a)  human mortality, (b)
+  positive aging, (c) negative aging.  
+\end{frame}
+
+
+
+\subsection{Censoring}
+
+%\begin{frame} \frametitle{Censoring}
+%What distinguishes survival analysis from other fields of statistics
+%is the presence of \textbf{censoring}.  A censored observation contains partial
+%information about the random variable of interest.
+%
+%\end{frame}
+
+
+\begin{frame} \frametitle{Censoring}
+
+\begin{wideitemize}
+\item {\bf Censoring} distinguishes survival analysis from other fields of statistics. 
+
+\item For simplicity, we will exclusively consider censoring mechanisms that are {\bf right},  {\bf random} and {\bf noninformative}
+
+
+\item As a particular example,  the so-called \emph{type-1 censoring}, where censoring time of each individual is fixed in advance, is a  censoring mechanism with all these properties. 
+\end{wideitemize}
+%\begin{enumerate}
+%\item {\bf Type I censoring:} items in the sample are started at the
+%  same time and observed for a fixed length of time L.
+%\item {\bf Type II censoring:} items in the sample are started at the
+%  same time and experiment terminates when a fixed number $r$ of
+%  failures have occurred; see Lawless (1982). 
+%\item {\bf Random censoring:} items in the sample are started at the
+%  different times, and drop out due to reasons such as
+%\begin{itemize}
+%\item Lost to follow-up.
+%\item Patient may decide to discontinue.
+%\item Therapy may have bad side-effects and is discontinued. 
+%\item Termination of study.
+%\end{itemize}
+%\end{enumerate}
+\end{frame}
+
+\begin{frame} \frametitle{Censoring: Right censoring}
+
+\begin{itemize}
+
+\item 
+Each individual observed a lifetime $T_i$ or a censoring
+time $C_i$.
+
+\item   We observe $T_i$ if $T_i \leq C_i$; otherwise, we
+observe only $C_i$ and know that $T_i > C_i$.  
+
+\item Observations can be
+represented as $${(Y_i , \delta_i );\quad i = 1, \cdots, n}$$
+where $Y_i = \min(T_i, C_i)$ and
+
+\[\delta_i  = \left\{\begin{array}{ll}1 &   \mbox{if} \quad T_i \leq C_i \quad (T_i \quad
+    \mbox{uncensored})\\ 0        &  \mbox{if} \quad T_i > C_i \quad (T_i \quad\mbox{censored}).
+  \end{array}\right.\]
+%
+%Thus, $Y_i$ is the observed time (be it a lifetime or a censoring time)
+%and $\delta_i$ is the censoring indicator.
+
+\end{itemize}
+\end{frame}
+
+%\begin{frame} \frametitle{Assumptions and variations}
+%
+%\begin{description}
+%\item [Assumptions]:
+%\begin{description}
+%\item [Independence] $T_i$ and $C_i$ are independent.
+%%\textit{Otherwise, the distribution of $T_i$ is not identifiable.}
+%\item [Irrelevance] Censoring is non-informative. So the distribution of
+%$C_i$ does not contribute information to inference .
+%\end{description}
+%\item [Variations]: The above types of censoring are \textit{right-censoring}; there 
+%are also \textit{left-censoring}, and \textit{interval censoring}.
+%\end{description}
+%
+%\end{frame}
+
+\begin{frame} {Censoring:  Random  censoring}
+
+\begin{wideitemize}
+\item Suppose each censoring time $C_i$ is stochastic with survival and density functions $G_i(\cdot)$ and $g_i(\cdot)$.
+
+\item {\bf Random censoring}: The $C_i$'s are  stochastically independent, and independent of the independent failure times $T_1, \dots, T_n$.
+
+\item Under random censoring, the likelihood of the sample $(Y_i, \delta_i)_{i =1}^n$ can be written as
+\[
+\prod_{i =1}^n [f_i (Y_i)^{\delta_i}S_i (Y_i)^{1 - \delta_i}] [  g_i (Y_i)^{1 -\delta_i}G_i (Y_i)^{\delta_i}   ],
+\]
+where $f_i$ and $S_i$ are the density and survival function for $T_i$. 
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+\begin{frame} {Censoring:  Noninformative  censoring}
+
+\begin{wideitemize}
+
+\item A parameter of interest (such as regression coefficients to be introduced later), say $\boldtheta$, can be present in any of the functions $f_i$, $S_i$, $g_i$ and $G_i$
+
+\item {\bf Noninformative censoring}: $G_i$, or equivalently, $g_i$, doesn't involve any parts of $\boldtheta$.
+
+
+
+\item Hence if the censoring is both random and noninformative, the likelihood of the sample $(Y_i, \delta_i)_{i =1}^n$ may be reduced to
+\[
+\prod_{i =1}^n [f_i (Y_i)^{\delta_i}S_i (Y_i)^{1 - \delta_i}].
+\]
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+%\begin{frame}
+%
+%\end{frame}
+
+
+\subsection{Distributions for modelling failure times}
+
+\begin{frame} \frametitle{Distributions for modelling failure times}
+
+\begin{itemize}
+\item Exponential distribution
+\item Weibull distribution
+\item Gamma distribution
+\item Rayleigh distribution
+\item Log-logistic distribution
+\item Log-normal distribution
+\end{itemize}
+
+\textbf{Remarks:} 
+\begin{enumerate}
+\item
+These are distributions of failure times 
+\emph{under no censoring}.
+\item
+Parameters assumed unknown and to be estimated with data.
+\item We will primarily focus on  {\bf Exponential} and {\bf Weibull} in the sequel.
+\end{enumerate}
+\end{frame}
+
+
+
+%\begin{frame} \frametitle{Example~\ref{ex-1.6}. Exponential lifetime}
+%
+% \examp\label{ex-1.6}  Suppose $T\stackrel{d}{=}\mbox{EXP}(\frac{1}{\lambda})$ with pdf
+%$f(t)=\lambda e^{-\lambda t}$. Find its cdf, survival function and hazard function.
+%
+%It is easy to find that 
+%\begin{eqnarray*}
+%F(t)&=& 1-e^{-\lambda t},\quad t\geq 0 \\
+%S(t)&=& e^{-\lambda t},\quad t\geq 0 \\
+%h(t)&=&\frac{f(t)}{S(t)}=\lambda, \quad t\geq 0.
+%\end{eqnarray*}
+%Note that the exponential lifetime has a constant hazard.
+%
+%\end{frame}
+
+
+%\begin{frame}
+%
+%Primary focus: {\bf Exponential} and {\bf Weibull}
+%\end{frame}
+
+\begin{frame} \frametitle{Exponential distribution (1)}
+
+  \begin{tabular}{rl}
+    pdf:    & $f(t) = \lambda e^{-\lambda t},\quad  t \geq 0 \qquad (\lambda > 0)$\\[1ex]
+    cdf:    & $ F(t) = 1 - e^{-\lambda t}$,     \\[1ex]
+    survival function: & $  S(t) = e^{-\lambda t}$ ,\\ [1ex]
+    hazard function: &  $h(t) = \lambda$.\\[1ex]
+    mean and variance: & $E(T) = \frac{1}{\lambda} \quad   \mbox{var}(T) = \frac{1}{\lambda^2}.$
+  \end{tabular}
+
+\vspace{1cm}
+
+The exponential distribution has \emph{constant hazard}.
+
+\end{frame}
+
+
+
+
+\begin{frame} \frametitle{Exponential distribution (2)}
+
+\includegraphics[width=11cm]{fig-1-3.pdf}\vspace{-0.2cm}
+
+Hazard function $\lambda(t)$, density function $f(t)$, and survivor
+function $S(t)$ for the exponential model. Note: 
+$\lambda$ may exceed 1.
+
+\end{frame}
+
+
+
+
+\begin{frame} \frametitle{Weibull distribution (1)}
+
+  \begin{tabular}{rl}
+    pdf:   &    $f(t)  = \alpha\lambda (\lambda
+    t)^{\alpha-1} e^{-(\lambda t)^\alpha},$\\[1.5ex]
+    cdf:    & $ F(t) = 1 - e^{-(\lambda t)^\alpha}$,    \\[1.5ex]
+
+    survival function: & $  S(t) = e^{-(\lambda t)^\alpha}$,\\ [1.5ex]
+    hazard function: &  $h(t) = \frac{f(t)}{S(t)} = \alpha\lambda (\lambda
+    t)^{\alpha-1}$.\\[1ex]
+    mean and variance: & {\footnotesize
+    $E(T) = \lambda^{-1}\Gamma(1+\alpha^{-1})$, \quad $\Gamma(\cdot)$ being the 
+    gamma function;} \\  
+    & {\footnotesize $\mbox{var}(T) = \lambda^{-2}\left[\Gamma(1+2\alpha^{-1})-
+    \Gamma^2(1+\alpha^{-1})\right].$}
+  \end{tabular}
+
+\vspace{0.4cm}
+
+\begin{itemize}
+\item $\alpha$:  {\it shape} parameter. 
+\item $\lambda$:  {\it
+  scale} parameter. 
+ 
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}  \frametitle{Weibull distribution (2)}
+
+\begin{wideitemize}
+\item  The Weibull hazard function is:
+  
+\begin{itemize} 
+\item monotone increasing if $\alpha > 1$
+\item monotone decreasing if $\alpha < 1$ 
+\item constant if $\alpha = 1$ ( \textcolor{red}{$= $ exponential
+  distribution!}).
+\end{itemize}
+
+\item $H(t) = \lambda^\alpha t^\alpha \Rightarrow \log H(t) = \alpha \log \lambda + \alpha \log t$
+
+\item Can check the validity of Weibull assumption by plotting 
+\[
+\text{$\log (H(t))  = \log (- \log S(t))$ \quad against \quad  $\log (t)$, }
+\]
+and look for a straight line. 
+
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame} \frametitle{Weibull distribution (3)}
+
+\includegraphics[height=0.75\textheight]{fig-1-4.pdf}\vspace{-0.2cm}
+
+Weibull $pdf$'s (upper figure) and hazard functions (lower figure) for
+  $\alpha = 0.5, 1.0, 1.5, 3.0$, with $\lambda = 1$.
+
+\end{frame}
+\begin{frame} \frametitle{Weibull distribution and extreme value distribution (1)}
+\begin{wideitemize}
+
+\item 
+If $T\stackrel{d}{=}\mbox{Weibull}(\lambda,\alpha)$ , then
+$Y=\log T$ has an \textbf{extreme value distribution} (Gumbel distribution) $\mbox{EV}(\mu,\sigma)$ with pdf
+$$ f(y) = \sigma^{-1} \exp\left\{\frac{y-\mu}{\sigma}-
+    \exp\left(\frac{y-\mu}{\sigma}\right)\right\}$$
+where $\sigma = \alpha^{-1}$ and $\mu = -\log \lambda$.  
+
+\begin{wideitemize}
+\item
+$\mu$ and
+  $\sigma$: location and scale parameters of the extreme
+  value distribution, \underline{not} the mean and standard deviation.
+\item
+Sometimes it is more interpretable to base inference on $\log T$,
+where the extreme value distribution will be used in model formulation.
+\end{wideitemize}
+
+
+
+\end{wideitemize}
+
+\end{frame}
+
+% another frame
+\begin{frame} \frametitle{Weibull distribution and extreme value distribution (2)}
+
+\begin{itemize}
+
+\item The distribution function of $Y$ is
+\[
+F(y) = 1 - \exp\left(  - \exp\left(   \frac{ y- \mu}{\sigma} \right) \right)
+\]
+
+\item Equivalently, one can represent $Y = \log T$ in  location-scale  form as
+\begin{equation} \label{log_weibull_location_scale_form}
+\log T = \mu + \sigma \epsilon,
+\end{equation}
+where $\epsilon \stackrel{d}{=} EV(0, 1)$
+\end{itemize}
+
+
+\end{frame}
+
+%
+%\begin{frame} \frametitle{Gamma distribution (1)}
+%
+%  \begin{tabular}{rl}
+%    pdf:   &   $f(t) = \frac{\lambda^\alpha}{\Gamma(\alpha)} t^{\alpha-1}
+%  e^{-\lambda t}, \quad \lambda > 0, \quad \alpha > 0$ \\[1.5ex]
+%    cdf:    &  no closed-form expression in general  (messy) \\[1.5ex]
+%    survival function: & no closed-form expression in general (messy) \\ [1.5ex]
+%    hazard function:  & no closed-form expression in general (messier)  \\[1ex]
+%    mean and variance: & $E(T) = \frac{\alpha}{\lambda} \quad \mbox{var}(T) =
+%  \frac{\alpha}{\lambda^2}$\\
+%  \end{tabular}
+%
+%\vspace{0.7cm}
+%
+%  $\Gamma(\cdot)$ is the gamma function: $\Gamma(k) = \int_{0}^\infty  u^{k-1} e^{-u} du$.
+%
+%\end{frame}
+%
+%\begin{frame} \frametitle{Gamma distribution (2)}
+%
+%\includegraphics[height=0.75\textheight]{fig-1-5.pdf}\vspace{-0.2cm}
+%
+%Gamma $pdf$'s for $\alpha = 0.5, 1.0, 2.0, 3.0$, with $\lambda = 1$.
+%
+%\end{frame}
+%
+%\begin{frame} \frametitle{Rayleigh distribution (motivated by hazard function)}
+%
+%\begin{tabular}{rl}
+%
+%    hazard: &  $h(t)=\lambda_0  + \lambda_1 t$ \\ [1.5ex]
+%    cumulative Hazard: &  $H(t)=\int_0^t h(x)dx  = \lambda_0t  + \frac{\lambda_1 t^2}{2}$,\\[1.5ex] 
+%    survival: &  $S(t)=\exp [-H(t)] = \exp \left(- \lambda_0t  - \frac{\lambda_1 t^2}{2}\right)$\\ [1.5ex]
+%    pdf: &  $f(t)=h(t) S(t) = (\lambda_0 \! +\! \lambda_1 t ) \exp \left(-
+%      \lambda_0t  - \frac{\lambda_1 t^2}{2}\right).$  \\[1.5ex]
+%    mean and variance: & no closed-form expression (messy) \\
+%  \end{tabular}
+%
+%\vspace{0.7cm}
+%
+%Extending Rayleigh, think about $\displaystyle h(t) =\sum_{i=0}^p \lambda_i t^i.$
+%
+%\end{frame}
+%
+%
+%\begin{frame} \frametitle{Log-normal distribution (1)}
+%
+%  \begin{tabular}{rl}
+%    pdf:   &   $f(t) = \frac{1}{\sqrt{2\pi}\sigma} \frac{\exp{(-(\log
+%      t - \mu)^2 / (2 \sigma^2)  )}}{t}$ \\ 
+%            & $t \ge 0, \quad  -\infty \le \mu \le \infty , \quad \sigma > 0$ \\[1.5ex]
+%    cdf:    &  $F(t)=\Phi\left(\frac{\log t-\mu}{\sigma}\right)$ \\[1.5ex]
+%    survival function: & $S(t)=1-\Phi\left(\frac{\log t-\mu}{\sigma}\right)$  \\ [1.5ex]
+%    hazard function:  & $h(t)=\frac{f(t)}{S(t)}$  \\[1.5ex]
+%    mean and variance: & $E(T) = \exp{(\mu + \sigma^2/2)}$ \\ &  $\mbox{var}(T) =
+%  \exp{(2\mu + \sigma^2)}(\exp(\sigma^2)-1)$ \\
+%  \end{tabular}
+%
+%\vspace{0.5cm}
+%
+%  If the random variable $T$ is such that $\log T \stackrel{d}{=} N(\mu,
+%  \sigma^2)$, we say that $T$ has a log-normal distribution.
+%
+%\end{frame}
+%
+%\begin{frame} \frametitle{Log-normal distribution (2)}
+%
+%\includegraphics[height=0.75\textheight]{fig-1-6.pdf}\vspace{-0.2cm}
+%
+%Log-normal $pdf$'s (upper) and hazard functions (lower) for
+%  $\sigma = 0.25, 0.5, 1.5, 3.0$, with $\mu = 0$.
+%
+%\end{frame}
+%
+
+
+
+% new frame
+
+\section{Regression models for failure times}
+\begin{frame} \frametitle{Regression models}
+
+\begin{wideitemize}
+\item 
+Covariates are often available; and it is important to assess their effects on survival. 
+
+
+\item Data: $\{(y_i, \delta_i; \mathbf{x}_i); i = 1,\ldots, n\}$ where
+%,
+%as before, $y_i = \min(t_i , c_i )$ is the observed time, $\delta_i$
+%is the censoring indicator and 
+$\mathbf{x} = (x_1 , x_2 , \ldots, x_p )^T$ is
+a vector of covariates.
+\item 
+$S(t|\mathbf{x})$, $h(t|\mathbf{x})$: 
+the survival and hazard functions of $T$ dependent on
+covariates $\mathbf{x}$. 
+
+\item $S_0(t)=S(t|0)$, $h_0(t)=h(t|0)$:
+baseline functions at reference level $\mathbf{x}=0$.
+
+
+\item 
+Widely used regression models:
+\begin{wideitemize}
+\item 
+\textbf{Proportional hazard (PH) model} 
+\item 
+\textbf {Accelerated failure time (AFT) model} (fitted by \texttt{survreg} in R package \texttt{survival})
+\end{wideitemize}
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame} {Regression models: PH vs AFT}
+
+As defined in Cox and Oakes (1984), 
+\begin{wideitemize}
+
+
+
+\item
+{\bf Proportional hazard} model (PH) assumes 
+\[h(t|\mathbf{x})=h_0(t)\phi(\mathbf{x}),\]
+where $\phi(\mathbf{x})$ is a positive function of $\bf x$. 
+This
+implies that \[S(t|\mathbf{x})=[S_0(t)]^{\phi(\mathbf{x})}.\] 
+
+
+\item
+{\bf Accelerated failure time} model (AFT) assumes 
+\[S(t|\mathbf{x})=S_0(\psi(\mathbf{x})t),\]
+where $\psi(\mathbf{x})$ is some positive function of $\bf x$. 
+This
+implies that \[
+h(t|\mathbf{x})=h_0(\psi(\mathbf{x})t)\psi(\mathbf{x}).\] 
+
+
+\item When $T$ is Weibull, a  connection exists between PH and AFT; this allows us to estimate PH by fitting AFT, as will be seen later.
+
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+%\subsection[Basic Relations]{Basic relations in proportional hazard}
+
+
+\subsection{Proportional hazards model (PH)}
+
+
+\begin{frame}\frametitle{Proportional hazards model (1)}
+\begin{itemize}
+
+\item Let $h_1(t) = h_0(t) \phi({\bf x}_1)$ and $h_2(t) = h_0(t) \phi({\bf x}_2)$ be the hazard functions for two different covariates ${\bf x}_1$ and ${\bf x}_2$, write 
+\[ h_2(t) = c h_1(t),
+\]
+where $c = c({\bf x}_1, {\bf x}_2)$ is a constant implicitly dependent on ${\bf x}_1$ and ${\bf x}_2$ but independent of $t$. We say the two hazards are \emph{proportional}. 
+
+\item This gives 
+
+\begin{eqnarray*} H_2(t) =c H_1(t). \label{propch} \end{eqnarray*}
+
+and 
+\[ S_2(t) = \exp[-H_2(t) ] = \exp[-cH_1(t) ] = \{\exp
+[-H_1(t)]\}^c = [S_1(t)]^c, \]
+
+where $S_1, S_2, H_1, H_2$ are the corresponding survival and cumulative hazard functions.  
+
+
+
+%That is,
+%\[ S_2(t) = [S_1(t)]^\psi.  \]
+
+\end{itemize}
+\end{frame}
+
+
+%frame
+\begin{frame} {Proportional hazards model (2)}
+\begin{wideitemize}
+
+\item Further, 
+\[ \log H_2(t) = \log c  + \log H_1(t).\]
+
+
+\item
+
+Plots of $\log H_2(t)$ and $\log H_1(t)$ versus $t$ will
+be parallel.  This can be used to check the proportional hazard
+assumption.
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}\frametitle{Proportional hazards model (3)}
+
+
+\begin{itemize}
+\item Specifically, further assume 
+\[\phi({\bf x})= g(\eta), \] 
+for  linear predictor $\eta
+= \mbox{\boldmath $\gamma$}^T\mathbf{x}$ with coefficient vector $\mbox{\boldmath $\gamma$}
+= (\gamma_1 , \gamma_2 ,\ldots, \gamma_p)^T$, and $g( \cdot)$ being a specific
+function.  
+\item Various choices of $g(\cdot)$ are
+\begin{enumerate}
+\item $g(\eta) = 1 + \eta$, (only positive for some $\eta$)
+\item $g(\eta) = \frac{1}{1+\eta}$, (only positive for some $\eta$)
+\item $g(\eta) = \exp (\eta)$.  
+\end{enumerate}
+
+%\item If $\eta_1 = \mbox{\boldmath $\gamma$}'\mathbf{x}_1$ and 
+%$\eta_2 = \mbox{\boldmath $\gamma$}'\mathbf{x}_2$, \[ \frac{ h_1(t)}{h_2(t) } = \frac{g(\eta_1)}{g(\eta_2)} \] which is a
+%constant (independent of time $t$).  The  hazard ratio is constant over time (hence the name \emph{proportional hazard}). 
+
+\item 
+For all these choices, $g(0) = 1$, confirming that $h_0(t)$ is the baseline hazard function when $\mathbf{x} = \mathbf{0}$. 
+
+\item  $g(\eta) = \exp (\eta)$ is the most important case, and
+it is always  positive, regardless of the value of $\eta$; note that hazard functions are non-negative.  In fact, many textbooks refer to the model with this choice as the proportional hazard model.
+\end{itemize}
+\end{frame}
+
+%\begin{frame}\frametitle{Proportional hazards model (4)}
+%\begin{itemize}
+%
+%\item 
+%For all of these, $g(0) = 1$, confirming that $h_0(t)$ is the baseline hazard function when $\mathbf{x} = \mathbf{0}$. 
+%
+%\item  $g(\eta) = \exp (\eta)$ is the most important case, as
+%it is always  positive, regardless of the value of $\eta$. 
+%\end{itemize}
+%
+%\end{frame}
+
+
+
+
+%another frame
+
+\begin{frame}[fragile] \frametitle{ Breast cancer example }
+
+%\examp \label{ex-1.12} (Breast cancer)\\
+Do suitable plots to check whether a proportional hazard assumption is
+appropriate for the Breast cancer data.  Does it also look that Weibull
+distributions will fit the two groups?
+
+\end{frame}
+
+\begin{frame}[fragile] 
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> bcancer <- read.csv("../data/survival.csv")
+> head(bcancer)
+\end{Sinput}
+\begin{Soutput}
+  time status group
+1   23      1     N
+2   47      1     N
+3   69      1     N
+4   70      0     N
+5   71      0     N
+6  100      0     N
+\end{Soutput}
+\begin{Sinput}
+> tail(bcancer)
+\end{Sinput}
+\begin{Soutput}
+   time status group
+40  154      0     P
+41  162      0     P
+42  188      0     P
+43  212      0     P
+44  217      0     P
+45  225      0     P
+\end{Soutput}
+
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+\begin{frame}[fragile] \frametitle{ Breast cancer example: Estimating survival functions }
+
+\begin{itemize}
+\item The function \texttt{surfit} forms the famous {\bf Kaplan-Meier estimate} for the survival function $S(\cdot)$ respectively for each of the two groups (positive and negative stainings).
+\item \texttt{Surv} creates a survival object to be used as  a response. 
+
+\end{itemize}
+
+
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> library(survival)
+> cancer.km <- survfit(Surv(time, status) ~ group, data = bcancer)
+> cancer.km
+\end{Sinput}
+\begin{Soutput}
+Call: survfit(formula = Surv(time, status) ~ group, data = bcancer)
+
+        records n.max n.start events median 0.95LCL 0.95UCL
+group=N      13    13      13      5     NA     148      NA
+group=P      32    32      32     21   64.5      41      NA
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+\begin{frame}[fragile] 
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> summary(cancer.km)
+\end{Sinput}
+\begin{Soutput}
+Call: survfit(formula = Surv(time, status) ~ group, data = bcancer)
+
+                group=N 
+ time n.risk n.event survival std.err lower 95% CI upper 95% CI
+   23     13       1    0.923  0.0739        0.789        1.000
+   47     12       1    0.846  0.1001        0.671        1.000
+   69     11       1    0.769  0.1169        0.571        1.000
+  148      6       1    0.641  0.1522        0.402        1.000
+  181      5       1    0.513  0.1673        0.271        0.972
+
+                group=P 
+ time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    5     32       1    0.969  0.0308        0.910        1.000
+    8     31       1    0.938  0.0428        0.857        1.000
+   10     30       1    0.906  0.0515        0.811        1.000
+   13     29       1    0.875  0.0585        0.768        0.997
+   18     28       1    0.844  0.0642        0.727        0.979
+   24     27       1    0.812  0.0690        0.688        0.960
+   26     26       2    0.750  0.0765        0.614        0.916
+   31     24       1    0.719  0.0795        0.579        0.893
+   35     23       1    0.688  0.0819        0.544        0.868
+   40     22       1    0.656  0.0840        0.511        0.843
+   41     21       1    0.625  0.0856        0.478        0.817
+   48     20       1    0.594  0.0868        0.446        0.791
+   50     19       1    0.562  0.0877        0.414        0.764
+   59     18       1    0.531  0.0882        0.384        0.736
+   61     17       1    0.500  0.0884        0.354        0.707
+   68     16       1    0.469  0.0882        0.324        0.678
+   71     15       1    0.438  0.0877        0.295        0.648
+  113     10       1    0.394  0.0892        0.253        0.614
+  118      8       1    0.345  0.0906        0.206        0.577
+  143      7       1    0.295  0.0900        0.162        0.537
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{scriptsize}
+\begin{figure}[!ht]
+\centering 
+\begin{Schunk}
+\begin{Sinput}
+> opar <- par(mar = c(3, 3, 1, 1), las = 1)
+> plot(cancer.km)
+> par(opar)
+\end{Sinput}
+\end{Schunk}
+\includegraphics[width=0.8\textwidth, height=0.65\textheight]{cancer-km}
+\end{figure}
+\end{scriptsize}
+\end{frame}
+
+\begin{frame}[fragile] \frametitle{Breast cancer example: checking Weibull suitability}
+
+  The following code constructs a nice graph to check Weibull suitability.
+
+\begin{scriptsize}
+\begin{figure}[!ht]
+\centering 
+\begin{Schunk}
+\begin{Sinput}
+> opar <- par(mar = c(4, 4, 0, 0), las = 1)
+> negative <- cancer$group == "N"
+> positive <- cancer$group == "P"
+> plot(log(cancer.km$time), log(-log(cancer.km$surv)), type = "n", 
++     xlab = "Log(time)", ylab = "Log(-Log(S(time)))")
+> lines(log(cancer.km$time[negative]), log(-log(cancer.km$surv[negative])), 
++     col = "darkgreen", type = "b")
+> lines(log(cancer.km$time[positive]), log(-log(cancer.km$surv[positive])), 
++     col = "purple", type = "b")
+> par(opar)
+\end{Sinput}
+\end{Schunk}
+\end{figure}
+\end{scriptsize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]\frametitle{Breast cancer example: checking Weibull suitability}
+$\log H_1$ and $\log H_2$ against $\log(t)$, looking for two straight lines. 
+\begin{scriptsize}
+\begin{figure}[!ht]
+\centering 
+\includegraphics{slide16-ws1-plot}
+\end{figure}
+\end{scriptsize}
+ 
+\end{frame}
+
+
+% new frame
+\begin{frame}[fragile] \frametitle{Breast cancer example: checking PH assumption}
+Plot $\log H_1$ and $\log H_2$ against $t$, look for a parallel shift:
+\begin{scriptsize}
+
+\begin{figure}[!ht]
+\centering 
+\begin{Schunk}
+\begin{Sinput}
+> opar <- par(mar = c(2, 2, 0, 0), las = 1)
+> plot(cancer.km, fun = "cloglog", lty = 1:2, col = c("Red", "Blue"), 
++     xlim = c(5, 300))
+> legend("topleft", legend = c("Negative Stain", "Positive Stain"), 
++     lty = 1:2, col = c("Red", "Blue"), bty = "n")
+> par(opar)
+\end{Sinput}
+\end{Schunk}
+\includegraphics{slide16-ws2-plot}
+\end{figure}
+\end{scriptsize}
+
+\end{frame}
+
+
+
+\subsection{Accelerated failure time  (AFT) models} 
+\begin{frame} \frametitle{Accelerated failure time models}
+\begin{wideitemize}
+\item
+{\bf Accelerated failure time} model (AFT):
+\[S(t|\mathbf{x})=S_0(\psi(\mathbf{x})t),\]
+
+for some positive function $\psi(\mathbf{x})$ of  $\bf x$. 
+
+\item  Equivalent formulations (check on your own):
+
+\begin{wideitemize}
+\item $h(t|\mathbf{x})=h_0(\psi(\mathbf{x})t)\psi(\mathbf{x})$
+
+\item $f(t|\mathbf{x})=f_0(\psi(\mathbf{x})t)\psi(\mathbf{x})$
+
+
+\item  $T = T_0/\psi(\mathbf{x})$ where $T_0$ is a baseline survival time  with survival function $S_0(\cdot)$
+
+
+
+\end{wideitemize}
+
+\item The subscript ``0"  represents baseline quantities.
+
+
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame} {Accelerated failure time models: location scale form}
+\begin{itemize}
+
+\item If $\log T_0 = \mu_0 + \epsilon$ for $\mu_0  := E[ \log T_0]$, one can write
+\begin{equation} \label{AFT_loc_scale}
+\log T  = \mu_0 - \log \psi(\mathbf{x}) + \epsilon,
+\end{equation}
+where $\epsilon$ is mean zero with  a distribution not depending on $\bf x$, or equivalently,
+\[
+T = \exp(\mu_0 - \log \psi(\mathbf{x})) \exp(\epsilon).
+ \]
+
+\item  The last display shows that the effect of covariates is directly multiplicative on $T$ itself, rather than multiplicative on the hazard function like the PH model. Hence, the covariates act to ``accelerate" (or decelerate) the survival time directly.
+
+\item A natural candidate for $\psi({\bf x})$ to make $h(t|\mathbf{x} = 0) = h_0(t)$ is again $\psi({\bf x}) = \exp(\boldgamma^T {\bf x} )$, which will give the log-linear form
+\[
+\log T  = \mu_0 - \boldgamma^T {\bf x}+ \epsilon.
+\]
+%or equivalently,
+%\[
+%T = \exp(\mu_0 - \boldgamma^T {\bf x}) \exp(\epsilon).
+% \]
+% 
+% \item The last display shows that in an AFT, the effect of 
+\end{itemize}
+\end{frame}
+
+\subsection{Weibull survival time}
+% frame
+\begin{frame}\frametitle{ Weibull survival time (1)} 
+\begin{itemize}
+
+\item Suppose $T$ is Weibull distributed, $T \stackrel{d}{=} Wei (\lambda, \alpha)$
+\item Assume a {\bf PH} model for $\phi({\bf x}) = \exp( {\boldgamma}^T{\bf x})$: for any given $\mathbf{x}$, 
+ \[
+ h(t|\mathbf{x})=h_0(t)\exp({\boldsymbol \gamma}^T\mathbf{x}),
+ \]
+with $h_0(t) = \lambda \alpha (\lambda t)^{\alpha -1}$. 
+\item
+Then 
+\begin{eqnarray*}
+h(t|\mathbf{x})&=&\alpha\lambda(\lambda t)^{\alpha-1}\exp(\mbox{\boldmath $\gamma$}^T\mathbf{x}) \\
+&=& \alpha [\lambda\exp(\alpha^{-1}\mbox{\boldmath $\gamma$}^T\mathbf{x})] [\lambda
+\exp(\alpha^{-1}\mbox{\boldmath $\gamma$}^T\mathbf{x})t]^{\alpha-1}.
+\end{eqnarray*}
+
+$\Rightarrow T\stackrel{d}{=}\mbox{Wei}(\lambda e^{\alpha^{-1}
+\mbox{\footnotesize \boldmath $\gamma$}^T\mathbf{x}}, \alpha)$
+
+
+\item 
+  IMPORTANT : $\mathbf{x}$ affects only the \textcolor{red}{scale} ($
+ \lambda$) but not the shape ($\alpha$).
+ 
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Weibull survival time (2)}
+\begin{wideitemize}
+ \item Recall that 
+ \[
+ h(t|\mathbf{x})=h_0(\psi(\mathbf{x})t)\psi(\mathbf{x}) \text{ for an AFT.}
+ \]
+  From the preceding display, one can also observe that when $T$ is Weibull, a PH model is also an AFT model with $\psi({\bf x})  = e^{\alpha^{-1} \boldgamma^T{\bf x}}$. 
+
+ 
+\item Recall  the location-scale form of a log  Weibull random variable in \eqref{log_weibull_location_scale_form}. Then, expressing the location-scale form of AFT in the PH model's parameters gives:
+\[\log T=-\log\lambda-\alpha^{-1}\mbox{\boldmath $\gamma$}^T\mathbf{x}+
+\alpha^{-1}\varepsilon, \]
+
+
+where $\varepsilon\stackrel{d}{=}EV(0,1)$.
+
+\item Apparently, regardless of the form of $\phi({\bf x})$ we choose for the PH model, the above argument can be extended to show that it is also an AFT model as long as  $T$ is Weibull. (exercise for you)
+
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame} {Weibull survival time (3)}
+\begin{wideitemize}
+
+\item Turns out, Weibull is actually the \emph{only} baseline distribution for which the PH and AFT coincide, i.e. the only family that is closed under both multiplication of failure time (AFT) and multiplication of the hazard function (PH) by an arbitrary non-zero constant; see [Cox and Oakes, p.71] for a proof.
+
+\item {\bf Implication}: If you decide to use Weibull to model your survival times, there is no difference between using a PH or an AFT for regression.
+
+\item Counter-example: The \emph{log-logistic distribution}, another common distribution used for survival analysis, allows for AFT modeling but not PH modeling.
+
+\end{wideitemize}
+
+\end{frame}
+
+
+\section{Inference}
+\begin{frame} {Inference }
+
+\begin{wideitemize}
+
+\item The development so far is based on  explicit distributional forms assumed on the survival times $\Rightarrow$ a full likelihood approach
+
+
+\item Therefore, all the familiar notions from the likelihood theory: Fisher information, likelihood ratio test, Wald test, score test, etc... will apply (under ``suitable" regularity conditions).
+
+
+%\item See Kalbfleisch and Prentice Ch3, which just reviewed all these, but no essential difference from the general theory you would learn in MAST 90082.
+
+\end{wideitemize}
+
+
+\end{frame}
+
+% new frame
+\begin{frame} {Inference: Likelihood}
+
+\begin{itemize}
+\item Data: $ (Y_i = y_i, \delta_i , {\bf x}_i,  C_i)$, $i = 1, \dots, n$.  Recall $Y_i = \min(T_i, C_i)$.
+
+
+\item Assume an underlying parameter vector $\mbox{\boldmath $\theta$} = (\theta_1, \theta_2, \ldots,
+\theta_p)^T$.
+
+
+\item That the $C_i$'s are noninformative for $\mbox{\boldmath $\theta$}$ implies the likelihood
+\begin{eqnarray}
+ L = \prod_{i=1}^n \underbrace{[f(y_i; {\bf x}_i, {\boldsymbol \theta})]^{\delta_i} [ S(y_i; {\bf x}_i, {\boldsymbol \theta})]^{1-\delta_i}}_{ L_i (\theta)}.
+  \label{PLik2}
+\end{eqnarray}
+conditional on ${\bf x}_1, \dots, {\bf x}_n$. 
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame} {Inference: Score vectors}
+\begin{itemize}
+\item Score vectors:
+\[
+U_i(\boldtheta)  = \frac{\partial\log L_i (\boldtheta) }{ \partial \boldtheta} , i =1, \dots, n.
+\]
+and
+\[
+U (\boldtheta) = \sum_i U_i(\boldtheta)
+\]
+\item Fisher information:
+\[
+F(\boldtheta) = \sum_i F_i(\boldtheta)
+\]
+for $F_i(\theta) \equiv E[U_i(\boldtheta)U_i(\boldtheta)^T ]$.
+
+\item Under regularity conditions, the operations of differentiation and  expectation can be interchanged and it can be shown that 
+\[
+E[U_i(\boldtheta)] = 0 \text{ and } F_i(\boldtheta) = - E\left[ \frac{\partial^2 \log L_i}{ \partial \boldtheta \partial \boldtheta^T} \right]
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame} {Inference: Asymptotic properties}
+\begin{itemize} 
+\item Under random censorship, $U_i(\boldtheta), \dots, U_n(\boldtheta)$ are independent. This implies
+\[
+U (\boldtheta)  \sim_a N(  0, F(\boldtheta)) \text{ and } U^T F^{-1} (\boldtheta) U \sim_a \chi^2(p)
+\]
+
+\item If $\hat{\boldtheta}$ is the MLE, then 
+\[
+\hat{\boldtheta} \sim_a N(\boldtheta, F^{-1}(\boldtheta)), 
+\]
+which can be used to construct confidence intervals, using  the observed information matrix
+\[
+- \sum_i \frac{\partial^2 \log L_i}{ \partial \boldtheta \partial \boldtheta^T} (\hat{\boldtheta})
+\]
+evaluated at $\hat{\boldtheta}$ as a substitute for  $F(\boldtheta)$. 
+
+\item Again, ``$\sim_a$" means ``approximately distributed as".
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame} {Inference: Trilogy of tests}
+
+
+If one want to test the null hypothesis $H: \boldtheta = \boldtheta_0$, one can use:
+\begin{itemize}
+\item  Score test:
+\[   U^T(\boldtheta_0) F^{-1} (\boldtheta_0) U(\boldtheta_0) \sim_a \chi^2 (p) .\]
+
+
+
+\item Wald test:
+\[   (\hat{\boldtheta} - \boldtheta_0)^T F(\boldtheta_0) (\hat{\boldtheta} - \boldtheta_0) \sim_a \chi^2 (p) .\]
+
+\item Likelihood ratio (LR) test:
+\[
+2(\log L(\hat{\boldtheta}) -  \log L(\boldtheta_0)  )   \sim_a \chi^2 (p) .
+\]
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame} {Inference: Smooth function of $\boldtheta$}
+
+\begin{itemize}
+
+\item If $g : \mathbb{R}^p \rightarrow \mathbb{R}$ is a smooth function in $\boldtheta$, then inference for $g(\boldtheta)$ (e.g. hypothesis testing, confidence interval (CI) construction) can be based on the delta-method.
+
+
+\item However, if $g(\cdot)$ is a \emph{monotone} function defined on $\mathbb{R}$, one can simply construct a $(1 - \alpha)$-confidence interval for $g(\theta)$ as 
+\[
+(g(\hat{\theta}_{\alpha/2}),  g(\hat{\theta}_{1 - \alpha/2})),
+\]
+where $\hat{\theta}_{\alpha/2}$ and $\hat{\theta}_{1 - \alpha/2}$ are respectively approximate $\alpha/2$ and $1 - \alpha/2$ percentiles of $\hat{\theta}$, perhaps computed based on the  inverse Fisher information matrix for $\hat{\theta}$.
+
+\item The latter may even give more interpretable CIs in some situations. E.g., if $g(\theta) = exp( - \theta)$, the interval  $(
+g(\hat{\theta}_{\alpha/2}), g(\hat{\theta}_{1 - \alpha/2}))$  is guaranteed to lie in $(0, \infty)$, whereas a CI computed based on delta-method may overlap with the negative numbers.
+
+
+
+\end{itemize}
+
+
+\end{frame}
+
+
+\subsection{Example: Inference  on exponential distribution}
+
+
+
+
+
+\begin{frame} \frametitle{Inference  on exponential distribution (1)}
+
+\begin{itemize}
+
+\item Suppose the survival times $T_i$ come from an underlying common exponential distribution with density $f(t) = \lambda e^{-\lambda t}$ and survival function $S(t) = e^{-\lambda t}$.
+
+
+\item 
+Under noninformative censoring we can use (\ref{PLik2}) to obtain
+\begin{eqnarray*} L &=& \prod_{i=1}^n[f(y_i)]^{\delta_i} [
+  S(y_i)]^{1-\delta_i}\\&=& \prod_{i=1}^n[\lambda e^{-\lambda
+    y_i}]^{\delta_i} [
+  e^{-\lambda y_i}]^{1-\delta_i}\\
+  &=& \lambda^{(\sum_i\delta_i)} \prod_{i=1}^n[ e^{-\lambda
+    y_i}]^{\delta_i+1-\delta_i}\\
+  &=& \lambda^{\sum_i \delta_i}e^{-\lambda\sum_iy_i}
+\end{eqnarray*}
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame} \frametitle{Inference on exponential distribution (2)}
+
+Taking log we get that
+\[
+\log L =  \log \lambda{\sum_i \delta_i}  - \lambda \sum_{i=1}^n y_i 
+ \]
+
+\vspace{0.1cm}
+\[
+\text{Setting} \quad  \frac{\partial}{\partial \lambda} \log L = \frac {\sum_i \delta_i}{\lambda} - \sum_{i=1}^n
+y_i = 0 \qquad \Rightarrow \qquad \hat{\lambda} = \frac {\sum_i \delta_i}{\sum_{i=1}^n
+  y_i}.\]
+
+\vspace{0.2cm} That is, the maximum-likelihood estimator (MLE) of
+$\lambda$ is
+\[ \hat{\lambda} = \frac {\sum_i \delta_i}{\sum_{i=1}^n y_i}.\] 
+
+\end{frame}
+
+
+
+%
+%
+%\section{Fitting in R}
+%% frame
+%\begin{frame} \frametitle{\texttt{survreg()} in \texttt{R} }
+%\begin{itemize}
+%\item
+%\texttt{survreg()} in r library \texttt{survival} fits \emph{location-scale} models of the form
+% 
+% \[
+% \ell(T) \sim {\boldsymbol \beta}^T {\bf x}  + \sigma \epsilon,
+% \]
+% where
+% \begin{itemize}
+%\item   the argument \texttt{dist} determines the distribution of $\epsilon$ and $\ell()$
+%\item $\sigma$ is known as \emph{scale}
+%\end{itemize}
+%(Venables \& Ripley, p.360)
+%\item The \texttt{dist} argument: \texttt{weibull} (default), \texttt{exponential}, \texttt{rayleigh}, \texttt{lognormal}, \texttt{loglogistic} all make $\ell() = \log()$. 
+%
+%
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}
+%
+%\includegraphics{survreg}
+%\end{frame}
+%
+%
+%
+%\begin{frame}
+%\begin{itemize}
+%\item
+%For Weibull failure time $T$, we now  know the PH model for $\phi({\bf x}) = \exp( \gamma' {\bf x})$ has the alternative form:
+%
+%\[\log T=-\log\lambda-\alpha^{-1}\mbox{\boldmath $\gamma$}'\mathbf{x}+
+%\alpha^{-1}\varepsilon;  \quad \varepsilon\stackrel{d}{=}EV(0,1).\]
+%%$$\log T=-\log\lambda +\mbox{\boldmath $\beta$}'\mathbf{x}+\alpha^{-1}\varepsilon;
+%%\quad \varepsilon\stackrel{d}{=}EV(0,1).$$
+%
+%\item Hence, 
+%\begin{itemize}
+%\item \texttt{survreg}'s intercept is $- \log \lambda$
+%
+%\item \texttt{survreg}'s slope coefficient vector is $-\alpha^{-1}\mbox{\boldmath $\gamma$}$
+%
+%\item \texttt{survreg}'s scale is $\alpha^{-1}$
+%\end{itemize}
+%%\item
+%%$T\stackrel{d}{=}\mbox{Wei}(\lambda 
+%%e^{-\mbox{\footnotesize \boldmath $\beta$}'\mathbf{x}}, \alpha)$,
+%%with 
+%%\begin{itemize}
+%%
+%%\item
+%%$S(t|\mathbf{x})=\exp\left[-(\lambda e^{-\mbox{\footnotesize \boldmath $\beta$}'\mathbf{x}}t)^\alpha\right]
+%%=\left[\exp(-(\lambda t)^\alpha)\right]^{\exp(-\alpha\mbox{\footnotesize \boldmath $\beta$}'\mathbf{x})}$
+%%\item $h(t|\mathbf{x})=\alpha\lambda(\lambda t)^{\alpha-1}e^{-\alpha\mbox{\footnotesize
+%%\boldmath $\beta$}'\mathbf{x}}$.
+%%\end{itemize}
+%
+%\item If $\texttt{dist} =  ``\texttt{exponential}"$, $\sigma = \alpha = 1$.
+%\end{itemize}
+%
+%\end{frame}
+%
+%
+%
+%%
+%%\subsection{Exponential regression model}
+%%
+%%\begin{frame} \frametitle{Exponential regression model (1)}
+%%We now focus on fitting a survival regression model for an exponential 
+%%random failure time $T$ with covariate $\mathbf{x}$.
+%%\vspace{0.2cm}
+%%
+%%Here, we assume that the baseline distribution of $T$ is exponential with
+%%rate $\lambda$.  Therefore, $ h_0(t) = \lambda$ and
+%%\begin{eqnarray} 
+%%h(t|\mathbf{x}) = \lambda g(\mbox{\boldmath $\gamma$}'\mathbf{x}) \label{propexp}
+%%\end{eqnarray} 
+%%Note that the RHS is independent of $t$.  So, the
+%%distribution of $T$ when covariate $\mathbf{x}=\mathbf{x}_i$ is
+%%exponential with rate $\lambda_i = \lambda g(\mbox{\boldmath $\gamma$}'\mathbf{x}_i)$.  
+%%
+%%\end{frame}
+%%%
+%%%
+%%%
+%%%
+%%\begin{frame} \frametitle{Exponential regression model (2)}
+%%
+%%The three choices of $g(\cdot)$ aforementioned yield respectively to
+%%\begin{enumerate}
+%%\item $\lambda_i = \lambda(1 +\mbox{\boldmath $\gamma$}'\mathbf{x}_i) = \lambda +
+%%  \lambda\mbox{\boldmath $\gamma$}'\mathbf{x}_i$
+%%\item $\lambda_i = \frac{\lambda}{1+\mbox{\boldmath $\gamma$}'\mathbf{x}_i}$ \quad or \quad
+%%  $\frac{1}{\lambda_i} = \frac{1}{\lambda} + \frac{1}{\lambda}
+%%  \mbox{\boldmath $\gamma$}'\mathbf{x}_i$
+%%\item $\lambda_i = \lambda \exp (\mbox{\boldmath $\gamma$}'\mathbf{x}_i)$ \quad or \quad $ \log
+%%  \lambda_i = \log \lambda +\mbox{\boldmath $\gamma$}'\mathbf{x}_i$.
+%%\end{enumerate}
+%%\vspace{0.2cm}
+%%
+%%1. says that the failure rate $\lambda_i$  is linear in $\mathbf{x}_i$; \\
+%%2. says that the mean lifetime $1/\lambda_i$  is linear in $\mathbf{x}_i$; \\
+%%3. is log-linear.
+%%\vspace{0.2cm}
+%%
+%%The model (\ref{propexp}) has $p+1$ parameters $\lambda, \gamma_1,
+%%\gamma_2, \ldots, \gamma_p$ and is analysed using maximum-likelihood.
+%%Statistical software is usually used for the analysis.  We shall be
+%%using \texttt{survreg()} in \texttt{R}.
+%%
+%%\end{frame}
+%
+%%\subsection{Example}
+%\subsection{Fitting exponential}
+%\begin{frame} \frametitle{}
+%
+%\examp\label{ex-1.13} (Breast cancer)\\
+%Use an exponential regression model to answer the following:
+%%\renewcommand{\theenumi}{(\alph{enumi})}
+%\begin{itemize}
+%\item[(a)] Is there a difference in the survival time distribution for the
+%  two groups of women?  Carry out a test for this, using
+%  \begin{itemize} 
+%  \item[(a.1)] a Wald statistic;
+%  \item[(a.2)] a likelihood ratio statistic.
+%  \end{itemize}
+%\item[(b)] Obtain an estimate of $S(100)$ for each group of women.
+%\item[(c)] Check your estimates in (b) using the formula given for an
+%  exponential distribution in \S8.4.2.
+%\item[(d)] Consider the hazard ratio $\psi$ of the two groups (positive
+%  staining to negative staining).
+%  \begin{itemize}
+%  \item[(d.1)] Obtain an estimate of $\psi$ and a
+%    standard error of the estimate.
+%  \item[(d.2)] Find a 95\% CI for $\psi$.  Is this CI in accord with
+%    the result in (a)?
+%  \end{itemize}
+%\end{itemize}
+%
+%\end{frame}
+%
+%
+%\begin{frame}[fragile] \frametitle{}
+%\texttt{R} output is produced to solve Example~\ref{ex-1.13}.
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> cancer.exp <- survreg(Surv(time, status) ~ group, data = bcancer, 
+%+     dist = "exponential")
+%> summary(cancer.exp)
+%\end{Sinput}
+%\begin{Soutput}
+%Call:
+%survreg(formula = Surv(time, status) ~ group, data = cancer, 
+%    dist = "exponential")
+%             Value Std. Error     z        p
+%(Intercept)  5.800      0.447 12.97 1.81e-38
+%groupP      -0.952      0.498 -1.91 5.58e-02
+%
+%Scale fixed at 1 
+%
+%Exponential distribution
+%Loglik(model)= -156.8   Loglik(intercept only)= -159
+%	Chisq= 4.36 on 1 degrees of freedom, p= 0.037 
+%Number of Newton-Raphson Iterations: 4 
+%n= 45 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{Solving Example~\ref{ex-1.13} (a)}
+%
+%\begin{enumerate}
+%
+%\item The model is $\log (T) = -\log\lambda + \mbox{\boldmath $\beta$}'\mathbf{x} +
+%  \alpha^{-1} \varepsilon$, where $\varepsilon \stackrel{d}{=} EV(0,1)$.
+%
+%\item Note that the EV scale $\alpha^{-1}$ is fixed at 1 - this
+%  is a consequence of using the exponential distribution.
+%
+%\item For this model, $\mbox{\boldmath $\beta$}'\mathbf{x}$ is just $\beta$, representing
+%  difference between the stain groups.
+%\begin{enumerate}
+%\item $\hat{\beta} = -0.952$
+%\item se$(\hat{\beta}) = 0.498$
+%\end{enumerate}
+%\item The Wald statistic is the ratio $\frac{\hat{\beta}}{\mbox{se}(\hat{\beta})}$, 
+%and compared with $N(0,1)$.  We then retain the null hypothesis $H_0: \beta=0$.
+%\item The likelihood ratio statistic is \texttt{2[Loglik(model)-Loglik(intercept only)]}, \\
+%and compared with $\chi^2_1$.  
+%We then reject $H_0: \beta=0$.
+%%\item The estimated baseline hazard is $e^{-\mu_0}$ (group N)
+%\end{enumerate}
+%\end{frame}
+%
+%\begin{frame} \frametitle{Solving Example~\ref{ex-1.13} (b)}
+%
+%\begin{enumerate}
+%\item [(b)] Obtain an estimate of $S(100)$ for each group of women.
+%\end{enumerate}
+%
+%The hazard for each group can be computed as follows.
+%
+%\begin{description}
+%\item[N:] $\hat{\lambda}_N =\hat{\lambda}= e^{\log\hat{\lambda}} = e^{-5.800}=0.00303$
+%\item[P:] $\hat{\lambda}_P = \hat{\lambda}e^{-\hat{\beta}} =0.00303\times e^{0.952}= 0.00784$
+%\end{description}
+%
+%Therefore, 
+%\begin{eqnarray*}
+%\hat{S}_N(100) &= & e^{-\hat{\lambda}_N\times 100}=e^{-0.303}=0.7388 \\  
+%\hat{S}_P(100) &= & e^{-\hat{\lambda}_P\times 100}=e^{-0.784}=0.4564
+%\end{eqnarray*}
+%\end{frame}
+%
+%
+%
+%\begin{frame} \frametitle{Solving Example~\ref{ex-1.13} (c)}
+%
+%\begin{enumerate}
+%\item [(c)] Check your estimates in (b) using the formula given for an
+%  exponential distribution in \S8.4.2.
+%\end{enumerate}
+%
+%Recall that the maximum likelihood estimator for the rate parameter of
+%the exponential distribution is:
+%
+%$$ \hat{\lambda} = \frac{r}{\sum y_i} $$
+%
+%Applying this formula to groups N and P separately gives the same estimates obtained in (b).
+%\end{frame}
+%
+%
+%\begin{frame} \frametitle{Solving Example~\ref{ex-1.13} (d)}
+%
+%\begin{enumerate}
+%\item [(d)] Consider the hazard ratio $\psi$ of the two groups (positive
+%  staining to negative staining).
+%  \begin{enumerate}
+%  \item [(d.1)] Obtain an estimate of $\psi$ and a
+%    standard error of the estimate.
+%  \item [(d.2)] Find a 95\% CI for $\psi$.  Is this CI in accord
+%    with the result in (a)?
+%  \end{enumerate}
+%\end{enumerate}
+%
+%From [(b)], the ratios of the hazards are $0.00784 / 0.00303 = 2.591$
+%
+%The estimate formally comes from $\frac{\hat{\lambda}e^{- \hat{\beta}}}{\hat{\lambda}} = e^{-\hat{\beta}}$.  
+%Using the delta method, the variance of this estimate is:
+%$$\mbox{var}(e^{-\hat \beta}) = (-e^{-\hat \beta})^2 \mbox{var}(\hat \beta) 
+% = 2.591^2 \times 0.498^2 = 1.29^2$$
+%So an approximate 95\% CI for $\psi$ is
+%$$2.591\pm 1.96\times 1.29=(0.062, 5.120)$$
+%by assuming that the estimate is asymptotically normal.
+%
+%The CI contains $\psi=1$, so is in accord with the result of (a.1).
+%\end{frame}
+%
+%\subsection{Fitting Weibull}
+%
+%%\begin{frame} \frametitle{Weibull regression model (1)}
+%%We now focus on fitting a survival regression model for a
+%%Weibull random failure time $T$ with covariate $\mathbf{x}$.
+%%\vspace{0.2cm}
+%%
+%%Here, we assume that the baseline distribution of $T$ is a Weibull
+%%distribution with shape parameter $\alpha$ and scale parameter
+%%$\lambda$.  Then the baseline hazard rate is $h_0(t) = \alpha\lambda
+%%(\lambda t)^{\alpha-1}$. Thus, the hazard rate for an individual with
+%%covariate $\mathbf{x}$ is
+%%\[ h(t|\mathbf{x}) = \alpha\lambda (\lambda t)^{\alpha-1} g(\mbox{\boldmath $\gamma$}'\mathbf{x}) \]
+%%
+%%There are three common choices of $g(\cdot)$ as mentioned before, with 
+%%$g(\mbox{\boldmath $\gamma$}'\mathbf{x})=\exp(\mbox{\boldmath $\gamma$}'\mathbf{x})$
+%%being the most commonly used.
+%%\end{frame}
+%%
+%%\begin{frame} \frametitle{Weibull regression model (2)}
+%%
+%%Writing $g(\mbox{\boldmath $\gamma$}'\mathbf{x})  = s^\alpha$ (i.e. $s =
+%%g(\mbox{\boldmath $\gamma$}'\mathbf{x})^{1/\alpha})$ , we have
+%%\[ h(t|\mathbf{x}) = \alpha(\lambda s) (\lambda st)^{\alpha-1}\] 
+%%which shows
+%%that it is a Weibull hazard rate with scale parameter $\lambda s$ but
+%%the same shape parameter $\alpha$.  That is, $T$ follows a
+%%Weibull distribution that has a constant shape parameter but a scale
+%%parameter depending on the covariates.
+%%
+%%This model has $p+2$ parameters, $\lambda, \alpha, \gamma_1 , \gamma_2 ,
+%%\ldots, \gamma_p$ and is fitted using maximum likelihood. This is to be
+%%done using \texttt{survreg()} in \texttt{R}, where we actually fit the model
+%%$$\log (T) = -\log\lambda + \mbox{\boldmath $\beta$}'\mathbf{x} +
+%%  \alpha^{-1} \varepsilon,$$ with $\varepsilon \stackrel{d}{=} EV(0,1)$.
+%%\end{frame}
+%%\subsection{Example}
+%
+%\begin{frame} \frametitle{Example~\ref{ex-1.14}. Weibull regression model on the breast cancer data}
+%
+%\examp \label{ex-1.14} (Breast cancer)\\
+%Use a Weibull regression model to answer the following:
+%\begin{itemize}
+%\item[(a)] Obtain an estimate of $S(100)$ for each group of women.
+%\item[(b)] Quantify the effect of the staining classification on the
+%  survival experience of the women.
+%\item[(c)] Is an exponential regression model adequate, compared with a
+%  Weibull regression model?  Carry out a test for this, using
+%  \begin{itemize} 
+%  \item[(c.1)] a Wald statistic;
+%  \item[(c.2)] a likelihood ratio statistic.
+%  \end{itemize}
+%\end{itemize}
+%
+%\end{frame}
+%
+%
+%\begin{frame}[fragile] \frametitle{R output 1 for Example~\ref{ex-1.14}}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> cancer.wbl <- survreg(Surv(time, status) ~ group, data = bcancer, 
+%+     dist = "weibull")
+%> summary(cancer.wbl)
+%\end{Sinput}
+%\begin{Soutput}
+%Call:
+%survreg(formula = Surv(time, status) ~ group, data = cancer, 
+%    dist = "weibull")
+%              Value Std. Error      z        p
+%(Intercept)  5.8544      0.499 11.735 8.43e-32
+%groupP      -0.9967      0.544 -1.832 6.70e-02
+%Log(scale)   0.0646      0.167  0.386 6.99e-01
+%
+%Scale= 1.07 
+%
+%Weibull distribution
+%Loglik(model)= -156.7   Loglik(intercept only)= -158.8
+%	Chisq= 4.14 on 1 degrees of freedom, p= 0.042 
+%Number of Newton-Raphson Iterations: 5 
+%n= 45 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%
+%\begin{frame}[fragile] \frametitle{R output 2 for Example~\ref{ex-1.14}}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> cancer.wbl$coef
+%\end{Sinput}
+%\begin{Soutput}
+%(Intercept)      groupP 
+%  5.8543638  -0.9966647 
+%\end{Soutput}
+%\begin{Sinput}
+%> cancer.wbl$scale
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 1.066777
+%\end{Soutput}
+%\begin{Sinput}
+%> cancer.wbl$var
+%\end{Sinput}
+%\begin{Soutput}
+%            (Intercept)      groupP  Log(scale)
+%(Intercept)  0.24887910 -0.24501139  0.02441408
+%groupP      -0.24501139  0.29603784 -0.01997602
+%Log(scale)   0.02441408 -0.01997602  0.02801424
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%
+%\begin{frame} \frametitle{Solving Example~\ref{ex-1.14} (a)}
+%
+%\begin{itemize}
+%\item[(a)] Obtain an estimate of $S(100)$ for each group of women.
+%\end{itemize}
+%
+%$$S(t) = e^{-(\lambda t)^\alpha} \quad \mbox{for Weibull failure time}.$$
+%
+%\begin{enumerate}
+%\item 
+%For group N: $- \log\hat{\lambda}_n = 5.85436\quad \Rightarrow \hat{\lambda}_n = 0.002867$.
+%\item 
+%For group P:
+%$$- \log\hat{\lambda}_p = 5.85436 -0.996665 = 4.8577 \quad\Rightarrow 
+%\hat{\lambda}_p = 0.007768.$$
+%\item $\hat{\alpha} = 1/1.066777 = 0.9374$
+%\end{enumerate}
+%Hence,
+%\begin{enumerate}
+%\item for group N $\hat{S}_n(100) = e^{-(\hat \lambda_n \times 100)^{\hat\alpha}} = 0.7334$;
+%\item for group P $\hat{S}_p(100) = e^{-(\hat \lambda_p \times 100)^{\hat\alpha}} = 0.4542$.
+%\end{enumerate}
+%
+%\end{frame}
+%
+%\begin{frame} \frametitle{Solving Example~\ref{ex-1.14} (b)}
+%
+%\begin{itemize}
+%\item [(b)] Quantify the effect of the staining classification on the
+%  survival experience of the women.
+%\end{itemize}
+%
+%The unadulterated hazard function, remixed, is:
+%
+%$$h(t,x) = \alpha \lambda^{\alpha} t^{\alpha-1}.$$
+%
+%So, the ratio of hazards, where $\alpha$ is constant, has the estimate
+%
+%$$ \frac{\hat{h}_p(t)}{\hat{h}_n(t)} =
+%\left(\frac{\hat \lambda_p}{\hat \lambda_n}\right)^{\hat \alpha} = e^{-\hat{\beta}\hat{\alpha}}=2.54.$$
+%\end{frame}
+%
+%\begin{frame} \frametitle{Solving Example~\ref{ex-1.14} (c)}
+%
+%\begin{itemize}
+%\item [(c)] Is an exponential regression model adequate, compared with a
+%  Weibull regression model?  Carry out a test for this, using
+%  \begin{itemize} 
+%  \item [(c.1)] a Wald statistic;
+%  \item [(c.2)] a likelihood ratio test.
+%  \end{itemize}
+%\end{itemize}
+%
+%This is about testing $H_0:\alpha=1$ or equivalently $H_0: \log\alpha=0$.
+%\begin{itemize}
+%\item The Wald statistic for testing $\log\alpha=0$ is 0.386 with $p\mbox{-value}=0.699$
+%from the R output.
+%So cannot reject $H_0$. 
+%\item The likelihood ratio statistic equals $2[\mbox{LL(Weibull)}-\mbox{LL(exponential)}]
+%= 2(-156.7+156.8)=0.2$; not significant against the $\chi^2_1$ distribution.
+%The exponential regression model seems adequate. Note $\mbox{LL(exponential)}=-156.8$
+%is obtained from the Example~\ref{ex-1.13} \texttt{R} output. 
+%\end{itemize}
+%
+%\end{frame}
+%
+
+\end{document}
+

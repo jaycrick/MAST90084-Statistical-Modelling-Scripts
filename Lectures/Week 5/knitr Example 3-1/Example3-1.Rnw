@@ -1,0 +1,131 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,mathrsfs,amsthm}
+\usepackage{nopageno}
+\usepackage{fullpage}
+\usepackage{verbatim}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{enumerate}
+
+\newcommand{\norm}[1]{|\!| #1|\!|}
+\newcommand{\ip}[2]{\langle #1,#2 \rangle}
+\newcommand{\eps}{\epsilon}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\C}{\mathbb{C}}
+
+\title{Example 3.1 (Fharmeir and Tutz)}\author{}\date{}
+
+\begin{document}
+
+
+\maketitle
+
+\pagestyle{plain}
+ 
+This .Rnw file (``Sweave" file) illustrate how one can embed R code into a \LaTeX document to dynamically generate a report where the R programing and \LaTeX ing are happening simultaneously. Basically, it is exactly the same as a normal \LaTeX document, except that you insert \texttt{R} ``code chunks" here and there while you are typing things up. To compile this .rnw file, simply open it in  \texttt{RStudio}, click the ``Compile PDF" (or in my own case, I use ``command + shift + k" as hotkey on my mac) button at the top of your script window (This ``weave" your document). Also, REMEMBER to go to ``Preferences ---$>$ Sweave", and then set ``Weave Rnw files using:" to be ``knitr". 
+
+\ \
+
+{\bf Again, you are very encouraged to learn it for doing your howework.} 
+
+\ \
+
+
+We will use the multinomial logit regression in Example 3.1 in F \& T for an illustration. First  I am going to load the C-section dataset with the code chunk below. 
+
+<<Loading Data, echo = TRUE, results= 'markup', warning=FALSE, message = FALSE, cache=TRUE, tidy=TRUE>>=
+setwd("~/Dropbox/MAST 90084 S1 2020/Week 4/knitr Example 3-1")
+# always a good practice to set into the right directory
+Caes.dat <- read.csv("Example3-1Caes.csv")
+head(Caes.dat)
+is.data.frame(Caes.dat)
+@
+
+The code chunk is enclosed by ``$<<>>$" and ``@" in the Rnw file. Everything in the code chunk above is actual R code, and they will be run and reported in your  when you ``compile". Typically a  couple of options  go into the double angle bracket ``$<<>>$"(but it is fine if you leave that empty). The first is the name of this code chunk (\texttt{Loading Data}). Then what follow are a couple of options which control how your code will be displayed in the LaTeX document. I won't go into every one in details (you can learn more about these online). One worth mentioning is the ``echo" option, where if you turn it to be \texttt{FALSE}, then the output will hide your \texttt{R} source code and show what normally appears at your console, like below:
+
+
+<< Another chunk loading data, echo = FALSE, results= 'markup', warning=FALSE, message = FALSE, cache=TRUE, tidy=TRUE>>=
+
+# you should set your own directory here
+## for simplicity a .csv is already prepared in the right format
+Caes.dat <- read.csv("Example3-1Caes.csv")
+head(Caes.dat)
+is.data.frame(Caes.dat)
+@
+
+Note that you can't name two chunks with the same name, otherwise the file wouldn't successfully compile.The ``Example3-1Caes.csv" already contains the dataset in a clean form. Alternatively we can also grab the dataset from the \texttt{Fahrmeir} package and massage it with \texttt{dplyr} functionality to the same in preparation for the multinomial logit regression. 
+
+<< Use dplyr, echo = TRUE, results= 'markup', warning=FALSE, message = FALSE, cache=TRUE, tidy=TRUE>>=
+ caesar_df <- dplyr::tbl_df(Fahrmeir::caesar)
+
+ caesar_grouped <- dplyr::group_by(caesar_df, noplan, factor, antib)
+
+ caesar_summary <- dplyr::summarize(caesar_grouped, size = sum(w),
+                                    Noinf = w[which(y==3)],
+                                    Inf1 =  w[which(y==1)],
+                                    Inf2 =  w[which(y==2)])
+
+ caesar <- as.data.frame( caesar_summary )
+
+ caesar  = caesar[which(caesar$size != 0), ]
+
+ rownames(caesar) = 1:nrow(caesar)
+
+ caesar$factor = as.integer(caesar$factor == "risk factors")
+ caesar$noplan = as.integer(caesar$noplan == "not")
+ caesar$antib = as.integer(caesar$antib == "antibiotics")
+@
+
+
+
+<< echo = TRUE, results= 'markup', warning=FALSE, message = FALSE, cache=TRUE, tidy=TRUE>>=
+caesar
+ Caes.dat
+@
+
+Note that \texttt{caesar} and \texttt{Caes.dat} are essentially the same, we will use \texttt{Caes.dat} in the analysis to follow. The package \texttt{nnet} has the function \texttt{multinom} (written by Ripley again) to do the job. 
+
+
+<< >>=
+ library(nnet)  # to fit the a Multinomial log linear model, we will use the fucntion multinom
+
+# one can also consider the "mlogit" package
+Caes1=multinom(as.matrix(Caes.dat[,2:4])~NoPlan+Antib+RiskF,data=Caes.dat)
+
+Caes1
+summary(Caes1)  # numbers are same as the book
+attributes(Caes1)
+
+
+Caes1$residuals  
+# resid(Caes1) does the same thing, = category means - fitted category probabilities.
+
+Caes1.grp=Caes.dat[,2:4]
+Caes1.grp[,1]=Caes.dat[,2]/Caes.dat[,1]
+Caes1.grp[,2]=Caes.dat[,3]/Caes.dat[,1]
+Caes1.grp[,3]=Caes.dat[,4]/Caes.dat[,1]
+Caes1.grp-Caes1$fitted
+##This returns the residuals given by Caes1$residuals
+@
+
+Basically we get the exact same estiamtes for the $\beta$ as in the book, and also the associated standard errors. We can also use the \texttt{predict.nnet()} (a method for the generic \texttt{predict()} for the class \texttt{nnet}) to do some predictions for covariate values not in the dataset.
+
+<< >>=
+Caes1$deviance
+predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0),type="probs")
+predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0),type="class")
+ratios = exp(summary(Caes1)$coeff%*%c(1, 1, 1, 0))   # prob(Inf1)/prob(noInf) and prob(Inf2)/prob(noInf)
+probNoInf =   1/(sum(ratios)+1) 
+# just checking if prob of noInf is correctly given by predict() function, and it is
+# compared with predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0),type="probs")
+predict(Caes1, data.frame(NoPlan=1, Antib=1, RiskF=0),type="probs", se.fit=TRUE) 
+# doesn't seem to have a difference 
+@
+
+
+
+
+To learn more, compile the \texttt{knitRdemo.Rnw} together with the accompanying dataset \texttt{demodata.csv} (They are on CANVAS). This is a nice piece of tutorial written by my friend Rebecca. 
+\end{document}

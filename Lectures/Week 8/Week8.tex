@@ -1,0 +1,1679 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{3.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldalpha}{{\boldsymbol \alpha}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\boldgamma}{{\boldsymbol \gamma}}
+\newcommand{\boldmu}{{\boldsymbol \mu}}
+\newcommand{\boldpi}{{\boldsymbol \pi}}
+
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 3. Models for Multi-categorical Responses: Multivariate Extensions of GLM }
+\author[Multivariate GLM]{MAST90084 Statistical Modelling Slides}
+\vskip 1cm
+\institute[Ch3]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+%
+%\begin{frame} {Something about the first assignment}
+%\end{frame}
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+{\scriptsize
+\tableofcontents}
+\end{frame}
+\section{\S3.5 Multivariate models for correlated responses}\label{sec:3.5}
+
+\begin{frame}{\S3.5 Multivariate models for correlated responses}
+\begin{wideitemize}
+\item
+So far:  The multivariate ${\bf y}_i$  really is a surrogate for a univariate response taking multiple categorical values. 
+
+%have been assuming there is only one response variable, possibly multi-categorical, being under 
+%consideration.
+\item
+
+Now: consider a \emph{truly} multivariate non-Gaussian response vector whose components can be  {\bf correlated}
+%Now we consider the situations where a vector of correlated or clustered response variables is
+%observed, together with covariates, for each unit in the sample.
+\item
+Often happen in longitudinal studies, repeated measurements studies, and 
+grouped (clustered) studies, etc.
+
+
+\item
+We will explore two approaches 
+\begin{enumerate}
+\item
+\textbf{conditional models}
+\item
+\textbf{marginal models}
+%\item
+%\textbf{random effects models}
+\end{enumerate}
+
+\end{wideitemize}
+\end{frame}
+
+%\begin{frame}
+%Three main approaches:
+%\begin{enumerate}
+%\item
+%\textbf{conditional models}
+%\item
+%\textbf{marginal models}
+%\item
+%\textbf{random effects models}
+%\end{enumerate}
+%\end{frame}
+
+
+
+
+
+\subsection{\S3.5.1 Conditional models}\label{sec:3.5.1}
+
+%\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (1)}
+%\noindent \textbf{Asymmetric models}
+%\begin{itemize}
+%
+%\item
+%Consider the simple case of a response vector $\textbf{Y}=(Y_1, Y_2)$, with categorical components 
+%$Y_1\in\{1,\cdots, k_1\}$ and $Y_2\in\{1,\cdots, k_2\}$. Let $Y_2$ refer to events that may be
+%considered conditional on $Y_1$.
+%
+%
+%\end{itemize}
+%\end{frame}
+
+%\begin{frame}
+%\begin{itemize}
+%\item
+%\textbf{E.g.}: Two responses: years in school ($Y_1$) and the statement about happiness ($Y_2$). 
+%
+%\item
+%$Y_1$  modelled to be dependent on  covariates $\textbf{x}$. 
+%\item
+%In turn, $Y_2$ modelled based on $Y_1$ and $\textbf{x}$. 
+%\item (More schooling makes us (un)happy?)
+%
+%\end{itemize}
+%\end{frame}
+
+
+
+\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (1)}
+\noindent \textbf{Asymmetric models}
+\begin{itemize}
+\item 
+In many applications, the components of a response vector are ordered in a way that some components
+are considered ``prior" to the other components, e.g. if they refer to events that take place earlier. 
+
+\item
+With $m$ multi-categorical responses $Y_1,\cdots, Y_m$, where $Y_j$ depends on $Y_1, \cdots, Y_{j-1}$
+but not on $Y_{j+1},\cdots, Y_m$, an asymmetric model has the decomposition
+
+
+\begin{equation}
+P(Y_1,\cdots,Y_m|\textbf{x})=P(Y_1|\textbf{x})\cdot P(Y_2|Y_1, \textbf{x})\cdots
+P(Y_m|Y_1,\cdots, Y_{m-1}, \textbf{x})
+\label{eq3.5.1}
+%\label{eq-3.5.1}
+\end{equation}
+\item
+Each component in \eqref{eq3.5.1} is specified by a GLM:
+\begin{equation} 
+P(Y_j=r|Y_1,\cdots, Y_{j-1}, \textbf{x})=h_j(Z_j\mbox{\boldmath $\beta$})
+\label{eq3.5.2}
+\end{equation}
+where $Z_j=Z(Y_1,\cdots, Y_{j-1}, \textbf{x})$ is a function of previous components $Y_1,\cdots, Y_{j-1}$
+and the explanatory variables $\textbf{x}$. 
+%Models of form (\ref{eq-3.5.2}) are sometimes called 
+%\textit{data-driven}.
+\end{itemize}
+\end{frame}
+
+% new frame
+\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (2)}
+\begin{wideitemize}
+ \item
+ \textbf{Regressive logistic model} (Bonney, 1987), for binary responses,  has the form
+$$\log\frac{P(y_j=1|y_1,\cdots, y_{j-1}, \textbf{x})}{P(y_j=0|y_1,\cdots, y_{j-1},\textbf{x})} = \beta_{0} 
++\textbf{z}_j^T\mbox{\boldmath $\beta$}+\gamma_1 y_1+\cdots+\gamma_{j-1}y_{j-1}.$$
+
+
+
+\item If each $y_j$ is multi-categorical, multinomial logit link can be used. 
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S3.5.1 Conditional models: Asymmetric models (3)}
+\begin{wideitemize}
+\item
+\textbf{Markov-type transition models} have  the additional assumption 
+\[
+P(Y_j=r|Y_1,\cdots, Y_{j-1},\textbf{x})=P(Y_j=r|Y_{j-1},\textbf{x}).
+\]
+\item
+A simple Markov transition model for \textit{binary responses} is
+\begin{eqnarray*}
+\log\frac{P(y_1=1|\textbf{x})}{P(y_1=0|\textbf{x})}&\!\!\!=\!\!\!&\beta_{01}+\textbf{z}_1^T\mbox{\boldmath $\beta$}_1 \\
+\log\frac{P(y_j=1|y_1,\cdots, y_{j-1}, \textbf{x})}{P(y_j=0|y_1,\cdots, y_{j-1},\textbf{x})} &\!\!\!=\!\!\!& \beta_{0j} 
++\textbf{z}_j^T\mbox{\boldmath $\beta$}_j+y_{j-1}\gamma_j, \quad j=2,\cdots, m.
+\end{eqnarray*}
+
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+%% new frame
+%\begin{frame}{Conditional model: Asymmetric models (con't...)}
+%
+%
+%\begin{itemize}
+%\item {\bf Asymmetric model} :
+%\[
+%P(Y_1, \dots, Y_m|x) = P(Y_1 |x) P(Y_2 | Y_1, x), \dots, P(Y_m|Y_1 \dots,  Y_{m-1} |x)
+%\]
+%
+%\item $P(Y_j| Y_1, \dots, Y_{j-1}, x) = h_j(Z_j \beta)$, where $Z_j = Z(Y_1, \dots, Y_{j-1}, x)$
+%
+%
+%\item ($h_j$  can be a standard response function such as the logistic function)
+%
+%
+%
+%\end{itemize}
+%
+%\end{frame}
+
+\begin{frame} {Asymmetric model is a MGLM}
+\begin{wideitemize}
+\item Asymmetric model can be  embedded in the MGLM framework.
+\item Suppose each $Y_j$ takes value in $ \{1, \dots, k_j\}$
+\item
+ ${\bf Y} = (Y_1, \dots Y_m)$, as a whole, is {\bf identified} with a categorical variable taking possibly $k_1 \times .. \times  k_m$ many different values. 
+ 
+ \item In other words, despite it being multivariate, we treat ${\bf Y}$ just like a univariate categorical variable that can take on $k_1 \times .. \times  k_m$ possible values.
+ 
+ \item So ${\bf Y}$ follows the \emph{multinomial} distribution  (with number of trials $ = 1$ )  $\Rightarrow$ an exponential family!
+ 
+
+
+\end{wideitemize}
+\end{frame}
+
+%
+%\begin{frame}
+%\begin{itemize}
+%
+%\item Suppose each $Y_j$ takes value in $ \{1, \dots, k_j\}$
+%\item
+% ${\bf Y} = (Y_1, \dots Y_m)$, as a whole, is {\bf identified} with a categorical variable taking possibly $k_1 \times .. \times  k_m$ many different values. 
+% 
+% \item In other words, despite it being multivariate, we treat ${\bf Y}$ just like a univariate categorical variable that can take on $k_1 \times .. \times  k_m$ possible values.
+% 
+% \item So ${\bf Y}$ follows the \emph{multinomial} distribution  (with number of trials $ = 1$ )  $\Rightarrow$ an exponential family!
+% 
+%
+%\end{itemize}
+%
+%
+%
+%\end{frame}
+
+\begin{frame} {Asymmetric model is a MGLM}
+\begin{wideitemize}
+
+\item We can also  ``dummy code"  ${\bf Y}$ to represent it as  a random vector of length $k_1 \times .. \times  k_m - 1$.  
+
+\item When we observe $n$ samples ${\bf Y}_1, \dots, {\bf Y}_n$ of $\bf Y$, we can take average to give a \emph{scaled} multinomial vector as before.
+
+\item The response function  and the design matrix  are given by \eqref{eq3.5.1} and \eqref{eq3.5.2}. The implied link function generally has a very complicated form that isn't readily available in standard packages. 
+
+
+\item However, if the  multiplicative factors on the right hand side of 
+\[
+P(Y_1, \dots, Y_m|x) = P(Y_1 |x) P(Y_2 | Y_1, x), \dots, P(Y_m|Y_1 \dots,  Y_{m-1} |x)
+\]
+only involve different parts of the $\boldbeta$ vector without overlapping, one may use standard functions to obtain the MLE factor by factor (as in the next example).  
+%
+%\item See (Bonney, 1987) for more
+\end{wideitemize}
+
+\end{frame}
+%
+%\begin{frame} {Computations}
+%\begin{itemize}
+%
+%
+%\item However, using the factorization
+%\[
+%P(Y_1, \dots, Y_m|x) = P(Y_1 |x) P(Y_2 | Y_1, x), \dots, P(Y_m|Y_1 \dots,  Y_{m-1} |x)
+%\]
+%and $P(Y_j| Y_1, \dots, Y_{j-1}, x) = h_j(Z_j \beta)$, if the  multiplicative factors on the right hand side only involve different parts of the $\beta$ vector without overlapping, one may use standard functions to obtain the MLE factor by factor (see next example). 
+%
+%\end{itemize}
+%\end{frame}
+
+
+%new frame
+\begin{frame}{F\&T, Example 3.12 (Clogg, 1982)}
+\begin{itemize}
+\item 
+\textbf{Reported happiness}: Study
+association between gender ($x$), years in school
+($Y_1$), and reported happiness ($Y_2$) . 
+\item $Y_1$ is  modelled to be dependent on  $x$. 
+\ \
+\item 
+Since $x$ and $Y_1$  are prior to the statement about happiness, $Y_2$ is modelled conditionally on $Y_1$ and $x$.
+\end{itemize}
+\begin{table} [htbp]
+\caption{Cross classification of gender, reported happiness, and years of schooling} \label{tab3.10}
+\begin{center} {\small
+\begin{tabular}{|crcccc|} \hline
+&& \multicolumn{4}{c|}{Years of school completed} \\
+Gender & Reported happiness & $<12$ & 12 & 13-16 & $\geq 17$ \\ \hline
+Male & Not too happy & 40 & 21 & 14 & 3 \\
+& Pretty happy & 131 & 116 & 112 & 27 \\
+& Very happy & 82 & 61 & 55 & 27 \\
+&&&&& \\
+Female & Not too happy & 62 & 26 & 12 & 3 \\
+& Pretty happy & 155 & 156 & 95 & 15 \\
+& Very happy & 87 & 127 & 76 & 15 \\ \hline
+\end{tabular}}
+\end{center}
+\end{table}
+\end{frame}
+
+
+%%new frame
+%
+%\begin{frame} {Example:  Happiness and Years of school}
+%\textbf{Reported happiness (Clogg, 1982 )}: 
+%Association between gender ($x$), years in school
+%($Y_1$), and reported happiness ($Y_2$). 
+%
+%\ \
+%
+%$x$ and $Y_1$  prior to the statement about happiness, $Y_2$ is modelled conditionally on $Y_1$ and $x$.
+%\begin{table} [htbp]
+%\caption{Cross classification of gender, reported happiness, and years of schooling} \label{tab3.10}
+%\begin{center} {\small
+%\begin{tabular}{|crcccc|} \hline
+%&& \multicolumn{4}{c|}{Years of school completed} \\
+%Gender & Reported happiness & $<12$ & 12 & 13-16 & $\geq 17$ \\ \hline
+%Male & Not too happy & 40 & 21 & 14 & 3 \\
+%& Pretty happy & 131 & 116 & 112 & 27 \\
+%& Very happy & 82 & 61 & 55 & 27 \\
+%&&&&& \\
+%Female & Not too happy & 62 & 26 & 12 & 3 \\
+%& Pretty happy & 155 & 156 & 95 & 15 \\
+%& Very happy & 87 & 127 & 76 & 15 \\ \hline
+%\end{tabular}}
+%\end{center}
+%\end{table}
+%
+%\end{frame}
+
+\begin{frame}
+
+\begin{itemize}
+
+\item[] Variables:
+   \begin{wideitemize}
+\item $Y_1 = \text{ Years of School}$ (4 ordinal levels: ``$<12$", ``$12$",``$13- 16$",``$\geq 17$",)  
+\item  $Y_2 = \text{Happiness}$, (3 ordinal levels: ``Not too happy", ``pretty happy", ``very happy") 
+\item  $X = Sex$, (2 levels, Male or Female)
+\end{wideitemize}
+
+\ \
+
+\item []Proposed asymmetric model in F \& T:
+\begin{wideitemize}
+\item $P(Y_1 \leq r |x ) = F(\theta_r + x' \beta_r^{(1)})$, $r = 1, 2, 3$
+\item $P(Y_2 \leq s |Y_1 = r, x ) = F(\theta_{rs}+ x' \beta_s^{(2)})$, $r = 1, 2, 3, 4$, $s= 1, 2$
+
+\item $F$ simply taken to be the logistic function. 
+\item Note: $\beta_r^{(1)}$'s are different for different $r$'s, and so are  $\beta_s^{(2)}$ for different $s$. $\Rightarrow $ We have {\bf category-specific coefficient}  for $x$. \texttt{polr()} from the \texttt{MASS} package doesn't handle this. But \texttt{vglm()} from  the package $VGAM$ can.    
+
+\item F\&T regressed the  model under the further restriction  $\beta^{(2)}_s = 0$ for all $s$.
+
+\end{wideitemize}
+
+\end{itemize}
+
+\end{frame}
+
+% a new frame
+%\begin{frame}
+%\begin{itemize}
+%
+%
+%
+%
+%\end{itemize}
+%\end{frame}
+
+%new frame
+
+\begin{frame}
+\includegraphics[height=1\textheight,]{happiness}
+
+\end{frame}
+
+% a new frame
+\begin{frame} { }
+\begin{wideitemize}
+
+\item  F\&T claims that this regression gives a deviance of $13.27$ on $8 = 22 - 14$ degree of freedom.
+\begin{itemize}
+\item  $14 = 6 +8$ is the  \#  parameters under the full GLM model; 
+\item $22 = 2 \times 11$ is the  \# parameters for the saturated model; there are two (male and female)  samples of multinomial data with $12 = 3 \times 4$ categories.
+ \end{itemize}
+\item Strategy to compute the deviance:
+\begin{enumerate}
+\item Compute the log-likelihood of the saturated multinomial model 
+
+\item Compute the same for the asymmetric model. 
+
+\item Take the difference, and multiply with $2$. 
+\end{enumerate}
+\item Step 2 involves two regressions using \texttt{vglm}: One for $P(Y_1 \leq r |x ) $, another for $P(Y_2 \leq s |Y_1 = r, x ) $. One  can then add the log-likelihoods resulting from these two sub-regressions. 
+\item 
+See \texttt{Happiness.R}.
+\end{wideitemize}
+
+
+
+
+\end{frame}
+
+
+
+\begin{frame}{\S3.5.1 Conditional models: Symmetric models}
+\textbf{Symmetric models}
+\begin{itemize}
+\item
+Response vector: $\textbf{Y}=(y_1,\cdots, y_m)$.
+%\item
+%If there is no natural ordering among $y_1,\cdots, y_m$, or if one does not want to use this ordering,
+%models that treat response components in a symmetric way are more sensible.
+%An example is \textit{Visual Impairment Study} seen in Chapter~1.
+\item
+Assume, for simplicity, all $y_1,\cdots, y_m$ are \textbf{binary}. (Multicategorical cases can be handled similarly.)
+\item
+A symmetric model specifies:
+\begin{equation}
+P(y_j=1|y_k, k\neq j; \textbf{x}_j), \quad  j=1,\cdots, m
+\label{eq-3.5.4}
+\end{equation}
+\item 
+Defining feature: no natural ordering of the components of the response vector. 
+\end{itemize}
+\end{frame}
+% another frame
+
+
+% another frame
+
+
+
+
+
+
+\begin{frame}{\S3.5.1 Example 3.13: Visual impairment study}
+\begin{table} [!htbp]
+\caption{Visual impairment data, from Liang, Zeger \& Qaqish (1992) \label{tab1.3}}
+\begin{center}
+\begin{scriptsize}
+\begin{tabular}{|c|cccc|cccc|c|}
+\hline
+& \multicolumn{4}{c}{White} & \multicolumn{4}{c|}{Black} & \\
+Visual &\multicolumn{8}{c|}{Age} & \\
+impairment & 40-50 & 51-60 & 61-70 & 70+ & 40-50
+ & 51-60 & 61-70 & 70+ & Total \\ \hline
+Left eye & &&&&&&&& \\
+Yes & 15 & 24 & 42 & 139 & 29 & 38 & 50 & 85 & 422 \\
+No & 617 & 557 & 789 & 673 & 750 & 574 & 473 & 344 & 4777 \\ \hline
+Right eye & &&&&&&&& \\
+Yes & 19 & 25 & 48 & 146 & 31 & 37 & 49 & 93 & 448 \\
+No & 613 & 556 & 783 & 666 & 748 & 575 & 474 & 336 & 4751 \\ \hline
+\end{tabular}
+\end{scriptsize}
+\end{center}
+\end{table}
+\begin{itemize}
+\item
+Binary \textbf{response} variables in the vector $(y_1, y_2)$, where $y_1=1$ if left-eye impaired, 0 otherwise;
+ $y_2=1$ if right-eye impaired, 0 otherwise. ($y_1$ and $y_2$ are correlated with no natural ordering)
+\item
+\textbf{Covariates}: \texttt{Age} (yrs., 4 levels), \texttt{Race} (W or B).
+\item
+\textbf{Aim}: find the effect of race and age on visual impairment.
+%\item
+%\textbf{Feature}: $y_1$ and $y_2$ are correlated, and no natural ordering between the two.
+%\item
+%\textbf{Methods}: multivariate models for correlated responses; conditional models; asymmetric
+%models, marginal models, GEE, etc..
+\item (Unfortunately, this dataset in the \texttt{Fahrmeir} R package is corrupted; we won't  reproduce this example from the book)
+\end{itemize}
+\end{frame}
+
+%\begin{frame}
+%
+%
+%\end{frame}
+
+
+
+
+
+
+
+\begin{frame}{\S3.5.1 Conditional models: Symmetric models (2)}
+
+\begin{wideitemize}
+\item
+Qu, Williams, Beck \& Goormastic (1987) considers \textbf{logistic models}:
+\begin{equation}
+\pi_j=P(y_j=1|y_k, k\neq j; \textbf{x}_j)=h(\alpha(w_j; \mbox{\boldmath $\theta$})+
+\textbf{x}_j^T\mbox{\boldmath $\beta$}_j),
+\quad j=1,\cdots,m
+\label{eq-3.5.5}
+\end{equation}
+where $\displaystyle h(t)=\frac{e^t}{1+e^t}$ is the logistic cdf; and $\alpha(\cdot)$ is some
+function of a parameter $\theta$ and $w_j=\sum_{k\neq j} y_k$. 
+\item
+When $m=2$, a simple choice is
+\begin{equation}
+\pi_j=P(y_j=1|y_k, k\neq j; \textbf{x}_j)=h(\theta_0+\theta_1 y_k+
+\textbf{x}_j^T\mbox{\boldmath $\beta$}_j), \quad j,k=1,2.
+\label{eq-3.5.6}
+\end{equation}
+\item The  joint density $P(y_1, \dots, y_m | x_1, \dots, x_m)$  derived from (\ref{eq-3.5.5}) or (\ref{eq-3.5.6}) involves a normalizing constant that  is a complicated function  in $\theta$ and $\beta$, making MLE-type full likelihood estimation computationally cumbersome. (Prentice 1988)
+
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame}{\S3.5.1 Conditional models: Symmetric models (3)}
+\begin{itemize}
+
+\item
+Quasi-likelihood approach (Conolly and Liang, 1988):  use an ``\textit{independent
+working}" quasi-likelihood and quasi-score function for each cluster $i \in \{1,\cdots, n\}$:
+\begin{eqnarray*}
+L_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}) &=& \prod_{j=1}^m\pi_{ij}^{y_{ij}}
+(1-\pi_{ij})^{1-y_{ij}} \\
+\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}) &=& \sum_{j=1}^m
+\frac{\partial \pi_{ij}}{\partial (\mbox{\boldmath $\beta$}^T, \mbox{\boldmath $\theta$}^T)^T}
+\sigma_{ij}^{-2}(y_{ij}-\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}))
+\end{eqnarray*}
+where
+\begin{wideitemize}
+\item 
+ $\textbf{y}_i=(y_{i1},\cdots,y_{ij},\cdots, y_{im})^T$ are the responses for each $i$,
+\item $\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=P(y_{ij}=1|y_k, k\neq j; \textbf{x}_j)$ is defined
+by (\ref{eq-3.5.5}), 
+\item and $\sigma^2_{ij}=\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})
+(1-\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}))$.
+\end{wideitemize}
+\end{itemize}
+
+\end{frame}
+
+
+
+%\begin{frame}{\S3.5.1 Conditional models: Symmetric models (3)}
+%\begin{itemize}
+%\item
+%A quasi-likelihood approach (Conolly and Liang, 1988):  use an ``\textit{independent
+%working}" quasi-likelihood and quasi-score function for each cluster $i \in \{1,\cdots, n\}$:
+%\begin{eqnarray*}
+%L_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}) &=& \prod_{j=1}^m\pi_{ij}^{y_{ij}}
+%(1-\pi_{ij})^{1-y_{ij}} \\
+%\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}) &=& \sum_{j=1}^m
+%\frac{\partial \pi_{ij}}{\partial (\mbox{\boldmath $\beta$}^T, \mbox{\boldmath $\theta$}^T)^T}
+%\sigma_{ij}^{-2}(y_{ij}-\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}))
+%\end{eqnarray*}
+%where $\textbf{y}_i=(y_{i1},\cdots,y_{ij},\cdots, y_{im})^T$ are the responses in cluster $i$,
+%$\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=P(y_{ij}=1|\cdot)$ is defined
+%by (\ref{eq-3.5.5}), and $\sigma^2_{ij}=\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})
+%(1-\pi_{ij}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$}))$.
+%\end{itemize}
+%\end{frame}
+
+%\begin{frame}
+%
+%Rk: ``Cluster" is just another term for a sample since each has multiple responses.  
+%
+%\end{frame}
+
+\begin{frame}{\S3.5.1 Conditional models: Symmetric models (4)}
+\begin{wideitemize}
+\item
+Denoting 
+\begin{multline*}
+M_i=\text{diag}\left\{
+\frac{\partial \pi_{i1}}{\partial ({\boldsymbol \beta})^T, {\boldsymbol \theta}^T)^T},
+ \cdots, 
+ \frac{\partial \pi_{im}}{\partial ({\boldsymbol \beta})^T, {\boldsymbol \theta}^T)^T}
+ \right\}\\
+ \Sigma_i=\mbox{diag}\{\sigma_{i1}^2,\cdots, \sigma_{im}^2\}\\
+ \mbox{\boldmath $\pi$}=(\pi_{i1},\cdots, \pi_{im})^T
+\end{multline*}
+%$\displaystyle M_i=\mbox{diag}\left\{\frac{\partial \pi_{i1}}{\partial (\mbox{\boldmath $\beta$}^T, 
+%\mbox{\boldmath $\theta$}^T)^T}, \cdots, \frac{\partial \pi_{im}}{\partial (\mbox{\boldmath $\beta$}^T, 
+%\mbox{\boldmath $\theta$}^T)^T}\right\}$, $\Sigma_i=\mbox{diag}\{\sigma_{i1}^2,\cdots, \sigma_{im}^2\}$
+%and $\mbox{\boldmath $\pi$}=(\pi_{i1},\cdots, \pi_{im})^T$,
+we can rewrite 
+$\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})$ in matrix form
+$$\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=M_i\Sigma_i^{-1}
+(\textbf{y}_i-\mbox{\boldmath $\pi$}_i),$$ a multivariate extension of the quasi-score. 
+\item
+$\Rightarrow $
+generalised estimating equation (GEE)
+$$\textbf{S}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=\sum_{i=1}^n
+\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=\textbf{0}$$
+%are consistent \& asymptotically normal under regularity assumptions:
+%$$(\hat{\mbox{\boldmath $\beta$}}^T, \hat{\mbox{\boldmath $\theta$}}^T)^T\stackrel{a}{\sim}
+%N((\mbox{\boldmath $\beta$}^T, \mbox{\boldmath $\theta$}^T)^T, \hat{F}^{-1}\hat{V}\hat{F}^{-1})$$
+%with $\hat{F}=\sum_{i=1}^n \hat{M}_i\hat{\Sigma}_i^{-1}\hat{M}_i$ and 
+%$\hat{V}=\sum_{i=1}^n\hat{S}_i\hat{S}_i^T$.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S3.5.1 Conditional models: Symmetric models (5)}
+\begin{wideitemize}
+
+\item
+Roots $(\hat{\mbox{\boldmath $\beta$}}, \hat{\mbox{\boldmath $\theta$}})$ of the resulting
+generalised estimating equation (GEE)
+$$\textbf{S}(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=\sum_{i=1}^n
+\textbf{S}_i(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\theta$})=\textbf{0}$$
+are consistent \& asymptotically normal under regularity assumptions:
+$$(\hat{\mbox{\boldmath $\beta$}}^T, \hat{\mbox{\boldmath $\theta$}}^T)^T\stackrel{a}{\sim}
+N((\mbox{\boldmath $\beta$}^T, \mbox{\boldmath $\theta$}^T)^T, \hat{F}^{-1}\hat{V}\hat{F}^{-1})$$
+with $\hat{F}=\sum_{i=1}^n \hat{M}_i\hat{\Sigma}_i^{-1}\hat{M}_i$ and 
+$\hat{V}=\sum_{i=1}^n\hat{\bf S}_i\hat{\bf S}_i^T$.
+
+\item See Varin, Reid and Firth(2011)'s review article on ``composite likelihood" for a modern treatment on this type of quasi-likelihood inference.
+\end{wideitemize}
+
+\end{frame}
+%
+%\begin{frame}{\S3.5.1 Drawbacks of conditional models}
+%\begin{enumerate}
+%\item
+%Measure the effect of $\textbf{x}$ on a binary component $y_j$ {\bf conditional on incorporating into
+%the effects of other $y_k$, $k\neq j$}$\Rightarrow$ not able to provide prediction based on $\textbf{x}$ alone.
+%\item
+%{\bf marginal modelling approach} can fix these.
+%\end{enumerate}
+%
+%\end{frame}
+
+\subsection{\S3.5.2 Margin models} \label{sec:3.5.2}
+\begin{frame}{\S3.5.2 Marginal models}
+\begin{wideitemize}
+\item 
+A potential drawback of conditional models: Measure the effect of $\textbf{x}$ on a binary component $y_j$ \emph{conditional on 
+the effects of other responses $y_k$, $k\neq j$}$\Rightarrow$ not able to provide prediction based on $\textbf{x}$ alone.
+
+\item
+Marginal models: Analyse the \textbf{marginal mean} of the responses given
+the covariates. The association between the responses is of secondary interest. 
+%\item 
+%Example:
+%the \textit{visual impairment study}.
+\item
+Proposed by Liang \& Zeger (1986)  and Zeger \& Liang (1986) in the context
+of longitudinal data with many short time series.  
+%
+%Their modelling and estimation approach is based on
+%GEE and has subsequently been modified and further developed.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\large Marginal models: Setup}
+\begin{wideitemize}
+
+\item $\textbf{y}_i=(y_{i1},\cdots, y_{im_i})^T$ and $\textbf{x}_i^T=(\textbf{x}_{i1}^T, \cdots, \textbf{x}_{im_i}^T)$: The vector of responses and covariates for each sample $i \in \{1,\dots, n\}$.
+
+\item Each $i$ is often  called a ``cluster": Emphasize the components of $\textbf{y}_i$ are correlated observations on the same type of variable.
+
+
+\item $m_i$: ``cluster size",  and may vary with $i$.
+\item
+Within $i$, $y_{i1},\cdots, y_{im_i}$ are correlated; but $\textbf{y}_1, \dots, \textbf{y}_n$ are independent.
+
+
+\item \emph{Marginal means}: the means $\mu_{ i1}, \dots, \mu_{i m_i}$ of $y_{i1},\cdots, y_{im_i}$.
+\item Defining feature: The effects of covariates on responses and the association between responses are modelled separately
+
+\end{wideitemize}
+\end{frame}
+
+%\begin{frame}
+%
+%\begin{itemize}
+%\item 
+%Focus: modelling and estimating marginal means of correlated binary 
+%response data by the first-order generalised estimating equations (known as GEE1 in the literature).
+%
+%\item Effects of covariates on responses and the association between responses are modelled separately
+%\end{itemize}
+%
+%\end{frame}
+
+
+\begin{frame}{\large   Marginal models: mean specifications}
+
+
+\begin{itemize}
+
+
+\item
+The \textbf{marginal means} of $\textbf{y}_i=(y_{i1},\cdots, y_{im_i})^T$ are assumed \textbf{correctly specified} by
+common univariate response models:
+\begin{equation}
+\mu_{ij}(\mbox{\boldmath $\beta$})=E(y_{ij} | \textbf{x}_{ij})=h(\textbf{z}_{ij}^T\mbox{\boldmath $\beta$})
+\label{eq-3.5.7}
+\end{equation}
+where 
+\begin{itemize}
+\item $h(\cdot)$ is a response function, e.g. a logistic function, 
+\item and $\textbf{z}_{ij}$ is an 
+appropriate design vector.
+\end{itemize}
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{\large Marginal models: variance/correlation specifications}
+
+\begin{itemize}
+\item
+The \textbf{marginal variance} of each $y_{ij}$ is specified as a function of $\mu_{ij}$:
+\begin{equation}
+\sigma_{ij}^2=\mbox{var}(y_{ij}|\textbf{x}_{ij})=v(\mu_{ij})\phi
+\label{eq-3.5.8}
+\end{equation}
+where $v(\cdot)$ is a  known \textbf{variance function} and $\phi$ is the {\bf dispersion}.
+\item
+The {\bf correlation} between $y_{ij}$ and $y_{ik}$ is 
+\begin{equation}
+\mbox{corr}(y_{ij}, y_{ik})=c(\mu_{ij}, \mu_{ik}, \mbox{\boldmath $\alpha$})
+\label{eq-3.5.9}
+\end{equation}
+with a known  $c(\cdot,\cdot,\cdot)$; so it is a function of $\mu_{ij}=\mu_{ij}(\mbox{\boldmath $\beta$})$,
+$\mu_{ik}=\mu_{ik}(\mbox{\boldmath $\beta$})$, and perhaps  additional {\bf association parameters}
+$\mbox{\boldmath $\alpha$}$:
+
+\item 
+(\ref{eq-3.5.8}) and (\ref{eq-3.5.9}) together give the  \textbf{working covariance matrix} \[\mbox{cov}(\textbf{y}_i)
+=\Sigma_i(\boldbeta, \boldalpha)\] (the  dependence on  $\phi$ is notationally suppressed).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\textbf{Remarks:}
+\begin{wideitemize}
+\item This is the multivariate extension of the previous univariate quasi-likelihood models.
+
+\item
+The parameters $(\mbox{\boldmath $\beta$}, \mbox{\boldmath $\alpha$})$ are the same for all clusters \\
+$\Rightarrow$ marginal models analyze \textbf{population-averaged} effects.
+
+
+\item
+The {\bf marginal effects} in  $\boldbeta$, which is the primary inference target, can be consistently estimated even if both $v(\mu_{ij}) \phi$ and  $c(\mu_{ij}, \mu_{ik}, \mbox{\boldmath $\alpha$})$ are just     \textbf{working} (i.e. potentially misspecified) variances and correlations.
+
+\item However, when the covariance structure
+is incorrectly specified, efficiency of  $\hat{\mbox{\boldmath $\beta$}}$ can
+be compromised, as expected.
+\end{wideitemize}
+
+\end{frame}
+
+
+
+
+
+\begin{frame}{\large Specifying association structure: First approach}
+ Specify a 
+\textbf{working correlation matrix} $R_i(\boldalpha)$ to give the working
+covariance matrix 
+\[
+\Sigma_i(\boldbeta, \boldalpha)=C_i^{1/2}(\boldbeta)
+R_i(\boldalpha)C_i^{1/2}(\boldbeta),
+\]
+where $C_i(\boldbeta)
+%=\mbox{diag}\left[\mbox{var}(y_{ij}|x_{ij})\right]
+=\text{diag}\{\sigma_{i1}^2,\cdots, \sigma_{im_i}^2\}$. Common choices for $R_i(\boldalpha)$:
+\begin{enumerate}
+\item
+\emph{working independence model}: $R_i(\boldalpha)=I$, the identity matrix.
+\item
+\emph{equicorrelation} (or \emph{exchangeable}) model: $\mbox{corr}(y_{ij}, y_{ik})=\alpha$ for 
+all $j\neq k$, i.e. $\boldalpha$ reduces to  a scalar, and {\footnotesize
+$\displaystyle R_i(\boldalpha)=\left[\begin{array}{cccc} 1 & \alpha & \cdots & \alpha
+\\ \alpha & 1 & \cdots & \alpha \\ \vdots & \vdots & \ddots & \vdots \\ \alpha & \alpha & \cdots & 1\end{array}\right]$.}
+\item
+If enough data: $R_i(\boldalpha)$ \emph{completely unspecified}, except being positive definite, i.e. 
+$\alpha_{jk}=\text{corr}(y_{ij}, y_{ik})$, $j<k$.
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}{\large Specifying association structure: First approach}
+\begin{itemize}
+\item However, there is a disadvantage for modeling the association structure between {\bf binary} responses $y_{i1},\cdots, y_{im_i}$ using correlations. 
+
+
+
+\item  Let $\pi_{ij} := P(y_{ij} =1)$. The {\bf Fr\'echet inequaliity} states that 
+\[
+\max (0, \pi_{ij}+\pi_{ik}-1) \leq   P(y_{ij}=y_{ik}=1)\leq \min (\pi_{ij}, \pi_{ik}),
+\]
+which is a result of 
+\begin{align*}
+  P(y_{ij}=y_{ik}=1) &= P(y_{ij}=1)+P(y_{ik}=1)-P(y_{ij}=1 \;\mbox{or}\; y_{ik}=1)\\
+  &\geq \pi_{ij}+\pi_{ik}-1,
+\end{align*}
+
+
+\item
+
+Since 
+\[
+\mbox{corr}(y_{ij}, y_{ik})=\frac{P(y_{ij}=y_{ik}=1)-\pi_{ij}\pi_{ik}}{\sqrt{\pi_{ij}(1-\pi_{ij})\pi_{ik}(1-\pi_{ik})}},
+\]
+the correlations are constrained by the marginal means. This may narrow the range of admissible correlations. 
+
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\large Specifying association structure: Second approach}
+
+
+\begin{wideitemize}
+\item Alternatively, one can specify the association structure between binary responses with {\bf odds ratios}. 
+
+
+\item  Recall:  For a pair $y_{ij}$ and $y_{ik}$, $ 1\leq j\neq k \leq m_i$, their odds ratio is defined by
+\[
+\gamma_{ijk}=\frac{P(y_{ij}=1, y_{ik}=1)/ P(y_{ij}=0, y_{ik}=1)  }{
+P(y_{ij}=1, y_{ik}=0)/ P(y_{ij}=0, y_{ik}=0) },
+\]
+which could be any number in $[0, \infty)$
+
+\end{wideitemize}
+\end{frame}
+
+
+% new frame
+\begin{frame}{ \large Specifying association structure: Second approach}
+\begin{wideitemize}
+\item 
+ It can be shown (Lipstiz, Laird and Harrington, 1991)  that 
+
+ 
+ $P(y_{ij}=y_{ik}=1)=E(y_{ij}y_{ik})$ 
+\begin{equation}
+%\pi_{i11} 
+= 
+\left\{\begin{array}{lc} \frac{1-(\pi_{ij}+\pi_{ik})
+(1-\gamma_{ijk})-s(\pi_{ij},\pi_{ik},\gamma_{ijk})}{2(\gamma_{ijk}-1)} & \mbox{if $\gamma_{ijk}\neq 1$} 
+\\ \pi_{ij}\pi_{ik} &  \mbox{if $\gamma_{ijk}= 1$} \end{array}\right.
+\label{eq-3.5.10}
+\end{equation}
+with 
+\begin{multline*}
+s(\pi_{ij},\pi_{ik},\gamma_{ijk})=\\
+\left(\left[1\!-\!(\pi_{ij}\!+\!\pi_{ik})(1\!-\!\gamma_{ijk})\right]^2-
+4(\gamma_{ijk}\!-\!1)\gamma_{ijk}\pi_{ij}\pi_{ik}\right)^{1/2}.
+\end{multline*} 
+\item
+Hence, $\text{Cov}(\textbf{y}_i)$ is expressible
+as a function in $\{\pi_{ij}, \pi_{ik}, \gamma_{ijk}\}_{1 \leq j, k \leq m_i}$, since $Cov(y_{ik}, y_{ij}) = E(y_{ij} y_{ik}) - \pi_{ij} \pi_{ik}$. 
+
+
+
+\end{wideitemize}
+\end{frame}
+
+% new frame
+\begin{frame}{ \large Specifying association structure: Second approach}
+\begin{wideitemize}
+
+\item  Modeling with odds ratios has the advantage of not being constrained by the marginal means.
+
+\item
+One may further parametrize  $\gamma_{ijk}=
+\gamma_{ijk}(\boldalpha)$ by $\boldalpha$ to reduce the number of parameters (for parsimony). 
+\item
+Common choices of $\gamma_{ijk}(\boldalpha)$:
+\begin{enumerate}
+\item
+$\gamma_{ijk}=\gamma, \;\mbox{for all}\; i,j,k$.
+\item
+$
+ \log\gamma_{ijk}=\boldalpha^Tw_{ijk},
+ $
+  for some covariate $w_{ijk}$.
+\end{enumerate}
+\item Via (\ref{eq-3.5.10}), the working covariance $\Sigma_i(\boldbeta, 
+\boldalpha)$ is a function in $\boldbeta$ and $\boldalpha$.
+\end{wideitemize}
+\end{frame}
+
+
+% new frame
+\begin{frame}{Examples of marginal models}
+
+\begin{itemize}
+\item[I]
+Continuous responses:
+$$\mu_{ij}(\mbox{\boldmath $\beta$})=E(y_{ij}|\textbf{x}_{ij})=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}; \quad
+\mbox{var}(y_{ij}|\textbf{x}_{ij})=\phi=\sigma^2;\quad \mbox{corr}(y_{ij}, y_{ik})=\alpha_{jk}.$$
+\item[II]
+Binary responses: 
+\begin{eqnarray*}
+\mu_{ij}(\mbox{\boldmath $\beta$})=\pi_{ij}(\mbox{\boldmath $\beta$})=P(y_{ij}=1|\textbf{x}_{ij}),
+\quad \log\frac{\pi_{ij}(\mbox{\boldmath $\beta$})}{1-\pi_{ij}(\mbox{\boldmath $\beta$})} 
+=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}; \hspace{20pt}\\
+\mbox{var}(y_{ij}|\textbf{x}_{ij})=\pi_{ij}(\mbox{\boldmath $\beta$})(1-\pi_{ij}(\mbox{\boldmath $\beta$}));
+\hspace{100pt} \\
+\mbox{corr}(y_{ij},y_{ik})=0\;\mbox{(independence)}\quad \mbox{or}\quad \gamma_{ijk}=\alpha\; 
+\mbox{(equal odds ratio)}.
+\end{eqnarray*}
+\item[III]
+Count data:
+\begin{eqnarray*}
+\log\mu_{ij}(\mbox{\boldmath $\beta$})&=&\log E(y_{ij}|\textbf{x}_{ij})=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}; \\
+\mbox{var}(y_{ij}|\textbf{x}_{ij})&=&\mu_{ij}(\mbox{\boldmath $\beta$})\phi; \\
+\mbox{corr}(y_{ij},y_{ik})&=&\alpha\quad \mbox{(equicorrelation)}.
+\end{eqnarray*}
+\end{itemize}
+\end{frame}
+
+
+
+
+
+
+
+
+
+\begin{frame}{Multivariate GEE}
+%For cluster $i=1,\cdots,n$, let $\textbf{y}_i=(y_{i1},\cdots, y_{im_i})^T$, 
+%$\textbf{x}_i=(\textbf{x}_{i1}^T,\cdots, \textbf{x}_{im_i}^T)^T$,
+%$\mbox{\boldmath $\mu$}_i(\mbox{\boldmath $\beta$})=(\mu_{i1}(\mbox{\boldmath $\beta$}_1), \cdots,
+%\mu_{im_i}(\mbox{\boldmath $\beta$}_{m_i}))^T$ and $\Sigma_i(\mbox{\boldmath $\beta$},
+%\mbox{\boldmath $\alpha$})$ be defined as before.
+\begin{wideitemize}
+%
+%\item
+%This is not the case with non-Gaussian data. Therefore a generalised estimating approach is proposed.
+\item
+%Keeping  $\mbox{\boldmath $\alpha$}$ and $\phi$, if present, fixed for the
+%moment, 
+
+The  \textbf{generalised estimating equation} (GEE) for effect $\mbox{\boldmath $\beta$}$ is
+\begin{equation}
+{\bf S}(\boldbeta,\boldalpha)
+=\sum_{i=1}^n Z_i^TD_i(\boldbeta) \Sigma_i^{-1}(\boldbeta,
+\boldalpha)(\textbf{y}_i-\boldmu_i(\boldbeta))= 0,
+\label{eq-3.5.11}
+\end{equation}
+with  the quasi-score function ${\bf S}(\boldbeta,\boldalpha)$ having components
+\begin{enumerate}
+\item $Z_i^T=(\textbf{z}_{i1},\cdots,\textbf{z}_{im_i})$;  
+\item diagonal matrices
+$D_i(\boldbeta)=\mbox{diag}\{D_{ij}(\boldbeta)\}$, 
+\end{enumerate}
+where 
+$D_{ij}(\mbox{\boldmath $\beta$})=\frac{\partial h}{\partial \eta_{ij}}$ evaluated at
+$\eta_{ij}=\textbf{z}_{ij}^T\mbox{\boldmath $\beta$}$. 
+
+%\item This is a multivariate extension of the GEE in \S 2.3.1 with a correctly specified mean structure and a possibly misspecified covariance structure. 
+
+
+
+\item 
+
+ $\boldbeta$, $\boldalpha$ (and possibly $\phi$): unknown and  to be estimated. 
+
+\item General estimation strategy: Iterate between estimation of  $\boldbeta$ given $(\phi, \boldalpha)$ and estimation of  $(\phi, \boldalpha)$  given $\boldbeta$, until convergence. 
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{Parameter estimation: Estimating $\boldbeta$ given $(\boldalpha, \phi)$}
+\begin{wideitemize}
+
+
+
+
+\item 
+Given current estimates $\hat{\boldalpha}$ (and $\hat{\phi}$), the GEE  for
+$\hat{\boldbeta}$ is solved by the iterations
+\[
+\hat{\boldbeta}^{(k+1)}=\hat{\boldbeta}^{(k)}+
+(\hat{F}^{(k)})^{-1}{\bf S}( \hat{\boldbeta}^{(k)},
+\hat{\boldalpha}), \quad k=0,1,2, \cdots, 
+\]
+with 
+\[
+\hat{F}^{(k)}=\sum_{i=1}^n Z_i^TD_i(\hat{\boldbeta}^{(k)}) \Sigma_i^{-1}(
+\hat{\boldbeta}^{(k)}, \hat{\boldalpha})
+D_i(\hat{\boldbeta}^{(k)})Z_i
+\]
+being the observed quasi-information matrix.
+
+\item This is, again, a modified Fisher scoring algorithm. 
+
+\item Like the univariate case, $\phi$ isn't really involved due to cancellations.
+
+\end{wideitemize}
+\end{frame}
+
+
+%\begin{frame}
+%
+%We will 
+%\end{frame}
+
+
+
+\begin{frame}{Parameter estimation: Estimating $(\boldalpha, \phi)$ given $\boldbeta$}
+%A GEE estimate $\hat{\mbox{\boldmath $\beta$}}$ is computed by iterating a modified Fisher scoring
+%algorithm w.r.t. $\mbox{\boldmath $\beta$}$ and estimation of $\mbox{\boldmath $\alpha$}$ (and $\phi$):
+
+\begin{itemize}
+\item 
+Given the current estimate $\hat{\boldbeta}$, Liang and Zeger (1986) suggest   {\bf method of moments} estimators for $(\boldalpha, \phi)$ based on the Pearson residuals
+ \[ \hat{r}_{ij}=\frac{y_{ij}-\hat{\mu}_{ij}}{\sqrt{v(\hat{\mu}_{ij})}}.\]
+%\item
+%%If $\mbox{\boldmath $\alpha$}$ is unknown, it can be consistently estimated by a method of moments based
+%%on Pearson residuals
+%\begin{itemize}
+\item
+The dispersion $\phi$ is estimated  by
+\[
+\hat{\phi}=\frac{1}{N-p}\sum_{i=1}^n\sum_{j=1}^{m_i}\hat{r}_{ij}^2,
+\] 
+with $N=\sum_{i=1}^n m_i$ and $p=\dim (\boldbeta)$.
+
+\end{itemize}
+
+%\begin{itemize}
+%
+%\end{itemize}
+\end{frame}
+%
+%
+%\begin{frame}{Routine for $\alpha$ and $\phi$ given $\beta$}
+%
+%\end{frame}
+
+\begin{frame} {Parameter estimation: Estimating $(\boldalpha, \phi)$ given $\boldbeta$}
+
+\begin{itemize}
+\item
+Estimation of $\mbox{\boldmath $\alpha$}$ depends on the choice of $R_i(\mbox{\boldmath $\alpha$})$.
+For exchangeable (equicorrelation) correlation matrix $R_i(\alpha)$ with $\dim (\alpha)=1$ , 
+$$\hat{\alpha}=\left[\hat{\phi}\left\{\sum_{i=1}^n\frac{1}{2}m_i(m_i-1)-p\right\}\right]^{-1}
+\sum_{i=1}^n\sum_{k>j}\hat{r}_{ik}\hat{r}_{ij}.$$
+\item
+An unspecified working correlation matrix $R$ can be estimated by
+$$\hat{R}=\frac{1}{n }\sum_{i=1}^n \hat{C}_i^{-\frac{1}{2}}(\textbf{y}_i-\hat{\mbox{\boldmath
+$\mu$}}_i)(\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)^T\hat{C}_i^{-\frac{1}{2}}$$
+if all cluster sizes $m_i=m$ and $m<<n$, where 
+\[
+C_i(\mbox{\boldmath $\beta$})=\mbox{diag}\left[\mbox{var}(y_{ij}|x_{ij})\right]
+=\mbox{diag}\{\sigma_{i1}^2,\cdots, \sigma_{im_i}^2\}.\]\end{itemize}
+(there seems to be a typo in the formula of $\hat{R}$ in F \& T)
+\end{frame}
+
+\begin{frame}{Parameter estimation}
+\begin{wideitemize}
+\item
+Cycling between Fisher scoring steps for $\mbox{\boldmath $\beta$}$ and estimation of
+$(\mbox{\boldmath $\alpha$}, \phi)$ leads to a consistent estimation of $\mbox{\boldmath $\beta$}$.
+
+\item Remember our mean structure is \emph{assumed} correctly specified. So using the previous reasoning as in the quasi-likelihood inference for univariate $y$, we still have consistency for $\boldbeta$. 
+
+\item On that note, since the specified covariance structure isn't necessarily true, $(\hat{\alpha}, \hat{\phi})$ may converge to {\bf some} $(\alpha, \phi)$, but not a true one; there isn't a truth here anyway! 
+
+\item
+Alternatively, $\mbox{\boldmath $\alpha$}$ (and possible $\phi$) can be estimated by simultaneously
+solving an additional estimating equation (Prentice, 1988); details are not pursued here.
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame} {Statistical inference}
+\begin{wideitemize}
+\item We also have the approximation
+\[
+\hat{\boldbeta} - \boldbeta \sim_a F^{-1} (\boldbeta)  {\bf S} ({\boldsymbol \beta, \alpha})
+\]
+with $F=\sum_{i=1}^nZ_i^TD_i\Sigma_i^{-1}D_iZ_i$.
+
+\item The quasi-score ${\bf S} ({\boldsymbol \beta, \alpha})$ is approximately  $N(0, V)$ by central limit theorem, where 
+\[
+V = \mbox{cov}(\textbf{S}(\mbox{\boldmath $\beta$},\mbox{\boldmath $\alpha$}))=\sum_{i=1}^n Z_i^TD_i\Sigma_i^{-1}
+S_i\Sigma_i^{-1}D_iZ_i,
+\]
+ and $S_i = \text{Cov}(\textbf{y}_i)$ is the {\bf true} covariance of $\textbf{y}_i$.
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame} {Statistical inference: Making sandwich again}
+\begin{itemize}
+\item
+Under regularity conditions, the GEE estimator $\hat{\mbox{\boldmath $\beta$}}$ satisfies
+\[
+\hat{\mbox{\boldmath $\beta$}}\stackrel{a}{\sim} N(\mbox{\boldmath $\beta$}, F^{-1}VF^{-1}).
+\]
+
+%another item
+\item
+$\mbox{cov}(\hat{\mbox{\boldmath $\beta$}})$ is approximated by the ``sandwich matrix":
+$$\hat{A}=\hat{F}^{-1} \underbrace{\left\{\sum_{i=1}^n Z_i^T\hat{D}_i\hat{\Sigma}_i^{-1}
+(\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)
+(\textbf{y}_i-\hat{\mbox{\boldmath $\mu$}}_i)^T\hat{\Sigma}_i^{-1}\hat{D}_iZ_i\right\}}_{\hat{V}}\hat{F}^{-1}$$
+
+
+\item However, unlike the univariate case, this robust sandwich estimator may still require a dispersion estimate $\hat{\phi}$ to be constructed.
+
+\item  If the working correlation model  is the exchangeable model, the association parameter estimate $\hat{\alpha}$ (which cannot be cancelled) may need $\hat{\phi}$  to be constructed. 
+
+%another item
+
+\end{itemize}
+\end{frame}
+
+
+
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (1)}
+%We use GEE approach to fit a marginal model to the visual impairment data. R packages \texttt{gee} with command 
+%\texttt{gee()} and \texttt{geepack} with command \texttt{geeglm()}
+%can be used. (There are a few problems with both packages).
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%library(gee); library(geepack)
+%VI.dat <- read.csv("D:/MAST90084/Visual-impairment.csv"); VI.dat
+%\end{Sinput} 
+%\begin{Soutput}
+%   ID Yes  No    Age  Race
+%1   1  15 617 40to50 White
+%2   1  19 613 40to50 White
+%3   2  24 557 51to60 White
+%4   2  25 556 51to60 White
+%5   3  42 789 61to70 White
+%6   3  48 783 61to70 White
+%7   4 139 673    70+ White
+%8   4 146 666    70+ White
+%9   5  29 750 40to50 Black
+%10  5  31 748 40to50 Black
+%11  6  38 574 51to60 Black
+%12  6  37 575 51to60 Black
+%13  7  50 473 61to70 Black
+%14  7  49 474 61to70 Black
+%15  8  85 344    70+ Black
+%16  8  93 336    70+ Black
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (2)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%VI1e<- gee(cbind(Yes, No) ~ Age + Race, id = ID,
+%           data = VI.dat, family = binomial, corstr = "exchangeable")
+%summary(VI1e)
+%\end{Sinput} 
+%\begin{Soutput}
+% GEE:  GENERALIZED LINEAR MODELS FOR DEPENDENT DATA
+% gee S-function, version 4.13 modified 98/01/27 (1998) 
+%
+%Model:
+% Link:                      Logit 
+% Variance to Mean Relation: Binomial 
+% Correlation Structure:     Exchangeable 
+%
+%Call:
+%gee(formula = cbind(Yes, No) ~ Age + Race, id = ID, data = VI.dat, 
+%    family = binomial, corstr = "exchangeable")
+%
+%Summary of Residuals:
+%   Min     1Q Median     3Q    Max 
+%  15.0   28.0   39.9   58.6  145.8 
+%
+%
+%Coefficients:
+%            Estimate Naive S.E. Naive z Robust S.E. Robust z
+%(Intercept)   -3.225     0.1125  -28.66      0.0254  -127.22
+%Age51to60      0.478     0.1451    3.30      0.0167    28.65
+%Age61to70      0.837     0.1348    6.21      0.0905     9.26
+%Age70+         1.973     0.1227   16.08      0.0531    37.13
+%RaceWhite     -0.350     0.0768   -4.56      0.0662    -5.28
+%
+%Estimated Scale Parameter:  0.571
+%Number of Iterations:  1
+%
+%Working Correlation
+%      [,1]  [,2]
+%[1,] 1.000 0.886
+%[2,] 0.886 1.000
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (3)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Soutput}
+%Call:
+%gee(formula = cbind(Yes, No) ~ Age + Race, id = ID, data = VI.dat, 
+%    family = binomial, corstr = "exchangeable")
+%
+%Summary of Residuals:  ###Residuals calculation is not correct in gee().
+%   Min     1Q Median     3Q    Max 
+%  15.0   28.0   39.9   58.6  145.8 
+%
+%Coefficients:
+%            Estimate Naive S.E. Naive z Robust S.E. Robust z
+%(Intercept)   -3.225     0.1125  -28.66      0.0254  -127.22
+%Age51to60      0.478     0.1451    3.30      0.0167    28.65
+%Age61to70      0.837     0.1348    6.21      0.0905     9.26
+%Age70+         1.973     0.1227   16.08      0.0531    37.13
+%RaceWhite     -0.350     0.0768   -4.56      0.0662    -5.28
+%
+%Estimated Scale Parameter:  0.571
+%Number of Iterations:  1
+%
+%Working Correlation
+%      [,1]  [,2]
+%[1,] 1.000 0.886
+%[2,] 0.886 1.000
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (4)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Soutput}
+%total=VI.dat$Yes+VI.dat$No
+%
+%pearson.res1e=
+%    (VI.dat$Yes-total*VI1e$fitted)/sqrt(total*(VI1e$fitted)*(1-VI1e$fitted))
+%
+%sum(pearson.res1e^2)/11
+%[1] 0.5708722 #estimate of \phi based on Pearson residuals
+%
+%> VI1e$scale
+%[1] 0.5708722
+%
+%(VI1e$scale*3)^(-1)*sum(pearson.res1e[2*(1:8)-1]*pearson.res1e[2*(1:8)])
+%[1] 0.8861748
+%
+%> VI1e$working.correlation
+%          [,1]      [,2]
+%[1,] 1.0000000 0.8861748
+%[2,] 0.8861748 1.0000000
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (5)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%VI3 <- geeglm(cbind(Yes, No)~Age + Race, family=binomial(link="logit"),
+%                     data=VI.dat, id=ID, corstr = "exchangeable", std.err="san.se")
+%summary(VI3)
+%\end{Sinput}
+%\begin{Soutput}
+%Call:
+%geeglm(formula = cbind(Yes, No) ~ Age + Race, family = binomial(link = "logit"), 
+%    data = VI.dat, id = ID, corstr = "exchangeable", std.err = "san.se")
+%Coefficients:
+%            Estimate Std.err    Wald Pr(>|W|)    
+%(Intercept)  -3.2253  0.0254 16184.7  < 2e-16 ***
+%Age51to60     0.4783  0.0167   820.7  < 2e-16 ***
+%Age61to70     0.8374  0.0905    85.7  < 2e-16 ***
+%Age70+        1.9728  0.0531  1378.3  < 2e-16 ***
+%RaceWhite    -0.3498  0.0662    27.9  1.3e-07 ***
+%---
+%Estimated Scale Parameters: #IScale seems defined differently in gee() and geeglm()
+%            Estimate  Std.err
+%(Intercept) 0.000604 0.000323
+%
+%Correlation: Structure = exchangeable  Link = identity 
+%Estimated Correlation Parameters:
+%      Estimate Std.err      #The estimation here is about half of that in gee().
+%alpha    0.441   0.274
+%Number of clusters:   8   Maximum cluster size: 2 
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S3.5.2 Visual impairment example (6)}
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%pearson.res3=(VI.dat$Yes/total-VI3$fitted)/sqrt((VI3$fitted)*(1-VI3$fitted)/total)
+%phi.est=sum(pearson.res3^2)/11   #=0.5709
+%
+%sum((summary(VI3)$deviance.resid)^2)/11
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 0.577  #very close to 0.5709. 
+%               #Using deviance residuals or Pearson residuals give similar results.
+%\end{Soutput}
+%\begin{Sinput}
+%VI3$geese$gamma     #How is gamma defined?
+%\end{Sinput}
+%\begin{Soutput}
+%(Intercept) 
+%   0.000604 
+%\end{Soutput}
+%\begin{Sinput}
+%(phi.est*3)^(-1)*sum(pearson.res3[2*(1:8)-1]*pearson.res3[2*(1:8)])
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 0.8862  #estimated alpha
+%\end{Soutput}
+%\begin{Sinput}
+% (0.577*3)^(-1)*sum(summary(VI3)$devi[2*(1:8)-1]*summary(VI3)$devi[2*(1:8)])
+%\end{Sinput}
+%\begin{Soutput}
+%[1] 0.872
+%\end{Soutput}
+%\begin{Sinput}
+%VI3$geese$alpha
+%\end{Sinput}
+%\begin{Soutput}
+% alpha 
+%0.4415 #approximately half of 0.8862. Then How is alpha defined here?
+%\end{Soutput}
+%\end{Schunk}
+%\end{scriptsize}
+%\end{frame}
+%
+\begin{frame}{\large Marginal models for correlated responses having $k$ categories}
+\begin{wideitemize}
+\item
+Suppose categorical responses $Y_{ij}$, $j=1,\cdots, m_i$, are observed in cluster $i$, $i=1,\cdots,n$.
+\item
+For simplicity, assume each $Y_{ij}$ has the $k$ categories and is dummy coded by
+$$\textbf{y}_{ij}=(y_{ij1}, \cdots, y_{ijq})^T, \quad q=k-1$$
+\item
+Let $\textbf{y}_i^T=(\textbf{y}_{i1}^T, \cdots, \textbf{y}_{im_i}^T)$ be observations of $\textbf{y}_{ij}$
+in cluster $i$; $\textbf{x}_i^T=(\textbf{x}_{i1}^T, \cdots, \textbf{x}_{im_i}^T)$ be the corresponding
+covariate observations.
+\item
+A marginal categorical response model can be defined
+for each response variable, and then supplemented by a working association model to relate  the
+responses  within a  cluster.
+
+
+\end{wideitemize}
+\end{frame}
+
+
+
+\begin{frame}{\large Marginal models for correlated responses having $k$ categories }
+%Here we focus on ordinal responses. Other types of categorical responses can be handled similarly.
+\begin{wideitemize}
+\item[(i)]
+The vector of marginal means or categorical probabilities of $Y_{ij}$ is assumed  correctly
+specified by a \textit{response model}:
+\[
+{\boldsymbol \pi}_{ij}(\mbox{\boldmath $\beta$})=(\pi_{ij1}(\mbox{\boldmath $\beta$}),
+\cdots, \pi_{ijq}(\mbox{\boldmath $\beta$}))^T=\textbf{h}(Z_{ij}\mbox{\boldmath $\beta$})
+\]
+with 
+\begin{enumerate}
+\item 
+$\pi_{ijr}=P(Y_{ij}=r|\textbf{x}_{ij})=P(y_{ijr}=1|\textbf{x}_{ij})$,
+\item  The response function
+$\textbf{h}(\cdot)$ follows a nominal or ordinal response model
+\item $Z_{ij}$ being the design matrix. 
+\end{enumerate}
+\item[(ii)]
+The marginal covariance function of $\textbf{y}_{ij}$ is given by
+$$\Sigma_{ij}=\mbox{cov}(\textbf{y}_{ij}|\textbf{x}_{ij})=\mbox{diag}(\mbox{\boldmath $\pi$}_{ij})
+-\mbox{\boldmath $\pi$}_{ij}\mbox{\boldmath $\pi$}_{ij}^T$$
+i.e. the covariance matrix of a multinomial random variable.
+\end{wideitemize}
+\end{frame}
+
+% new frame
+\begin{frame}{\large Marginal models for correlated responses having $k$ categories }
+\begin{itemize}
+\item[(iii)]
+Association between $Y_{ij}$ and $Y_{ik}$ can be  modeled by a {\bf working correlation matrix} $R_i$.
+
+\ \
+
+e.g.: the working matrix of exchangeable correlations is \vspace*{-8pt}
+{\scriptsize
+$$R_i(\mbox{\boldmath $\alpha$})=\left[\begin{array}{cccc} I & Q & \cdots & Q\\ Q^T & I & \cdots
+& Q \\ \vdots & \vdots & \ddots & \vdots \\ Q^T & Q^T & \cdots & I\end{array}\right]\vspace*{-2pt},$$} 
+where the $q\times q$ matrix $Q$ contains $\boldalpha$ to be estimated by 
+a method of moments.
+
+\ \
+
+ If a working correlation matrix $R_i$ is specified, then the working covariance structure is 
+\[
+\Sigma_i (\boldbeta, \boldalpha) = C_i^{1/2} (\boldbeta) R_i (\boldalpha)C_i^{1/2} (\boldbeta),
+\]
+where $C_i (\boldbeta) = \text{diag} (\Sigma_{i1}, \dots, \Sigma_{i m_i})$ is block-diagonal.
+
+\end{itemize}
+
+
+\end{frame}
+
+
+%new frame
+\begin{frame}{\large Marginal models for correlated responses having $k$ categories }
+\begin{itemize}
+
+\item[(iii)] Alternatively, association can be modeled by odds ratios. 
+
+\ \
+\begin{wideitemize}
+\item
+For ordinal categories, the \textbf{global cross-ratios} (GCR) can be used.
+
+\ \
+
+\item  For a pair of categories $\ell$ and $m$ of $Y_{ij}$ and $Y_{ik}$, the GCR
+is defined as 
+\[
+\gamma_{ijk}(\ell,m)=\frac{P(Y_{ij}\leq \ell, Y_{ik}\leq m)P(Y_{ij}>\ell, Y_{ik}>m)}{
+P(Y_{ij}> \ell, Y_{ik}\leq m)P(Y_{ij}\leq \ell, Y_{ik}>m)}.
+\]
+\item GCR can be modelled log-linearly, i.e. 
+\[
+\log(\gamma_{ijk}(\ell,m))=\alpha_{\ell m}
+\]
+ or by 
+a regression model including covariate effects.  The off-diagonal blocks of $\Sigma_i$ can still be computed to construct the score equations;  refer to Dale (1986), Fahrmeir \& Pritscher (1996) and Gieger (1998).
+
+
+
+\item
+For nominal categories, local odds ratios can be used. 
+\end{wideitemize}
+\end{itemize}
+
+
+\end{frame}
+
+
+% new frame
+\begin{frame}{\large Marginal models for correlated responses having $k$ categories }
+
+
+
+
+\begin{wideitemize}
+\item
+The involved regression and association parameters can be 
+estimated by a multivariate  GEE approach. Details not pursued here.
+\item
+R packages \texttt{multgee}, \texttt{geepack} and \texttt{repolr} may be used to fit the above models. For instance, 
+\begin{wideitemize}
+\item The function \texttt{ordgee()} in \texttt{geepack}  implement the approach based on GCR by Heaberty and Zeger (1996). 
+
+\item \texttt{multgee} implements the approach based on local odds ratio by Touloumis, Agresti, Kateri (2013).
+\end{wideitemize}
+\end{wideitemize}
+
+\end{frame}
+
+
+
+
+
+%\begin{frame}{ Likelihood-based inference for marginal models}
+%\begin{wideitemize}
+%\item
+%The GEE approach is not likelihood-based \\
+%
+%$\Rightarrow$ doesn't require a full specification of the joint distribution
+%of multivariate response vector $\textbf{y}_i$. 
+%
+%\item For example, for ${\bf y}_i  = (y_{i1}, \dots, y_{im})$, where each of $y_{ij}$ is binary taking 0 or 1, the fully parametrized distribution has $2^m - 1$ parameters. For $m$ marginal mean models only account for $m$ parameters and the remaining $2^m - 1 - m$ can  be specified many other ways. 
+%\item
+%Difficulty with the likelihood-based inference is due to the difficulty in formulating this joint distribution, as well as computations; refer to the technical papers  such as Glonek and McCullagh (1995) . 
+%
+%
+%\end{wideitemize}
+%\end{frame}
+
+
+
+\section{Examples}\label{sec:6.2}
+\subsection{Example 6.4 in F\&T \S6.2.2}\label{sec:6.2.2}
+
+%new frame
+\begin{frame}{Marginal models for longitudinal data (\S 6.2.2 in F\&T)}
+
+\begin{wideitemize}
+\item Longitudinal data (LD): A specific case of data with correlated responses, where short time series data
+\[
+(y_{it}, x_{it}), \quad t = 1, \dots, T_i
+\]
+are observed for each individual/unit/cluster $i =1, \dots, n$. 
+
+\item The notation $T_i$ is used  instead of $m_i$ to emphasize repeated observations over time.
+
+\item Marginal models for LD have the same theory as GEE. 
+
+\item Choices of the working association structure may borrow ideas from the times series literature. 
+
+\item For example, the working correlation $R_i (\alpha)$ for $(y_{i1}, \dots, y_{iT_i})$ may take the autocorrelation form 
+\[
+(R_i (\alpha))_{st} = \alpha^{|t-s|} \text{ for  } s, t = 1, \dots, T_i.
+\]
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+
+%new frame
+
+\begin{frame}{Example 6.4. Respiratory infection (RI) in Ohio children }
+\begin{table} [!htbp]
+\caption{Presence and absence of {\bf respiratory infection} (RI) \label{tab1.4}}
+\begin{center}
+\begin{scriptsize}
+\begin{tabular}{|ccccc|ccccc|}
+\hline
+\multicolumn{5}{|c|}{Mother did not smoke} & \multicolumn{5}{c|}{Mother smoked}  \\
+\multicolumn{4}{|c}{Age of child} & Frequency & \multicolumn{4}{c}{Age of child} & Frequency \\
+7 & 8 & 9 & 10 & & 7 & 8 & 9 & 10 & \\ \hline
+0 & 0 & 0 & 0& 237 & 0 & 0 & 0 & 0& 118 \\
+0 & 0 & 0 & 1 & 10 & 0 & 0 & 0 & 1& 6 \\
+0 & 0 & 1 & 0& 15 & 0 & 0 & 1 & 0& 8 \\
+0 & 0 & 1 & 1& 4 & 0 & 0 & 1 & 1 & 2 \\ \hline
+0 & 1 & 0 & 0& 16 & 0 & 1 & 0 & 0& 11 \\
+0 & 1 & 0 & 1 & 2 & 0 & 1 & 0 & 1& 1 \\
+0 & 1 & 1 & 0& 7 & 0 & 1 & 1 & 0& 6 \\
+0 & 1 & 1 & 1& 3 & 0 & 1 & 1 & 1 & 4 \\ \hline
+1& 0 & 0 & 0& 24 & 1 & 0 & 0 & 0& 7 \\
+1 & 0 & 0 & 1 & 3 & 1 & 0 & 0 & 1& 3 \\
+1 & 0 & 1 & 0& 3 & 1 & 0 & 1 & 0& 3 \\
+1 & 0 & 1 & 1& 2 & 1 & 0 & 1 & 1 & 1 \\ \hline
+1 & 1 & 0 & 0& 6 & 1 & 1 & 0 & 0& 4 \\
+1 & 1 & 0 & 1 & 2 & 1 & 1 & 0 & 1& 2 \\
+1 & 1 & 1 & 0& 5 &  1 & 1 & 1 & 0& 4 \\
+1 & 1 & 1 & 1& 1 & 1 & 1 & 1 & 1 & 7 \\ \hline
+\end{tabular}
+\end{scriptsize}
+\end{center}
+\end{table}
+\end{frame}
+
+
+
+
+%new frame
+\begin{frame}{}
+
+\begin{wideitemize}
+
+\item  $n = 537$ and $T = 4$.
+
+
+\item Mother's smoking status is ``effect-coded" as $x_S = 1$ for smoking, $x_S = - 1$ for non-smoking
+
+\item Age is effect-coded with the dummies $x_{A1}$ (Age 7) , $x_{A2}$ (Age 8), $x_{A3}$ (Age 9); $x_{A4}$ (Age 10) reserved as a reference level for the value $-1$.
+
+
+\item The marginal mean model is suggested by the logit equation:
+\begin{multline*}
+\log \frac{P(infection)}{ P(no infection)} = \beta_0+ \beta_S x_S +
+ \beta_{A1} x_{A1} + \beta_{A2} x_{A2} + 
+ \beta_{A3} x_{A3} +\\
+  \beta_{S, A1} x_S x_{A1} + \beta_{S, A2} x_S x_{A2 } + \beta_{S, A3} x_S x_{A3 }. 
+\end{multline*}
+
+
+
+
+\item Three working correlation structures will be used : \begin{itemize}
+\item $R= I$ (independence)
+
+\item  $R_{st} = \alpha$ for all $s \neq t$ (equicorrelation)
+
+\item unspecified ``free" $R$
+\end{itemize}
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame}{Ohio Children: fit with all interactions}
+\begin{itemize}
+\item For all three working correlations, estimates are almost identical for the first relevant digits, so only one column is given for the points estimates and the robust (sandwich) standard deviations. 
+\item The ``naive" column: standard errors computed based on the independence correlation structure. 
+\includegraphics[height= 6cm]{Table68}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Ohio Children: fit with all interactions}
+\begin{itemize}
+\item F \& T also reports $\hat{\beta}_{A4} = - \hat{\beta}_{A1} - \hat{\beta}_{A2} - \hat{\beta}_{A3} = -0.28$ with standard dev $0.094$
+\includegraphics[height= 6cm]{Table68}
+\end{itemize}
+\end{frame}
+
+%
+\begin{frame}{Ohio Children: fit with main effects only}
+
+\begin{itemize}
+\item The ``naive" column shows standard errors computed based on the independence correlation structure. 
+
+\ \\
+\includegraphics[]{Table69}
+\end{itemize}
+\end{frame}
+
+
+
+
+
+%new frame
+\subsection{Example in Faraway \S 13.5}
+\begin{frame} {Example in Faraway \S 13.5}
+\begin{wideitemize}
+
+
+\item  I have also done a simple analysis with the dataset \texttt{ctsib} in section 13.5 of the applied textbook ``Extending the Linear Model with R"  by Julian Faraway. 
+
+
+
+%
+\item See \texttt{gee\_ctsib.R}.
+
+ \end{wideitemize}
+
+\end{frame}
+
+
+\end{document}
+

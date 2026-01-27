@@ -1,0 +1,634 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{3.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+\newcounter{example}
+\renewcommand{\theexample}{8.\arabic{example}}
+
+
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldalpha}{{\boldsymbol \alpha}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+\newcommand{\boldgamma}{{\boldsymbol \gamma}}
+\newcommand{\boldmu}{{\boldsymbol \mu}}
+\newcommand{\boldpi}{{\boldsymbol \pi}}
+\newcommand{\examp}{\refstepcounter{example}
+       { \textbf{Example 8.\arabic{example}.}\ }}
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 8 Survival Analysis}
+\author[Random Effects Models]{MAST90084 Statistical Modelling Slides}
+\vskip 1cm
+\institute[Ch7]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+{\normalsize
+\tableofcontents}
+\end{frame}
+
+
+
+
+
+
+\section{Fitting in R}
+\begin{frame}{\texttt{survreg()} in \texttt{R}}
+
+\includegraphics{survreg}
+\end{frame}
+
+% frame
+\begin{frame} \frametitle{\texttt{survreg()} in \texttt{R} }
+\begin{wideitemize}
+\item
+\texttt{survreg()} in the R library \texttt{survival} fits \emph{location-scale} models of the form
+ 
+ \[
+ \ell(T) \sim {\boldsymbol \beta}^T {\bf x}  + \sigma \epsilon,
+ \]
+ where
+ \begin{itemize}
+\item   the argument \texttt{dist} determines the distribution of $\epsilon$ and $\ell()$
+\item $\sigma$ is known as the \emph{scale}
+\end{itemize}
+(Venables \& Ripley, p.360)
+
+\item  The intercept is implicitly included, as the above display is in the R formula syntax.
+
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}  \frametitle{\texttt{survreg()} in \texttt{R} }
+\begin{wideitemize}
+\item The default \texttt{weibull}  argument for \texttt{dist} will make $\ell() = \log()$ and $\epsilon$ take a $EV(0, 1)$ distribution. 
+
+\item $\ell(x) = \log(x)$ if \texttt{dist} is: 
+\[
+\texttt{weibull}, \texttt{exponential},  \texttt{rayleigh}, \texttt{lognormal}, \texttt{loglogistic}
+\]
+
+\item $\ell(x) = x$ if \texttt{dist} is: 
+\[
+\texttt{gaussian}, \texttt{t}
+\]
+
+(These are also described in Venables and Ripley's book, p.360)
+\end{wideitemize}
+
+\end{frame}
+
+
+
+
+
+\begin{frame}
+\begin{wideitemize}
+\item
+For Weibull failure time $T$, we now  know that the PH model for $\phi({\bf x}) = \exp( \gamma^T {\bf x})$ has the alternative form:
+
+\[\log T=-\log\lambda-\alpha^{-1}\boldgamma^T\mathbf{x}+
+\alpha^{-1}\varepsilon;  \quad \varepsilon\stackrel{d}{=}EV(0,1).\]
+%$$\log T=-\log\lambda +\mbox{\boldmath $\beta$}'\mathbf{x}+\alpha^{-1}\varepsilon;
+%\quad \varepsilon\stackrel{d}{=}EV(0,1).$$
+
+\item Hence, 
+\begin{itemize}
+\item \texttt{survreg()}'s intercept is $- \log \lambda$
+
+\item \texttt{survreg()}'s slope coefficient vector is $-\alpha^{-1}\mbox{\boldmath $\gamma$}$
+
+\item \texttt{survreg()}'s scale is $\alpha^{-1}$
+\end{itemize}
+%\item
+%$T\stackrel{d}{=}\mbox{Wei}(\lambda 
+%e^{-\mbox{\footnotesize \boldmath $\beta$}'\mathbf{x}}, \alpha)$,
+%with 
+%\begin{itemize}
+%
+%\item
+%$S(t|\mathbf{x})=\exp\left[-(\lambda e^{-\mbox{\footnotesize \boldmath $\beta$}'\mathbf{x}}t)^\alpha\right]
+%=\left[\exp(-(\lambda t)^\alpha)\right]^{\exp(-\alpha\mbox{\footnotesize \boldmath $\beta$}'\mathbf{x})}$
+%\item $h(t|\mathbf{x})=\alpha\lambda(\lambda t)^{\alpha-1}e^{-\alpha\mbox{\footnotesize
+%\boldmath $\beta$}'\mathbf{x}}$.
+%\end{itemize}
+
+\item If $\texttt{dist} =  ``\texttt{exponential}"$, $\sigma = \alpha = 1$.
+\end{wideitemize}
+
+\end{frame}
+
+
+
+%
+%\subsection{Exponential regression model}
+%
+%\begin{frame} \frametitle{Exponential regression model (1)}
+%We now focus on fitting a survival regression model for an exponential 
+%random failure time $T$ with covariate $\mathbf{x}$.
+%\vspace{0.2cm}
+%
+%Here, we assume that the baseline distribution of $T$ is exponential with
+%rate $\lambda$.  Therefore, $ h_0(t) = \lambda$ and
+%\begin{eqnarray} 
+%h(t|\mathbf{x}) = \lambda g(\mbox{\boldmath $\gamma$}'\mathbf{x}) \label{propexp}
+%\end{eqnarray} 
+%Note that the RHS is independent of $t$.  So, the
+%distribution of $T$ when covariate $\mathbf{x}=\mathbf{x}_i$ is
+%exponential with rate $\lambda_i = \lambda g(\mbox{\boldmath $\gamma$}'\mathbf{x}_i)$.  
+%
+%\end{frame}
+%%
+%%
+%%
+%%
+%\begin{frame} \frametitle{Exponential regression model (2)}
+%
+%The three choices of $g(\cdot)$ aforementioned yield respectively to
+%\begin{enumerate}
+%\item $\lambda_i = \lambda(1 +\mbox{\boldmath $\gamma$}'\mathbf{x}_i) = \lambda +
+%  \lambda\mbox{\boldmath $\gamma$}'\mathbf{x}_i$
+%\item $\lambda_i = \frac{\lambda}{1+\mbox{\boldmath $\gamma$}'\mathbf{x}_i}$ \quad or \quad
+%  $\frac{1}{\lambda_i} = \frac{1}{\lambda} + \frac{1}{\lambda}
+%  \mbox{\boldmath $\gamma$}'\mathbf{x}_i$
+%\item $\lambda_i = \lambda \exp (\mbox{\boldmath $\gamma$}'\mathbf{x}_i)$ \quad or \quad $ \log
+%  \lambda_i = \log \lambda +\mbox{\boldmath $\gamma$}'\mathbf{x}_i$.
+%\end{enumerate}
+%\vspace{0.2cm}
+%
+%1. says that the failure rate $\lambda_i$  is linear in $\mathbf{x}_i$; \\
+%2. says that the mean lifetime $1/\lambda_i$  is linear in $\mathbf{x}_i$; \\
+%3. is log-linear.
+%\vspace{0.2cm}
+%
+%The model (\ref{propexp}) has $p+1$ parameters $\lambda, \gamma_1,
+%\gamma_2, \ldots, \gamma_p$ and is analysed using maximum-likelihood.
+%Statistical software is usually used for the analysis.  We shall be
+%using \texttt{survreg()} in \texttt{R}.
+%
+%\end{frame}
+
+%\subsection{Example}
+\subsection{Fitting exponential}
+\begin{frame} \frametitle{}
+
+\examp\label{ex-1.13} (Breast cancer)\\
+Use an exponential regression model to answer the following:
+%\renewcommand{\theenumi}{(\alph{enumi})}
+\begin{wideitemize}
+\item[(a)] Is there a difference in the survival time distribution for the
+  two groups of women?  Carry out a test for this, using
+  \begin{wideitemize} 
+  \item[(a.1)] a Wald statistic;
+  \item[(a.2)] a likelihood ratio statistic.
+  \end{wideitemize}
+\item[(b)] Obtain an estimate of $S(100)$ for each group of women.
+\item[(c)] Check your estimates in (b) using the formula for MLE of the rate parameter in an
+  exponential distribution 
+\item[(d)] Consider the hazard ratio $\psi$ of the two groups (positive
+  staining to negative staining).
+  \begin{wideitemize}
+  \item[(d.1)] Obtain an estimate of $\psi$ and a
+    standard error of the estimate.
+  \item[(d.2)] Find a 95\% CI for $\psi$.  Is this CI in accord with
+    the result in (a)?
+  \end{wideitemize}
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile] \frametitle{}
+\texttt{R} output is produced to solve Example~\ref{ex-1.13}.
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> cancer.exp <- survreg(Surv(time, status) ~ group, data = bcancer, 
++     dist = "exponential")
+> summary(cancer.exp)
+\end{Sinput}
+\begin{Soutput}
+Call:
+survreg(formula = Surv(time, status) ~ group, data = cancer, 
+    dist = "exponential")
+             Value Std. Error     z        p
+(Intercept)  5.800      0.447 12.97 1.81e-38
+groupP      -0.952      0.498 -1.91 5.58e-02
+
+Scale fixed at 1 
+
+Exponential distribution
+Loglik(model)= -156.8   Loglik(intercept only)= -159
+	Chisq= 4.36 on 1 degrees of freedom, p= 0.037 
+Number of Newton-Raphson Iterations: 4 
+n= 45 
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+\begin{frame}[fragile] \frametitle{Solving Example~\ref{ex-1.13} (a)}
+
+\begin{enumerate}
+
+\item The model is $\log (T) = -\log\lambda + \boldbeta^T\mathbf{x} +
+  \alpha^{-1} \varepsilon$, where $\varepsilon \stackrel{d}{=} EV(0,1)$.
+
+\item Note that the EV scale $\alpha^{-1}$ is fixed at 1 - this
+  is a consequence of using the exponential distribution.
+
+\item For this model, $\boldbeta^T\mathbf{x}$ is just the slope $\beta$, representing
+  difference between the stain groups.
+\begin{enumerate}
+\item $\hat{\beta} = -0.952$
+\item se$(\hat{\beta}) = 0.498$
+\end{enumerate}
+\item The Wald statistic is the ratio $\frac{\hat{\beta}}{\mbox{se}(\hat{\beta})}$, 
+and compared with $N(0,1)$.  We do not reject the null hypothesis $H_0: \beta=0$ at level $0.05$.
+\item The likelihood ratio statistic is \texttt{2[Loglik(model)-Loglik(intercept only)]}, \\
+and compared with $\chi^2_1$.  
+We reject $H_0: \beta=0$ at level $0.05$.
+%\item The estimated baseline hazard is $e^{-\mu_0}$ (group N)
+\end{enumerate}
+\end{frame}
+
+\begin{frame} \frametitle{Solving Example~\ref{ex-1.13} (b)}
+
+\begin{enumerate}
+\item [(b)] Obtain an estimate of $S(100)$ for each group of women.
+\end{enumerate}
+
+The hazard for each group can be computed as follows.
+
+\begin{description}
+\item[N:] $\hat{\lambda}_N =\hat{\lambda}= e^{\log\hat{\lambda}} = e^{-5.800}=0.00303$, after rounding.
+\item[P:] $\hat{\lambda}_P = \hat{\lambda}e^{-\hat{\beta}} =0.00303\times e^{0.952}= 0.00784$, after rounding. 
+\end{description}
+
+Therefore, 
+\begin{eqnarray*}
+\hat{S}_N(100) &= & e^{-\hat{\lambda}_N\times 100}=e^{-0.303}=0.7388 \\  
+\hat{S}_P(100) &= & e^{-\hat{\lambda}_P\times 100}=e^{-0.784}=0.4564
+\end{eqnarray*}
+\end{frame}
+
+
+
+\begin{frame} \frametitle{Solving Example~\ref{ex-1.13} (c)}
+
+\begin{enumerate}
+\item [(c)] Check your estimates in (b) using the formula given for the MLE in an
+  exponential distribution. 
+\end{enumerate}
+
+Recall the MLE for the rate parameter of
+the exponential distribution is:
+
+$$ \hat{\lambda} = \frac{\sum_i \delta_i}{\sum y_i}, $$
+where $\sum_i \delta_i$ = number of observed uncensored failure times, and
+$\sum y_i$ = sum of all the observed times.
+
+\ \
+
+
+\ \
+
+Applying this formula to groups N and P separately gives the same estimates obtained in (b).
+\end{frame}
+
+
+\begin{frame} \frametitle{Solving Example~\ref{ex-1.13} (d)}
+
+\begin{enumerate}
+\item [(d)] Consider the hazard ratio $\psi$ of the two groups (positive
+  staining to negative staining).
+  \begin{enumerate}
+  \item [(d.1)] Obtain an estimate of $\psi$ and a
+    standard error of the estimate.
+  \item [(d.2)] Find a 95\% CI for $\psi$.  Is this CI in accord
+    with the result in (a)?
+  \end{enumerate}
+\end{enumerate}
+
+From [(b)], the ratios of the hazards are $\frac{0.007838746}{0.003026634} = 2.589922$. 
+
+The estimate formally comes from $\frac{\hat{\lambda}e^{- \hat{\beta}}}{\hat{\lambda}} = e^{-\hat{\beta}}$.  
+Using the delta method, the variance of this estimate is:
+\[
+\mbox{var}(e^{-\hat \beta}) = (-e^{-\hat \beta})^2 \mbox{var}(\hat \beta) 
+ = 2.589922 ^2 \times  0.247619 = 1.28878
+^2.
+ \]
+So, with some rounding, an approximate 95\% CI for $\psi$ is
+\[
+2.589922 \pm 1.959964\times 1.28878=(0.064 , 5.12 )
+\]
+by assuming that the estimate is asymptotically normal. Since  it contains $\psi=1$, it agrees with the result of the previous Wald test.
+\end{frame}
+
+
+% new frame
+\begin{frame} \frametitle{Solving Example~\ref{ex-1.13} (d)}
+Moreover, since $\exp(-\hat{\beta})$ is monotone in $\hat{\beta}$, one can also compute an approximate $95\%$ CI based on 
+\[
+(\exp(- \hat{\beta}_u), \exp(- \hat{\beta}_l)),
+\]
+where $\hat{\beta}_u = 0.952 +1.96 \times \sqrt{0.247619}$ and $\hat{\beta}_l = 0.952-  1.96 \times \sqrt{0.247619}$ are respectively the upper and lower bound of an approximate $95\%$ CI for $\hat{\beta}$. This gives a fairly different confidence interval
+\[
+(0.977,   6.868)
+\] 
+after some rounding, under finite samples. 
+\end{frame}
+
+
+\subsection{Fitting Weibull}
+
+%\begin{frame} \frametitle{Weibull regression model (1)}
+%We now focus on fitting a survival regression model for a
+%Weibull random failure time $T$ with covariate $\mathbf{x}$.
+%\vspace{0.2cm}
+%
+%Here, we assume that the baseline distribution of $T$ is a Weibull
+%distribution with shape parameter $\alpha$ and scale parameter
+%$\lambda$.  Then the baseline hazard rate is $h_0(t) = \alpha\lambda
+%(\lambda t)^{\alpha-1}$. Thus, the hazard rate for an individual with
+%covariate $\mathbf{x}$ is
+%\[ h(t|\mathbf{x}) = \alpha\lambda (\lambda t)^{\alpha-1} g(\mbox{\boldmath $\gamma$}'\mathbf{x}) \]
+%
+%There are three common choices of $g(\cdot)$ as mentioned before, with 
+%$g(\mbox{\boldmath $\gamma$}'\mathbf{x})=\exp(\mbox{\boldmath $\gamma$}'\mathbf{x})$
+%being the most commonly used.
+%\end{frame}
+%
+%\begin{frame} \frametitle{Weibull regression model (2)}
+%
+%Writing $g(\mbox{\boldmath $\gamma$}'\mathbf{x})  = s^\alpha$ (i.e. $s =
+%g(\mbox{\boldmath $\gamma$}'\mathbf{x})^{1/\alpha})$ , we have
+%\[ h(t|\mathbf{x}) = \alpha(\lambda s) (\lambda st)^{\alpha-1}\] 
+%which shows
+%that it is a Weibull hazard rate with scale parameter $\lambda s$ but
+%the same shape parameter $\alpha$.  That is, $T$ follows a
+%Weibull distribution that has a constant shape parameter but a scale
+%parameter depending on the covariates.
+%
+%This model has $p+2$ parameters, $\lambda, \alpha, \gamma_1 , \gamma_2 ,
+%\ldots, \gamma_p$ and is fitted using maximum likelihood. This is to be
+%done using \texttt{survreg()} in \texttt{R}, where we actually fit the model
+%$$\log (T) = -\log\lambda + \mbox{\boldmath $\beta$}'\mathbf{x} +
+%  \alpha^{-1} \varepsilon,$$ with $\varepsilon \stackrel{d}{=} EV(0,1)$.
+%\end{frame}
+%\subsection{Example}
+
+\begin{frame} \frametitle{Example~\ref{ex-1.14}. Weibull regression model on the breast cancer data}
+
+\examp \label{ex-1.14} (Breast cancer)\\
+Use a Weibull regression model to answer the following:
+\begin{itemize}
+\item[(a)] Obtain an estimate of $S(100)$ for each group of women.
+\item[(b)] Quantify the effect of the staining classification on the
+  survival experience of the women, based on the hazard ratio between the two groups.
+\item[(c)] Is an exponential regression model adequate, compared with a
+  Weibull regression model?  Carry out a test for this, using
+  \begin{itemize} 
+  \item[(c.1)] a Wald statistic;
+  \item[(c.2)] a likelihood ratio statistic.
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile] \frametitle{R output for Example~\ref{ex-1.14} (1)}
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> cancer.wbl <- survreg(Surv(time, status) ~ group, data = bcancer, 
++     dist = "weibull")
+> summary(cancer.wbl)
+\end{Sinput}
+\begin{Soutput}
+Call:
+survreg(formula = Surv(time, status) ~ group, data = cancer, 
+    dist = "weibull")
+              Value Std. Error      z        p
+(Intercept)  5.8544      0.499 11.735 8.43e-32
+groupP      -0.9967      0.544 -1.832 6.70e-02
+Log(scale)   0.0646      0.167  0.386 6.99e-01
+
+Scale= 1.07 
+
+Weibull distribution
+Loglik(model)= -156.7   Loglik(intercept only)= -158.8
+	Chisq= 4.14 on 1 degrees of freedom, p= 0.042 
+Number of Newton-Raphson Iterations: 5 
+n= 45 
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+
+\begin{frame}[fragile] \frametitle{R output for Example~\ref{ex-1.14} (2)}
+\begin{scriptsize}
+\begin{Schunk}
+\begin{Sinput}
+> cancer.wbl$coef
+\end{Sinput}
+\begin{Soutput}
+(Intercept)      groupP 
+  5.8543638  -0.9966647 
+\end{Soutput}
+\begin{Sinput}
+> cancer.wbl$scale
+\end{Sinput}
+\begin{Soutput}
+[1] 1.066777
+\end{Soutput}
+\begin{Sinput}
+> cancer.wbl$var
+\end{Sinput}
+\begin{Soutput}
+            (Intercept)      groupP  Log(scale)
+(Intercept)  0.24887910 -0.24501139  0.02441408
+groupP      -0.24501139  0.29603784 -0.01997602
+Log(scale)   0.02441408 -0.01997602  0.02801424
+\end{Soutput}
+\end{Schunk}
+\end{scriptsize}
+\end{frame}
+
+
+\begin{frame} \frametitle{Solving Example~\ref{ex-1.14} (a)}
+
+\begin{itemize}
+\item[(a)] Obtain an estimate of $S(100)$ for each group of women. Recall we have the survival function
+\end{itemize}
+
+\[
+S(t) = e^{-(\lambda t)^\alpha} \quad \mbox{for Weibull failure time},
+\]
+with the two parameters $\lambda$ (scale) and $\alpha$ (shape).
+
+\begin{enumerate}
+\item 
+For group N: $- \log\hat{\lambda}_n = 5.8543638 \quad \Rightarrow \hat{\lambda}_n = 0.002867359$.
+\item 
+For group P:
+\[
+- \log\hat{\lambda}_p = 5.8543638 - 0.9966647= 4.857699 \quad\Rightarrow 
+\hat{\lambda}_p = 0.007768337.
+\]
+\item $\hat{\alpha} = 1/ 1.066777 = 0.937403$
+\end{enumerate}
+Hence,
+\begin{enumerate}
+\item for group N, $\hat{S}_n(100) = e^{-(\hat \lambda_n \times 100)^{\hat\alpha}} = 0.7334049$;
+\item for group P,  $\hat{S}_p(100) = e^{-(\hat \lambda_p \times 100)^{\hat\alpha}} = 0.454203$.
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame} \frametitle{Solving Example~\ref{ex-1.14} (b)}
+
+\begin{itemize}
+\item [(b)] Quantify the effect of the staining classification on the
+  survival experience of the women, based on the hazard ratio between the two groups.
+\end{itemize}
+
+The  hazard function is:
+
+\[
+h(t|x) = \alpha \lambda(x)^{\alpha} t^{\alpha-1}.
+\]
+
+So, the hazard ratio, where $\alpha$ is constant, has the estimate
+
+\[
+\frac{\hat{h}_p(t)}{\hat{h}_n(t)} =
+\left(\frac{\hat \lambda_p}{\hat \lambda_n}\right)^{\hat \alpha} = e^{-\hat{\beta}\hat{\alpha}}= 2.545372 .
+\]
+One can also construct a $95\%$ CI for this. The task will be slightly more laboriously since we now have to work with a $2 \times 2$ Fisher information matrix. You have a problem like that  in Assignment 4. 
+\end{frame}
+
+\begin{frame} \frametitle{Solving Example~\ref{ex-1.14} (c)}
+
+\begin{itemize}
+\item [(c)] Is an exponential regression model adequate, compared with a
+  Weibull regression model?  Carry out a test for this, using
+  \begin{itemize} 
+  \item [(c.1)] a Wald statistic;
+  \item [(c.2)] a likelihood ratio test.
+  \end{itemize}
+\end{itemize}
+
+This is about testing $H_0:\alpha=1$ or equivalently $H_0: \log\alpha=0$. Because $\sigma = \alpha^{-1}$, this is also equivalent to testing $H_0: \log\sigma=0$
+\begin{itemize}
+\item The Wald statistic for testing $\log\alpha=0$ is 0.386 with $p\mbox{-value}=0.699$
+from the R output.
+So cannot reject $H_0$. 
+\item The likelihood ratio statistic equals $2[\mbox{LL(Weibull)}-\mbox{LL(exponential)}]
+\approx 0.1534936$; not significant against the $\chi^2_1$ distribution at level 5\%.
+The exponential regression model seems adequate. 
+\end{itemize}
+
+\end{frame}
+
+
+\section{The Kaplan-Meier estimator}
+
+\begin{frame} {Kaplan-Meier estimators for survival functions}
+\begin{wideitemize}
+\item  In survival analysis,  an estimate of the survival function for each group (e.g.the  treatment and the control groups) is often displayed for data visualization. 
+
+
+\item  If all survival times are uncensored, displaying the empirical survival function (i.e. one minus the usual empirical CDF) for each group will do. 
+
+\item However, with censoring, the {\bf Kaplan-Meier estimator} (or product limit estimator) for the survival function is the go-to method. 
+
+
+\item Note that KM estimators are {\bf nonparametric};  it is essentially the non-parametric MLE for the  underlying survival function. 
+
+
+\item Details not pursued this semester. 
+\end{wideitemize}
+
+\end{frame}
+
+
+\section{Cox proportional hazard model}
+
+\begin{frame} {Cox proportional model}
+
+\begin{wideitemize}
+
+\item We have assumed a parametric form for the baseline hazard function $h_0 (\cdot)$ in the PH model. This make inference more convenient, but not strictly required. 
+
+\item {\bf Cox proportional hazard model} is semi-parametric, as it doesn't assume a parametric baseline hazard. 
+
+
+\item Details not pursued for this semester. 
+
+\end{wideitemize}
+
+
+
+\end{frame}
+
+
+\section{Diagnostics}
+
+\begin{frame} {Types of residuals}
+\begin{itemize}
+
+\item Cox-Snell residuals, Martingale residuals, deviance residuals. 
+
+\item Details not pursued for this semester. 
+
+\end{itemize}
+\end{frame}
+
+
+
+
+
+\end{document}
+

@@ -1,0 +1,640 @@
+\documentclass{beamer}
+\usepackage{bm}
+\usepackage{tabularx}
+\setbeamertemplate{caption}[numbered]
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{movie15}
+\usepackage{Sweave}
+%\usepackage{nameref}% http://ctan.org/pkg/nameref
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\renewcommand{\thesection}{2.\arabic{section}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+\newcommand{\currentsubsection}{}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\oldsubsection{#1}\renewcommand{\currentsubsection}{#1}}
+
+\newcommand{\currentsubsubsection}{}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}[1]{\oldsubsubsection{#1}\renewcommand{\currentsubsubsection}{#1}}
+
+\newcommand{\boldbeta}{{\boldsymbol \beta}}
+\newcommand{\boldtheta}{{\boldsymbol \theta}}
+
+\newenvironment{wideitemize}%
+  {\begin{itemize}%
+%    \setlength{\itemsep}{0pt}%
+    \setlength{\parskip}{1em}}%
+  {\end{itemize}}
+
+%\usetheme{CambridgeUS}
+\usetheme{Madrid}
+
+%\title[Section~1.\insertsectionnumber \currentsection]{Chapter 1. Motivating Examples}
+\title[\currentsection]{Chapter 2.Univariate Generalised Linear Models (GLM)}
+\author[univariate GLM]{MAST90084 Statistical Modelling}
+\vskip 1cm
+\institute[Ch2]{Dennis Leung \\ \vskip 0.3cm SCHOOL OF MATHEMATICS AND STATISTICS\\
+\vskip 0.3cm
+   THE UNIVERSITY OF MELBOURNE}
+\vskip 1cm
+\date[Dennis Leung \hspace{8pt}]{}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+
+
+\begin{frame}[fragile] \frametitle{Outline}
+\tableofcontents
+\end{frame}
+
+\section{\S2.2 Likelihood Inference}\label{sec:2.2}
+
+
+\subsection{\S2.2.4 Analysis of Deviance}\label{sec:2.2.4}
+
+% new frame
+\begin{frame}{ANOVA and ANODEV overview}
+\begin{wideitemize}
+
+
+\item
+An analysis of variance (ANOVA) table can be constructed for a normal linear model (LM).
+
+\item
+Similarly, an \textbf{analysis of deviance (ANODEV)} table can be constructed for a GLM.
+\item
+Generally speaking, tests performed on ANOVA and ANODEV tables are likelihood ratio tests. 
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame}{A toy example}
+\begin{wideitemize}
+\item
+Consider a $3\times 3$ factorial design, of two treatment factors A and B, with 2 replicates at each combination
+level of A and B. 
+
+\item $3\times 3$ factorial design:  each of treatment $A$ or $B$ has 3 levels
+
+
+\item So there are $n= 18$ observations in total for the response variable $y$. 
+\item In the exposition to follow, we assume \underline{no grouping of the data}.
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S2.2.4 Analysis of variance (ANOVA)}
+ If one fit the dataset with an  LM, the ANOVA table 
+may look like:
+
+\begin{center} Analysis of Variance (ANOVA)\end{center}
+
+{\small
+\begin{tabular}{|cccccc|}\hline
+Model & df & SSE & $\Delta$SS & $\Delta$df & Effect Source \\ \hline
+1 & 17 & 1000 & - & -  & - \\ \hline
+A & 15 & 400 & $600=1000-400$ & $2=17-15$ & A \\ \hline
+A+B & 13 & 300 & $100=400-300$ & $2=15-13$ & B \\ \hline
+A+B+A:B & 9 & 100 & $200=300-100$ & $4=13-9$ & A:B \\ \hline 
+\end{tabular}}
+
+\end{frame}
+
+% another frame
+\begin{frame}
+\begin{wideitemize}
+\item SSE: the sum of squares errors;  upon scaling by $\sigma^2$, same as  twice the log-likelihood difference between the saturated model and the model in the corresponding row. 
+
+\item 
+$\Delta$SS: the reduction in SSE as an additional effect is added to the model; upon scaling by $\sigma^2$,  twice the log-likelihood differences between \underline{two nested models}.
+
+
+\item
+$\Delta$df : reduction in the  model degrees of freedom.
+
+\item 
+$\frac{\Delta\mbox{SS}}{\sigma^2}\stackrel{d}{=}\chi^2(\Delta\mbox{df})$, if  the smaller model is true. 
+
+
+
+
+%\item
+%The effects of A, B and A:B on $Y$ are orthogonal.
+\end{wideitemize}
+
+\end{frame}
+
+
+\begin{frame}
+\begin{wideitemize}
+\item In the example above,  $A$ has $3$ levels;  it requires \underline{two} dummy variables to be coded into the regression. 
+
+\item So the \underline{main effect} of $A$ adds $2$ dimensions to the model. (Equivalently, reduce the model degree of freedom by $2$)
+
+
+\item Similarly, $B$ also has $3$ levels; the \underline{main effect} of $B$ adds $2$ dimensions to the model.
+
+
+\item The interaction effect (represented by $A:B$) has to be coded by all possible products of the dummy variables between $A$ and $B$. There will be $4 = 2 \times 2$ of them, hence adding  $4$ dimensions to the model.
+
+
+
+%\item
+%The effects of A, B and A:B on $Y$ are orthogonal.
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame}
+\begin{wideitemize}
+
+\item Alternatively, the effects can also be assessed by an F-test
+
+\item Under the assumed normality, F-test has the advantage that no knowledge of $\sigma^2$ is needed to construct the test statistic. 
+
+\item E.g. To test the interaction effect $A:B$, one compute 
+\[
+F = \frac{\Delta_{AB}/4}{SSE_{A + B + A:B}/9} = \frac{200/4}{100/9} =  4.5,
+\]
+and reject the null of having no interaction effect since $4.5 > \texttt{qf(0.95, df1 = 4, df2 = 9)} = 3.63$
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S2.2.4 Analysis of deviance (ANODEV)}
+If one fit the dataset with a  GLM, an ANODEV table would look like:
+
+\begin{center} Analysis of Deviance (ANODEV)\end{center}
+
+{\footnotesize
+\begin{tabular}{|cccccc|}\hline
+Model & df & Deviance & $\Delta D$ & $\Delta$df & Effect Source \\ \hline
+1 & 17 & 1200 & - & - & - \\ \hline
+A & 15 & 800 & $400\!=\!1200\!-\!800$ & $2\!=\!17\!-\!15$ & A ignoring B \\ \hline
+A+B & 13 & 500 & $300\!=\!800\!-\!500$ & $2\!=\!15\!-\!13$ & B eliminating A\\ \hline
+A+B+A:B & 9 & 200 & $300\!=\!500\!-\!200$ & $4\!=\!13\!-\!9$ & A:B eliminating \\ 
+& & & &  & A \& B \\ \hline 
+\end{tabular}}
+
+\end{frame}
+
+\begin{frame}
+\begin{wideitemize}
+\item
+$\Delta D=D_0-D_1$: the difference in deviance between two nested models $M_0\subseteq M_1$.
+
+\item
+$\Delta$df: reduction of the model degrees of freedom.
+
+\item $\frac{\Delta D}{\phi}\stackrel{d}{\approx}\chi^2(\Delta\mbox{df})$ if $M_0$ is adequate according to $\chi^2$ asymptotics for likelihood ratio tests. 
+
+\item McCullagh and Nelder (p.119) remarks that, even the raw deviances themselves generally are poorly approximated by a $\chi^2$ distribution for a goodness-of-fit test (with the saturated model), the deviance differences like $\Delta D$ usually have quite accurate $\chi^2$ approximation property between two nested GLM models. 
+
+
+
+
+\end{wideitemize}
+\end{frame}
+
+
+
+
+\begin{frame} {Digression: LM with orthogonal design}
+\begin{itemize}
+
+\item Setup: A response vector ${\bf y}$ ($n \times 1$), and  $p$ \underline{orthogonal} covariate vectors ${\bf z}_1, \dots {\bf z}_p$ (each $n \times 1$).
+
+\item  Let ${\bf u}_i = {\bf z}_i /\|{\bf z}_i\|$ for $i =1, \dots, p$, the normalized ${\bf z}_i$'s. 
+
+\item Suppose we  pick a subset  $\{\tilde{\bf z}_1, \dots, \tilde{\bf z}_q\} \subset \{{\bf z}_1, \dots {\bf z}_p\}$, and let $\tilde{\bf u}_1, \dots, \tilde{\bf u}_q$ be the corresponding  ${\bf u}_i$'s. 
+
+
+\item Let $\tilde{Z} = [\tilde{\bf z}_1 | ....|\tilde{\bf z}_q ]$ be the design matrix that aligns these $\tilde{\bf z}_i$'s together. 
+
+\item When we regress just with respect to  $\tilde{Z}$,  the fitted response vector has the form 
+\[
+\tilde{\bf y} =\tilde{Z} (\tilde{Z}^T \tilde{Z})^{-1}\tilde{Z}^T {\bf y} = \sum_{i = 1}^q  \langle {\bf y} , \tilde{\bf u}_i \rangle\tilde{\bf u}_i.\]
+ The last equality comes from the orthogonality of the ${\bf z}_i$'s. 
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame} {Digression: LM with orthogonal design}
+\begin{wideitemize}
+\item Now suppose we also regress $\bf y$ on $\{\tilde{\bf z}_1, \dots, \tilde{\bf z}_q, {\bf z}_a\}$, where ${\bf z}_a$ is an additional element from the original set ${\bf z}_1, \dots, {\bf z}_p$. If  ${\bf u}_a$ denotes the normalized version of ${\bf z}_a$, the fitted response vector looks like
+\[
+{\bf y}_a = \sum_{i= 1}^q \langle {\bf y} , \tilde{\bf u}_i\rangle\tilde{\bf u}_i + \langle {\bf y} , {\bf u}_a\rangle{\bf u}_a.
+\]
+
+\item The SSE's from the two regressions are respectively, 
+ \[\| {\bf y}- \tilde{\bf y}\|^2 = \langle  {\bf y} - \tilde{\bf y} , {\bf y}- \tilde{\bf y}\rangle = \langle {\bf y}, {\bf y}\rangle - \sum_{i = 1}^q \langle {\bf y} , \tilde{\bf u}_i  \rangle^2 \]
+and
+\[
+\| {\bf y}- {\bf y}_a\|^2  =  \langle {\bf y}, {\bf y}\rangle - \sum_{i = 1}^q \langle {\bf y} , \tilde{\bf u}_i  \rangle^2 - \langle {\bf y}, {\bf u}_a\rangle^2
+\]
+
+\end{wideitemize}
+
+\end{frame}
+
+\begin{frame} {Digression: LM with orthogonal design}
+\begin{wideitemize}
+\item The additional reduction in $SSE$ brought by ${\bf z}_a$ is precisely 
+\[
+ \langle {\bf y}, {\bf u}_a\rangle^2,
+\]
+which doesn't depend on what we have picked as $\tilde{\bf z}_1, \dots \tilde{\bf z}_q$ in the first place. 
+
+\item {\bf Moral}: the reduction in $SSE$ brought by each covariate does NOT depend on the \emph{order} in which the covariates are augmented to the rows of the ANOVA table, under an orthogonal design in the normal linear model.
+
+
+\end{wideitemize}
+
+
+\end{frame}
+
+
+\begin{frame} {Difference in interpreting ANODEV and ANOVA tables}
+\begin{wideitemize}
+\item In ANOVA, \emph{when all $p$ columns of the design matrix $Z$ are orthogonal}, the $\Delta SS$ associated with each of  the $p$ covariates  will not change regardless of the order these covariates are arranged in the rows of the ANOVA table. 
+
+\item In the case of a two-way factorial design, orthogonality means a balanced design. See p.450 in \emph{Jobson, Applied multivariate data analysis Vol. 1} for more detail:
+
+\ \
+
+\url{https://link.springer.com/content/pdf/10.1007/978-1-4612-0955-3_5.pdf}
+
+\end{wideitemize}
+\end{frame}
+
+
+\begin{frame} {Difference in interpreting ANODEV and ANOVA tables}
+\begin{wideitemize}
+
+
+
+\item In ANODEV, this is \underline{NOT} true, even if the $p$ columns of $Z$ are orthogonal. That means, the $\Delta D$ associated with a particular covariate is generally \emph{different} if the order in which the covariates are augmented to the ANODEV table changes. 
+
+
+
+\item Hence, in ANODEV, the significance of any covariate assessed by an approximate $\chi^2$ test is only \emph{relative to the model defined by the covariates appearing above it in the ANODEV table}. 
+
+\item (The point is also made on p.36 of McCullagh and Nelder)
+
+%($F$-test may also be used sometimes, as available  in the R function \texttt{anova.glm}.)  
+
+
+\end{wideitemize}
+\end{frame}
+
+
+%\section{\S8.4 Residuals}
+%\label{sec:residuals}
+
+\subsection{\S2.2.5 GLM residuals}\label{sec:2.2.5}
+
+\begin{frame}{\S2.2.5 GLM residuals}
+\begin{wideitemize}
+\item
+In LM:  
+%$y=E(y)+\varepsilon =\mu+\varepsilon=\sum_{j=1}^p x_j\beta_j+\varepsilon$,
+the residual is defined as $r_i=y_i-\hat{\mu}_i$ for an observation $y_i$, with $\hat{\mu}_i=\hat{y}_i$ being the 
+fitted value of $y_i$.
+The residual $r_i$ measures the goodness of fit to $y_i$ by the model if $\mbox{Var}(y)$ is constant.
+\item
+In GLM: the residual of $y_i$ has to be defined differently to accommodate that the variance function $v(\mu)$ is no longer constant.
+\item
+At least four types of residual are defined for GLM: \textbf{Pearson}, \textbf{deviance}, \textbf{working}, and
+\textbf{response}. 
+
+\item All  can be computed with the \texttt{R} function \texttt{residuals.glm()}.
+
+\end{wideitemize}
+\end{frame}
+
+\begin{frame}{\S2.2.5 GLM residuals}
+\begin{itemize}
+\item
+\textbf{Pearson residual}: $r_{_{Pi}}=\frac{\bar{y}_i-\hat{\mu}_i}{\sqrt{v(\hat{\mu})/n_i}}$.
+
+Therefore $\sum_{i=1}^g r^2_{_{Pi}}=\sum_{i=1}^g \frac{(y_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}=\chi^2$, the
+Pearson $\chi^2$ statistic. 
+\item
+\textbf{Deviance residual}: $r_{_{Di}}=\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{d_i}$, \\ where $d_i$'s are such that
+$\displaystyle \sum_{i=1}^n d_i=D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$. In particular, deviance residuals for
+the following distributions are:
+{\footnotesize
+\begin{eqnarray*}
+\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)
+|y_i-\hat{\mu}_i|\!=\!y_i-\hat{\mu}_i \\
+\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2\left\{y_i
+\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\}} \\
+\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\}} \\
+\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}}
+\end{eqnarray*}}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\S2.2.5 GLM residuals}
+\begin{itemize}
+\item
+\textbf{Working residual}: 
+
+\[r_{_{Wi}}=(y_i- \mu_i)\frac{d\eta_i}{d\mu_i}\mid_{\mu_i=\hat{\mu}_i} = 
+D_i^{-1} (\hat{\boldbeta}) (y_i- \mu_i (\hat{\boldbeta}))
+ \approx g(y_i)-g(\hat{\mu}_i),
+\] \\
+where $g(\mu_i)$ is the link function and $\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$}$ is the linear predictor in GLM.
+
+\ \
+
+(The working residual was used in Fisher scoring for the MLE of $\mbox{\boldmath $\beta$}$.)
+\item
+\textbf{Response residual}: $r_{_{Ri}}=y_i-\hat{\mu}_i$, \\
+which is not a right measure except when the GLM is a linear normal model.
+\end{itemize}
+\end{frame}
+
+
+%
+%\subsection{\S2.2.3 Deviance, residuals and goodness-of-fit measure in GLM} \label{sec:2.2.3}
+%
+%\begin{frame} {Model adequacy measure in GLM}
+%\begin{itemize}
+%\item First of all, testing model fit only makes sense when over-dispersion is not assumed, since we don't assume the exponential model form is true anyway. Again a topic covered later.   
+%
+%\item In the sequel, ``goodness-of-fit" and ``model adequacy" mean the same thing.
+%\end{itemize}
+%\end{frame}
+%
+%
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM }
+%\begin{itemize}
+%\item
+%In linear model, goodness-of-fit  is measured by the sum of squared residuals (or errors)
+%$\mbox{SSE}\!=\!\sum_{i=1}^n(y_i-\hat{\mu}_i)^2$. SSE is no longer a reasonable measure if $\mbox{Var}(y)$ 
+%varies with $\mu$.
+%\item
+%A generalisation of SSE to GLM  is the \textbf{Pearson $\chi^2$ statistic}, taking the form
+%$$\chi^2=\sum_{i=1}^g \frac{(\bar{y}_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}$$
+%where $\bar{y}_i$ is the group mean, $v(\hat{\mu}_i)$ is the estimated variance function, and $n_i$ is the size of group $i$.
+%\end{itemize}
+%\end{frame}
+%
+%
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM }
+%\begin{itemize}
+%%\item
+%%Pearson $\chi^2$ statistic is often an appropriate model adequacy measure (or discrepancy measure, or goodness-of-fit
+%%measure).
+%\item
+%Asymptotically (i.e. all $n_i$'s are large),
+% \[\chi^2/\phi \sim_a \chi^2(g-p)\] if the GLM model is true. $p = $  number of coefficient parameters in the GLM.
+%\item
+%If $n$ is large but $n_i$'s are small (in particular when $n_i=1$), it is dangerous to use the Pearson
+%$\chi^2$ statistics to test model adequacy.
+%
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Model adequacy measure in GLM}
+%\begin{itemize}
+%\item
+%Another model adequacy measure is the {\bf deviance}. 
+%\item
+%It is twice the difference between the maximum log-likelihood achievable in a saturated model and that in
+%the current model, i.e.
+%$$D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\left[\ln L(\mbox{\boldmath $\theta$}^*,\phi\mid\textbf{y}_n)
+%-\ln L(\mbox{\boldmath $\hat{\theta}$},\phi\mid\textbf{y}_n)\right]$$
+%which is called the \textbf{scaled deviance}. Just a special case the likelihood ratio statistic. 
+%
+%% Here {\small \vspace{-3pt}
+%%\begin{equation*}
+%%L(\mbox{\boldmath $\theta$},\phi\mid\textbf{y}_n)=\exp\left\{\sum_{i=1}^n\frac{y_i\theta_i-b(\theta_i)}{\phi}\cdot
+%%\omega_i +\sum_{i=1}^nc(y_i,\phi, \omega_i)\right\} \vspace{-3pt}
+%%\label{eq-8.4}
+%%\end{equation*}}
+%%is the likelihood function for the data $\textbf{y}_n=(y_1,\cdots,y_n)^T$.
+%\item Remark: we are having grouped data in mind here
+%
+%\item
+%%$\mbox{\boldmath $\theta$}\!=\!(\theta_1,\cdots,\theta_n)^T$, $\mbox{\boldmath $\mu$}\!=\!(\mu_1,\cdots,\mu_n)^T
+%%\!=\!(b^\prime(\theta_1),\cdots, b^\prime(\theta_n))^T$,
+%
+% $\mbox{\boldmath $\hat{\theta}$}$ is the MLE of
+%$\mbox{\boldmath $\theta$}$ under the GLM
+%\item $\mbox{\boldmath $\theta$}^*=(\theta_1^*,\cdots, \theta_g^*)^T$ is such that 
+%\[
+%(\bar{y}_1,\cdots,\bar{y}_g)^T
+%=(b^\prime(\theta_1^*),\cdots,b^\prime(\theta_g^*))^T = ({\mu}^*_1, \dots, {\mu}^*_g).\]
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviance measure in GLM (2)}
+%\begin{itemize}
+%\item
+%We call $\mbox{\boldmath $\theta$}^*$ the MLE of $\mbox{\boldmath $\theta$}$ in the \textbf{saturated model}, a full model with $g$ parameters (as many parameters as there are observsations).
+%\item
+%In a saturated model, from the likelihood expression we see that in this case, the MLE of 
+%$\theta_i$ needs to satisfy $\bar{y}_i=b^\prime(\theta_i^*) = {\mu}^*_i$.
+%\item
+%In GLM, $\theta_1,\cdots,\theta_g$ are determined by the regression parameters $\beta_1,\cdots,\beta_p$
+%and the independent variables $x_1,\cdots,x_p$. So the MLE of $\beta_1,\cdots,\beta_p$ are to be obtained first, 
+%the MLE $\mbox{\boldmath $\hat{\theta}$}$ are then obtained.
+%\item
+%%The saturated model provides the best fit to the data because it has the same number of independent parameters
+%%and the observations.
+%Maximum likelihood from the saturated model must be at least as large as that from a usual GLM.
+%Therefore, the scaled deviance $D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})\geq 0$. 
+%%and measures
+%%the adequacy of fit of a GLM.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviance measure in GLM (3)}
+%\begin{itemize}
+%\item
+%%Consider a random sample $\textbf{y}_n=(y_1,\cdots,y_n)^T$ and a GLM as being formulated so far.
+%By convention
+%$$D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$}):=\phi D^*(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$$
+%%and call $D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$ 
+%as the \textbf{deviance} of the GLM under consideration.
+%\item
+%Asymptotically, $$\phi^{-1}D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})\sim_a\chi^2(g-p)$$ 
+%asymptotically when the GLM  for $Y$ is correct  + when group sizes $n_i$ are all large enough + ``regularity conditions". 
+%\item
+%But when $n_i$ is small (e.g. $n_i = 1$), use of the chi-square limit is dangerous. 
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Deviances for several important distributions}
+%\textbf{Deviances for several important distributions in GLM.}
+%\begin{eqnarray*}
+%\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=
+%\sum_{i=1}^n (y_i-\hat{\mu}_i)^2 \\
+%\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\} \\
+%\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\} \\
+%\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})=2\sum_{i=1}^n
+%\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}
+%\end{eqnarray*}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (1)}
+%\begin{itemize}
+%\item
+%An analysis of variance (ANOVA) table can be constructed for each linear regression model as we have seen
+%in a linear model course. 
+%\item
+%Similar to this, an \textbf{analysis of deviance (ANODEV)} table can be constructed for each GLM.
+%\item
+%Generally speaking, tests performed on ANOVA and ANODEV tables are likelihood ratio tests.
+%\item
+%However, there are some differences in interpreting ANOVA and ADODEV tables.
+%\item
+%Consider a $3\times 3$ factorial design, of two treatment factors A and B, with 2 replicates at each combination
+%level of A and B. So there will be in total 18 observations for the response variable $y$.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (2)}
+%If it is appropriate to fit the 18 $y$ observations by linear regression models, an ANOVA table 
+%would typically look like the following:
+%
+%\begin{center} Analysis of Variance (ANOVA)\end{center}
+%
+%{\small
+%\begin{tabular}{|cccccc|}\hline
+%Model & df & SSE & $\Delta$SS & $\Delta$df & Effect Source \\ \hline
+%1 & 17 & 1000 & - & -  & - \\ \hline
+%A & 15 & 400 & $600=1000-400$ & $2=17-15$ & A \\ \hline
+%A+B & 13 & 300 & $100=400-300$ & $2=15-13$ & B \\ \hline
+%A+B+A:B & 9 & 100 & $200=300-100$ & $4=13-9$ & A:B \\ \hline 
+%\end{tabular}}
+%\begin{itemize}
+%\item
+%$\Delta$SS is the reduction of SSE as an additional term is added to the model.
+%$\Delta\mbox{SS}\stackrel{d}{=}\chi^2(\Delta\mbox{df})$. Effects are assessed by
+%$F$ tests.
+%\item
+%$\Delta$df is the reduction of the model degrees of freedom.
+%\item
+%The effects of A, B and A:B on $Y$ are orthogonal.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 Analysis of deviance (3)}
+%If it is more appropriate to fit the 18 $y$ observations by GLM, an ANODEV table would typically look like the following:
+%
+%\begin{center} Analysis of Deviance (ANODEV)\end{center}
+%
+%{\footnotesize
+%\begin{tabular}{|cccccc|}\hline
+%Model & df & Deviance & $\Delta D$ & $\Delta$df & Effect Source \\ \hline
+%1 & 17 & 1200 & - & - & - \\ \hline
+%A & 15 & 800 & $400\!=\!1200\!-\!800$ & $2\!=\!17\!-\!15$ & A ignoring B \\ \hline
+%A+B & 13 & 500 & $300\!=\!800\!-\!500$ & $2\!=\!15\!-\!13$ & B eliminating A\\ \hline
+%A+B+A:B & 9 & 200 & $300\!=\!500\!-\!200$ & $4\!=\!13\!-\!9$ & A:B eliminating \\ 
+%& & & &  & A \& B \\ \hline 
+%\end{tabular}}
+%\begin{itemize}
+%\item
+%$\Delta D=D_0-D_1$ is the reduction of deviance between two nested models $M_0\subseteq M_1$.
+%$\Delta D\stackrel{d}{\approx}\chi^2(\Delta\mbox{df})$ if $M_0$ is adequate.
+%\item
+%$\Delta$df is the reduction of the model degrees of freedom.
+%\item
+%Effects of A, B and A:B on $Y$ are not orthogonal, depend on their positions in the model, and
+%are assessed by $\chi^2$ or $F$ tests.
+%\end{itemize}
+%\end{frame}
+%
+%%\section{\S8.4 Residuals}
+%%\label{sec:residuals}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (1)}
+%\begin{itemize}
+%\item
+%In a linear regression model $y=E(y)+\varepsilon =\mu+\varepsilon=\sum_{j=1}^p x_j\beta_j+\varepsilon$,
+%the residual is defined as $r_i=y_i-\hat{\mu}_i$ for an observation $y_i$, with $\hat{\mu}_i=\hat{y}_i$ being the 
+%fitted value of $y_i$.
+%The residual $r_i$ measures the goodness of fit to $y_i$ by the model if $\mbox{Var}(y)$ is constant.
+%\item
+%In GLM the residual of $y_i$ has to be defined differently to accommodate the cases
+%where the variance function $v(\mu)$ is no longer constant.
+%\item
+%At least four types of residual are defined for GLM: \textbf{Pearson}, \textbf{deviance}, \textbf{working}, and
+%\textbf{response}. All these residuals can be computed using the \texttt{R} function \texttt{residuals.glm()}.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (2)}
+%\begin{itemize}
+%\item
+%\textbf{Pearson residual}: $r_{_{Pi}}=\frac{\bar{y}_i-\hat{\mu}_i}{\sqrt{v(\hat{\mu})/n_i}}$.
+%
+%Therefore $\sum_{i=1}^g r^2_{_{Pi}}=\sum_{i=1}^g \frac{(y_i-\hat{\mu}_i)^2}{v(\hat{\mu}_i)/n_i}=\chi^2$, the
+%Pearson $\chi^2$ statistic. 
+%\item
+%\textbf{Deviance residual}: $r_{_{Di}}=\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{d_i}$, \\ where $d_i$'s are such that
+%$\displaystyle \sum_{i=1}^n d_i=D(\textbf{y}_n;\mbox{\boldmath $\hat{\mu}$})$. In particular, deviance residuals for
+%the following distributions are:
+%{\footnotesize
+%\begin{eqnarray*}
+%\mbox{Normal}\!\!\! & N(\mu,\sigma^2): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)
+%|y_i-\hat{\mu}_i|\!=\!y_i-\hat{\mu}_i \\
+%\mbox{Poisson}\!\!\! &\mbox{Poi}(\mu): &  r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2\left\{y_i
+%\ln\frac{y_i}{\hat{\mu}_i}-(y_i-\hat{\mu}_i)\right\}} \\
+%\mbox{binomial}\!\!\! & \mbox{Bin}(m,\mu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+%\left\{y_i\ln\frac{y_i}{\hat{\mu}_i}\!+\!(\!m_i\!-\!y_i\!)\ln\frac{m_i\!-\!y_i}{m_i\!-\!\hat{\mu}_i}\right\}} \\
+%\mbox{gamma} \!\!\!& \mbox{Gam}(\mu,\nu): & r_{_{Di}}\!=\!\mbox{sign}(y_i-\hat{\mu}_i)\sqrt{2
+%\left\{-\ln\frac{y_i}{\hat{\mu}_i}+\frac{y_i-\hat{\mu}_i}{\hat{\mu}_i}\right\}}
+%\end{eqnarray*}}
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}{\S2.2.3 GLM residuals (3)}
+%\begin{itemize}
+%\item
+%\textbf{Working residual}: $r_{_{Wi}}=(y_i-\hat{\mu}_i)\frac{d\eta_i}{d\mu_i}\mid_{\mu_i=\hat{\mu}_i}
+%\approx g(y_i)-g(\hat{\mu}_i)$, \\
+%where $g(\mu_i)$ is the link function and $\eta_i=\textbf{z}_i^T\mbox{\boldmath $\beta$}$ is the linear predictor in GLM.
+%
+%The working residual is used during computing the MLE of $\mbox{\boldmath $\beta$}$.
+%\item
+%\textbf{response residual}: $r_{_{Ri}}=y_i-\hat{\mu}_i$, \\
+%which is not a right measure except when the GLM reduces to a linear model.
+%\end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile] \frametitle{\S2.2.3 Example: Caesarian birth study (1)}
+%For the data of Caesarian birth study we combine categories I and II of the response variable into
+%one category \texttt{Infection}. Then fit logistic models to the reorganized data where the new response
+%variable has only two categories \texttt{Infection} and \texttt{Non-infection}.
+%
+%\begin{scriptsize}
+%\begin{Schunk}
+%\begin{Sinput}
+%> Caes.dat <- read.csv("D:/MAST90084/Example2-Caes.csv")
+%> is.data.frame(Caes.dat)
+%\end{Sinput} 
+%\begin{Soutput}
+%[1] TRUE
+%\end{Soutput}
+
+\end{document}
+
