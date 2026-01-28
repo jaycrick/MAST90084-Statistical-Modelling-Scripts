@@ -254,8 +254,8 @@ All three effects are highly significant.
 anova(caesar_int_glm, test = "F")
 ```
 
-::: {.callout-warning}
-**Why is an F test inappropriate here?**
+::: {.callout-tip collapse="true"}
+## Why is an F test inappropriate here? Expand for answer
 
 For binomial GLMs, the natural test for nested models is based on differences in deviance, which asymptotically follows a chi-square distribution. The F test is appropriate for Gaussian linear models with unknown dispersion (and certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
 :::
@@ -317,12 +317,13 @@ tibble(
 ```
 
 We can see that this lines up with what we have in the book (Example 2.4),
-with a significant discrepancy in the 3rd row.
+with a significant discrepancy in the 3rd row
+(`unplanned, no risk factors, without antibiotics`).
 
 ## Alternative Link Function: Probit
 
 We can also fit with a probit link as was done on p. 31 (towards the end of
-Ex 2.1). The coefficient estimates should be the same as those reported by the
+Example 2.1). The coefficient estimates should be the same as those reported by the
 book.
 
 ```{r}
@@ -337,13 +338,19 @@ summary(caesar_glm_probit)$coeff
 
 ## Interaction Effects
 
-Now we play with the interaction effects like in Ex 2.4.
+We now follow **Example 2.4** and add in interaction effects.
 
 ### Adding noplan:antib Interaction
 
-Test the interaction between noplan (planned/emergency surgery) and antib
-(antibiotic use). We get the same residual deviances as reported in the book.
-The noplan:factor interaction is insignificant.
+We test the interaction between noplan (planned/emergency surgery) and antib
+(antibiotic use).
+We are aiming to replicate the results in book
+
+::: {.callout-tip collapse="true"}
+## What do we expect to happen to the deviance? Expand for answer.
+
+The deviance must decrease, since it is a larger, nested model.
+:::
 
 ```{r}
 caesar_glm_noplan_antib <- glm(
@@ -354,18 +361,34 @@ caesar_glm_noplan_antib <- glm(
 )
 
 anova(caesar_glm_noplan_antib)
-
-noplan_antib_interaction_delta_deviance <- anova(
-    caesar_glm_noplan_antib
-)$Deviance[5]
-1 - pchisq(noplan_antib_interaction_delta_deviance, df = 1)
 ```
+
+The change in deviance agrees with the numbers in **Example 2.4**.
+
+To test the significance of this interaction effect,
+we use the limiting chi-squared distribution with degree of freedom one.
+
+::: {.callout-tip}
+Make sure you know why the degree of freedom is one.
+:::
+
+We extract the deviance for the interaction term and compute the p-value manually:
+
+```{r}
+anova_result <- anova(caesar_glm_noplan_antib)
+interaction_deviance <- tail(anova_result$Deviance, 1)
+interaction_deviance
+
+1 - pchisq(interaction_deviance, df = 1)
+```
+
+We do not reject the null hypothesis that the interaction effect is zero.
 
 ### Adding noplan:factor Interaction
 
-Fit model with noplan:factor interaction. We will see some enormous estimates
-and standard errors for some coefficients. This model is accepted at usual level
-of significance. Compare fitted and realized proportions as on p.53.
+This is not the only possible interaction effect.
+We now try the interaction effect noplan:factor.
+
 
 ```{r}
 caesar_glm_noplan_factor <- glm(
@@ -380,13 +403,39 @@ caesar_glm_noplan_factor <- glm(
 #                    data=caesar_tbl , weight=size, family=binomial)
 
 summary(caesar_glm_noplan_factor)
+```
 
+We see some enormous estimates and standard errors for some coefficients.
+The standard errors are the diagonal of the inverse of the Fisher information matrix.
+Therefore the values of the Fisher information are very small.
+Therefore, when we plot the log-likelihood it will have a very small second derivative,
+and will be very flat in these dimensions.
+
+This means that the estimates are likely to be very unreliable.
+Read the book in detail to understand why, but in summary,
+there are two rows with no infection counts,
+which means that certain conditions are not satisfied.
+See the section **Uniqueness and existence of MLE's** for more information.
+
+If we ignore the problem for the time being,
+we can continue by testing for goodness-of-fit.
+Compare fitted and realized proportions as on p.53.
+
+```{r}
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "pearson")^2), df = 2)
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
-
-round(caesar_tbl_int$Infect_count / caesar_tbl$size, 2)
-round(caesar_glm_noplan_factor$fitted.values, 2)
 ```
+
+Both statistics give a large p-value, and so we don't reject the interaction.
+
+```{r}
+tibble(
+    observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
+    fitted = round(caesar_glm_noplan_factor$fitted.values, 2)
+)
+```
+
+We can see that the observed and fitted values are very similar.
 
 ## Handling Separation Issues
 
