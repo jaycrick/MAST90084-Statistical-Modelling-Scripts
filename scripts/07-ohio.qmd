@@ -6,332 +6,449 @@ date: today
 
 ## Overview
 
-This script implements **Generalized Estimating Equations (GEE)** to analyze the **Ohio respiratory dataset**, which contains **repeated measurements** of respiratory outcomes from children.
+This script aims to reproduce the results in Example 6.4 of Fahrmeir & Tutz using the Ohio respiratory dataset.
 
-Key topics:
-- Handling correlated (non-independent) observations
-- Different working correlation structures
-- Marginal (population-average) inference
-- Robust standard errors
-
-## Data Preparation
+## Packages and Setup
 
 ```{r}
-#| message: false
+library(conflicted)
 library(gee)
 library(geepack)
+```
 
-# Load and explore
-data(ohio)
+We aim to reproduce the results in Example 6.4 of F & T.
+
+```{r}
+?ohio
+```
+
+```{r}
 head(ohio, 20)
+```
+
+## Understanding the Data
+
+```{r}
 str(ohio)
 ```
 
-### Understanding the Data
+First set the right classes for the variables in the dataset:
 
 ```{r}
-cat("Number of unique subjects:", length(unique(ohio$id)), "\n")
-cat("Measurements per subject:\n")
-print(table(table(ohio$id)))
-cat("Age coding:\n")
-cat("  -2 = 7 years\n")
-cat("  -1 = 8 years\n")
-cat("   0 = 9 years\n")
-cat("   1 = 10 years\n")
-```
+class(ohio$resp)
+class(ohio$age)
+class(ohio$smoke)
 
-## Variable Coding
-
-Convert variables to factors with appropriate contrasts:
-
-```{r}
-# Convert to factors
 ohio$age <- as.factor(ohio$age)
 ohio$smoke <- as.factor(ohio$smoke)
+```
 
-# Check default contrasts
-cat("Default age contrasts:\n")
-print(contrasts(ohio$age))
-cat("\nDefault smoke contrasts:\n")
-print(contrasts(ohio$smoke))
+Age coding:
+- age = -2 is 7 years old
+- age = -1 is 8 years old
+- age = 0 is 9 years old
+- age = 1 is 10 years old
 
-# Set effect coding (for Fahrmeir & Tutz reproducibility)
+## Contrast Coding
+
+Check default contrasts:
+
+```{r}
+contrasts(ohio$age)
+contrasts(ohio$smoke)
+```
+
+F and T use effect coding in the example so we need to set the contrasts:
+
+```{r}
 options(contrasts = c("contr.sum", "contr.poly"))
 
-cat("\nEffect coding for age:\n")
-print(contrasts(ohio$age))
-cat("\nEffect coding for smoke:\n")
-print(contrasts(ohio$smoke))
+contrasts(ohio$age)
+contrasts(ohio$smoke)
+```
 
-# Adjust smoke contrast manually
+Contrast for smoke status needs to be further adjusted:
+
+```{r}
 contrasts(ohio$smoke) <- matrix(c(-1, 1), 2, 1)
-cat("\nAdjusted smoke contrasts:\n")
-print(contrasts(ohio$smoke))
+contrasts(ohio$smoke)
 ```
 
-## GEE with Independence Structure
+## GEE Models
 
-Start with independence (no within-subject correlation) as baseline:
+### Independence Structure
 
 ```{r}
-gee_indep <- gee(
-  formula = resp ~ age * smoke,
-  data = ohio,
-  family = binomial,
-  id = id,
-  corstr = "independence"
+geefit_indep <- gee(
+    formula = resp ~ age * smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "independence"
 )
 
-summary(gee_indep)$coefficients
+summary(geefit_indep)$coeff
 ```
 
-## GEE with Exchangeable Structure
-
-Assume constant correlation among repeated measures:
+### Exchangeable Structure
 
 ```{r}
-gee_exch <- gee(
-  formula = resp ~ age * smoke,
-  data = ohio,
-  family = binomial,
-  id = id,
-  corstr = "exchangeable"
+geefit_exch <- gee(
+    formula = resp ~ age * smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "exchangeable"
 )
 
-summary(gee_exch)$coefficients
+summary(geefit_exch)$coeff
+```
+
+### Unstructured Correlation
+
+```{r}
+geefit_unstruct <- gee(
+    formula = resp ~ age * smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "unstructured"
+)
+
+summary(geefit_unstruct)$coeff
+```
+
+Same numbers as Table 6.8 in F & T:
+
+```{r}
+summary(geefit_indep)$coeff
+summary(geefit_exch)$coeff
+summary(geefit_unstruct)$coeff
+```
+
+## Robust Variance Matrices
+
+```{r}
+geefit_indep$robust.variance
+geefit_exch$robust.variance
+geefit_unstruct$robust.variance
+```
+
+The three robust variances happen to look exactly the same here, probably just a numerical coincidence. However, if we take a difference, R says they differ by very small numbers:
+
+```{r}
+geefit_indep$robust.variance - geefit_exch$robust.variance
+```
+
+## Scale Parameter
+
+```{r}
+summary(geefit_indep)$scale
+```
+
+Now we tease out the Pearson residuals and compute the method of moment dispersion estimator by hand:
+
+```{r}
+pearson_resid <- (ohio$resp - geefit_indep$fitted) /
+    sqrt(
+        geefit_indep$fitted.values * (1 - geefit_indep$fitted.values)
+    )
+
+scale_by_hand <- sum(pearson_resid^2) /
+    (geefit_indep$nobs - length(geefit_indep$coeff))
+
+scale_by_hand
+```
+
+Same number as the one reported in summary.
+
+### Verifying Naive vs Robust Standard Errors
+
+We first regress by fixing the scale to be 1:
+
+```{r}
+geefit_indep_scale_fix <- gee(
+    formula = resp ~ age * smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "independence",
+    scale.fix = TRUE
+)
+```
+
+Verify relationship: Naive SE × sqrt(scale) = Model SE:
+
+```{r}
+summary(geefit_indep_scale_fix)$coeff[, "Naive S.E."] *
+    sqrt(summary(geefit_indep)$scale)
+```
+
+Is same as:
+
+```{r}
+summary(geefit_indep)$coeff[, "Naive S.E."]
+```
+
+So it only differs by the dispersion parameter, which makes sense.
+
+## Beta Estimate for Age = 10
+
+With effect coding, age=10 is minus the sum of the other three age coefficients:
+
+```{r}
+beta_age_10 <- -sum(summary(geefit_indep)$coeff[
+    c("age1", "age2", "age3"),
+    1
+])
+
+beta_age_10
+```
+
+Same as the book.
+
+### Standard Error for Combined Effect
+
+Robust SE for combined age=10 coefficient (using contrast matrix):
+
+```{r}
+robust_se_age_10 <- sqrt(
+    rep(1, 3) %*%
+        geefit_indep$robust.variance[
+            c("age1", "age2", "age3"),
+            c("age1", "age2", "age3")
+        ] %*%
+        rep(1, 3)
+)
+
+robust_se_age_10
+```
+
+Same as reported on p.273 in the book.
+
+## Table 6.9: Main Effects Models
+
+Fit without interactions:
+
+```{r}
+geefit_indep_no_interaction <- gee(
+    formula = resp ~ age + smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "independence"
+)
+
+geefit_exch_no_interaction <- gee(
+    formula = resp ~ age + smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "exchangeable"
+)
+
+geefit_unstruct_no_interaction <- gee(
+    formula = resp ~ age + smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "unstructured"
+)
+```
+
+Results (same as the numbers given in Table 6.9):
+
+```{r}
+summary(geefit_indep_no_interaction)$coeff
+summary(geefit_exch_no_interaction)$coeff
+summary(geefit_unstruct_no_interaction)$coeff
+```
+
+The robust variances are not the same in general:
+
+```{r}
+geefit_indep_no_interaction$robust.variance
+geefit_exch_no_interaction$robust.variance
+geefit_unstruct_no_interaction$robust.variance
+
+summary(geefit_exch)$coeff
 ```
 
 ## GEE with Unstructured Correlation
 
-Allow unique correlations for each pair of time points:
+Fit GEE model with unstructured correlation (unique correlation for each pair of time points):
 
 ```{r}
-gee_unstruct <- gee(
-  formula = resp ~ age * smoke,
-  data = ohio,
-  family = binomial,
-  id = id,
-  corstr = "unstructured"
+geefit_unstruct <- gee(
+    formula = resp ~ age * smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "unstructured"
 )
 
-summary(gee_unstruct)$coefficients
+summary(geefit_unstruct)$coeff
 ```
 
-## Robust Variance Estimation
+## Comparing Coefficient Estimates
 
-GEE provides **robust standard errors** (sandwich estimator):
+Compare coefficients across the three correlation structures - same numbers as Table 6.8 in Fahrmeir & Tutz:
 
 ```{r}
-cat("Robust variance matrix (independence structure, first 4x4):\n")
-print(round(gee_indep$robust.variance[1:4, 1:4], 4))
-
-cat("\nRobust variance matrix (exchangeable structure, first 4x4):\n")
-print(round(gee_exch$robust.variance[1:4, 1:4], 4))
+summary(geefit_indep)$coeff
+summary(geefit_exch)$coeff
+summary(geefit_unstruct)$coeff
 ```
 
-## Comparison of Results
+## Robust Variance Matrices
+
+Extract robust (sandwich) variance matrices from each model:
 
 ```{r}
-results <- data.frame(
-  Parameter = rownames(summary(gee_indep)$coefficients),
-  Indep_Coef = round(gee_indep$coefficients, 4),
-  Indep_SE = round(summary(gee_indep)$coefficients[, "Robust S.E."], 4),
-  Exch_Coef = round(gee_exch$coefficients, 4),
-  Exch_SE = round(summary(gee_exch)$coefficients[, "Robust S.E."], 4),
-  Unstruct_Coef = round(gee_unstruct$coefficients, 4),
-  Unstruct_SE = round(summary(gee_unstruct)$coefficients[, "Robust S.E."], 4)
+geefit_indep$robust.variance
+geefit_exch$robust.variance
+geefit_unstruct$robust.variance
+```
+
+The three robust variances happen to look exactly the same here, probably just a numerical coincidence. However, when computing differences, R shows they differ by very small numbers:
+
+```{r}
+geefit_indep$robust.variance - geefit_exch$robust.variance
+```
+
+## Scale Parameter Estimation
+
+Extract the scale (dispersion) parameter from the summary:
+
+```{r}
+summary(geefit_indep)$scale
+```
+
+Now tease out the Pearson residuals and compute the method of moments dispersion estimator by hand:
+
+```{r}
+pearson_resid <- (ohio$resp - geefit_indep$fitted) /
+    sqrt(
+        geefit_indep$fitted.values * (1 - geefit_indep$fitted.values)
+    )
+
+scale_by_hand <- sum(pearson_resid^2) /
+    (geefit_indep$nobs - length(geefit_indep$coeff))
+scale_by_hand
+```
+
+This gives the same number as reported in summary.
+
+## Naive vs Robust Standard Errors
+
+To verify how they compute the naive SE, fit the model with scale fixed to 1:
+
+```{r}
+geefit_indep_scale_fix <- gee(
+    formula = resp ~ age * smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "independence",
+    scale.fix = TRUE
 )
 
-print(results)
+summary(geefit_indep_scale_fix)$coeff[, "Naive S.E."] *
+    sqrt(summary(geefit_indep)$scale)
 ```
 
-## Scale/Dispersion Parameter
-
-Compute the scale parameter using Pearson residuals and method of moments:
+This is the same as:
 
 ```{r}
-# Extract Pearson residuals from independence model
-pearson_resid <- (ohio$resp - gee_indep$fitted.values) /
-                   sqrt(gee_indep$fitted.values * (1 - gee_indep$fitted.values))
-
-# Method of moments dispersion estimator
-scale_by_hand <- sum(pearson_resid^2) / (gee_indep$nobs - length(gee_indep$coefficients))
-
-cat("Scale parameter (method of moments):", round(scale_by_hand, 4), "\n")
-cat("Scale from summary():", round(summary(gee_indep)$scale, 4), "\n")
+summary(geefit_indep)$coeff[, "Naive S.E."]
 ```
 
-### Understanding Naive vs Robust Standard Errors
+So it only differs by the dispersion parameter, which makes sense.
+
+## Computing Beta for Age 10
+
+With effect coding, the coefficient for age = 10 (not in the design matrix) is computed as:
 
 ```{r}
-# Fit with scale fixed to 1
-gee_scale_fixed <- gee(
-  formula = resp ~ age * smoke,
-  data = ohio,
-  family = binomial,
-  id = id,
-  corstr = "independence",
-  scale.fix = TRUE
+beta_age_10 <- -sum(summary(geefit_indep)$coeff[
+    c("age1", "age2", "age3"),
+    1
+])
+beta_age_10
+```
+
+This is the same as the book.
+
+## Robust Standard Error for Age 10
+
+Compute the robust SE for the combined age=10 coefficient:
+
+```{r}
+robust_se_age_10 <- sqrt(
+    rep(1, 3) %*%
+        geefit_indep$robust.variance[
+            c("age1", "age2", "age3"),
+            c("age1", "age2", "age3")
+        ] %*%
+        rep(1, 3)
 )
 
-# Verify relationship: Naive SE * sqrt(scale) = Model SE
-naive_se_scaled <- summary(gee_scale_fixed)$coefficients[, "Naive S.E."] *
-                     sqrt(summary(gee_indep)$scale)
-
-cat("Naive SE (scale.fix=TRUE) * sqrt(scale):\n")
-print(round(naive_se_scaled, 4))
-
-cat("\nRobust SE (scale estimated):\n")
-print(round(summary(gee_indep)$coefficients[, "Robust S.E."], 4))
-
-cat("\nDifference (should be ~0):\n")
-print(round(naive_se_scaled - summary(gee_indep)$coefficients[, "Robust S.E."], 6))
+robust_se_age_10
 ```
 
-## Working Correlation Matrices
-
-Examine the estimated within-subject correlation structures:
-
-```{r}
-cat("Independence Structure (identity matrix):\n")
-print(round(gee_indep$working.correlation[1:4, 1:4], 4))
-
-cat("\nExchangeable Structure:\n")
-print(round(gee_exch$working.correlation[1:4, 1:4], 4))
-
-cat("\nUnstructured (first 4x4):\n")
-print(round(gee_unstruct$working.correlation[1:4, 1:4], 4))
-```
-
-### Calculating Beta for Age 10
-
-For age=10 (not in the design matrix), compute combined coefficient:
-
-```{r}
-# With effect coding, age=10 is minus the sum of the other three age coefficients
-age_coefs <- summary(gee_indep)$coefficients[c("age1", "age2", "age3"), 1]
-beta_age_10 <- -sum(age_coefs)
-
-cat("Age coefficient components:\n")
-print(round(age_coefs, 4))
-
-cat("\nBeta for age=10 (combined):\n")
-print(round(beta_age_10, 4))
-```
-
-### Standard Error for Combined Effect
-
-```{r}
-# Robust SE for combined age=10 coefficient (using contrast matrix)
-contrast_matrix <- matrix(rep(1, 3), nrow=1)
-variance_subset <- gee_indep$robust.variance[c("age1", "age2", "age3"),
-                                             c("age1", "age2", "age3")]
-
-robust_se_age_10 <- sqrt(contrast_matrix %*% variance_subset %*% t(contrast_matrix))
-
-cat("Robust SE for age=10 coefficient:", round(robust_se_age_10[1,1], 4), "\n")
-cat("(Matches Fahrmeir & Tutz p.273)\n")
-```
+This is the same as reported on p.273 in the book.
 
 ## Table 6.9: Models Without Interactions
 
-Now fit the simpler main effects models:
+Now fit the simpler main effects models (without age:smoke interaction):
 
 ```{r}
-# Independence structure
-gee_indep_main <- gee(
-  formula = resp ~ age + smoke,
-  data = ohio,
-  family = binomial,
-  id = id,
-  corstr = "independence"
+geefit_indep_no_interaction <- gee(
+    formula = resp ~ age + smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "independence"
 )
 
-# Exchangeable structure
-gee_exch_main <- gee(
-  formula = resp ~ age + smoke,
-  data = ohio,
-  family = binomial,
-  id = id,
-  corstr = "exchangeable"
+geefit_exch_no_interaction <- gee(
+    formula = resp ~ age + smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "exchangeable"
 )
 
-# Unstructured
-gee_unstruct_main <- gee(
-  formula = resp ~ age + smoke,
-  data = ohio,
-  family = binomial,
-  id = id,
-  corstr = "unstructured"
+geefit_unstruct_no_interaction <- gee(
+    formula = resp ~ age + smoke,
+    data = ohio,
+    family = binomial,
+    id = id,
+    corstr = "unstructured"
 )
-
-cat("Table 6.9: Main Effects Models\n\n")
-
-cat("Independence Correlation:\n")
-print(summary(gee_indep_main)$coefficients)
-
-cat("\nExchangeable Correlation:\n")
-print(summary(gee_exch_main)$coefficients)
-
-cat("\nUnstructured Correlation:\n")
-print(summary(gee_unstruct_main)$coefficients)
 ```
 
-### Comparing Robust Variances
+Results from Table 6.9:
 
 ```{r}
-cat("Robust variance matrices differ by structure:\n\n")
-
-cat("Independence robust variance (first 3x3):\n")
-print(round(gee_indep_main$robust.variance[1:3, 1:3], 4))
-
-cat("\nExchangeable robust variance (first 3x3):\n")
-print(round(gee_exch_main$robust.variance[1:3, 1:3], 4))
-
-cat("\nUnstructured robust variance (first 3x3):\n")
-print(round(gee_unstruct_main$robust.variance[1:3, 1:3], 4))
-
-cat("\nNote: Unlike with interactions, robust variances ARE different across correlation structures\n")
+summary(geefit_indep_no_interaction)$coeff
+summary(geefit_exch_no_interaction)$coeff
+summary(geefit_unstruct_no_interaction)$coeff
 ```
 
-## Key Insights from Models
+These are the same as the numbers given in Table 6.9.
+
+## Robust Variances for Main Effects Models
+
+Compare robust variances across structures - they are not the same in general:
 
 ```{r}
-cat("GEE Advantages:\n")
-cat("1. Handles repeated measures/clustered data\n")
-cat("2. Provides robust (sandwich) standard errors\n")
-cat("3. Robust to correlation misspecification\n")
-cat("4. Population-average (marginal) interpretation\n")
-cat("5. No distributional assumptions needed\n")
-cat("6. Valid under weaker assumptions than random effects models\n")
-```
-
-## When to Use Each Structure
-
-```{r}
-cat("Correlation Structure Selection:\n\n")
-
-cat("Independence:\n")
-cat("- When observations truly independent\n")
-cat("- Baseline/comparison model\n\n")
-
-cat("Exchangeable:\n")
-cat("- All pairs equally correlated\n")
-cat("- Most common in practice\n")
-cat("- Good for clustered or repeated measures\n\n")
-
-cat("Unstructured:\n")
-cat("- Maximum flexibility\n")
-cat("- Requires estimation of many parameters\n")
-cat("- Use when pattern complex or unclear\n\n")
-
-cat("Other structures (AR-1, etc):\n")
-cat("- Time-ordered data\n")
-cat("- Spatial/longitudinal patterns\n")
+geefit_indep_no_interaction$robust.variance
+geefit_exch_no_interaction$robust.variance
+geefit_unstruct_no_interaction$robust.variance
 ```
 
 ## References
 
 - Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
 - Liang, K. Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. *Biometrika*.
-- Halekoh, U., Højsgaard, S., & Yan, J. (2006). The R package geepack. *Journal of Statistical Software*.

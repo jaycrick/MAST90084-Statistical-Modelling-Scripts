@@ -34,7 +34,6 @@ We'll focus on the most commonly used: `glmer()`, `glmmPQL()`, and `clmm()`.
 Load required packages and prepare the Ohio respiratory dataset:
 
 ```{r}
-#| message: false
 library(conflicted)
 library(lme4)
 library(geepack)

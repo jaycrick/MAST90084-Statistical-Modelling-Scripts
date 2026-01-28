@@ -15,7 +15,6 @@ Paper for lme4 package: <https://cran.r-project.org/web/packages/lme4/vignettes/
 This example is from p.200, ch 10 of Faraway (2016) on random effect models. The dataset tests paper brightness depending on a shift operator:
 
 ```{r}
-#| message: false
 library(conflicted)
 library(lme4)
 library(faraway)

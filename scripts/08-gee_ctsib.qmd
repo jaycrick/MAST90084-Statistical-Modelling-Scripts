@@ -6,146 +6,105 @@ date: today
 
 ## Overview
 
-This script reproduces **simulations and GEE analysis** on the **CTSIB (Computer Test of Sensory Integration and Balance)** dataset from Faraway (2016, p.292).
-
-Topics covered:
-- GEE methodology for balance/stability outcomes
-- Binary response modeling for repeated measurements
-- Correlation structure selection
-- Robust vs model-based standard errors
-- Working with the geepack package
+This script reproduces the simulations on p.292 of Faraway, 2nd edition, 2016, or p.225 in the first edition.
 
 ## Data Setup
 
+Set default contrasts and load the data:
+
 ```{r}
-#| message: false
+library(conflicted)
 library(gee)
 library(geepack)
 library(faraway)
 
-# Set default contrasts
 options(contrasts = c("contr.treatment", "contr.poly"))
 
-# Load and explore the CTSIB dataset
 data(ctsib)
-?ctsib  # read the description of the data
-head(ctsib, 20)  # take a look at the data
+```
+
+Read the description of the data:
+
+```{r}
+?ctsib
+```
+
+Take a look at the data:
+
+```{r}
+head(ctsib, 20)
 str(ctsib)
 ```
 
 ### Creating Binary Response
 
+Create binary responses: 1 represents completely stable, otherwise not:
+
 ```{r}
-# Create binary response: 1 = completely stable, 0 = otherwise
 ctsib$stable <- ifelse(ctsib$CTSIB == 1, 1, 0)
 ```
 
-The CTSIB dataset contains measurements on balance/stability for subjects under different conditions.
-
 ## GEE with Exchangeable Correlation
 
-Fit GEE model with exchangeable (constant) correlation structure and fixed scale:
+Fit GEE with scale fixed at 1:
 
 ```{r}
-# Fit GEE with scale fixed at 1
-gg <- gee(stable ~ Sex + Age + Height + Weight + Surface + Vision,
-          id = Subject,
-          family = binomial,
-          data = ctsib,
-          corstr = "exchangeable",
-          scale.fix = TRUE)
-
-cat("GEE Coefficients (scale.fix = TRUE):\n")
-print(round(gg$coefficients, 4))
-```
-
-## GEE with Estimated Scale
-
-Now allow the scale/dispersion to be estimated:
-
-```{r}
-# Fit GEE with scale estimated
-gg.scale <- gee(stable ~ Sex + Age + Height + Weight + Surface + Vision,
-                id = Subject,
-                family = binomial,
-                data = ctsib,
-                corstr = "exchangeable",
-                scale.fix = FALSE)
-
-cat("\nGEE Coefficients (scale.fix = FALSE):\n")
-print(gg.scale$coefficients)
-
-cat("\nEstimated Scale:\n")
-print(gg.scale$scale)
-```
-
-## Comparing Scale-Fixed vs Estimated
-
-```{r}
-# Compare coefficients
-comparison <- data.frame(
-  Variable = names(gg$coefficients),
-  Scale_Fixed = round(gg$coefficients, 5),
-  Scale_Estimated = round(gg.scale$coefficients, 5)
+gg <- gee(
+    stable ~ Sex + Age + Height + Weight + Surface + Vision,
+    id = Subject,
+    family = binomial,
+    data = ctsib,
+    corstr = "exchangeable",
+    scale.fix = TRUE
 )
-print(comparison)
 
-cat("\nScale parameter difference:\n")
-cat("When scale.fix=TRUE: scale = 1\n")
-cat("When scale.fix=FALSE: scale =", round(gg.scale$scale, 4), "\n")
+gg$coefficients
+summary(gg)
 ```
 
-## Understanding the GEE Approach
-
-The GEE method:
-1. Estimates regression coefficients from marginal model
-2. Provides robust standard errors via sandwich estimator
-3. Handles correlated observations within subjects
-4. Does not require specifying correlation structure correctly (though efficiency may vary)
+Faraway didn't fit with scale.fix = FALSE, but we try it:
 
 ```{r}
-cat("GEE Results Summary (scale.fix=TRUE):\n")
-cat("Number of coefficients:", length(gg$coefficients), "\n")
-cat("Exchangeable correlation structure\n")
+gg_scale <- gee(
+    stable ~ Sex + Age + Height + Weight + Surface + Vision,
+    id = Subject,
+    family = binomial,
+    data = ctsib,
+    corstr = "exchangeable",
+    scale.fix = FALSE
+)
+
+gg_scale$coefficients
+gg_scale$scale
 ```
 
 ## Alternative: geepack Package
 
-The geepack package provides `geeglm()` as an alternative interface to GEE. Note: geepack uses a different dispersion estimator based on the original Yan and Fine paper.
+Use the geepack package. Note: its estimate of dispersion is NOT based on our typical Pearson residual method of moment estimator. See the original paper by Yan and Fine:
 
 ```{r}
-# Uncomment to use geepack:geeglm
-# mod_geepack <- geeglm(stable ~ Sex + Age + Height + Weight + Surface + Vision,
-#                       id = Subject,
-#                       corstr = "exchangeable",
-#                       scale.fix = TRUE,
-#                       data = ctsib,
-#                       family = binomial)
+# modgeep <- geeglm(
+#   stable ~ Sex + Age + Height + Weight + Surface + Vision,
+#   id = Subject,
+#   corstr = "exchangeable",
+#   scale.fix = TRUE,
+#   data = ctsib,
+#   family = binomial
+# )
+# modgeep$coefficients
+# summary(modgeep)
+# summary(modgeep)$scale.value
+# summary(modgeep)$dispersion
 #
-# print(mod_geepack$coefficients)
-# summary(mod_geepack)
-# summary(mod_geepack)$scale.value
-# summary(mod_geepack)$dispersion
+# modgeep.scale <- geeglm(
+#   stable ~ Sex + Age + Height + Weight + Surface + Vision,
+#   id = Subject,
+#   corstr = "exchangeable",
+#   scale.fix = FALSE,
+#   data = ctsib,
+#   family = binomial
+# )
+#
+# modgeep.scale$coefficients
+# summary(modgeep.scale)$dispersion
 ```
-
-## Key Insights
-
-1. **Scale parameter**: Reflects overdispersion/underdispersion in the data
-2. **Robust variance**: The sandwich estimator is more reliable than model-based variance
-3. **Correlation structure**: Different structures may give similar coefficients but different standard errors
-4. **Independence assumption**: Often too restrictive for repeated measures data
-
-## Key Learning Points
-
-1. **GEE advantages**: Provides population-average (marginal) effects, robust to correlation misspecification
-2. **Working correlation**: Used for efficiency but doesn't need to be correct for valid inference
-3. **Sandwich variance**: Makes inference valid even with model misspecification
-4. **Scale parameter**: Important for understanding data overdispersion
-
-## References
-
-- Faraway, J. J. (2016). *Extending the Linear Model with R* (2nd ed.), p.292
-- Liang, K. Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models
-- Yan, J. & Fine, J. (2004). The R package geepack: GEE estimation of generalized estimating equations
-- [gee package documentation](https://cran.r-project.org/package=gee)
-- [geepack package documentation](https://cran.r-project.org/package=geepack)

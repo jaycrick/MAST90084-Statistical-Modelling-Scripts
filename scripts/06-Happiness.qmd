@@ -8,252 +8,190 @@ date: today
 
 This script demonstrates **ordinal (cumulative link) regression** on the **happiness dataset**, analyzing **ordered categorical responses**.
 
-Topics covered:
-- Cumulative link models (proportional odds model)
-- Category-specific effects via `vglm()`
-- Data reshaping and aggregation
-- Effect coding and contrast matrices
+Note: To reproduce the first regression in section 3.5.3 of F&T, we cannot use `polr()` since it doesn't allow for category-specific beta coefficients.
 
-## Data Loading and Exploration
+## Data Loading
 
 ```{r}
-#| message: false
+library(conflicted)
 library(Fahrmeir)
 library(VGAM)
 library(dplyr)
-
-# Load the happiness dataset
-data(happy)
-head(happy)
-str(happy)
 ```
 
-The happy dataset contains:
-- **Sex**: Gender (Males/Females)
-- **School**: Education level (<12, 12, 13-16, >16)
-- **Rep.happiness**: Reported happiness (ordered: Not happy, Pretty happy, Very happy)
-- **n**: Frequency counts
+```{r}
+data(happy)
+happy
+?happy
+```
 
 ## Part 1: School Education Levels by Sex
 
-### Data Aggregation
+Arrange the data into wide form for the first regression part in (3.5.3):
 
 ```{r}
-# Reshape data: aggregate school education by sex
-happy_by_sex <- happy %>%
-  group_by(Sex) %>%
-  summarize(
-    school_0to12 = sum(n[School == '<12']),
-    school_12 = sum(n[School == '12']),
-    school_13to16 = sum(n[School == '13-16']),
-    school_over16 = sum(n[School == '>16']),
-    .groups = 'drop'
-  ) %>%
-  as.data.frame()
+happy_tibble <- dplyr::tbl_df(happy)
 
-head(happy_by_sex)
+happy_grouped1 <- dplyr::group_by(happy_tibble, Sex)
+
+happy_summary1 <- dplyr::summarize(
+    happy_grouped1,
+    school1 = as.numeric(sum(n[which(School == "<12")])),
+    school2 = as.numeric(sum(n[which(School == "12")])),
+    school3 = as.numeric(sum(n[which(School == "13-16")])),
+    school4 = as.numeric(sum(n[which(School == ">16")]))
+)
+
+happy1 <- as.data.frame(happy_summary1)
+happy1
 ```
 
-### Setting Contrasts
+### Setting Contrasts for Part 1
 
-For reproduction of textbook results, we use **effect coding**:
+Effect coding is needed to reproduce the numbers in the book:
 
 ```{r}
-# Check default contrasts
-contrasts(happy_by_sex$Sex)
+options("contrasts")
+contrasts(happy1$Sex)
 
-# Set effect coding
 options(contrasts = c("contr.sum", "contr.poly"))
-contrasts(happy_by_sex$Sex)
+contrasts(happy1$Sex)
 
-# Adjust to match textbook (female as reference)
-contrasts(happy_by_sex$Sex) <- matrix(c(-1, 1), 2, 1)
-contrasts(happy_by_sex$Sex)
+contrasts(happy1$Sex) <- as.matrix(c(-1, 1))
 ```
 
-### Cumulative Link Model - Part 1
+Adjust the contrast matrix so female serves as reference.
 
-Fit a proportional odds model for educational attainment:
+### Fit First Model
+
+Regression for the first line of display (3.5.3) in F&T:
 
 ```{r}
-# Create response matrix (school education levels)
-response_1 <- cbind(
-  happy_by_sex$school_0to12,
-  happy_by_sex$school_12,
-  happy_by_sex$school_13to16,
-  happy_by_sex$school_over16
+happy_logit1_vglm <- vglm(
+    cbind(school1, school2, school3, school4) ~ Sex,
+    data = happy1,
+    family = cumulative()
 )
 
-# Fit cumulative link model
-model_1 <- vglm(
-  response_1 ~ Sex,
-  family = cumulative(),
-  data = happy_by_sex
-)
-
-summary(model_1)
+summary(happy_logit1_vglm)
 ```
 
-### Extracting and Interpreting Coefficients
+The coefficient values are the same as those reported in the first six rows of Table 3.11 in F&T.
 
 ```{r}
-# Get coefficients
-coef_1 <- coef(model_1)
-print(round(coef_1, 4))
-
-# Predict probabilities
-pred_1 <- predict(model_1, type = "response")
-head(pred_1)
+attributes(happy_logit1_vglm)$predictors
 ```
+
+We can also look at the predictors.
+
+```{r}
+sqrt(diag(vcov(happy_logit1_vglm)))
+```
+
+Same as the std. error reported by `summary(happy_logit1_vglm)`.
 
 ## Part 2: Happiness Levels by Education
 
-### Data Aggregation
+Arrange the data into wide form for the second regression part in (3.5.3):
 
 ```{r}
-# Reshape data: aggregate happiness by education level
-happy_by_school <- happy %>%
-  group_by(School) %>%
-  summarize(
-    not_happy = sum(n[Rep.happiness == 'Not to happy']),
-    pretty_happy = sum(n[Rep.happiness == 'Pretty happy']),
-    very_happy = sum(n[Rep.happiness == 'Very happy']),
-    .groups = 'drop'
-  ) %>%
-  as.data.frame()
+happy_grouped2 <- dplyr::group_by(happy_tibble, Sex, School)
 
-head(happy_by_school)
+happy_summary2 <- dplyr::summarize(
+    happy_grouped2,
+    happy_low = as.numeric(sum(n[which(Rep.happiness == "Not to happy")])),
+    happy_medium = as.numeric(sum(n[which(Rep.happiness == "Pretty happy")])),
+    happy_high = as.numeric(sum(n[which(Rep.happiness == "Very happy")]))
+)
+
+happy2 <- as.data.frame(happy_summary2)
+happy2
 ```
 
-### Cumulative Link Model - Part 2
+### Setting Contrasts for Part 2
+
+Switch to dummy coding with `<12` as reference level:
 
 ```{r}
-# Reset to standard dummy coding for education
+contrasts(happy2$School)
+
 options(contrasts = c("contr.treatment", "contr.poly"))
-contrasts(happy_by_school$School)
-
-# Create response matrix
-response_2 <- cbind(
-  happy_by_school$not_happy,
-  happy_by_school$pretty_happy,
-  happy_by_school$very_happy
-)
-
-# Fit model
-model_2 <- vglm(
-  response_2 ~ School,
-  family = cumulative(link = "logitlink"),
-  data = happy_by_school
-)
-
-summary(model_2)
+contrasts(happy2$School)
 ```
 
-### Interpreting Category-Specific Effects
+`<12` is the reference level.
+
+### Fit Second Model
+
+Regression for the second line of display (3.5.3) in F&T:
 
 ```{r}
-# Extract coefficients
-coef_2 <- coef(model_2)
-cat("Raw coefficients:\n")
-print(round(coef_2, 4))
+happy_logit2_vglm <- vglm(
+    cbind(happy_low, happy_medium, happy_high) ~ School,
+    data = happy2,
+    family = cumulative(link = "logitlink")
+)
 
-# Reconstruct textbook coefficients
-# For each education level, add intercepts
-intercepts <- coef_2[1:2]
-education_effects <- coef_2[3:8]
-
-# Recreate full coefficient table
-full_coef <- c(intercepts, intercepts + education_effects[1:2],
-               intercepts + education_effects[3:4],
-               intercepts + education_effects[5:6])
-
-cat("\nRecovered coefficients (textbook format):\n")
-print(round(full_coef, 4))
+summary(happy_logit2_vglm)
 ```
+
+`cumulative()` must be regressed with an intercept.
+
+### Recovering Coefficients
+
+Only the two intercept estimates (corresponding to reference level `<12` of School) match the numbers in the book. To recover the original estimates in F&T, we need to add the intercepts to each pair of coefficients for each other Schooling levels:
+
+```{r}
+happy_logit2_vglm_coeff <- attributes(happy_logit2_vglm)$coeff
+happy_logit2_vglm_coeff
+
+rep(happy_logit2_vglm_coeff[1:2], 3) + happy_logit2_vglm_coeff[3:8]
+```
+
+The numbers in the books are now recovered, as reported in the last 6 rows of F&T Table 3.11.
 
 ## Log-Likelihood and Model Fit
 
-Compute the deviance for the combined model:
+Add the log likelihood resulting from the first and second parts of (3.5.3), to give the likelihood of the full GLM model:
 
 ```{r}
-# Individual model log-likelihoods
-ll_1 <- logLik(model_1)
-ll_2 <- logLik(model_2)
-
-cat("Log-likelihood (Education part):", round(ll_1[1], 4), "\n")
-cat("Log-likelihood (Happiness part):", round(ll_2[1], 4), "\n")
-cat("Combined GLM log-likelihood:", round(ll_1[1] + ll_2[1], 4), "\n")
+log_lik_glm <- logLik(happy_logit1_vglm) + logLik(happy_logit2_vglm)
+log_lik_glm
 ```
+
+Alternatively:
+
+```{r}
+logLik(happy_logit1_vglm, sum = FALSE)
+logLik(happy_logit2_vglm, sum = FALSE)
+```
+
+These get the log likelihood of individual groups.
 
 ### Computing Saturated Model Likelihood
 
-For a saturated model with multinomial distribution, the log-likelihood is:
-
 ```{r}
-# Separate data by sex groups
-happy_males <- happy[happy$Sex == "Males", ]
-happy_females <- happy[happy$Sex == "Females", ]
+happy_male <- happy[which(happy$Sex == "Males"), ]
+happy_female <- happy[which(happy$Sex == "Females"), ]
 
-# Saturated model likelihood: each observation is its own category
-ll_sat_males <- dmultinom(
-  happy_males$n,
-  prob = happy_males$n / sum(happy_males$n),
-  log = TRUE
-)
+logLik_saturated <- dmultinom(
+    happy_male$n,
+    prob = happy_male$n / sum(happy_male$n),
+    log = TRUE
+) +
+    dmultinom(
+        happy_female$n,
+        prob = happy_female$n / sum(happy_female$n),
+        log = TRUE
+    )
 
-ll_sat_females <- dmultinom(
-  happy_females$n,
-  prob = happy_females$n / sum(happy_females$n),
-  log = TRUE
-)
-
-ll_saturated <- ll_sat_males + ll_sat_females
-
-cat("Saturated model log-likelihood:\n")
-cat("  Males:", round(ll_sat_males, 4), "\n")
-cat("  Females:", round(ll_sat_females, 4), "\n")
-cat("  Total:", round(ll_saturated, 4), "\n")
+logLik_saturated
 ```
 
-### Deviance Calculation
+### Deviance
+
+This is the deviance 13.27, as reported in the book:
 
 ```{r}
-# Deviance: 2 * (saturated LL - GLM LL)
-glm_ll <- ll_1[1] + ll_2[1]
-deviance <- 2 * (ll_saturated - glm_ll)
-
-cat("\nDeviance Calculation:\n")
-cat("Saturated log-likelihood:", round(ll_saturated, 4), "\n")
-cat("GLM log-likelihood:", round(glm_ll, 4), "\n")
-cat("Deviance = 2 * (", round(ll_saturated, 4), " - ", round(glm_ll, 4), ")\n")
-cat("Deviance:", round(deviance, 4), "\n")
-cat("(Should match Table 3.11 in F&T: 13.27)\n")
+2 * (logLik_saturated - log_lik_glm)
 ```
-
-### Alternative: Using logLik with sum=FALSE
-
-```{r}
-# Individual group contributions to log-likelihood
-ll_by_group_1 <- logLik(model_1, sum = FALSE)
-ll_by_group_2 <- logLik(model_2, sum = FALSE)
-
-cat("\nLog-likelihood by group (Part 1):\n")
-print(ll_by_group_1)
-
-cat("\nLog-likelihood by group (Part 2):\n")
-print(ll_by_group_2)
-```
-
-## Key Learning Points
-
-1. **Ordinal regression**: Designed for ordered categorical outcomes
-2. **Proportional odds assumption**: Constant effects across cutpoints
-3. **Category-specific effects**: VGAM allows different slopes per category
-4. **Effect coding**: Essential for textbook reproducibility
-5. **Data reshaping**: Converting long to wide format for multiple responses
-
-## References
-
-- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
-- Yee, T. W. (2015). *Vector Generalized Linear and Additive Models*
-- [VGAM package documentation](https://cran.r-project.org/package=VGAM)

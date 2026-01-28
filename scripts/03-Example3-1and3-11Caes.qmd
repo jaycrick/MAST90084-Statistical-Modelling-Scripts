@@ -17,7 +17,6 @@ This document mirrors the R script for Examples 3.1 and 3.11 (Fahrmeir & Tutz), 
 Load all required packages and the prepared Caesar dataset.
 
 ```{r}
-#| message: false
 library(conflicted)
 library(dplyr)
 library(nnet)

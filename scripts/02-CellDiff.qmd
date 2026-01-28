@@ -18,7 +18,6 @@ The study investigates whether TNF (Tumor Necrosis Factor) and IFN (Interferon) 
 ## Package Setup and Data
 
 ```{r}
-#| message: false
 library(conflicted)
 library(dplyr)
 library(Fahrmeir)
