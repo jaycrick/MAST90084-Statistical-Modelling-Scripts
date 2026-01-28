@@ -18,9 +18,9 @@ which is 1 for infection, and 0 for no infection.
 
 There are 3 categorical variables:
 
-1. NOPLAN: whether or not the Caesarian was planned or not
-2. FACTOR: whether there are risk factors present or not
-3. ANTIB: whether antibiotics were given to prevent infection (rather than treat infection)
+1. `NOPLAN`: whether or not the Caesarian was planned or not
+2. `FACTOR`: whether there are risk factors present or not
+3. `ANTIB`: whether antibiotics were given to prevent infection (rather than treat infection)
 
 We use fit the logistic regression model
 $$

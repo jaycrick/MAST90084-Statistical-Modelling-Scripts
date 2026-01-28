@@ -12,165 +12,327 @@ format:
 This script reproduces **Examples 3.2 and 3.4** from Fahrmeir & Tutz, analyzing **breathing test results (BTR)** with ordinal outcomes.
 
 Topics covered:
-- **Ordinal logistic regression** with `polr()` function
-- Model fitting with weighted counts
-- Contrast coding and reference levels
-- Interpretation of coefficients and proportional odds assumption
+- **Ordinal logistic regression** with `polr()` (proportional odds/cumulative logit)
+- Alternative link functions: probit, complementary log-log, log-log
+- Contrast coding systems: dummy vs. effect coding
+- Model comparison and proportional odds assumption testing
+- Saturated model deviance calculations
 
 ## Data Loading and Setup
 
 ```{r}
-#| message: false
+library(conflicted)
 library(MASS)
+library(dplyr)
+```
 
-# Load the BTR dataset from CSV
-# Note: Ordinal outcome with factors: Positive, Borderline, Negative
-BTR.dat <- read.csv("data/Example3-2BTR.csv",
+Load the BTR dataset. It contains breathing test results (ordinal outcome) with covariates age and smoking status, along with frequency counts for each combination.
+
+```{r}
+btr_dat <- read.csv(
+    "data/Example3-2BTR.csv",
     colClasses = c("factor", "factor", "factor", "numeric")
 )
 
-str(BTR.dat)
-is.data.frame(BTR.dat)
-BTR.dat
+str(btr_dat)
+btr_dat
 ```
 
-### Preparing the Data
+## Factor Coding and Contrast Systems
+
+The breathing test result (BTR) must be converted to an **ordered factor** since we have three ordered categories. By default, R uses **dummy coding** with `contr.treatment`.
+
+First, check and set the appropriate factor structure:
 
 ```{r}
-# Explore and modify the class of the data variables
-is.factor(BTR.dat$BTR)
-is.ordered(BTR.dat$BTR)
+is.factor(btr_dat$BTR)
+is.ordered(btr_dat$BTR)
 
-# Set BTR to be ordinal (ordered categorical)
-BTR.dat$BTR <- as.ordered(BTR.dat$BTR)
+# Set BTR to ordinal (ordered categorical)
+btr_dat$BTR <- as.ordered(btr_dat$BTR)
 
-is.factor(BTR.dat$Age)
-is.factor(BTR.dat$Smoking)
-is.factor(BTR.dat$Freq)
+is.factor(btr_dat$Age)
+is.factor(btr_dat$Smoking)
+is.factor(btr_dat$Freq)
 ```
 
-## Contrast Coding
-The default is dummy coding with `contr.treatment`. Let's examine the contrasts:
+Examine the current contrast coding scheme:
 
 ```{r}
-# Display current contrast settings
 getOption(x = "contrasts")
 
-contrasts(BTR.dat$Smoking)
-contrasts(BTR.dat$Age)
+contrasts(btr_dat$Smoking)
+contrasts(btr_dat$Age)
 ```
 
-# Fit cumulative logistic model with Age, Smoking, and their interaction
-# Note: polr() computes coefficient signs opposite to Fahrmeir & Tutz formula
-BTR.logit <- polr(BTR ~ Age + Smoking + Age:Smoking,
-    data = BTR.dat,
+The dummy coding creates indicator variables for each level relative to a reference category. This is the default but leads to coefficient estimates that differ from Fahrmeir & Tutz due to their use of **effect coding**.
+
+## Model Fitting: Proportional Odds Models
+
+The `polr()` function fits cumulative logit (and other) models. Key note: **the sign of coefficients in `polr()` is opposite to the textbook formula**—compare with the documentation to reconcile.
+
+### Main Model with Interaction (Logistic Link)
+
+Fit the cumulative logistic/proportional odds model with age, smoking, and their interaction:
+
+```{r}
+btr_logit <- polr(
+    BTR ~ Age + Smoking + Age:Smoking,
+    data = btr_dat,
     weights = Freq,
     Hess = TRUE,
     method = "logistic"
 )
 
-summary(BTR.logit)
+summary(btr_logit)
 ```
 
-### Accessing Model Components
+Extract model components:
 
 ```{r}
-# Access model components
-names(BTR.logit)
+# Linear predictors (eta values)
+btr_logit$lp
 
-# Linear predictors
-BTR.logit$lp
-
-# Threshold parameters (intercepts/cutpoints)
-cat("Thresholds:\n")
-print(BTR.logit$zeta)
+# Threshold parameters (cutpoints/intercepts)
+btr_logit$zeta
 ```
 
-### Manual Coefficient Verification
+Verify coefficients by hand-computing the linear predictor:
 
 ```{r}
-# Create design matrix manually for verification
 Z <- cbind(
-    (BTR.dat$Age == "40to59"),
-    (BTR.dat$Smoking == "2Former"),
-    (BTR.dat$Smoking == "3Current"),
-    (BTR.dat$Age == "40to59") * (BTR.dat$Smoking == "2Former"),
-    (BTR.dat$Age == "40to59") * (BTR.dat$Smoking == "3Current")
+    (btr_dat$Age == "40to59"),
+    (btr_dat$Smoking == "2Former"),
+    (btr_dat$Smoking == "3Current"),
+    (btr_dat$Age == "40to59") * (btr_dat$Smoking == "2Former"),
+    (btr_dat$Age == "40to59") * (btr_dat$Smoking == "3Current")
 )
 
-# Hand-computed linear predictors should match
-cat("Manual eta calculation (should match BTR.logit$lp):\n")
-print(Z %*% BTR.logit$coeff)
-
-cat("\nActual linear predictors:\n")
-print(BTR.logit$lp)
+# Hand-computed eta should match btr_logit$lp
+head(Z %*% btr_logit$coeff)
+head(btr_logit$lp)
 ```
 
-## Model Interpretation
+### Model Comparison (with and without interaction)
 
-Extract and interpret coefficients:
-
-```{r}
-# Coefficient table
-cat("Coefficients:\n")
-print(summary(BTR.logit)$coefficients)
-
-# Odds ratios
-cat("\nOdds Ratios (exp(coefficients)):\n")
-print(round(exp(BTR.logit$coeff), 4))
-```
-
-## Predicted Probabilities
+Fit a main-effects-only model and compare using the likelihood ratio test:
 
 ```{r}
-# Predict for specific combinations
-new_data <- data.frame(
-    Age = c("20to39", "40to59"),
-    Smoking = c("1Never", "2Former")
+btr_logit1 <- polr(
+    BTR ~ Age + Smoking,
+    data = btr_dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "logistic"
 )
 
-# Get predicted probabilities for each class
-predictions <- predict(BTR.logit, new_data, type = "probs")
-cat("Predicted probabilities:\n")
-print(round(predictions, 4))
+summary(btr_logit1)
+```
+
+::: {.callout-note}
+The LR statistic in the `anova()` output is the difference between the deviances of the two models. Each deviance reported is `-2 * log(likelihood)` for that model.
+:::
+
+```{r}
+anova(btr_logit, btr_logit1)
+```
+
+## Alternative Link Functions
+
+The proportional odds assumption can be tested by fitting models with different link functions. The `polr()` function supports:
+- **logistic**: cumulative logit model (default)
+- **probit**: cumulative normal model
+- **cloglog**: complementary log-log (grouped Cox/proportional hazards)
+- **loglog**: extreme maximal-value distribution
+
+### Grouped Cox / Complementary Log-Log
+
+```{r}
+btr_ph <- polr(
+    BTR ~ Age + Smoking + Age:Smoking,
+    data = btr_dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "cloglog"
+)
+
+summary(btr_ph)
+```
+
+### Extreme Maximal-Value Distribution
+
+```{r}
+btr_extm <- polr(
+    BTR ~ Age + Smoking + Age:Smoking,
+    data = btr_dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "loglog"
+)
+
+summary(btr_extm)
+```
+
+## Effect Coding (Fahrmeir & Tutz Parameterization)
+
+By default, R uses dummy coding. To match the textbook and get effect coding (deviation contrasts), switch the global contrast option and refit:
+
+```{r}
+options(contrasts = c("contr.sum", "contr.poly"))
+
+# Verify the contrast change
+contrasts(btr_dat$Smoking)
+contrasts(btr_dat$Age)
+```
+
+Refit both models with effect coding:
+
+```{r}
+btr_logit_eff <- polr(
+    BTR ~ Age + Smoking + Age:Smoking,
+    data = btr_dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "logistic"
+)
+
+btr_logit1_eff <- polr(
+    BTR ~ Age + Smoking,
+    data = btr_dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "logistic"
+)
+
+summary(btr_logit_eff)
+summary(btr_logit1_eff)
+```
+
+::: {.callout-tip}
+With effect coding, the coefficients now match Table 3.3 in Fahrmeir & Tutz. The deviances remain the same (model fit is unchanged), only the parameterization differs.
+:::
+
+```{r}
+anova(btr_logit_eff, btr_logit1_eff)
+```
+
+## Saturated Model and Deviance Calculation
+
+The deviance reported by `polr()` is `-2 * log(likelihood)` for the fitted model. To compute the **residual deviance** (difference from saturated model), we manually compute the saturated model log-likelihood.
+
+```{r}
+# Reshape frequency counts into a matrix (rows = covariate combinations, cols = BTR categories)
+data_mat <- t(matrix(btr_dat$Freq, nr = 3))
+
+# Compute MLE probabilities for the saturated model (empirical proportions)
+probs <- data_mat / rowSums(data_mat)
+
+# Compute saturated log-likelihood via multinomial
+loglike_saturated <- 0
+for (row in seq_len(nrow(data_mat))) {
+    for (col in 1:3) {
+        eval_vec <- rep(0, 3)
+        eval_vec[col] <- 1
+        increment <- data_mat[row, col] *
+            dmultinom(x = eval_vec, prob = probs[row, ], log = TRUE)
+        if (!is.na(increment)) loglike_saturated <- loglike_saturated + increment
+    }
+}
+
+cat("Saturated model log-likelihood:", loglike_saturated, "\n")
+```
+
+Compute residual deviances (deviance of fitted model minus deviance of saturated model):
+
+```{r}
+residual_dev_logit <- btr_logit_eff$deviance - abs(2 * loglike_saturated)
+residual_dev_logit1 <- btr_logit1_eff$deviance - abs(2 * loglike_saturated)
+
+cat("Residual deviance (interaction):", residual_dev_logit, "\n")
+cat("Residual deviance (main effects):", residual_dev_logit1, "\n")
+cat("These should match Table 3.3 in Fahrmeir & Tutz\n")
+```
+
+Compute residual deviances for alternative link functions:
+
+```{r}
+# Refit with effect coding
+btr_ph_eff <- polr(
+    BTR ~ Age + Smoking + Age:Smoking,
+    data = btr_dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "cloglog"
+)
+
+btr_extm_eff <- polr(
+    BTR ~ Age + Smoking + Age:Smoking,
+    data = btr_dat,
+    weights = Freq,
+    Hess = TRUE,
+    method = "loglog"
+)
+
+residual_dev_ph <- btr_ph_eff$deviance - abs(2 * loglike_saturated)
+residual_dev_extm <- btr_extm_eff$deviance - abs(2 * loglike_saturated)
+
+cat("Residual deviance (cloglog):", residual_dev_ph, "\n")
+cat("Residual deviance (loglog):", residual_dev_extm, "\n")
 ```
 
 ## Model Diagnostics
 
+### Fitted Values and Predictions
+
 ```{r}
-# Check fitted values
-cat("Fitted values (first few):\n")
-print(head(BTR.logit$fitted.values, 10))
-
-# Deviance
-cat("\nModel Deviance:\n")
-print(BTR.logit$deviance)
-
-# Residuals
-cat("\nResiduals (first few):\n")
-print(head(residuals(BTR.logit), 10))
+# Fitted probabilities (first few rows)
+head(predict(btr_logit_eff, btr_dat, type = "probs"))
 ```
 
-## Proportional Odds Assumption
-
-The proportional odds model assumes coefficients are the same across all cutpoints. We can test this assumption using the Brant test or comparing with non-proportional models.
+### Model Selection with AIC
 
 ```{r}
-# Loglikelihood
-cat("Log-likelihood:\n")
-print(logLik(BTR.logit))
+# Automatic stepwise selection based on AIC
+btr_step <- step(btr_logit_eff)
+
+summary(btr_step)
+```
+
+### Variance-Covariance Matrix and Confidence Intervals
+
+```{r}
+# Variance-covariance matrix of parameter estimates
+vcov(btr_logit_eff)
+
+# Standard errors from summary
+sqrt(diag(vcov(btr_logit_eff)))
+```
+
+Compute confidence intervals using the profile likelihood (more accurate than Wald intervals):
+
+```{r}
+confint(btr_logit_eff)
+```
+
+### Profile Likelihood
+
+For detailed inference, examine the profile likelihood for individual parameters:
+
+```{r}
+profile(btr_logit_eff)
 ```
 
 ## Key Learning Points
 
-1. **Ordinal outcomes**: BTR with three ordered categories (Positive > Borderline > Negative)
-2. **Proportional odds model**: Assumes constant coefficients across all cutpoints
-3. **Weights parameter**: Handles aggregated count data properly
-4. **Coefficient interpretation**: Signs differ from textbook convention (check documentation)
-5. **Thresholds**: Represent the intercepts for each cutpoint in the latent variable model
+1. **Ordinal outcomes**: BTR has three ordered categories; use ordered factors
+2. **Proportional odds**: Assumes coefficients are constant across all cutpoints
+3. **Link functions**: Different links (logit, probit, cloglog, loglog) test proportional odds
+4. **Contrast coding**: Dummy vs. effect coding changes parameterization, not model fit
+5. **Deviance interpretation**: Always distinguish between `-2*log(L)` and residual deviance
+6. **Saturated model**: Needed to compute residual deviance for GOF
 
 ## References
 
 - Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
-- Ripley, B. D. (2002). Modern applied statistics with S (4th ed.) - MASS package
+- Venables, W. N., & Ripley, B. D. (2002). Modern applied statistics with S (4th ed.)
 - [polr() documentation](https://www.rdocumentation.org/packages/MASS/versions/7.3-51.6/topics/polr)
