@@ -7,19 +7,21 @@ library(VGAM)
 data(tonsil)
 head(tonsil)
 
-# tonsil_df <- dplyr::tbl_df(tonsil)    # create a "tibble" dataframe
+# tonsil_df <- dplyr::tbl_df(tonsil) # create a "tibble" dataframe
 #
-# tonsil_grouped <- dplyr::group_by(tonsil_df, Streptococcus.p)  # Group the data by carrier status of Streptococcus pyogenes
+# tonsil_grouped <- dplyr::group_by(tonsil_df, Streptococcus.p) # Group the data by carrier status of Streptococcus pyogenes
 #
-# tonsil_summary <- dplyr::summarize(tonsil_grouped,
-#                                    present= n[which(Size == 1)],
-#                                    enlarged =  n[which(Size == 2)],
-#                                    great_enlarged = n[which(Size ==3)])
-# tonsil <- as.data.frame( tonsil_summary )
+# tonsil_summary <- dplyr::summarize(
+#   tonsil_grouped,
+#   present = n[which(Size == 1)],
+#   enlarged = n[which(Size == 2)],
+#   great_enlarged = n[which(Size == 3)]
+# )
+# tonsil <- as.data.frame(tonsil_summary)
 #
 # tonsil
 
-tonsil = reshape(
+tonsil <- reshape(
   tonsil,
   idvar = "Streptococcus.p",
   timevar = "Size",
@@ -28,7 +30,12 @@ tonsil = reshape(
 
 tonsil
 # just to change the colnames
-colnames(tonsil) = c("Streptococcus.p", "present", "enlarged", "great_enlarged")
+colnames(tonsil) <- c(
+  "Streptococcus.p",
+  "present",
+  "enlarged",
+  "great_enlarged"
+)
 
 
 options(contrasts = c("contr.sum", "contr.poly")) # change to effect coding (for Streptococcus.p)
@@ -61,7 +68,7 @@ summary(fit_sequential)
 ## I think the p-values reported in F and T are incorrect
 
 # try to use polr
-response = c(
+response <- c(
   "present",
   "enlarged",
   "great_enlarged",
@@ -69,11 +76,11 @@ response = c(
   "enlarged",
   "great_enlarged"
 )
-response = ordered(
+response <- ordered(
   response,
   levels = c("present", "enlarged", "great_enlarged")
 )
-x = c(
+x <- c(
   "carriers ",
   "carriers ",
   "carriers ",
@@ -82,7 +89,7 @@ x = c(
   "noncarriers"
 )
 
-polr_obj = MASS::polr(
+polr_obj <- MASS::polr(
   formula = response ~ x,
   weights = c(as.numeric(tonsil[1, 2:4]), as.numeric(tonsil[2, 2:4]))
 )
