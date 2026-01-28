@@ -9,6 +9,8 @@ format:
 
 ## Overview
 
+The [Fahrmeir & Tutz book is available to download for free from the University of Melbourne Library](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-1-4757-3454-6)
+
 This script reproduces **Examples 2.1, 2.4** from Fahrmeir & Tutz (pages 30 and 51).
 We consider the Caesarian birth study with 251 births.
 We consider the binary response variable $y$,
@@ -297,7 +299,6 @@ Both the deviance test
 ```
 
 and the Pearson test
-
 ```{r}
 1 - pchisq(sum(resid(caesar_int_glm, type = "pearson")^2), df = 3)
 ```
@@ -384,11 +385,10 @@ interaction_deviance
 
 We do not reject the null hypothesis that the interaction effect is zero.
 
-### Adding noplan:factor Interaction
+### Adding `noplan:factor` Interaction
 
 This is not the only possible interaction effect.
-We now try the interaction effect noplan:factor.
-
+We now try the interaction effect `noplan:factor`.
 
 ```{r}
 caesar_glm_noplan_factor <- glm(
@@ -417,6 +417,17 @@ there are two rows with no infection counts,
 which means that certain conditions are not satisfied.
 See the section **Uniqueness and existence of MLE's** for more information.
 
+:::{.callout-warning collapse="true"}
+## Book typo
+
+The book says
+*'The reason is that data are too sparse with responses for the cell
+`NOPLAN = 0`, `FACTOR = 0` and `ANTIB = 1` all in the "yes" category,
+and for the cell `NOPLAN = 1`, `FACTOR= 0` and `ANTIB = 0`
+all in the "no" category.'*
+however, there is a typo. The first "yes" should instead say "no".
+:::
+
 If we ignore the problem for the time being,
 we can continue by testing for goodness-of-fit.
 Compare fitted and realized proportions as on p.53.
@@ -439,14 +450,14 @@ We can see that the observed and fitted values are very similar.
 
 ## Handling Separation Issues
 
-The book recommended we should add fictitious data to the two zero
-Infect_count cells to avoid existence of MLE issue. Add 0.5 infection and 1
-total case to problematic cell. We do not reject the new model with
-noplan_factor interaction at usual levels such as 0.1 or 0.05.
+The book recommends that to make the analysis more robust,
+we should add fictitious data to the two zero `Infect_count` cells
+to avoid existence of MLE issue.
+We do this by adding a 'count' of 0.5 infections and 1 total case to problematic row.
 
 ```{r}
-caesar_tbl
-caesar_augment <- caesar_tbl
+caesar_tbl_int
+caesar_augment <- caesar_tbl_int
 caesar_augment$Infect_count[3] <- 0.5
 caesar_augment$size[3] <- caesar_augment$size[3] + 1
 
@@ -460,36 +471,39 @@ caesar_glm_noplan_factor_augment <- glm(
 )
 
 summary(caesar_glm_noplan_factor_augment)
-
-round(
-    rbind(
-        caesar_augment$Infect_count / caesar_augment$size,
-        caesar_glm_noplan_factor_augment$fitted
-    ),
-    digits = 2
-)
-
-1 -
-    pchisq(
-        sum(resid(caesar_glm_noplan_factor_augment, type = "pearson")^2),
-        df = 2
-    )
-1 -
-    pchisq(
-        sum(resid(caesar_glm_noplan_factor_augment, type = "deviance")^2),
-        df = 2
-    )
 ```
 
-## Key Takeaways
+Compare observed and fitted proportions:
 
-1. **Data transformation**: Converting contingency tables to analysis format requires careful aggregation
-2. **Contrast coding**: Choose reference levels strategically for interpretability
-3. **Model comparison**: Use deviance and Pearson statistics for goodness-of-fit
-4. **Interaction testing**: Compare nested models to test interaction significance
-5. **Link functions**: Both logit and probit are commonly used; results often similar
+```{r}
+tibble(
+    observed = round(caesar_augment$Infect_count / caesar_augment$size, 2),
+    fitted = round(caesar_glm_noplan_factor_augment$fitted.values, 2)
+)
+```
+
+Test goodness-of-fit using Pearson and deviance statistics:
+
+```{r}
+pearson_pval <- 1 - pchisq(
+    sum(resid(caesar_glm_noplan_factor_augment, type = "pearson")^2),
+    df = 2
+)
+deviance_pval <- 1 - pchisq(
+    sum(resid(caesar_glm_noplan_factor_augment, type = "deviance")^2),
+    df = 2
+)
+
+tibble(
+    test = c("Pearson", "Deviance"),
+    p_value = c(pearson_pval, deviance_pval)
+)
+```
+
+We do not reject the new model with `noplan:factor` interaction
+at usual levels such as 0.1 or 0.05.
 
 ## References
 
-- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models*
+- Fahrmeir, L., & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models (Second Edition)*. Springer. https://doi.org/10.1007/978-1-4757-3454-6
 - [R documentation on `glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html)
