@@ -2,9 +2,6 @@
 title: "Linear Mixed Effects Models"
 subtitle: "Random Intercept and Random Slope Models"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

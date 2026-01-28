@@ -2,9 +2,6 @@
 title: "Ordinal Regression: Happiness Data"
 subtitle: "Cumulative Link Models for Ordered Outcomes"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

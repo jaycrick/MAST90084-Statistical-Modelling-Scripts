@@ -2,9 +2,6 @@
 title: "Survival Analysis"
 subtitle: "Kaplan-Meier Estimation and Weibull Models"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

@@ -2,9 +2,6 @@
 title: "Ohio Respiratory Data: GEE Analysis"
 subtitle: "Generalized Estimating Equations with Repeated Measures"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

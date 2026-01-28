@@ -2,9 +2,6 @@
 title: "GLM with Mixed Effects"
 subtitle: "Binomial GLMM on Ohio Respiratory Data and Ordinal Mixed Models"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

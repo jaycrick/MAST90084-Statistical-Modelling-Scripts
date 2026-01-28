@@ -2,9 +2,6 @@
 title: "Tonsil Size and Streptococcus"
 subtitle: "Ordinal Regression Models Comparison"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

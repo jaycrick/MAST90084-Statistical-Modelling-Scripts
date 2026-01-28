@@ -2,9 +2,6 @@
 title: "GEE Analysis: CTSIB Balance Test Data"
 subtitle: "Generalized Estimating Equations for Repeated Measures"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

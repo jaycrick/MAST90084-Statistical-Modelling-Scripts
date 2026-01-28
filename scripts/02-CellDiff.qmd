@@ -2,9 +2,6 @@
 title: "Cell Differentiation Study"
 subtitle: "Poisson GLM with Interaction Effects"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview

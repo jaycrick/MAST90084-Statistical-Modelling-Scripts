@@ -2,9 +2,6 @@
 title: "ANOVA and Deviance Analysis"
 subtitle: "Binomial GLM with Logit and Probit Links"
 date: today
-format:
-  html:
-    code-fold: false
 ---
 
 ## Overview
