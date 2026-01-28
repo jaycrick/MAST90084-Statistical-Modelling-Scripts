@@ -500,6 +500,30 @@ tibble(
 We do not reject the new model with `noplan:factor` interaction
 at usual levels such as 0.1 or 0.05.
 
+## Reproducibility
+
+### Session Information
+
+```{r}
+sessionInfo()
+```
+
+### Package Citations
+
+Below are the formal citations for the packages used in this analysis:
+
+```{r}
+#| results: asis
+#| code-fold: true
+packages <- c("conflicted", "dplyr", "forcats", "Fahrmeir")
+for (pkg in packages) {
+    cit <- citation(pkg)
+    # Extract only the text citation, not BibTeX
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+}
+```
+
 ## References
 
 - Fahrmeir, L., & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models (Second Edition)*. Springer. https://doi.org/10.1007/978-1-4757-3454-6
