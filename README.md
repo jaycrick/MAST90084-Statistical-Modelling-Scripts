@@ -38,3 +38,15 @@ quarto preview      # Live preview of all documents
 ## Resources
 
 [Quarto Guide](https://quarto.org/docs/guide/) • [R Docs](https://www.r-project.org/)
+
+## Contributing
+
+To keep things organized and safe:
+
+1. **Create a new branch** for each correction (e.g., `fix-typo-linear-model`)
+2. **Make your edits** and save
+3. **Commit** with a short summary (e.g., "Fix ANOVA section")
+4. **Push origin** and create a pull request
+5. **One branch per correction** — keep changes small and focused
+
+Never edit the main branch directly. All changes should go through a pull request.
