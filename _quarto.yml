@@ -6,6 +6,10 @@ project:
 
 website:
   title: "MAST90084 - Statistical Modelling Scripts"
+  repo-url: https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts
+  repo-actions: [edit, issue]
+  bread-crumbs: true
+  page-navigation: true
   navbar:
     left:
       - text: "Home"
