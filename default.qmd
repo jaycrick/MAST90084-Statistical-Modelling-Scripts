@@ -17,33 +17,33 @@ This is a collection of **detailed educational Quarto documents** that explain R
 
 ### Generalized Linear Models (GLM)
 
-1. **[ANOVA and Deviance Analysis](scripts/01-ANODEV.qmd)** - Binomial regression with the Caesar dataset, demonstrating hypothesis testing and interaction effects.
+1. **[ANOVA and Deviance Analysis](quarto_scripts/01-ANODEV.qmd)** - Binomial regression with the Caesar dataset, demonstrating hypothesis testing and interaction effects.
 
-2. **[Cell Differentiation Study](scripts/02-CellDiff.qmd)** - Poisson regression analyzing synergistic effects of two treatment factors.
+2. **[Cell Differentiation Study](quarto_scripts/02-CellDiff.qmd)** - Poisson regression analyzing synergistic effects of two treatment factors.
 
-3. **[Example 3.1 & 3.11: Caesar Dataset](scripts/03-Example3-1and3-11Caes.qmd)** - Detailed logistic regression walkthrough with reference level selection.
+3. **[Example 3.1 & 3.11: Caesar Dataset](quarto_scripts/03-Example3-1and3-11Caes.qmd)** - Detailed logistic regression walkthrough with reference level selection.
 
-4. **[Example 3.2: BTR Analysis](scripts/04-Example3-2BTR.qmd)** - Simple logistic regression example with model diagnostics.
+4. **[Example 3.2: BTR Analysis](quarto_scripts/04-Example3-2BTR.qmd)** - Simple logistic regression example with model diagnostics.
 
 ### Ordinal Regression
 
-5. **[Tonsil Size and Streptococcus](scripts/05-tonsil.qmd)** - Comparison of cumulative, partial proportional odds, and sequential models.
+5. **[Tonsil Size and Streptococcus](quarto_scripts/05-tonsil.qmd)** - Comparison of cumulative, partial proportional odds, and sequential models.
 
-6. **[Happiness Data: Ordinal Regression](scripts/06-Happiness.qmd)** - Cumulative link models with category-specific effects and data reshaping.
+6. **[Happiness Data: Ordinal Regression](quarto_scripts/06-Happiness.qmd)** - Cumulative link models with category-specific effects and data reshaping.
 
 ### Longitudinal & Correlated Data
 
-7. **[Ohio Respiratory Data: GEE Analysis](scripts/07-ohio.qmd)** - In-depth GEE demonstration with focus on repeated measures.
+7. **[Ohio Respiratory Data: GEE Analysis](quarto_scripts/07-ohio.qmd)** - In-depth GEE demonstration with focus on repeated measures.
 
-8. **[GEE Analysis: Ohio Respiratory Data](scripts/08-gee_ctsib.qmd)** - Generalized Estimating Equations with different correlation structures (independence, exchangeable, unstructured).
+8. **[GEE Analysis: Ohio Respiratory Data](quarto_scripts/08-gee_ctsib.qmd)** - Generalized Estimating Equations with different correlation structures (independence, exchangeable, unstructured).
 
-9. **[GLM with Mixed Effects](scripts/09-GLM_mixed_Effect.qmd)** - Binomial GLMM comparing Laplace approximation, AGHQ, and PQL estimation.
+9. **[GLM with Mixed Effects](quarto_scripts/09-GLM_mixed_Effect.qmd)** - Binomial GLMM comparing Laplace approximation, AGHQ, and PQL estimation.
 
-10. **[LM Mixed Effects](scripts/10-LM_mixed_effect.qmd)** - Linear mixed models with random intercepts using the pulp brightness dataset.
+10. **[LM Mixed Effects](quarto_scripts/10-LM_mixed_effect.qmd)** - Linear mixed models with random intercepts using the pulp brightness dataset.
 
 ### Survival Analysis
 
-11. **[Survival Analysis](scripts/11-survival.qmd)** - Kaplan-Meier estimation, handling censoring, and Weibull distribution assessment.
+11. **[Survival Analysis](quarto_scripts/11-survival.qmd)** - Kaplan-Meier estimation, handling censoring, and Weibull distribution assessment.
 
 ## How to Use These Guides
 

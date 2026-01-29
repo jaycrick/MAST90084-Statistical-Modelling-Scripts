@@ -13,27 +13,27 @@ website:
       - text: "Scripts"
         menu:
           - text: "ANOVA/Deviance Analysis"
-            file: scripts/01-ANODEV.qmd
+            file: quarto_scripts/01-ANODEV.qmd
           - text: "Cell Differentiation"
-            file: scripts/02-CellDiff.qmd
+            file: quarto_scripts/02-CellDiff.qmd
           - text: "Example 3.1 & 3.11 Caesar"
-            file: scripts/03-Example3-1and3-11Caes.qmd
+            file: quarto_scripts/03-Example3-1and3-11Caes.qmd
           - text: "Example 3.2 BTR"
-            file: scripts/04-Example3-2BTR.qmd
+            file: quarto_scripts/04-Example3-2BTR.qmd
           - text: "Tonsil Data"
-            file: scripts/05-tonsil.qmd
+            file: quarto_scripts/05-tonsil.qmd
           - text: "Happiness Data"
-            file: scripts/06-Happiness.qmd
+            file: quarto_scripts/06-Happiness.qmd
           - text: "Ohio Data"
-            file: scripts/07-ohio.qmd
+            file: quarto_scripts/07-ohio.qmd
           - text: "GEE CTSIB"
-            file: scripts/08-gee_ctsib.qmd
+            file: quarto_scripts/08-gee_ctsib.qmd
           - text: "GLM Mixed Effects"
-            file: scripts/09-GLM_mixed_Effect.qmd
+            file: quarto_scripts/09-GLM_mixed_Effect.qmd
           - text: "LM Mixed Effects"
-            file: scripts/10-LM_mixed_effect.qmd
+            file: quarto_scripts/10-LM_mixed_effect.qmd
           - text: "Survival Analysis"
-            file: scripts/11-survival.qmd
+            file: quarto_scripts/11-survival.qmd
 
 format:
   html:

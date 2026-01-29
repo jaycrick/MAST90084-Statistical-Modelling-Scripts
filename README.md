@@ -22,7 +22,7 @@ renv::restore()  # Installs all package dependencies (one time only)
 
 **3. Render documents:**
 
-In RStudio: Open any `.qmd` file in `scripts/` folder and click **"Render"**
+In RStudio: Open any `.qmd` file in `quarto_scripts/` folder and click **"Render"**
 
 Or from terminal:
 ```bash
@@ -31,7 +31,7 @@ quarto preview      # Live preview of all documents
 
 ## Structure
 
-- `scripts/*.qmd` - Interactive analysis documents
+- `quarto_scripts/*.qmd` - Interactive analysis documents
 - `data/` - Analysis datasets
 - `_output/` - Rendered HTML outputs
 
