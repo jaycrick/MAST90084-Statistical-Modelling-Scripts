@@ -1,74 +1,21 @@
 ---
-title: "MAST90084 Statistical Modelling Scripts"
-subtitle: "Learning-Focused Educational Guides"
+title: "MAST90084 Statistical Modelling"
+subtitle: "Interactive Quarto Guides"
 ---
 
 ## Welcome
 
-This is a collection of **detailed educational Quarto documents** that explain R scripts from the MAST90084 Statistical Modelling course. Each document goes beyond inline comments to provide:
+This site contains detailed educational guides for statistical modeling concepts, covering:
 
-- **Clear explanations** of statistical concepts
-- **Step-by-step code walkthroughs**
-- **Interpretations** of statistical outputs
-- **Visualizations** and diagnostics
-- **Key takeaways** for learning
+- **Generalized Linear Models** - Binomial, Poisson, and ordinal regression
+- **Mixed Effects Models** - Random intercepts and multilevel analysis
+- **Longitudinal Data** - GEE and repeated measures analysis
+- **Survival Analysis** - Kaplan-Meier and parametric methods
 
-## Scripts Covered
+## Browse the Analyses
 
-### Generalized Linear Models (GLM)
+Use the **Analyses** menu above to explore topic-by-topic walkthroughs with code explanations, interpretations, and diagnostics.
 
-1. **[ANOVA and Deviance Analysis](quarto_scripts/01-ANODEV.qmd)** - Binomial regression with the Caesar dataset, demonstrating hypothesis testing and interaction effects.
+## Key Features
 
-2. **[Cell Differentiation Study](quarto_scripts/02-CellDiff.qmd)** - Poisson regression analyzing synergistic effects of two treatment factors.
-
-3. **[Example 3.1 & 3.11: Caesar Dataset](quarto_scripts/03-Example3-1and3-11Caes.qmd)** - Detailed logistic regression walkthrough with reference level selection.
-
-4. **[Example 3.2: BTR Analysis](quarto_scripts/04-Example3-2BTR.qmd)** - Simple logistic regression example with model diagnostics.
-
-### Ordinal Regression
-
-5. **[Tonsil Size and Streptococcus](quarto_scripts/05-tonsil.qmd)** - Comparison of cumulative, partial proportional odds, and sequential models.
-
-6. **[Happiness Data: Ordinal Regression](quarto_scripts/06-Happiness.qmd)** - Cumulative link models with category-specific effects and data reshaping.
-
-### Longitudinal & Correlated Data
-
-7. **[Ohio Respiratory Data: GEE Analysis](quarto_scripts/07-ohio.qmd)** - In-depth GEE demonstration with focus on repeated measures.
-
-8. **[GEE Analysis: Ohio Respiratory Data](quarto_scripts/08-gee_ctsib.qmd)** - Generalized Estimating Equations with different correlation structures (independence, exchangeable, unstructured).
-
-9. **[GLM with Mixed Effects](quarto_scripts/09-GLM_mixed_Effect.qmd)** - Binomial GLMM comparing Laplace approximation, AGHQ, and PQL estimation.
-
-10. **[LM Mixed Effects](quarto_scripts/10-LM_mixed_effect.qmd)** - Linear mixed models with random intercepts using the pulp brightness dataset.
-
-### Survival Analysis
-
-11. **[Survival Analysis](quarto_scripts/11-survival.qmd)** - Kaplan-Meier estimation, handling censoring, and Weibull distribution assessment.
-
-## How to Use These Guides
-
-- **New to a topic?** Start with the overview and key concepts sections
-- **Need practical code?** Look at the code sections with step-by-step explanations
-- **Debugging?** Check the diagnostics and interpretation sections
-- **Learning concepts?** Read the "Key Learning Points" and reference sections
-
-## Document Format
-
-Each document is designed with learning in mind:
-
-- 📋 **Clear structure**: Overview → Data → Analysis → Interpretation → Takeaways
-- 💡 **Explanation-focused**: Every code block is explained in context
-- 📊 **Visual outputs**: Plots and tables show results clearly
-- 🔗 **Cross-references**: Links to related concepts and textbooks
-- 💾 **Reproducible**: All code is runnable with provided data
-
-## References
-
-These guides are based primarily on:
-
-- **Fahrmeir, L. & Tutz, G. (2001).** *Multivariate Statistical Modelling Based on Generalized Linear Models* (2nd ed.)
-- **Faraway, J. J. (2016).** *Extending the Linear Model with R* (2nd ed.)
-
-## Getting Started
-
-Click on any script above to dive into the detailed educational guide!
+Each guide includes clear explanations, step-by-step code, statistical interpretations, and reproducible examples from *Fahrmeir & Tutz (2001)* and *Faraway (2016)*.
