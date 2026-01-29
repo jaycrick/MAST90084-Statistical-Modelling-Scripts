@@ -75,7 +75,10 @@ help(caeser)
 
 ## Data Transformation
 
-The raw `caesar` dataset has one row per birth (251 rows total). For binomial regression, we need to aggregate the data: one row per unique combination of covariates (`noplan`, `factor`, `antib`), with columns for total cases and infection counts in each group.
+The raw `caesar` dataset has one row per birth (251 rows total).
+For binomial regression, we need to aggregate the data:
+one row per unique combination of covariates (`noplan`, `factor`, `antib`),
+with columns for total cases and infection counts in each group.
 
 First, convert to a tibble for clearer printing, and easier data manipulation.
 Note that tibble print the data types of each column.
@@ -108,7 +111,8 @@ caesar_tbl
 Setting `.groups = "drop"` removes the grouping after `summarize()`,
 giving us a normal tibble, and avoiding confusing behaviour in later operations.
 
-The third row has `size` zero, and so we remove it (and any other empty variable combinations)
+The third row has `size` zero, and so we remove it
+(and any other empty variable combinations)
 
 ```{r}
 caesar_tbl <- caesar_tbl |>
@@ -180,8 +184,13 @@ with an infection per group of covariates.
 When we use grouped data, the weight should always be the same
 as the number of counts of that combination of covariates, hence `weights = size`.
 
-Fit the regression with the logit link (default). The unscaled deviance gives the same scaled deviance for binomial and poisson data. (Note:
-[The documentation of `glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html) about what it is reporting for the deviance may be misleading, because it ignores the fact that deviance only becomes twice the log-likelihood difference when rescaled by the dispersion.)
+Fit the regression with the logit link (default).
+The unscaled deviance gives the same scaled deviance for binomial and poisson data.
+(Note:
+[The documentation of `glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html)
+about what it is reporting for the deviance may be misleading,
+because it ignores the fact that deviance only becomes
+twice the log-likelihood difference when rescaled by the dispersion.)
 
 ```{r}
 caesar_glm_fct <- glm(
@@ -237,7 +246,9 @@ In the binomial and Poisson cases,
 the scaled deviance will be the same as the unscaled deviance.
 
 ::: {.callout-note}
-The documentation of `glm()` about what it is reporting for the deviance may be misleading, because it ignores the fact that deviance only becomes twice the log-likelihood difference when rescaled by the dispersion.
+The documentation of `glm()` about what it is reporting for the deviance
+may be misleading, because it ignores the fact that deviance only becomes
+twice the log-likelihood difference when rescaled by the dispersion.
 :::
 
 We can now consider the significance of each of the variables
@@ -256,12 +267,17 @@ anova(caesar_int_glm, test = "F")
 ::: {.callout-tip collapse="true"}
 ## Why is an F test inappropriate here? Expand for answer
 
-For binomial GLMs, the natural test for nested models is based on differences in deviance, which asymptotically follows a chi-square distribution. The F test is appropriate for Gaussian linear models with unknown dispersion (and certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
+For binomial GLMs, the natural test for nested models
+is based on differences in deviance,
+which asymptotically follows a chi-square distribution.
+The F test is appropriate for Gaussian linear models with unknown dispersion
+(and certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
 :::
 
 ## Model Diagnostics
 
-We can extract residuals of different types; here we collect them into a single tibble and round to three decimals for readability.
+We can extract residuals of different types; here we collect them
+into a single tibble and round to three decimals for readability.
 
 ```{r}
 tibble(
@@ -275,7 +291,8 @@ tibble(
 As a sanity check, if we sum the squares of the deviance residuals,
 we should recover the deviance.
 
-Perform Pearson and deviance tests for model goodness-of-fit. Compare fitted and realized proportions as on the top of p.52.
+Perform Pearson and deviance tests for model goodness-of-fit.
+Compare fitted and realized proportions as on the top of p.52.
 
 ```{r}
 sum(resid(caesar_int_glm, type = "deviance")^2)
@@ -305,7 +322,8 @@ and so under both tests (assuming sufficient asymptotics apply),
 we reject null hypothesis that the data can be explained by these models,
 with significant level of 0.05.
 
-We can investigate why this might be by comparing the observed and fitted proportions side by side:
+We can investigate why this might be by comparing the observed
+and fitted proportions side by side:
 
 ```{r}
 tibble(
@@ -338,9 +356,9 @@ summary(caesar_glm_probit)$coeff
 
 We now follow **Example 2.4** and add in interaction effects.
 
-### Adding noplan:antib Interaction
+### Adding `noplan:antib` Interaction
 
-We test the interaction between noplan (planned/emergency surgery) and antib
+We test the interaction between `noplan` (planned/emergency surgery) and `antib`
 (antibiotic use).
 We are aiming to replicate the results in book
 
@@ -370,7 +388,7 @@ we use the limiting chi-squared distribution with degree of freedom one.
 Make sure you know why the degree of freedom is one.
 :::
 
-We extract the deviance for the interaction term and compute the p-value manually:
+We extract the deviance for the interaction term and compute the $p$-value manually:
 
 ```{r}
 anova_result <- anova(caesar_glm_noplan_antib)
@@ -434,7 +452,7 @@ Compare fitted and realized proportions as on p.53.
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
 ```
 
-Both statistics give a large p-value, and so we don't reject the interaction.
+Both statistics give a large $p$-value, and so we don't reject the interaction.
 
 ```{r}
 tibble(
@@ -482,14 +500,16 @@ tibble(
 Test goodness-of-fit using Pearson and deviance statistics:
 
 ```{r}
-pearson_pval <- 1 - pchisq(
-    sum(resid(caesar_glm_noplan_factor_augment, type = "pearson")^2),
-    df = 2
-)
-deviance_pval <- 1 - pchisq(
-    sum(resid(caesar_glm_noplan_factor_augment, type = "deviance")^2),
-    df = 2
-)
+pearson_pval <- 1 -
+    pchisq(
+        sum(resid(caesar_glm_noplan_factor_augment, type = "pearson")^2),
+        df = 2
+    )
+deviance_pval <- 1 -
+    pchisq(
+        sum(resid(caesar_glm_noplan_factor_augment, type = "deviance")^2),
+        df = 2
+    )
 
 tibble(
     test = c("Pearson", "Deviance"),

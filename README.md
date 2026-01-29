@@ -9,40 +9,24 @@ R scripts for MAST90084 Statistical Modelling, rewritten as interactive Quarto d
 - [Quarto](https://quarto.org/docs/get-started/)
 - [RStudio](https://posit.co/download/rstudio-desktop/) (recommended)
 
-**2. Clone and open:**
+**2. Clone and setup (once):**
 ```bash
 git clone https://github.com/yourusername/MAST90084-Statistical-Modelling-Scripts.git
+cd MAST90084-Statistical-Modelling-Scripts
 ```
-Open the project in RStudio by double-clicking `MAST90084-Statistical-Modelling-Scripts.Rproj`
 
-**3. Install packages:**
-
-Option A - Use `renv` for reproducibility (recommended):
+Open in RStudio and run in the console:
 ```r
-install.packages("renv")
-renv::restore()  # Installs exact versions from renv.lock
+renv::restore()  # Installs all package dependencies (one time only)
 ```
 
-Option B - Manually install packages
+**3. Render documents:**
 
-**4. View documents:**
+In RStudio: Open any `.qmd` file in `scripts/` folder and click **"Render"**
+
+Or from terminal:
 ```bash
-quarto preview          # Live preview of entire site
-quarto render          # Generate all HTML files
-```
-
-Or in RStudio: Open any `.qmd` file in `scripts/` and click "Render"
-
-## Working with renv
-
-After installing new packages:
-```r
-renv::snapshot()  # Lock current versions
-```
-
-Check environment status:
-```r
-renv::status()    # See if packages need updating
+quarto preview      # Live preview of all documents
 ```
 
 ## Structure
