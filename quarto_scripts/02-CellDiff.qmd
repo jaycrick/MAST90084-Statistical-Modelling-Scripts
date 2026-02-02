@@ -13,35 +13,68 @@ This script demonstrates:
 - Model diagnostics using **deviance and Pearson statistics**
 - **Dispersion estimation** for overdispersion assessment
 
-The study investigates whether TNF (Tumor Necrosis Factor) and IFN (Interferon) agents stimulate cell differentiation **synergistically or independently**.
+The study investigates whether TNF (Tumor Necrosis Factor) and IFN (Interferon)
+agents stimulate cell differentiation **synergistically or independently**.
 
 ## Package Setup and Data
 
+As in the previous script, for safety we import @conflicted_package
+
 ```{r}
 library(conflicted)
+```
+
+Then we also import the other packages from @dplyr_package, @fahrmeir_package, @gee_package, @geepack_package_2006, @venables_modern_2002
+
+```{r}
 library(dplyr)
 library(Fahrmeir)
 library(gee)
 library(geepack)
 library(MASS)
+```
 
+We can import and preview the data.
+It is good practice to inspect the dataframe to get an idea of the structure,
+and types of the data.
+
+```{r}
 data(cells)
-cells
+cells_tbl <- as_tibble(cells)
+
+cells_tbl
 ```
 
 ## Example 2.3
 
-Aims to study whether the two agents stimulate cell differentiation synergistically or independently. Just fit the Poisson GLM as in Ex 2.3.
+Aims to study whether the two agents stimulate cell differentiation synergistically or independently.
+
+We initially just fit the Poisson GLM as in Ex 2.3.
+Note that `y ~ TNF * IFN` automatically includes the intercept terms and individual covariates for `TNF` and `IFN`.
+It is equivalent to `y ~ 1 + TNF + IFN + TNF * IFN`.
 
 ```{r}
-glm_poisson <- glm(formula = y ~ TNF * IFN, family = poisson, data = cells)
+glm_poisson <- glm(formula = y ~ TNF * IFN, family = poisson, data = cells_tbl)
 
-summary(glm_poisson)
+glm_poisson_summary <- summary(glm_poisson)
+```
 
-summary(glm_poisson)$coeff
+We can inspect the whole summary object directly with `glm_summary`,
+or just the coefficients (appropriately rounded) to compare directly to @fahrmeir_multivariate_2001.
+```{r}
+round(glm_poisson_summary$coeff, digits = 4)
+```
 
-round(summary(glm_poisson)$coeff, digits = 4)
+We see that this lines up appropriately with the book.
 
+## Example 2.6
+
+We now continue with this dataset as in Example 2.6.
+We can see from the data above that the p-value for the interaction term is very small.
+However before we jump to the conclusion that therefore it must be significant,
+we consider the possibility that the model may not be appropriate for the data.
+
+```{r}
 anova(glm_poisson)
 round(glm_poisson$coeff, digits = 4)
 glm_poisson$deviance
@@ -52,8 +85,8 @@ glm_poisson$deviance
 These two are the same, which makes sense under the exponential family assumption is true.
 
 ```{r}
-summary(glm_poisson)$cov.scaled
-summary(glm_poisson)$cov.unscaled
+glm_poisson_summary$cov.scaled
+glm_poisson_summary$cov.unscaled
 ```
 
 ## Covariance Matrices of Beta
@@ -61,8 +94,8 @@ summary(glm_poisson)$cov.unscaled
 These two are the same, which makes sense under the exponential family assumption is true.
 
 ```{r}
-summary(glm_poisson)$cov.scaled
-summary(glm_poisson)$cov.unscaled
+glm_poisson_summary$cov.scaled
+glm_poisson_summary$cov.unscaled
 ```
 
 ## Example 2.6
@@ -71,7 +104,10 @@ Estimated Pearson statistic, same as in Eg 2.6. Both reject the model, but we sh
 
 ```{r}
 pearson_chisq_stat <-
-    sum((glm_poisson$y - glm_poisson$fitted.values)^2 / glm_poisson$fitted.values)
+    sum(
+        (glm_poisson$y - glm_poisson$fitted.values)^2 /
+            glm_poisson$fitted.values
+    )
 
 1 - pchisq(glm_poisson$deviance, df = 12)
 1 - pchisq(pearson_chisq_stat, df = 12)
@@ -90,7 +126,7 @@ Perform quasi "model-based" (also known as "naive") approach assuming the varian
 glm_quasi_poisson <- glm(
     formula = y ~ TNF * IFN,
     family = quasipoisson,
-    data = cells
+    data = cells_tbl
 )
 
 summary(glm_quasi_poisson)
@@ -109,7 +145,7 @@ These two are different now by the scale/dispersion.
 summary(glm_quasi_poisson)$cov.scaled
 summary(glm_quasi_poisson)$cov.unscaled
 
-summary(glm_poisson)$cov.unscaled * summary(glm_quasi_poisson)$dispersion
+glm_poisson_summary$cov.unscaled * summary(glm_quasi_poisson)$dispersion
 ```
 
 **WARNING**: the dispersion estimate provided by glm() actually leverages the "working residuals" and the IWLS weights! So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as `glm_poisson$weights`, the weights by assuming phi = 1 under the full likelihood model.
@@ -135,15 +171,13 @@ with(glm_quasi_poisson, sum(weights * residuals^2)) /
 Plotting variance against mean by TNF. Note that `var()` computes the unbiased variance estimate by default; to reproduce the results on p.59 of F&T, we have to use the biased variance estimate.
 
 ```{r}
-cells_tbl <- as_tibble(cells)
 cells_tbl_grouped_tnf <- group_by(cells_tbl, TNF)
-cells_tbl_summary <- summarize(
+cells_summary <- summarize(
     cells_tbl_grouped_tnf,
     est_var = var(y) * 3 / 4,
-    est_mean = mean(y)
+    est_mean = mean(y),
+    .groups = "drop"
 )
-cells_summary <- as.data.frame(cells_tbl_summary)
-cells_summary
 plot(
     cells_summary$est_mean,
     cells_summary$est_var,
@@ -157,9 +191,9 @@ Use the gee function for the "robust inference" in this example instead. This sh
 ```{r}
 gee_mu <- gee(
     formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells)),
+    id = seq_len(nrow(cells_tbl)),
     family = quasi(variance = "mu", link = "log"),
-    data = cells
+    data = cells_tbl
 )
 
 summary(gee_mu)
@@ -186,17 +220,17 @@ Try to fit with geeglm from the geepack instead.
 ```{r}
 gee_mu_geepack <- geeglm(
     formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells)),
+    id = seq_len(nrow(cells_tbl)),
     family = poisson(link = "log"),
-    data = cells,
+    data = cells_tbl,
     scale.fix = FALSE
 )
 
 gee_mu_geepack_fix <- geeglm(
     formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells)),
+    id = seq_len(nrow(cells_tbl)),
     family = poisson(link = "log"),
-    data = cells,
+    data = cells_tbl,
     scale.fix = TRUE
 )
 ```
@@ -208,9 +242,9 @@ Now the third column of table 2.7 corresponding to the purely quadratic working 
 ```{r}
 glm_gee_mu2 <- gee(
     formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells)),
+    id = seq_len(nrow(cells_tbl)),
     family = quasi(variance = "mu^2", link = "log"),
-    data = cells
+    data = cells_tbl
 )
 
 summary(glm_gee_mu2)$scale
@@ -219,3 +253,7 @@ round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
 naivez <- glm_gee_mu2$coeff / sqrt(diag(glm_gee_mu2$naive.variance))
 round(2 * pnorm(abs(naivez), lower.tail = FALSE), 3)
 ```
+
+Bibliography
+
+@fahrmeir_multivariate_2001
