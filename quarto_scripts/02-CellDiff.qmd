@@ -2,6 +2,13 @@
 title: "Cell Differentiation Study"
 subtitle: "Poisson GLM with Interaction Effects"
 date: today
+nocite: |
+  @conflicted_package
+  @dplyr_package
+  @fahrmeir_package
+  @gee_package
+  @geepack_package_2006
+  @venables_modern_2002
 ---
 
 ## Overview
@@ -18,13 +25,14 @@ agents stimulate cell differentiation **synergistically or independently**.
 
 ## Package Setup and Data
 
-As in the previous script, for safety we import @conflicted_package
+As in the previous script, for safety we import the `conflicted` package first
+to manage any function name conflicts.
 
 ```{r}
 library(conflicted)
 ```
 
-Then we also import the other packages from @dplyr_package, @fahrmeir_package, @gee_package, @geepack_package_2006, @venables_modern_2002
+Then we import the other packages we need to complete the analysis.
 
 ```{r}
 library(dplyr)
@@ -34,8 +42,8 @@ library(geepack)
 library(MASS)
 ```
 
-We can import and preview the data.
-It is good practice to inspect the dataframe to get an idea of the structure,
+We can import and preview the `cells` data from the `Fahrmeir` package.
+As always, it is good practice to inspect the dataframe to get an idea of the structure,
 and types of the data.
 
 ```{r}
@@ -44,6 +52,8 @@ cells_tbl <- as_tibble(cells)
 
 cells_tbl
 ```
+
+All the data are encoded as integers.
 
 ## Example 2.3
 
@@ -60,17 +70,17 @@ glm_poisson_summary <- summary(glm_poisson)
 ```
 
 We can inspect the whole summary object directly with `glm_summary`,
-or just the coefficients (appropriately rounded) to compare directly to @fahrmeir_multivariate_2001.
+or just the coefficients (appropriately rounded) to compare directly to @fahrmeir_multivariate_2001 page 37.
 ```{r}
 round(glm_poisson_summary$coeff, digits = 4)
 ```
 
-We see that this lines up appropriately with the book.
+We see that these estimates line up appropriately.
 
 ## Example 2.6
 
 We now continue with this dataset as in Example 2.6.
-We can see from the data above that the p-value for the interaction term is very small.
+We can see from the data above that the $p$-value for the interaction term is very small.
 However before we jump to the conclusion that therefore it must be significant,
 we consider the possibility that the model may not be appropriate for the data.
 
@@ -168,7 +178,7 @@ with(glm_quasi_poisson, sum(weights * residuals^2)) /
 
 ## Example 2.7
 
-Plotting variance against mean by TNF. Note that `var()` computes the unbiased variance estimate by default; to reproduce the results on p.59 of F&T, we have to use the biased variance estimate.
+Plotting variance against mean by TNF. Note that `var()` computes the unbiased variance estimate by default; to reproduce the results on p.59 of @fahrmeir_multivariate_2001, we have to use the biased variance estimate.
 
 ```{r}
 cells_tbl_grouped_tnf <- group_by(cells_tbl, TNF)
@@ -235,9 +245,9 @@ gee_mu_geepack_fix <- geeglm(
 )
 ```
 
-I think the second column in Table 2.7 is not correctly printed; they have printed the naive p-values, which should have been the robust p-values.
+I think the second column in Table 2.7 is not correctly printed; they have printed the naive $p$-values, which should have been the robust $p$-values.
 
-Now the third column of table 2.7 corresponding to the purely quadratic working variance structure. The robust p-values match the ones in F&T, but not the naive ones, so all the p-values reported in parentheses of Table 2.7 in F&T should have been robust p-values.
+Now the third column of table 2.7 corresponding to the purely quadratic working variance structure. The robust $p$-values match the ones in @fahrmeir_multivariate_2001, but not the naive ones, so all the $p$-values reported in parentheses of Table 2.7 in @fahrmeir_multivariate_2001 should have been robust $p$-values.
 
 ```{r}
 glm_gee_mu2 <- gee(
