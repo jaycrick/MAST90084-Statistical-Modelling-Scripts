@@ -45,7 +45,7 @@ If you don't already have the packages installed, run
 install.packages(c("conflicted", "dplyr", "Fahrmeir"))
 ```
 
-The `conflicted` library forces you to choose a which library
+The `conflicted` library forces you to choose which library
 you want to call a function from if it is in two or more loaded libraries.
 This is very important, particularly if you are looking at legacy code (old code)
 from someone else who may have had particular functions loaded.
@@ -70,7 +70,7 @@ by running the following command in RStudio
 
 ```{r}
 #| eval: false
-help(caeser)
+?caeser
 ```
 
 ## Data Transformation
@@ -164,7 +164,7 @@ Set the reference level for each factor. The reference level (first level) becom
 the baseline category in regression coefficients.
 
 ```{r}
-caesar_tbl_fct <- caesar_tbl |>
+caesar_tbl <- caesar_tbl |>
     mutate(
         noplan = fct_relevel(noplan, "planned"),
         factor = fct_relevel(factor, "without"),
@@ -430,7 +430,7 @@ This means that the estimates are likely to be very unreliable.
 Read the book in detail to understand why, but in summary,
 there are two rows with no infection counts,
 which means that certain conditions are not satisfied.
-See the section **Uniqueness and existence of MLE's** for more information.
+See the section **Uniqueness and existence of MLE's** (p.43 of textbook) for more information.
 
 :::{.callout-warning collapse="true"}
 ## Book typo
