@@ -8,8 +8,9 @@ nocite: |
   @dplyr_package
   @fahrmeir_package
   @gee_package
-  @geepack_package_2006
+  @hojsgaard_r_2005
   @noauthor_poisson_2026
+  @wickham_ggplot2_2016
   @venables_modern_2002
 ---
 
@@ -20,6 +21,8 @@ nocite: |
 - Add more direct tables from the book.
 - Fix the working residuals file
 - Fix titles and subtitles throughout
+- Add syntax explanations for various functions
+- Caution vs warning callouts
 
 ## Overview
 
@@ -46,6 +49,7 @@ Then we import the other packages we need to complete the analysis.
 
 ```{r}
 library(dplyr)
+library(ggplot2)
 library(Fahrmeir)
 library(gee)
 library(geepack)
@@ -62,7 +66,6 @@ and types of the data.
 ```{r}
 data(cells)
 cells_tbl <- as_tibble(cells)
-
 cells_tbl
 ```
 
@@ -83,10 +86,10 @@ glm_poisson <- glm(formula = y ~ TNF * IFN, family = poisson, data = cells_tbl)
 glm_poisson_summary <- summary(glm_poisson)
 ```
 
-We can inspect the whole summary object directly with `glm_summary`,
+We can inspect the whole summary object directly with `glm_poisson_summary`,
 or just the coefficients (appropriately rounded) to compare directly to @fahrmeir_multivariate_2001 page 37.
 ```{r}
-round(glm_poisson_summary$coeff, digits = 4)
+round(glm_poisson_summary$coefficients, digits = 4)
 ```
 
 We see that these estimates line up appropriately.
@@ -205,7 +208,7 @@ glm_quasi_poisson_summary
 ```
 
 Note that since the variance structure is assumed to be correct,
-the estimates are not derived using the sandwich estimator.
+the estimates are not derived using the sandwich covariance matrix.
 
 We can compare the coefficients between the from the full Poisson model.
 
@@ -219,15 +222,16 @@ We see that the coefficients are the exact same, but the standard errors are sig
 The estimating equations in both the standard and quasi Poisson models are the same,
 giving us identical coefficient estimates, but the dispersion parameter effects our standard errors.
 
-The following functions still work with the quasi Poisson model.
+We can use our standard `anova()` function, and can see the different kinds of residuals:
 
 ```{r}
-#| eval: false
-anova(glm_quasi_poisson)
-resid(glm_quasi_poisson)
-resid(glm_quasi_poisson, type = "deviance")
-resid(glm_quasi_poisson, type = "working")
-resid(glm_quasi_poisson, type = "pearson")
+residuals_tbl <- tibble(
+    default = resid(glm_quasi_poisson),
+    deviance = resid(glm_quasi_poisson, type = "deviance"),
+    working = resid(glm_quasi_poisson, type = "working"),
+    pearson = resid(glm_quasi_poisson, type = "pearson")
+)
+residuals_tbl
 ```
 
 These two are different now, since the scaled covariance should be $\phi$ times the unscaled covariance.
@@ -266,7 +270,13 @@ For a detailed mathematical explanation of why this difference exists, see [Appe
 
 ## Example 2.7
 
-Plotting variance against mean by TNF. Note that `var()` computes the unbiased variance estimate by default; to reproduce the results on p.59 of @fahrmeir_multivariate_2001, we have to use the biased variance estimate.
+This example explores different variance structures for the data.
+We have already explored the linear variance structure $\sigma^2(\mu) = \phi \mu$.
+
+Plotting variance against mean by TNF.
+Note that `var()` computes the unbiased variance estimate by default;
+to reproduce the results on p.59 of @fahrmeir_multivariate_2001,
+we have to use the biased variance estimate.
 
 ```{r}
 cells_summary <- cells_tbl |>
@@ -276,66 +286,131 @@ cells_summary <- cells_tbl |>
         est_mean = mean(y),
         .groups = "drop"
     )
+ggplot(cells_summary, aes(x = est_mean, y = est_var)) +
+    geom_point(size = 3) +
+    labs(x = "Mean", y = "Biased Variance") +
+    theme_minimal()
+```
+
+::: {.callout-tip collapse="true"}
+## ggplot2 Syntax Explanation
+
+- `ggplot(data, aes(x = ..., y = ...))`: Initialize a plot with data and aesthetic mappings
+- `aes()`: Define which columns map to which visual properties (x, y, color, size, etc.)
+- `geom_point()`: Add a layer of points (scatter plot)
+- `labs()`: Set axis labels and title
+- `theme_minimal()`: Apply a clean, minimal theme
+- Layers are combined with `+` (similar to piping)
+
+The equivalent base R code to create the same scatter plot would be:
+```{r}
+#| eval: false
 plot(
     cells_summary$est_mean,
     cells_summary$est_var,
-    xlab = "mean",
-    ylab = "variance"
+    xlab = "Mean",
+    ylab = "Biased Variance"
 )
 ```
+:::
 
-Use the gee function for the "robust inference" in this example instead. This should get the second column of table 2.7 corresponding to the linear working variance structure. The dispersion provided by gee is the same as our own estimated dispersion based on Pearson residuals!
+@fahrmeir_multivariate_2001 suggests that since this does not look linear,
+we should compare various variance structures, namely:
+
+- $\sigma^2(\mu) = \phi \mu$ (linear)
+- $\sigma^2(\mu) = \phi \mu^2$ (quadratic)
+- $\sigma^2(\mu) = \phi \mu + \phi_2 \mu^2$ (linear + quadratic which).
+
+We leave the linear + quadratic case for further exploration.
+
+Use the `gee()` function for the "robust inference" in this example instead.
+This means that we do not assume that the variance structure is correctly specified,
+and instead use the sandwich variance estimator for inference.
+This should get the second column of Table 2.7 in @fahrmeir_multivariate_2001
+corresponding to the linear working variance structure.
+
+We start by considering the linear variance structure $\sigma^2(\mu) = \phi \mu$.
 
 ```{r}
 gee_mu <- gee(
     formula = y ~ TNF * IFN,
     id = seq_len(nrow(cells_tbl)),
-    family = quasi(variance = "mu", link = "log"),
-    data = cells_tbl
+    data = cells_tbl,
+    family = quasi(variance = "mu", link = "log")
 )
-
-summary(gee_mu)
-
-summary(gee_mu)$coeff
 ```
 
-The following should be the robust z-values, i.e. estimates rescaled by sandwich variance estimate.
+::: {.callout-tip}
+## `gee()` Syntax Explanation
+
+- `id`: Cluster identifier—observations with the same `id` are treated as correlated.
+Here we use `seq_len(nrow(cells_tbl))` to treat each observation as independent
+- `family = quasi(variance = "...", link = "...")`: Specifies the assumed variance function and link function
+  - `variance = "mu"`: Linear variance structure $\sigma^2(\mu) = \phi \mu$
+  - `link = "log"`: Log link function
+:::
 
 ```{r}
-robust_z <- gee_mu$coeff / sqrt(diag((gee_mu)$robust.variance))
-round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
+gee_mu_summary <- summary(gee_mu)
+gee_mu_summary
 ```
 
-The following should be the estimates rescaled by model-based variance estimate.
+Again, the coefficients should be identical to the previous models,
+since the same score function is being solved.
+We can also see that the dispersion provided by `gee()`
+is the same as our own estimated dispersion based on Pearson residuals!
+The naive standard errors are those assuming the variance structure is correct,
+while the robust standard errors are those using the sandwich variance estimator,
+which is guaranteed to be asymptotically correct even if the variance structure is misspecified.
 
 ```{r}
-naivez <- gee_mu$coeff / sqrt(diag((gee_mu)$naive.variance))
+round(gee_mu_summary$coefficients, 4)
+round(glm_poisson_summary$coefficients, 4)
+```
+
+We can then get the $p$-values corresponding to the naive and robust standard errors.
+Again assuming we have correctly specified the variance structure, we have:
+
+```{r}
+naivez <- gee_mu$coefficients / sqrt(diag((gee_mu)$naive.variance))
 round(2 * pnorm(abs(naivez), lower.tail = FALSE), 3)
 ```
 
-Try to fit with geeglm from the geepack instead.
+If we do not assume that we have correctly specified the variance structure, we have:
 
 ```{r}
-gee_mu_geepack <- geeglm(
-    formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells_tbl)),
-    family = poisson(link = "log"),
-    data = cells_tbl,
-    scale.fix = FALSE
-)
-
-gee_mu_geepack_fix <- geeglm(
-    formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells_tbl)),
-    family = poisson(link = "log"),
-    data = cells_tbl,
-    scale.fix = TRUE
-)
+robust_z <- gee_mu$coefficients / sqrt(diag((gee_mu)$robust.variance))
+round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
 ```
 
-I think the second column in Table 2.7 is not correctly printed; they have printed the naive $p$-values, which should have been the robust $p$-values.
+:::{.callout-caution}
+Note that in @fahrmeir_multivariate_2001 Table 2.7,
+the $p$-values of the $\sigma^2(\mu) = \phi \mu$ column
+corresponds to the naive $p$-values,
+whereas they should actually correspond to the robust $p$-values.
+:::
 
-Now the third column of table 2.7 corresponding to the purely quadratic working variance structure. The robust $p$-values match the ones in @fahrmeir_multivariate_2001, but not the naive ones, so all the $p$-values reported in parentheses of Table 2.7 in @fahrmeir_multivariate_2001 should have been robust $p$-values.
+:::{.callout-note collapse="true"}
+## Alternative `geepack` Implementation
+
+There is an alternative package `geepack` which also implements GEE models.
+Under the hood, there are some small differences in implementation between `gee` and `geepack`.
+
+```{r}
+geepack_mu <- geeglm(
+    formula = y ~ TNF * IFN,
+    family = poisson(link = "log"),
+    data = cells_tbl,
+    id = seq_len(nrow(cells_tbl))
+)
+geepack_mu
+geepack_mu_summary <- summary(geepack_mu)
+geepack_mu_summary
+```
+
+:::
+
+Now we try the quadratic variance structure $\sigma^2(\mu) = \phi \mu^2$.
 
 ```{r}
 glm_gee_mu2 <- gee(
@@ -344,14 +419,26 @@ glm_gee_mu2 <- gee(
     family = quasi(variance = "mu^2", link = "log"),
     data = cells_tbl
 )
-
-summary(glm_gee_mu2)$scale
-robust_z <- glm_gee_mu2$coeff / sqrt(diag(glm_gee_mu2$robust.variance))
-round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
-naivez <- glm_gee_mu2$coeff / sqrt(diag(glm_gee_mu2$naive.variance))
-round(2 * pnorm(abs(naivez), lower.tail = FALSE), 3)
+glm_gee_mu2_summary <- summary(glm_gee_mu2)
+glm_gee_mu2_summary
+round(glm_gee_mu2_summary$scale, 3)
 ```
 
-Bibliography
+The coefficients match those in @fahrmeir_multivariate_2001 Table 2.7 on page 60.
 
-@fahrmeir_multivariate_2001
+For a final sanity check, we manually compute both the naive and robust $Z$ and $p$-values.
+
+```{r}
+gee_mu2_inference <- tibble(
+    coefficient = names(glm_gee_mu2$coefficients),
+    naive_z = glm_gee_mu2$coefficients / sqrt(diag(glm_gee_mu2$naive.variance)),
+    naive_p = round(2 * pnorm(abs(naive_z), lower.tail = FALSE), 3),
+    robust_z = glm_gee_mu2$coefficients / sqrt(diag(glm_gee_mu2$robust.variance)),
+    robust_p = round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
+)
+gee_mu2_inference
+```
+
+The robust $p$-values match the ones in @fahrmeir_multivariate_2001, but not the naive ones,
+confirming all the $p$-values reported in parentheses of Table 2.7 of @fahrmeir_multivariate_2001
+should have been robust $p$-values.
