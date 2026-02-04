@@ -38,6 +38,9 @@ website:
             file: quarto_scripts/10-LM_mixed_effect.qmd
           - text: "Survival Analysis"
             file: quarto_scripts/11-survival.qmd
+          - text: "---"
+          - text: "Appendix: Dispersion with Working Residuals"
+            file: quarto_scripts/A1-dispersion-working-residuals.qmd
 
 format:
   html:

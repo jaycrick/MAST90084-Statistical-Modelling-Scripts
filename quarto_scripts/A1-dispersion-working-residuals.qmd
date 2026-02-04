@@ -1,0 +1,61 @@
+---
+title: "Estimating the Dispersion with Working Residuals"
+subtitle: "Why glm() and gee() Give Different Dispersion Estimates"
+date: today
+---
+
+## Background
+
+In [02-CellDiff.qmd](02-CellDiff.qmd), it was revealed that, for quasi-Poisson regression, the `glm()` function in R uses the working residuals to construct its estimate for the dispersion parameter $\phi$, as opposed to the "usual" Pearson residual based estimate used by `gee()`, giving a slightly different number.
+
+## The Working Residual Based Estimator
+
+Under the hood of `glm()`, the working residual based estimator is constructed as the weighted average
+
+$$
+\frac{1}{n - p} \sum_{i=1}^{n} w_i r_{i,w}^2,
+$$ {#eq-weighted-avg}
+
+where
+
+$$
+r_{i,w} = D_i(\hat{\boldsymbol{\beta}})^{-1}(y_i - \mu_i(\hat{\boldsymbol{\beta}}))
+$$
+
+are the working residuals and
+
+$$
+w_i = \omega_i V(\hat{\mu}_i)^{-1} D_i(\hat{\boldsymbol{\beta}})^2
+$$
+
+are the working weights (Venables and Ripley, p.186) used in the IRLS method.
+
+## Interpretation Under Poisson Full Likelihood
+
+To make sense of this estimator, note that under the Poisson full likelihood, $\omega_i = 1$, and hence
+
+$$
+w_i = D_i(\hat{\boldsymbol{\beta}})^2 V(\hat{\mu}_i)^{-1}.
+$$
+
+This combined with @eq-weighted-avg gives that
+
+$$
+\frac{1}{n - p} \sum_{i=1}^{n} w_i r_{i,w}^2 = \frac{1}{n - p} \sum_{i=1}^{n} V(\hat{\mu}_i)^{-1}(y_i - \hat{\mu}_i)^2.
+$$ {#eq-pearson-form}
+
+Under the assumption of a correctly specified variance structure, each $(y_i - \hat{\mu}_i)^2$ can be understood as an estimate for
+
+$$
+\sigma_{oi}^2 = \phi \frac{V_i}{\omega_i} = \phi V_i
+$$
+
+(note that we have used the notation $\sigma_{oi}^2$ here to represent the true variance). As such, each summand on the right hand side of @eq-pearson-form can be understood as an estimate for $\phi V_i V_i^{-1} = \phi$.
+
+All in all, @eq-weighted-avg as an estimator for $\phi$ makes sense by assuming a correctly specified variance structure.
+
+## Why the Numbers Still Differ
+
+One may wonder: The last expression in @eq-pearson-form is exactly the same as a Pearson-residual based dispersion estimator (which we computed "by hand" to be 11.73516), why did we get a slightly different number (reported by `glm()` to be 11.73534)?
+
+The reason is that the **weights reported by the `glm` object are the working weights used in the last iteration of the IRLS fitting, but NOT the weights re-evaluated at the final estimates for $\boldsymbol{\beta}$** (I have checked that). That is why we got slightly different numbers between the two.

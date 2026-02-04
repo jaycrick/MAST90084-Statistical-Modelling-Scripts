@@ -3,13 +3,23 @@ title: "Cell Differentiation Study"
 subtitle: "Poisson GLM with Interaction Effects"
 date: today
 nocite: |
+  @bartlett_deviance_2014
   @conflicted_package
   @dplyr_package
   @fahrmeir_package
   @gee_package
   @geepack_package_2006
+  @noauthor_poisson_2026
   @venables_modern_2002
 ---
+
+## TODO
+
+- Add reference to MASS book - effectively the user manual for a lot of R functions
+- Standardise the quasi Poisson notation.
+- Add more direct tables from the book.
+- Fix the working residuals file
+- Fix titles and subtitles throughout
 
 ## Overview
 
@@ -42,6 +52,9 @@ library(geepack)
 library(MASS)
 ```
 
+Note that the MASS package is documented in the book @venables_modern_2002
+[and is available for free for unimelb students at this link](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2).
+
 We can import and preview the `cells` data from the `Fahrmeir` package.
 As always, it is good practice to inspect the dataframe to get an idea of the structure,
 and types of the data.
@@ -57,11 +70,12 @@ All the data are encoded as integers.
 
 ## Example 2.3
 
-Aims to study whether the two agents stimulate cell differentiation synergistically or independently.
+The purpose of this data is to determine whether the two agents stimulate cell differentiation synergistically (there is an interaction between the agents) or independently.
 
 We initially just fit the Poisson GLM as in Ex 2.3.
 Note that `y ~ TNF * IFN` automatically includes the intercept terms and individual covariates for `TNF` and `IFN`.
 It is equivalent to `y ~ 1 + TNF + IFN + TNF * IFN`.
+The default link is the log link, meaning that we assume $\log(\texttt{y})$ depends linearly on the covariates.
 
 ```{r}
 glm_poisson <- glm(formula = y ~ TNF * IFN, family = poisson, data = cells_tbl)
@@ -76,41 +90,49 @@ round(glm_poisson_summary$coeff, digits = 4)
 ```
 
 We see that these estimates line up appropriately.
+The interactive effect has a small coefficient, suggesting that perhaps there may be no true effect,
+however the $p$-value is very small.
+We continue to explore this in @fahrmeir_multivariate_2001 Example 2.6.
 
-## Example 2.6
+## Example 2.6 (page 54)
 
-We now continue with this dataset as in Example 2.6.
-We can see from the data above that the $p$-value for the interaction term is very small.
-However before we jump to the conclusion that therefore it must be significant,
-we consider the possibility that the model may not be appropriate for the data.
+We must check whether the model is appropriate for the data.
+If not, this could explain why the $p$-value is small.
+
+We explore and test the deviance using an asymptotic $\chi^2$ test.
+
+::: {.callout-tip collapse="true"}
+## What should the degrees of freedom be for this test? Expand for answer.
+
+There must be $16 - 4 = 12$ degrees of freedom, since the saturated model has 16 parameters,
+and the model we are testing has 4.
+:::
+
+We directly access the deviance with
 
 ```{r}
-anova(glm_poisson)
-round(glm_poisson$coeff, digits = 4)
 glm_poisson$deviance
 ```
 
-## Covariance Matrices of Beta
+which is identical to the book.
 
-These two are the same, which makes sense under the exponential family assumption is true.
-
-```{r}
-glm_poisson_summary$cov.scaled
-glm_poisson_summary$cov.unscaled
-```
-
-## Covariance Matrices of Beta
-
-These two are the same, which makes sense under the exponential family assumption is true.
+We are also able to access the scaled covariance and the unscaled covariance matrices.
 
 ```{r}
 glm_poisson_summary$cov.scaled
 glm_poisson_summary$cov.unscaled
 ```
+
+::: {.callout-tip collapse="true"}
+## Why are these covariance matrices identical? Expand for answer.
+
+The scaled covariance matrix is scaled by the dispersion parameter $\phi$,
+but the Poisson model has a fixed dispersion parameter $\phi= 1$.
+:::
 
 ## Example 2.6
 
-Estimated Pearson statistic, same as in Eg 2.6. Both reject the model, but we should take these results with a grain of salt.
+We calculate the Pearson $\chi^2$ statistic:
 
 ```{r}
 pearson_chisq_stat <-
@@ -118,19 +140,58 @@ pearson_chisq_stat <-
         (glm_poisson$y - glm_poisson$fitted.values)^2 /
             glm_poisson$fitted.values
     )
+pearson_chisq_stat
+```
 
+which is the same as in @fahrmeir_multivariate_2001 page 54.
+
+When we try to form an estimate $\hat{\phi}$ for the dispersion parameter $\phi$,
+we divide the Pearson $\chi^2$ statistic by the degrees of freedom.
+
+```{r}
+est_disperson <- pearson_chisq_stat / 12
+round(est_disperson, 3)
+```
+
+::: {.callout-note}
+This is not exactly the same as the book (which has 11.734), but it is unknown why.
+:::
+
+This gives us an idea that the data may in fact be very overdispersed,
+and hence model may not be a good fit.
+
+```{r}
 1 - pchisq(glm_poisson$deviance, df = 12)
 1 - pchisq(pearson_chisq_stat, df = 12)
 ```
 
-The estimated dispersion in Example 2.6, very close to the book.
+This is confirmed by both the deviance test and the Pearson $\chi^2$ tests,
+which reject the model.
+
+:::{.callout-warning}
+There is an important caveat to this result.
+The sample size of the data is $16$, since the data isn't actually grouped.
+Since this is equal to the degrees of freedom in the saturated model,
+the dimensionality of the model grows with more samples
+(which must necessarily be new unique combinations of the covariates).
+Therefore the asymptotics are not fully valid, since we don't have a stabilising null distribution.
+For more information see what the biostatistician Jonathan Bartlett says in
+[his blog post](https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/).
+
+There is a case to redeem the tests when the mean of the Poisson random variables are large.
+Heuristically, this is because the Poisson distribution looks normal
+(see the [Wikipedia page on the Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution)
+for a visual demonstration), and for the normal distribution, the chi-squared distribution is exact.
+For more information see also @venables_modern_2002 page 187.
+:::
 
 ```{r}
 est_disperson <- pearson_chisq_stat / glm_poisson$df.residual
 est_disperson
 ```
 
-Perform quasi "model-based" (also known as "naive") approach assuming the variance structure is correctly specified:
+So now we perform quasi "model-based" (also known as "naive") approach
+by assuming the variance structure ($\sigma^2(\mu) = \phi\mu$) is correctly specified:
 
 ```{r}
 glm_quasi_poisson <- glm(
@@ -139,9 +200,29 @@ glm_quasi_poisson <- glm(
     data = cells_tbl
 )
 
-summary(glm_quasi_poisson)
+glm_quasi_poisson_summary <- summary(glm_quasi_poisson)
+glm_quasi_poisson_summary
+```
 
-summary(glm_quasi_poisson)$coefficients
+Note that since the variance structure is assumed to be correct,
+the estimates are not derived using the sandwich estimator.
+
+We can compare the coefficients between the from the full Poisson model.
+
+```{r}
+round(glm_poisson_summary$coefficients, 5)
+round(glm_quasi_poisson_summary$coefficients, 5)
+```
+
+We see that the coefficients are the exact same, but the standard errors are significantly different.
+
+The estimating equations in both the standard and quasi Poisson models are the same,
+giving us identical coefficient estimates, but the dispersion parameter effects our standard errors.
+
+The following functions still work with the quasi Poisson model.
+
+```{r}
+#| eval: false
 anova(glm_quasi_poisson)
 resid(glm_quasi_poisson)
 resid(glm_quasi_poisson, type = "deviance")
@@ -149,45 +230,52 @@ resid(glm_quasi_poisson, type = "working")
 resid(glm_quasi_poisson, type = "pearson")
 ```
 
-These two are different now by the scale/dispersion.
+These two are different now, since the scaled covariance should be $\phi$ times the unscaled covariance.
 
 ```{r}
-summary(glm_quasi_poisson)$cov.scaled
-summary(glm_quasi_poisson)$cov.unscaled
-
-glm_poisson_summary$cov.unscaled * summary(glm_quasi_poisson)$dispersion
+glm_quasi_poisson_summary$cov.scaled
+glm_quasi_poisson_summary$cov.unscaled
 ```
 
-**WARNING**: the dispersion estimate provided by glm() actually leverages the "working residuals" and the IWLS weights! So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as `glm_poisson$weights`, the weights by assuming phi = 1 under the full likelihood model.
+We can do a sanity check in order to determine if we can recover the scaled deviance.
 
 ```{r}
-summary(glm_quasi_poisson)$dispersion
-
-with(glm_quasi_poisson, sum(weights * residuals^2)) /
-    glm_quasi_poisson$df.residual
+glm_poisson_summary$cov.unscaled * glm_quasi_poisson_summary$dispersion
 ```
 
-**WARNING**: the dispersion estimate provided by glm() actually leverages the "working residuals" and the IWLS weights! So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as `glm_poisson$weights`, the weights by assuming phi = 1 under the full likelihood model.
+We check also that the dispersion estimate reported by `glm()` matches our own calculation based on Pearson residuals.
 
 ```{r}
-summary(glm_quasi_poisson)$dispersion
-
-with(glm_quasi_poisson, sum(weights * residuals^2)) /
-    glm_quasi_poisson$df.residual
+est_disperson
+glm_quasi_poisson_summary$dispersion
 ```
+
+It is close but not exactly the same. We can recover the exact number reported by `glm()` as follows:
+
+```{r}
+sum(glm_quasi_poisson$weights * glm_quasi_poisson$residuals^2) /
+    12
+```
+
+:::{.callout-warning}
+The dispersion estimate provided by `glm()` actually leverages the "working residuals" and the IWLS weights! So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as `glm_poisson$weights`, the weights by assuming $\phi = 1$ under the full likelihood model.
+
+For a detailed mathematical explanation of why this difference exists, see [Appendix: Estimating the Dispersion with Working Residuals](A1-dispersion-working-residuals.qmd).
+:::
+
 
 ## Example 2.7
 
 Plotting variance against mean by TNF. Note that `var()` computes the unbiased variance estimate by default; to reproduce the results on p.59 of @fahrmeir_multivariate_2001, we have to use the biased variance estimate.
 
 ```{r}
-cells_tbl_grouped_tnf <- group_by(cells_tbl, TNF)
-cells_summary <- summarize(
-    cells_tbl_grouped_tnf,
-    est_var = var(y) * 3 / 4,
-    est_mean = mean(y),
-    .groups = "drop"
-)
+cells_summary <- cells_tbl |>
+    group_by(TNF) |>
+    summarize(
+        est_var = var(y) * 3 / 4,
+        est_mean = mean(y),
+        .groups = "drop"
+    )
 plot(
     cells_summary$est_mean,
     cells_summary$est_var,
