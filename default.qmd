@@ -19,3 +19,8 @@ Use the **Analyses** menu above to explore topic-by-topic walkthroughs with code
 ## Key Features
 
 Each guide includes clear explanations, step-by-step code, statistical interpretations, and reproducible examples from *Fahrmeir & Tutz (2001)* and *Faraway (2016)*.
+
+## Acknowledgements
+
+Original scripts and materials were written by Dennis Leung,
+and adapted from the original course materials by Jacob Cumming.
