@@ -17,25 +17,6 @@ nocite: |
   @venables_modern_2002
 ---
 
-## TODO
-
-- Fix the working residuals file
-- Fix titles and subtitles throughout
-- Caution vs warning callouts
-- Finish appendix on working residuals and dispersion estimation
-
-## Overview
-
-This script demonstrates:
-
-- **Poisson regression** for count data (cell differentiation)
-- Testing **synergistic vs. additive effects** of two treatment factors
-- Model diagnostics using **deviance and Pearson statistics**
-- **Dispersion estimation** for overdispersion assessment
-
-The study investigates whether TNF (Tumor Necrosis Factor) and IFN (Interferon)
-agents stimulate cell differentiation **synergistically or independently**.
-
 ## Package Setup and Data
 
 As in the previous script, for safety we import the `conflicted` package first
@@ -61,7 +42,9 @@ Thorough MASS documentation is available in the book
  @venables_modern_2002
 which is available to you for free.
 
-## Example 2.3 (p. 37)
+## Example 2.3 (p. 37): Cell Differentiation Data
+
+### Load and Inspect Data
 
 We now attempt to replicate the results in @fahrmeir_multivariate_2001 Example 2.3 (p. 37).
 We import and preview the `cells` data from the `Fahrmeir` package.
@@ -80,9 +63,11 @@ and so we do not need to manipulate the data types.
 It is also good practice in RStudio to run `?cells` to inspect
 [the documentation for the dataset](https://search.r-project.org/CRAN/refmans/Fahrmeir/html/cells.html).
 
+### Fit Poisson GLM Model
+
 We initially just fit the Poisson GLM as in Ex 2.3.
 
-::: {.callout-tip collapse="true"}
+::: {.callout-note collapse="true"}
 ## What is the canonical link function for Poisson regression? Expand for answer.
 
 The default link is the log link,
@@ -103,6 +88,8 @@ This is equivalent to `y ~ 1 + TNF + IFN + TNF * IFN`.
 - `data = cells_tbl`: Data frame containing the variables
 :::
 
+### Inspect Results
+
 We inspect the returned coefficients.
 
 ```{r}
@@ -121,20 +108,22 @@ suggesting that **there is a true effect**.
 
 We continue to explore this in @fahrmeir_multivariate_2001 Example 2.6.
 
-## Example 2.6
+## Example 2.6 (p. 54): Goodness-of-Fit and Overdispersion
 
 A simple explanation for the apparent contradiction in the previous example is that
 the data is not well explained by the Poisson model.
 We test the goodness of fit with the deviance and the Pearson $\chi^2$ statistic
 using an asymptotic $\chi^2$ test.
 
-::: {.callout-tip collapse="true"}
+::: {.callout-note collapse="true"}
 ## What will the degrees of freedom be for this test? Expand for answer.
 
 There must be $16 - 4 = 12$ degrees of freedom,
 since the saturated model has 16 parameters,
 and the model we are testing has 4.
 :::
+
+### Test Goodness of Fit
 
 We can directly access the deviance
 and we can calculate the Pearson chi-squared statistic with
@@ -157,7 +146,7 @@ glm_poisson_summary$cov.scaled
 glm_poisson_summary$cov.unscaled
 ```
 
-::: {.callout-tip collapse="true"}
+::: {.callout-note collapse="true"}
 ## Why are these covariance matrices identical? Expand for answer.
 
 The scaled covariance matrix is scaled by the dispersion parameter $\phi$,
@@ -176,7 +165,7 @@ round(est_dispersion, 3)
 Heuristically, this is not close to a value of 1,
 which is what we would expect if the Poisson model was a good fit.
 
-::: {.callout-warning}
+::: {.callout-caution}
 For an unknown reason our $\hat{\phi}$
 is not exactly the same as the book (which has 11.734),
 but it is very close.
@@ -216,6 +205,8 @@ for a visual demonstration), and for the normal distribution, the chi-squared di
 For more information see also @venables_modern_2002 page 187.
 :::
 
+### Fit a Quasi-Poisson GLM Model
+
 Having rejected the Poisson model, we move to a quasi "model-based"
 (also known as "naive") approach
 by loosening the variance structure, but still assuming we can correctly specify it.
@@ -248,6 +239,8 @@ glm_quasi_poisson_summary
 
 Note that since the variance structure is assumed to be correct,
 the standard errors are not derived using the more robust sandwich covariance matrix.
+
+### Inspect Quasi-Poisson Results
 
 We can compare the coefficients between the from the full Poisson model.
 
@@ -295,7 +288,7 @@ glm_poisson_summary$cov.unscaled * glm_quasi_poisson_summary$dispersion
 This looks good!
 
 
-:::{.callout-warning}
+:::{.callout-caution}
 
 ## Dispersion estimation with `glm()` does not match our Pearson residuals estimate
 
@@ -322,14 +315,16 @@ the weights by assuming $\phi = 1$ under the full likelihood model.
 For a detailed mathematical explanation of why this difference exists, see [Appendix: Estimating the Dispersion with Working Residuals](A1-dispersion-working-residuals.qmd).
 :::
 
-## Example 2.7
+## Example 2.7: Variance Functions and GEE
+
+### Assess Variance-Mean Relationship
 
 We can further explore different variance structures for the data,
 beyond just the linear variance structure $\sigma^2(\mu) = \phi \mu$.
 
 We can get some visual ideas by plotting the variance against mean per covariate.
 
-:::{.callout-warning}
+:::{.callout-caution}
 `var()` computes the unbiased variance estimate by default.
 To visually reproduce the results on p. 59 of @fahrmeir_multivariate_2001,
 we have to use the biased variance estimate.
@@ -404,6 +399,8 @@ In particular, we compare:
 
 We leave the linear + quadratic case for further exploration.
 
+### Fit GEE with Linear Variance
+
 We will now use the `gee()` function for "robust inference".
 This means that we do not assume that the variance structure is correctly specified,
 but instead use the sandwich variance estimator for inference.
@@ -463,7 +460,7 @@ We can see that the naive standard errors
 are those assuming the variance structure is correct,
 while the robust standard errors are those using the sandwich variance estimator.
 
-::: {.callout-tip collapse="true"}
+::: {.callout-note collapse="true"}
 ## Why use the sandwich variance estimator? Expand for answer.
 
 The sandwich variance estimator is "robust"
@@ -538,6 +535,8 @@ geepack_mu_summary
 ```
 
 :::
+
+### Fit GEE with Quadratic Variance
 
 Finally, we try the quadratic variance structure $\sigma^2(\mu) = \phi \mu^2$.
 
