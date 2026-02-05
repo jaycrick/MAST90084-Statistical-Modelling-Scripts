@@ -2,6 +2,10 @@
 title: "Example 3.1 & 3.11: Caesar Dataset Analysis"
 subtitle: "Multinomial Logistic Regression and Category-Specific Effects"
 date: today
+no-cite:
+    - fahrmeir_multivariate_2001
+    - tay_elastic_2023
+    - venables_modern_2002
 ---
 
 ## Overview
@@ -15,85 +19,184 @@ This document mirrors the R script for Examples 3.1 and 3.11 (Fahrmeir & Tutz), 
 ## Packages and Data
 
 Load all required packages and the prepared Caesar dataset.
+As always, we load `conflicted` to manage any function name conflicts across packages.
 
 ```{r}
 library(conflicted)
-library(dplyr)
-library(nnet)
-library(VGAM)
-library(glmnet)
-library(Fahrmeir)
-library(tidyr)
-
-caes_dat <- read.csv("data/Example3-1Caes.csv")
-head(caes_dat)
-str(caes_dat)
 ```
 
-### Alternative Data Preparation (from Fahrmeir Package)
+Then we load the necessary packages for data manipulation and modelling.
+
+```{r}
+library(dplyr)
+library(Fahrmeir)
+library(glmnet)
+library(nnet)
+library(tidyr)
+library(readr)
+library(VGAM)
+```
+
+## Example 3.1: Caesarian Birth Study (p. 73)
+
+```{r}
+caes_dat <- read_csv("data/Example3-1Caes.csv")
+caes_dat
+```
+
+:::{.callout-note collapse="true"}
+## Alternative Data Preparation (from `Fahrmeir` Package)
 
 Alternatively, one can manipulate the dataset directly from the Fahrmeir package using `dplyr`. The code below:
 
-1. Creates a tibble dataframe from the caesar data
-2. Groups by covariate combinations (noplan, factor, antib)
-3. Summarizes to compute total counts and category-specific counts
-4. Eliminates rows with zero cases
-5. Converts factor levels to match the textbook coding
+1. Converts the caesar data to a tibble and removes unused columns
+2. Filters to non-zero weights
+3. Pivots from long format (one row per infection type) to wide format (one row per covariate combination)
+4. Renames infection type codes to interpretable labels (3→Noinf, 1→Inf1, 2→Inf2)
+5. Computes total counts and recodes factors to integers matching the textbook coding
 
 ```{r}
-#| eval: false
-caesar_df <- as_tibble(caesar)
-caesar_grouped <- group_by(caesar_df, noplan, factor, antib)
-caesar_summary <- summarize(
-  caesar_grouped,
-  size = sum(w),
-  Noinf = w[which(y == 3)],
-  Inf1 = w[which(y == 1)],
-  Inf2 = w[which(y == 2)]
-)
-caesar <- as.data.frame(caesar_summary)
+caesar_clean <- caesar |>
+    as_tibble() |>
+    select(-patco, -yl) |>
+    dplyr::filter(w > 0) |>
+    pivot_wider(
+        names_from = y,
+        values_from = w,
+        values_fill = 0
+    ) |>
+    rename(Noinf = `3`, Inf1 = `1`, Inf2 = `2`) |>
+    mutate(
+        size = Noinf + Inf1 + Inf2,
+        factor = as.integer(factor == "risk factors"),
+        noplan = as.integer(noplan == "not"),
+        antib = as.integer(antib == "antibiotics")
+    ) |>
+    arrange(noplan, antib, factor) |>
+    relocate(size, Noinf, Inf1, Inf2, noplan, antib, factor)
 
-caesar <- caesar[which(caesar$size != 0), ]
-rownames(caesar) <- seq_len(nrow(caesar))
-
-caesar$factor <- as.integer(caesar$factor == "risk factors")
-caesar$noplan <- as.integer(caesar$noplan == "not")
-caesar$antib <- as.integer(caesar$antib == "antibiotics")
+caesar_clean
 ```
 
-## Example 3.1: Multinom Fit (nnet)
+:::
 
-Fit the multinomial model with the response matrix (columns 2:4) and covariates `NoPlan`, `Antib`, and `RiskF`.
+### `multinom` Fit (`nnet`)
 
+To fit the a multinomial log-linear model
+we use the `multinom()` function from the `nnet` package.
+The `nnet` package is largely documented in @venables_modern_2002,
+and is also written by the authors of that book.
+To see more information about the `multinom()` function,
+you can
+[refer to the documentation](https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html)
+by running `?multinom` in your R environment.
+
+:::{.callout-note}
+The `multinom()` function uses the BFGS optimization method,
+which is a quasi-Newton method for finding
+the maximum likelihood estimates of the model parameters.
+This is quicker than the Fisher scoring algorithm
+which requires computing the Hessian matrix at each iteration.
+:::
+
+We convert the response variables to a matrix format suitable for `multinom()`,
 ```{r}
-?multinom
+caes_response <- caes_dat |>
+    select(noInf, Inf1, Inf2) |>
+    as.matrix()
+
+caes_response
+
 caes_nnet <- multinom(
-    as.matrix(caes_dat[, 2:4]) ~ NoPlan + Antib + RiskF,
+    caes_response ~ NoPlan + Antib + RiskF,
     data = caes_dat
 )
+caes_nnet_summary <- summary(caes_nnet)
+caes_nnet_summary
+```
 
-caes_nnet
-summary(caes_nnet)
-summary(caes_nnet)$coeff
+The first column (`noInf`) of the response is treated as reference category.
+We can print the coefficients in a format that matches the
+table on @fahrmeir_multivariate_2001 page 75.
 
-attributes(caes_nnet)
+```{r}
+round(t(coef(caes_nnet_summary)), 3)
+```
+
+This matches the textbook results.
+We can also have a look at the deviance of the fitted model.
+
+```{r}
 caes_nnet$deviance
 ```
 
-## glmnet Comparison
+:::{.callout-caution}
+## Deviance Interpretation
 
-Fit the same model with `glmnet` (multinomial family) and reshape coefficients to match `multinom` output.
+The deviance reported by `multinom()` is simply
+$-2 \times \text{log-likelihood}$
+and has **not been adjusted** by the saturated model.
+This differs from deviance in `glm()` and our usual deviance.
+Always check the documentation for how deviance is calculated.
+:::
+
+These values match the textbook results
+
+:::{.callout-tip collapse="true"}
+## Exploring Model Objects
+
+Use `attributes(caes_nnet)` to see all available components of a model object.
+This reveals what elements you can access
+(like `$deviance`, `$fitted.values`, `$residuals`)
+and helps you understand the object's structure.
+Similarly, `str()` shows the internal structure,
+and `names()` lists just the accessible components.
+
+```{r}
+attributes(caes_nnet)
+```
+
+:::
+
+
+## `glmnet` Comparison
+
+:::{.callout-note}
+
+This section is not examinable, but just for fun.
+`glmnet` is written by Jerome Friedman and Trevor Hastie,
+and is a popular package for regularized regression
+(that is, Lasso and Ridge regression).
+The codebase is in Fortran, and is very fast.
+
+We can use `glmnet` to fit the same multinomial model
+by setting `lambda = 0` to get the unregularized estimates.
 
 ```{r}
 caes_glmnet <- glmnet(
-    x = cbind(as.matrix(caes_dat[, 5:7])),
-    y = as.matrix(caes_dat[, 2:4]),
+    x = as.matrix(caes_dat |> select(NoPlan, Antib, RiskF)),
+    y = caes_response,
     family = "multinomial",
-    lambda = c(0)
+    lambda = 0
 )
 
-caes_glmnet$beta
+# Extract and display coefficients
+coef(caes_glmnet, s = 0)
+```
 
+These coefficients are different from the `multinom()` fit,
+but rather correspond to the alphas in
+
+$$
+\tilde{u}_{ir} = u_{ir} - u_{ik} = \underbrace{(\alpha_{r0} - \alpha_{k0})}_{\beta_{r0}} + \mathbf{z}_i^T\underbrace{(\boldsymbol{\alpha}_r - \boldsymbol{\alpha}_k)}_{\boldsymbol{\beta}_r} = \beta_{r0} + \mathbf{z}_i^T\boldsymbol{\beta}_r.
+$$
+
+We can therefore retrieve the `multinom()` coefficients by taking differences of the `glmnet` alphas:
+
+1. Extract slope coefficients for each category and compute differences relative to the reference category
+2. Extract intercept coefficients and compute differences relative to the reference category intercept
+
+```{r}
 beta_matrix <- cbind(
     caes_glmnet$beta[[2]] - caes_glmnet$beta[[1]],
     caes_glmnet$beta[[3]] - caes_glmnet$beta[[1]]
@@ -104,51 +207,84 @@ beta_matrix <- rbind(
     beta_matrix
 )
 
-t(as.matrix(beta_matrix))
+as.matrix(beta_matrix)
 ```
 
+This also matches the coefficients from @fahrmeir_multivariate_2001 p. 75.
+
+:::
+
+::: {.callout-note}
 ## Alternative: Original Fahrmeir Data
 
-Fit using the `caesar` data from the Fahrmeir package, setting preferred reference levels before modeling.
+We can fit instead using the `caesar` data from the Fahrmeir package, setting preferred reference levels before modeling.
 
 ```{r}
-data(caesar)
-caesar
-?caesar
-as.factor(caesar$y)
-caesar$y <- relevel(caesar$y, ref = "3")
+caesar_prepared <- caesar |>
+    as_tibble() |>
+    mutate(
+        y = relevel(y, ref = "3"),
+        noplan = relevel(noplan, ref = "planned"),
+        antib = relevel(antib, ref = "without"),
+        factor = relevel(factor, ref = "without")
+    )
 
-as.factor(caesar$noplan)
-caesar$noplan <- relevel(caesar$noplan, ref = "planned")
-
-as.factor(caesar$antib)
-caesar$antib <- relevel(caesar$antib, ref = "without")
-
-as.factor(caesar$factor)
-caesar$factor <- relevel(caesar$factor, ref = "without")
-
-caes_nnet2 <- multinom(y ~ noplan + antib + factor, data = caesar, weights = w)
+caes_nnet2 <- multinom(
+    y ~ noplan + antib + factor,
+    data = caesar_prepared,
+    weights = w
+)
 
 summary(caes_nnet2)
-caes_nnet2$deviance
+round(t(coef(caes_nnet2)), 3)
 ```
+
+This again matches the textbook.
+
+We can also check the deviance of this fit, which should be the same as before since it's the same model.
+
+```{r}
+caes_nnet2$deviance
+caes_nnet$deviance
+```
+
+:::
 
 ## Exploring `caes_nnet`
 
-Inspect fitted probabilities, residuals, grouped proportions, and predictions for a specific covariate combination.
+We now inspect the fitted values and residuals of the `caes_nnet` model.
+The fitted values are the predicted probabilities for each category.
 
 ```{r}
-caes_nnet$fitted
+caes_nnet$fitted.values
+```
+
+The residuals are the differences between the observed proportions and the fitted probabilities.
+
+```{r}
 caes_nnet$residuals
+```
 
-caes_nnet_grp <- caes_dat[, 2:4]
-caes_nnet_grp[, 1] <- caes_dat[, 2] / caes_dat[, 1]
-caes_nnet_grp[, 2] <- caes_dat[, 3] / caes_dat[, 1]
-caes_nnet_grp[, 3] <- caes_dat[, 4] / caes_dat[, 1]
-caes_nnet_grp - caes_nnet$fitted
+We can manually validate the residuals by computing the observed proportions and subtracting the fitted probabilities.
 
-caes_nnet$deviance
+```{r}
+caes_nnet_prop <- caes_dat |>
+    mutate(
+        noInf = noInf / size,
+        Inf1 = Inf1 / size,
+        Inf2 = Inf2 / size
+    ) |>
+    select(noInf, Inf1, Inf2)
+
+caes_nnet_prop - caes_nnet$fitted
+```
+
+
+
+```{r}
 predict(caes_nnet, data.frame(NoPlan = 1, Antib = 1, RiskF = 0), type = "probs")
+```
+
 ```{r}
 
 ratios <- exp(summary(caes_nnet)$coeff %*% c(1, 1, 1, 0))
@@ -194,7 +330,10 @@ Constrain `NoPlan` and `RiskF` to be equal across categories using the `parallel
 caes_vgam_parallel <- vglm(
     formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
     data = caes_dat,
-    family = multinomial(refLevel = "noInf", parallel = TRUE ~ NoPlan + RiskF - 1)
+    family = multinomial(
+        refLevel = "noInf",
+        parallel = TRUE ~ NoPlan + RiskF - 1
+    )
 )
 
 coefvlm(caes_vgam_parallel, matrix.out = TRUE)
@@ -256,20 +395,6 @@ summary(caes_nnet_tibble)$coeff
 summary(caes_nnet2)$coeff
 ```
 
-## Notes
-
-- `multinom()` uses BFGS (quasi-Newton); `vglm()` uses Fisher scoring.
-- Reference levels are set explicitly to match textbook coding.
-- Deviance values differ across implementations depending on how the saturated model is handled.
-- Robust/naive p-values in Table 2.7 of F&T should correspond to robust estimates.
-coef_matrix <- summary(Caes_nnet)$coeff
-cat("Coefficient Matrix (matches textbook Example 3.1, p.109):\n")
-print(round(coef_matrix, 4))
-
-# Model deviance (note: this is -2 * loglikelihood, unadjusted)
-cat("\nModel Deviance:\n")
-print(Caes_nnet$deviance)
-
 
 ## Key Learning Points
 
@@ -279,10 +404,3 @@ print(Caes_nnet$deviance)
 4. **Optimization methods**: BFGS (nnet) vs Fisher scoring (VGAM) give similar results
 5. **Constrained models**: Test whether coefficients are equal across categories (parallel assumption)
 6. **Data formats**: Wide format (response matrix) vs long format (weights)
-
-## References
-
-- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models* (2nd ed.), p. 109-114
-- Yee, T. W. (2015). *Vector Generalized Linear and Additive Models: With an Implementation in R*
-- [nnet package documentation](https://cran.r-project.org/package=nnet)
-- [VGAM package documentation](https://cran.r-project.org/package=VGAM)
