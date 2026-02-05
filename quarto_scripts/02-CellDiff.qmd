@@ -1,7 +1,10 @@
 ---
 title: "Cell Differentiation Study"
-subtitle: "Poisson GLM with Interaction Effects"
+subtitle: "(Quasi-)Poisson GLM with Interaction Effects"
 date: today
+author:
+  - name: Dennis Leung
+  - name: Jacob Cumming
 nocite: |
   @bartlett_deviance_2014
   @conflicted_package
@@ -16,13 +19,10 @@ nocite: |
 
 ## TODO
 
-- Add reference to MASS book - effectively the user manual for a lot of R functions
-- Standardise the quasi Poisson notation.
-- Add more direct tables from the book.
 - Fix the working residuals file
 - Fix titles and subtitles throughout
-- Add syntax explanations for various functions
 - Caution vs warning callouts
+- Finish appendix on working residuals and dispersion estimation
 
 ## Overview
 
@@ -45,23 +45,29 @@ to manage any function name conflicts.
 library(conflicted)
 ```
 
-Then we import the other packages we need to complete the analysis.
+We import the other packages needed to complete the analysis.
 
 ```{r}
 library(dplyr)
-library(ggplot2)
 library(Fahrmeir)
 library(gee)
 library(geepack)
+library(ggplot2)
 library(MASS)
 ```
 
-Note that the MASS package is documented in the book @venables_modern_2002
-[and is available for free for unimelb students at this link](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2).
+Thorough MASS documentation is available in the book
+[Modern Applied Statistics with S (MASS)](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2)
+ @venables_modern_2002
+which is available to you for free.
 
-We can import and preview the `cells` data from the `Fahrmeir` package.
-As always, it is good practice to inspect the dataframe to get an idea of the structure,
-and types of the data.
+## Example 2.3 (p. 37)
+
+We now attempt to replicate the results in @fahrmeir_multivariate_2001 Example 2.3 (p. 37).
+We import and preview the `cells` data from the `Fahrmeir` package.
+The purpose of this dataset is to explore whether the two agents
+stimulate cell differentiation synergistically (is an interaction between the agents)
+or independently.
 
 ```{r}
 data(cells)
@@ -69,58 +75,83 @@ cells_tbl <- as_tibble(cells)
 cells_tbl
 ```
 
-All the data are encoded as integers.
-
-## Example 2.3
-
-The purpose of this data is to determine whether the two agents stimulate cell differentiation synergistically (there is an interaction between the agents) or independently.
+All the variables are encoded as integers
+and so we do not need to manipulate the data types.
+It is also good practice in RStudio to run `?cells` to inspect
+[the documentation for the dataset](https://search.r-project.org/CRAN/refmans/Fahrmeir/html/cells.html).
 
 We initially just fit the Poisson GLM as in Ex 2.3.
-Note that `y ~ TNF * IFN` automatically includes the intercept terms and individual covariates for `TNF` and `IFN`.
-It is equivalent to `y ~ 1 + TNF + IFN + TNF * IFN`.
-The default link is the log link, meaning that we assume $\log(\texttt{y})$ depends linearly on the covariates.
+
+::: {.callout-tip collapse="true"}
+## What is the canonical link function for Poisson regression? Expand for answer.
+
+The default link is the log link,
+meaning that we assume $\log(\texttt{y})$ depends linearly on the covariates.
+:::
 
 ```{r}
 glm_poisson <- glm(formula = y ~ TNF * IFN, family = poisson, data = cells_tbl)
-
-glm_poisson_summary <- summary(glm_poisson)
 ```
 
-We can inspect the whole summary object directly with `glm_poisson_summary`,
-or just the coefficients (appropriately rounded) to compare directly to @fahrmeir_multivariate_2001 page 37.
+::: {.callout-tip collapse="true"}
+## glm() Syntax Explanation
+
+- `formula = y ~ TNF * IFN`:
+Response variable `y` modeled with main effects and interaction for `TNF` and `IFN`.
+This is equivalent to `y ~ 1 + TNF + IFN + TNF * IFN`.
+- `family = poisson`: Specifies Poisson distribution with default log link function
+- `data = cells_tbl`: Data frame containing the variables
+:::
+
+We inspect the returned coefficients.
+
 ```{r}
+glm_poisson_summary <- summary(glm_poisson)
 round(glm_poisson_summary$coefficients, digits = 4)
 ```
 
-We see that these estimates line up appropriately.
-The interactive effect has a small coefficient, suggesting that perhaps there may be no true effect,
-however the $p$-value is very small.
+We see that these estimates line up with those reported
+in @fahrmeir_multivariate_2001 p. 38.
+Two things should catch our eye as requiring further investigation:
+
+1. the interactive effect has a small coefficient
+suggesting that perhaps **there may be no true effect**,
+2. the $p$-value for the interaction is very small,
+suggesting that **there is a true effect**.
+
 We continue to explore this in @fahrmeir_multivariate_2001 Example 2.6.
 
-## Example 2.6 (page 54)
+## Example 2.6
 
-We must check whether the model is appropriate for the data.
-If not, this could explain why the $p$-value is small.
-
-We explore and test the deviance using an asymptotic $\chi^2$ test.
+A simple explanation for the apparent contradiction in the previous example is that
+the data is not well explained by the Poisson model.
+We test the goodness of fit with the deviance and the Pearson $\chi^2$ statistic
+using an asymptotic $\chi^2$ test.
 
 ::: {.callout-tip collapse="true"}
-## What should the degrees of freedom be for this test? Expand for answer.
+## What will the degrees of freedom be for this test? Expand for answer.
 
-There must be $16 - 4 = 12$ degrees of freedom, since the saturated model has 16 parameters,
+There must be $16 - 4 = 12$ degrees of freedom,
+since the saturated model has 16 parameters,
 and the model we are testing has 4.
 :::
 
-We directly access the deviance with
-
+We can directly access the deviance
+and we can calculate the Pearson chi-squared statistic with
 ```{r}
-glm_poisson$deviance
+poisson_deviance <- glm_poisson$deviance
+round(poisson_deviance, 1)
+pearson_chisq_stat <-
+    sum(
+        (glm_poisson$y - glm_poisson$fitted.values)^2 /
+            glm_poisson$fitted.values
+    )
+round(pearson_chisq_stat, 1)
 ```
 
-which is identical to the book.
+which are identical to the values reported on page 54 of @fahrmeir_multivariate_2001.
 
-We are also able to access the scaled covariance and the unscaled covariance matrices.
-
+We inspect the covariance matrices of the coefficient estimates
 ```{r}
 glm_poisson_summary$cov.scaled
 glm_poisson_summary$cov.unscaled
@@ -133,43 +164,39 @@ The scaled covariance matrix is scaled by the dispersion parameter $\phi$,
 but the Poisson model has a fixed dispersion parameter $\phi= 1$.
 :::
 
-## Example 2.6
-
-We calculate the Pearson $\chi^2$ statistic:
-
-```{r}
-pearson_chisq_stat <-
-    sum(
-        (glm_poisson$y - glm_poisson$fitted.values)^2 /
-            glm_poisson$fitted.values
-    )
-pearson_chisq_stat
-```
-
-which is the same as in @fahrmeir_multivariate_2001 page 54.
-
-When we try to form an estimate $\hat{\phi}$ for the dispersion parameter $\phi$,
-we divide the Pearson $\chi^2$ statistic by the degrees of freedom.
+We can look for overdispersion as evidence of poor fit.
+The typical way of creating an estimate $\hat{\phi}$ for the dispersion parameter $\phi$,
+is by dividing the Pearson $\chi^2$ statistic by the degrees of freedom.
 
 ```{r}
-est_disperson <- pearson_chisq_stat / 12
-round(est_disperson, 3)
+est_dispersion <- pearson_chisq_stat / 12
+round(est_dispersion, 3)
 ```
 
-::: {.callout-note}
-This is not exactly the same as the book (which has 11.734), but it is unknown why.
+Heuristically, this is not close to a value of 1,
+which is what we would expect if the Poisson model was a good fit.
+
+::: {.callout-warning}
+For an unknown reason our $\hat{\phi}$
+is not exactly the same as the book (which has 11.734),
+but it is very close.
 :::
 
-This gives us an idea that the data may in fact be very overdispersed,
-and hence model may not be a good fit.
+We now formally test the goodness of fit
+by looking at the $p$-values of the deviance and Pearson $\chi^2$ statistics.
 
 ```{r}
-1 - pchisq(glm_poisson$deviance, df = 12)
+1 - pchisq(poisson_deviance, df = 12)
 1 - pchisq(pearson_chisq_stat, df = 12)
 ```
 
-This is confirmed by both the deviance test and the Pearson $\chi^2$ tests,
-which reject the model.
+::: {.callout-important collapse="true"}
+## What is the correct interpretation of these results? Expand for answer.
+
+Both the deviance test and the Pearson $\chi^2$ tests reject the null hypothesis
+that the data are produced from the Poisson model
+at any reasonable level of significance.
+:::
 
 :::{.callout-warning}
 There is an important caveat to this result.
@@ -181,20 +208,32 @@ Therefore the asymptotics are not fully valid, since we don't have a stabilising
 For more information see what the biostatistician Jonathan Bartlett says in
 [his blog post](https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/).
 
-There is a case to redeem the tests when the mean of the Poisson random variables are large.
+There is a case to redeem the tests when the mean of the Poisson random variables are large
+(given by @fahrmeir_multivariate_2001 p. 54 in this example).
 Heuristically, this is because the Poisson distribution looks normal
 (see the [Wikipedia page on the Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution)
 for a visual demonstration), and for the normal distribution, the chi-squared distribution is exact.
 For more information see also @venables_modern_2002 page 187.
 :::
 
-```{r}
-est_disperson <- pearson_chisq_stat / glm_poisson$df.residual
-est_disperson
-```
+Having rejected the Poisson model, we move to a quasi "model-based"
+(also known as "naive") approach
+by loosening the variance structure, but still assuming we can correctly specify it.
+We start with a linear and overdispersed quasi-Poisson variance structure
+$\sigma^2(\mu) = \phi\mu$,
+and we will try to replicate the results copied below,
+of Table 2.6 on page 54 of @fahrmeir_multivariate_2001,
+showing the comparison between the two models:
 
-So now we perform quasi "model-based" (also known as "naive") approach
-by assuming the variance structure ($\sigma^2(\mu) = \phi\mu$) is correctly specified:
+| Parameter | Poisson, $\phi = 1$ | Poisson, $\hat{\phi} = 11.734$  |
+|:---------:|--------------------:|--------------------------------:|
+| `1`       | 3.436 (.0)          | 3.436 (.0)                      |
+| `TNF`     | .016 (.0)           | .016 (.0)                       |
+| `IFN`     | .009 (.0)           | .009 (.0)                       |
+| `TNF*IFN` | -.001 (.0)          | -.001 (.22)                     |
+
+: Log-linear model fits to cellular differentiation data based on Poisson-likelihoods
+[Adapted from @fahrmeir_multivariate_2001, Table 2.6, p. 54] {#tbl-poisson-compare}
 
 ```{r}
 glm_quasi_poisson <- glm(
@@ -208,7 +247,7 @@ glm_quasi_poisson_summary
 ```
 
 Note that since the variance structure is assumed to be correct,
-the estimates are not derived using the sandwich covariance matrix.
+the standard errors are not derived using the more robust sandwich covariance matrix.
 
 We can compare the coefficients between the from the full Poisson model.
 
@@ -217,12 +256,16 @@ round(glm_poisson_summary$coefficients, 5)
 round(glm_quasi_poisson_summary$coefficients, 5)
 ```
 
-We see that the coefficients are the exact same, but the standard errors are significantly different.
+We see that the coefficients are the exact same and match @tbl-poisson-compare,
+but the standard errors between the two models are significantly different.
+This is because the estimating equations
+in both the standard and quasi-Poisson models are identical,
+giving us identical coefficient estimates,
+but the dispersion parameter effects our standard errors.
 
-The estimating equations in both the standard and quasi Poisson models are the same,
-giving us identical coefficient estimates, but the dispersion parameter effects our standard errors.
-
-We can use our standard `anova()` function, and can see the different kinds of residuals:
+As with the typical `glm()` and `lm()` analysis,
+we can still use the standard `anova()` function,
+and extract the various residuals:
 
 ```{r}
 residuals_tbl <- tibble(
@@ -234,11 +277,13 @@ residuals_tbl <- tibble(
 residuals_tbl
 ```
 
-These two are different now, since the scaled covariance should be $\phi$ times the unscaled covariance.
+We now also expect the scaled covariance matrix
+to be different from the unscaled covariance matrix,
+since the dispersion parameter is no longer fixed to 1.
 
 ```{r}
-glm_quasi_poisson_summary$cov.scaled
 glm_quasi_poisson_summary$cov.unscaled
+glm_quasi_poisson_summary$cov.scaled
 ```
 
 We can do a sanity check in order to determine if we can recover the scaled deviance.
@@ -247,87 +292,134 @@ We can do a sanity check in order to determine if we can recover the scaled devi
 glm_poisson_summary$cov.unscaled * glm_quasi_poisson_summary$dispersion
 ```
 
-We check also that the dispersion estimate reported by `glm()` matches our own calculation based on Pearson residuals.
+This looks good!
+
+
+:::{.callout-warning}
+
+## Dispersion estimation with `glm()` does not match our Pearson residuals estimate
+
+We can see that the dispersion estimate reported by `glm()`
+does not exactly match our own calculation based on Pearson residuals.
 
 ```{r}
-est_disperson
+est_dispersion
 glm_quasi_poisson_summary$dispersion
 ```
 
-It is close but not exactly the same. We can recover the exact number reported by `glm()` as follows:
+We can recover the exact number reported by `glm()` as follows:
 
 ```{r}
-sum(glm_quasi_poisson$weights * glm_quasi_poisson$residuals^2) /
-    12
+sum(glm_quasi_poisson$weights * glm_quasi_poisson$residuals^2) / 12
 ```
 
-:::{.callout-warning}
-The dispersion estimate provided by `glm()` actually leverages the "working residuals" and the IWLS weights! So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as `glm_poisson$weights`, the weights by assuming $\phi = 1$ under the full likelihood model.
+The dispersion estimate provided by `glm()` actually leverages the
+"working residuals" and the IWLS weights.
+So it is not the same as our standard estimate based on Pearson residuals!
+Note that the weights here are same as `glm_poisson$weights`,
+the weights by assuming $\phi = 1$ under the full likelihood model.
 
 For a detailed mathematical explanation of why this difference exists, see [Appendix: Estimating the Dispersion with Working Residuals](A1-dispersion-working-residuals.qmd).
 :::
 
-
 ## Example 2.7
 
-This example explores different variance structures for the data.
-We have already explored the linear variance structure $\sigma^2(\mu) = \phi \mu$.
+We can further explore different variance structures for the data,
+beyond just the linear variance structure $\sigma^2(\mu) = \phi \mu$.
 
-Plotting variance against mean by TNF.
-Note that `var()` computes the unbiased variance estimate by default;
-to reproduce the results on p.59 of @fahrmeir_multivariate_2001,
+We can get some visual ideas by plotting the variance against mean per covariate.
+
+:::{.callout-warning}
+`var()` computes the unbiased variance estimate by default.
+To visually reproduce the results on p. 59 of @fahrmeir_multivariate_2001,
 we have to use the biased variance estimate.
+:::
 
 ```{r}
-cells_summary <- cells_tbl |>
+variance_summary_by_TNF <- cells_tbl |>
     group_by(TNF) |>
     summarize(
         est_var = var(y) * 3 / 4,
         est_mean = mean(y),
         .groups = "drop"
     )
-ggplot(cells_summary, aes(x = est_mean, y = est_var)) +
+ggplot(variance_summary_by_TNF, aes(x = est_mean, y = est_var, color = factor(TNF))) +
     geom_point(size = 3) +
-    labs(x = "Mean", y = "Biased Variance") +
+    labs(
+        x = "Mean",
+        y = "Biased Variance",
+        color = "TNF Level"
+    ) +
+    theme_minimal()
+```
+
+We can do a similar plot by `IFN` instead of `TNF`:
+
+```{r}
+variance_summary_by_IFN <- cells_tbl |>
+    group_by(IFN) |>
+    summarize(
+        est_var = var(y) * 3 / 4,
+        est_mean = mean(y),
+        .groups = "drop"
+    )
+ggplot(variance_summary_by_IFN, aes(x = est_mean, y = est_var, color = factor(IFN))) +
+    geom_point(size = 3) +
+    labs(
+        x = "Mean",
+        y = "Biased Variance",
+        color = "IFN Level"
+    ) +
     theme_minimal()
 ```
 
 ::: {.callout-tip collapse="true"}
 ## ggplot2 Syntax Explanation
 
-- `ggplot(data, aes(x = ..., y = ...))`: Initialize a plot with data and aesthetic mappings
-- `aes()`: Define which columns map to which visual properties (x, y, color, size, etc.)
-- `geom_point()`: Add a layer of points (scatter plot)
-- `labs()`: Set axis labels and title
-- `theme_minimal()`: Apply a clean, minimal theme
-- Layers are combined with `+` (similar to piping)
+- `ggplot(data, aes(...))`: Initialize plot with aesthetic mappings (x, y, color, size, etc.)
+  - `color = factor(TNF)`: Convert numeric to factor for discrete coloring
+- `geom_point()`: Add scatter plot layer
+- `labs()`: Set axis and legend labels (`color = "TNF Level"` customizes legend title)
+- `theme_minimal()`: Apply clean theme
+- Layers combined with `+` (similar to piping)
 
 The equivalent base R code to create the same scatter plot would be:
 ```{r}
 #| eval: false
 plot(
-    cells_summary$est_mean,
-    cells_summary$est_var,
+    variance_summary_by_TFN$est_mean,
+    variance_summary_by_TFN$est_var,
     xlab = "Mean",
     ylab = "Biased Variance"
 )
 ```
 :::
 
-@fahrmeir_multivariate_2001 suggests that since this does not look linear,
-we should compare various variance structures, namely:
+The non-linear relationship between the variance and the means suggests that we should consider some non-linear variance structures.
+In particular, we compare:
 
 - $\sigma^2(\mu) = \phi \mu$ (linear)
 - $\sigma^2(\mu) = \phi \mu^2$ (quadratic)
-- $\sigma^2(\mu) = \phi \mu + \phi_2 \mu^2$ (linear + quadratic which).
+- $\sigma^2(\mu) = \phi \mu + {\phi}_2 \mu^2$ (linear + quadratic---not explored here).
 
 We leave the linear + quadratic case for further exploration.
 
-Use the `gee()` function for the "robust inference" in this example instead.
+We will now use the `gee()` function for "robust inference".
 This means that we do not assume that the variance structure is correctly specified,
-and instead use the sandwich variance estimator for inference.
-This should get the second column of Table 2.7 in @fahrmeir_multivariate_2001
-corresponding to the linear working variance structure.
+but instead use the sandwich variance estimator for inference.
+We now try to partially replicate Table 2.7 from @fahrmeir_multivariate_2001,
+adapted below:
+
+| Parameter     | $\sigma^2(\mu) = \phi\mu$ | $\sigma^2(\mu) = \phi\mu^2$   |
+|:-------------:|--------------------------:|------------------------------:|
+| `1`           | 3.436 (0.0)               | 3.394 (0.0)                   |
+| `TNF`         | 0.016 (0.0)               | 0.016 (0.0)                   |
+| `IFN`         | 0.009 (0.0)               | 0.009 (0.003)                 |
+| `TNF*IFN`     | -0.001 (0.22)             | -0.001 (0.099)                |
+| $\hat{\phi}$  | 11.734                    | 0.243                         |
+
+: Log-linear model fits to cellular differentiation data based on quasi-likelihoods
+(Table 2.7, p. 60)
 
 We start by considering the linear variance structure $\sigma^2(\mu) = \phi \mu$.
 
@@ -340,11 +432,12 @@ gee_mu <- gee(
 )
 ```
 
-::: {.callout-tip}
+::: {.callout-tip collapse="true"}
 ## `gee()` Syntax Explanation
 
-- `id`: Cluster identifier—observations with the same `id` are treated as correlated.
-Here we use `seq_len(nrow(cells_tbl))` to treat each observation as independent
+- `id`: Cluster identifier for which observations are correlated.
+Here `seq_len(nrow(cells_tbl))` creates unique IDs (1, 2, ..., n) for each row,
+treating observations as independent
 - `family = quasi(variance = "...", link = "...")`: Specifies the assumed variance function and link function
   - `variance = "mu"`: Linear variance structure $\sigma^2(\mu) = \phi \mu$
   - `link = "log"`: Log link function
@@ -355,40 +448,76 @@ gee_mu_summary <- summary(gee_mu)
 gee_mu_summary
 ```
 
-Again, the coefficients should be identical to the previous models,
-since the same score function is being solved.
-We can also see that the dispersion provided by `gee()`
-is the same as our own estimated dispersion based on Pearson residuals!
-The naive standard errors are those assuming the variance structure is correct,
-while the robust standard errors are those using the sandwich variance estimator,
-which is guaranteed to be asymptotically correct even if the variance structure is misspecified.
+We can see now that the dispersion estimate is the same
+as the one we manually calculated based on Pearson residuals.
+We compare the coefficients and standard errors to the previous models:
 
 ```{r}
 round(gee_mu_summary$coefficients, 4)
-round(glm_poisson_summary$coefficients, 4)
+round(glm_quasi_poisson_summary$coefficients, 4)
 ```
 
-We can then get the $p$-values corresponding to the naive and robust standard errors.
-Again assuming we have correctly specified the variance structure, we have:
+The coefficients are be identical to the previous models,
+since the same score function is being solved.
+We can see that the naive standard errors
+are those assuming the variance structure is correct,
+while the robust standard errors are those using the sandwich variance estimator.
+
+::: {.callout-tip collapse="true"}
+## Why use the sandwich variance estimator? Expand for answer.
+
+The sandwich variance estimator is "robust"
+because it is guaranteed to be asymptotically correct
+even if the variance structure is misspecified.
+If we incorrectly assume $\sigma^2(\mu) = \phi\mu$
+when the true structure is different,
+the naive standard errors will be biased,
+but the sandwich estimator will still provide valid inference.
+:::
+
+We can then calculate the $p$-values
+corresponding to the naive and robust standard errors.
+
+:::{.callout-tip collapse="true"}
+## Understanding the z-value Calculation
+
+`diag(...)` extracts the diagonal elements from a matrix (variance-covariance matrix in this case).
+Standard errors are obtained by taking the square root of these diagonal elements:
+`sqrt(diag(covariance_matrix))`.
+Dividing the coefficient by its standard error gives the z-value.
+:::
+
+Assuming we have correctly specified the variance structure (naive approach):
 
 ```{r}
-naivez <- gee_mu$coefficients / sqrt(diag((gee_mu)$naive.variance))
-round(2 * pnorm(abs(naivez), lower.tail = FALSE), 3)
+naive_z_values <- tibble(
+    coefficient = names(gee_mu$coefficients),
+    z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$naive.variance)),
+    p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
+)
+naive_z_values
 ```
 
-If we do not assume that we have correctly specified the variance structure, we have:
+Without assuming the variance structure is correct (robust approach):
 
 ```{r}
-robust_z <- gee_mu$coefficients / sqrt(diag((gee_mu)$robust.variance))
-round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
+robust_z_values <- tibble(
+    coefficient = names(gee_mu$coefficients),
+    z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$robust.variance)),
+    p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
+)
+robust_z_values
 ```
 
-:::{.callout-caution}
+:::{.callout-warning}
 Note that in @fahrmeir_multivariate_2001 Table 2.7,
 the $p$-values of the $\sigma^2(\mu) = \phi \mu$ column
 corresponds to the naive $p$-values,
 whereas they should actually correspond to the robust $p$-values.
 :::
+
+Expand the following note for an alternative implementation of GEE models
+using the `geepack` package.
 
 :::{.callout-note collapse="true"}
 ## Alternative `geepack` Implementation
@@ -410,35 +539,38 @@ geepack_mu_summary
 
 :::
 
-Now we try the quadratic variance structure $\sigma^2(\mu) = \phi \mu^2$.
+Finally, we try the quadratic variance structure $\sigma^2(\mu) = \phi \mu^2$.
 
 ```{r}
-glm_gee_mu2 <- gee(
+gee_mu2 <- gee(
     formula = y ~ TNF * IFN,
     id = seq_len(nrow(cells_tbl)),
     family = quasi(variance = "mu^2", link = "log"),
     data = cells_tbl
 )
-glm_gee_mu2_summary <- summary(glm_gee_mu2)
-glm_gee_mu2_summary
-round(glm_gee_mu2_summary$scale, 3)
+gee_mu2_summary <- summary(gee_mu2)
+gee_mu2_summary
+round(gee_mu2_summary$scale, 3)
 ```
 
-The coefficients match those in @fahrmeir_multivariate_2001 Table 2.7 on page 60.
+The coefficients almost match those in @fahrmeir_multivariate_2001 Table 2.7 on page 60.
 
 For a final sanity check, we manually compute both the naive and robust $Z$ and $p$-values.
 
 ```{r}
 gee_mu2_inference <- tibble(
-    coefficient = names(glm_gee_mu2$coefficients),
-    naive_z = glm_gee_mu2$coefficients / sqrt(diag(glm_gee_mu2$naive.variance)),
+    coefficient = names(gee_mu2$coefficients),
+    naive_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$naive.variance)),
     naive_p = round(2 * pnorm(abs(naive_z), lower.tail = FALSE), 3),
-    robust_z = glm_gee_mu2$coefficients / sqrt(diag(glm_gee_mu2$robust.variance)),
+    robust_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$robust.variance)),
     robust_p = round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
 )
 gee_mu2_inference
 ```
 
-The robust $p$-values match the ones in @fahrmeir_multivariate_2001, but not the naive ones,
-confirming all the $p$-values reported in parentheses of Table 2.7 of @fahrmeir_multivariate_2001
+Unlike for the linear variance structure,
+for the quadratic variance structure,
+the robust $p$-values match the ones in @fahrmeir_multivariate_2001.
+confirming all the $p$-values
+reported in parentheses of Table 2.7 of @fahrmeir_multivariate_2001
 should have been robust $p$-values.
