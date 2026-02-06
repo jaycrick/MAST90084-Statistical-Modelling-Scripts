@@ -7,6 +7,10 @@ nocite: |
     @venables_modern_2002
 ---
 
+## TODO
+
+- Go through and add apppropriate documentation to functions.
+
 ## Overview
 
 This document mirrors the R script for Examples 3.1 and 3.11 (Fahrmeir & Tutz), covering:
