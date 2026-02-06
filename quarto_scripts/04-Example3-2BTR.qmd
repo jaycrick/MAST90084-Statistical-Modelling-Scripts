@@ -4,50 +4,54 @@ subtitle: "Ordinal Regression on Breathing Test Results"
 date: today
 ---
 
-## Overview
+## Example 3.2 and 3.4: Breathing Test Results
 
-This script reproduces **Examples 3.2 and 3.4** from Fahrmeir & Tutz, analyzing **breathing test results (BTR)** with ordinal outcomes.
-
-Topics covered:
-- **Ordinal logistic regression** with `polr()` (proportional odds/cumulative logit)
-- Alternative link functions: probit, complementary log-log, log-log
-- Contrast coding systems: dummy vs. effect coding
-- Model comparison and proportional odds assumption testing
-- Saturated model deviance calculations
-
-## Data Loading and Setup
+### Data Loading and Setup
 
 ```{r}
 library(conflicted)
-library(MASS)
 library(dplyr)
+library(MASS)
+library(readr)
 ```
 
-Load the BTR dataset. It contains breathing test results (ordinal outcome) with covariates age and smoking status, along with frequency counts for each combination.
+We load the BTR dataset.
+It contains breathing test results (ordinal outcome) with covariates age and smoking status,
+along with frequency counts for each combination.
 
 ```{r}
-btr_dat <- read.csv(
+btr_dat <- read_csv(
     "data/Example3-2BTR.csv",
-    colClasses = c("factor", "factor", "factor", "numeric")
+    col_types = cols(
+        BTR = col_factor(),
+        Age = col_factor(),
+        Smoking = col_factor(),
+        Freq = col_double()
+    )
 )
 
-str(btr_dat)
 btr_dat
 ```
 
-## Factor Coding and Contrast Systems
-
 The breathing test result (BTR) must be converted to an **ordered factor** since we have three ordered categories. By default, R uses **dummy coding** with `contr.treatment`.
 
-First, check and set the appropriate factor structure:
+First, we check if the BTR variable is currently an ordered factor:
 
 ```{r}
-is.factor(btr_dat$BTR)
 is.ordered(btr_dat$BTR)
+```
 
-# Set BTR to ordinal (ordered categorical)
+Currently it is not ordered, so we convert it to an ordered factor:
+```{r}
 btr_dat$BTR <- as.ordered(btr_dat$BTR)
+class(btr_dat$BTR)
+btr_dat$BTR
+```
 
+The default ordering happens to be good for us,
+but if we needed to change the order, we could specify it with `factor(..., levels = c(...), ordered = TRUE)`.
+
+```{r}
 is.factor(btr_dat$Age)
 is.factor(btr_dat$Smoking)
 is.factor(btr_dat$Freq)
@@ -56,11 +60,19 @@ is.factor(btr_dat$Freq)
 Examine the current contrast coding scheme:
 
 ```{r}
-getOption(x = "contrasts")
+getOption("contrasts")
+```
 
+When you see "contr.treatment" for unordered factors, it means dummy coding is being used. For ordered factors, the default is "contr.poly" (orthogonal polynomials).
+Age and Smoking are unordered factors, so they will use dummy coding.
+
+```{r}
 contrasts(btr_dat$Smoking)
 contrasts(btr_dat$Age)
 ```
+
+Here it is choosing the never-smoked category as the reference for Smoking, and the <40 category as the reference for Age.
+These are what we want to match @fahrmeir_multivariate_2001.
 
 The dummy coding creates indicator variables for each level relative to a reference category. This is the default but leads to coefficient estimates that differ from Fahrmeir & Tutz due to their use of **effect coding**.
 
@@ -319,17 +331,24 @@ For detailed inference, examine the profile likelihood for individual parameters
 profile(btr_logit_eff)
 ```
 
-## Key Learning Points
+```{r}
+#| results: asis
+#| code-fold: true
 
-1. **Ordinal outcomes**: BTR has three ordered categories; use ordered factors
-2. **Proportional odds**: Assumes coefficients are constant across all cutpoints
-3. **Link functions**: Different links (logit, probit, cloglog, loglog) test proportional odds
-4. **Contrast coding**: Dummy vs. effect coding changes parameterization, not model fit
-5. **Deviance interpretation**: Always distinguish between `-2*log(L)` and residual deviance
-6. **Saturated model**: Needed to compute residual deviance for GOF
+packages <- c("conflicted", "dplyr", "MASS", "readr")
+for (pkg in packages) {
+    cit <- citation(pkg)
 
-## References
-
-- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
-- Venables, W. N., & Ripley, B. D. (2002). Modern applied statistics with S (4th ed.)
-- [polr() documentation](https://www.rdocumentation.org/packages/MASS/versions/7.3-51.6/topics/polr)
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
+}
+```

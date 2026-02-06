@@ -572,13 +572,6 @@ should have been robust $p$-values.
 #| results: asis
 #| code-fold: true
 
-
-library(dplyr)
-library(Fahrmeir)
-library(gee)
-library(geepack)
-library(ggplot2)
-library(MASS)
 packages <- c("conflicted", "dplyr", "Fahrmeir",  "gee", "geepack", "ggplot2", "MASS")
 for (pkg in packages) {
     cit <- citation(pkg)
