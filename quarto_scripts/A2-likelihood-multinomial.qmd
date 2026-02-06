@@ -1,0 +1,118 @@
+---
+title: "Likelihood for Grouped and Ungrouped Multinomial Data"
+subtitle: "Differences Between Packages"
+date: today
+author:
+  - name: Dennis Leung
+---
+
+## Overview
+
+Let $\mathbf{y}_i = (y_{i1}, \ldots, y_{ik})$, $i = 1, \ldots, n$ be i.i.d random $k$-vectors distributed as $\text{Multinom}(1, \boldsymbol{\pi})$. That is, each $\mathbf{y}_i$ is a multinomial distributed random vector of 1 trial with class probability $k$-vector $\boldsymbol{\pi} = (\pi_1, \ldots, \pi_k)$. For any given $\mathbf{y}_i$, only one of $y_{i1}, \ldots, y_{ik}$ can equal 1.
+
+There are two ways to view the likelihood of multinomial data:
+
+## Ungrouped View
+
+If we compute the likelihood of the data as is, we get:
+
+$$
+L(\boldsymbol{\pi}) = \prod_{i=1}^{n} \pi_1^{y_{i1}} \cdots \pi_k^{y_{ik}}
+$$
+
+with log-likelihood:
+
+$$
+\ell(\boldsymbol{\pi}) = \sum_{j=1}^{k} \log(\pi_j) \sum_{i=1}^{n} y_{ij}
+$$ {#eq-ungrouped}
+
+## Grouped View
+
+Alternatively, we can group the $\mathbf{y}_i$'s as:
+
+$$
+\mathbf{x} = \sum_{i=1}^{n} \mathbf{y}_i
+$$
+
+so $\mathbf{x} = (x_1, \ldots, x_k) = \left(\sum_i y_{i1}, \ldots, \sum_i y_{ik}\right) \sim \text{Multinom}(n, \boldsymbol{\pi})$, and treat $\mathbf{x}$ as our raw data. In this view, the likelihood is:
+
+$$
+L(\boldsymbol{\pi}) = \frac{n!}{x_1! \cdots x_k!} \pi_1^{x_1} \cdots \pi_k^{x_k}
+$$
+
+with log-likelihood:
+
+$$
+\ell(\boldsymbol{\pi}) = \log\left(\frac{n!}{x_1! \cdots x_k!}\right) + \sum_{j=1}^{k} \log(\pi_j) \sum_{i=1}^{n} y_{ij}
+$$ {#eq-grouped}
+
+## Comparison
+
+Comparing equations @eq-ungrouped and @eq-grouped, we see that the grouped and ungrouped log-likelihoods differ by:
+
+$$
+\log\left(\frac{n!}{x_1! \cdots x_k!}\right)
+$$
+
+This term adjusts for the different permutations that can give rise to the same grouped multinomial data.
+
+## Practical Example: C-Section Dataset
+
+Consider the original wide format of the C-section dataset:
+
+```{r}
+Caes.dat <- read.csv("data/Example3-1Caes.csv")
+Caes.dat
+```
+
+### Using nnet::multinom()
+
+When we fit a multinomial model using `nnet::multinom()`, treating the data as ungrouped:
+
+```{r}
+Caes_nnet <- nnet::multinom(as.matrix(Caes.dat[, 2:4]) ~ NoPlan + Antib + RiskF,
+    data = Caes.dat
+)
+Caes_nnet$deviance / (-2)
+```
+
+The reported log-likelihood is $-160.9371$.
+
+### Using VGAM::vglm()
+
+When we fit using `VGAM::vglm()` with the data in grouped format:
+
+```{r}
+Caes_vgam <- VGAM::vglm(
+    formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
+    data = Caes.dat,
+    family = VGAM::multinomial(refLevel = "noInf")
+)
+logLik(Caes_vgam)
+```
+
+The reported log-likelihood is now $-20.88715$, a different number!
+
+### Explanation
+
+To understand the difference, we compute the sum of the multinomial coefficients for the seven covariate groups:
+
+```{r}
+sum(log(factorial(Caes.dat$size) /
+    (factorial(Caes.dat$noInf) * factorial(Caes.dat$Inf1) * factorial(Caes.dat$Inf2))))
+```
+
+This equals $140.05$, which is precisely the difference between the two log-likelihoods:
+
+```{r}
+-20.88715 - (-160.9371)
+```
+
+## Conclusion
+
+For the original "wide format data":
+
+- `nnet::multinom()` treats it as **ungrouped data**
+- `VGAM::vglm()` treats it as **grouped data**
+
+**Moral:** One must be very careful when interpreting numbers reported by different packages. The same data can produce different log-likelihood values depending on whether the package treats it as grouped or ungrouped multinomial data.
