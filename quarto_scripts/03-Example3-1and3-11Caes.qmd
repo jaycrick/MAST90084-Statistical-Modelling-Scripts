@@ -2,15 +2,10 @@
 title: "Example 3.1 & 3.11: Caesar Dataset Analysis"
 subtitle: "Multinomial Logistic Regression and Category-Specific Effects"
 date: today
-no-cite:
-    - fahrmeir_multivariate_2001
-    - tay_elastic_2023
-    - venables_modern_2002
+nocite: |
+    @fahrmeir_multivariate_2001
+    @venables_modern_2002
 ---
-
-## TODO
-
-- Check Appendix 2 content
 
 ## Overview
 
@@ -453,12 +448,26 @@ summary(caes_nnet_tibble)$coeff
 summary(caes_nnet2)$coeff
 ```
 
+## Package citations and references
 
-## Key Learning Points
+```{r}
+#| results: asis
+#| code-fold: true
 
-1. **Multinomial regression**: For outcomes with >2 unordered categories
-2. **Reference category**: Coefficients are relative to the reference (first) category
-3. **Interpretation**: Coefficients represent log-odds ratios vs reference
-4. **Optimization methods**: BFGS (nnet) vs Fisher scoring (VGAM) give similar results
-5. **Constrained models**: Test whether coefficients are equal across categories (parallel assumption)
-6. **Data formats**: Wide format (response matrix) vs long format (weights)
+packages <- c("conflicted", "dplyr", "Fahrmeir", "glmnet", "nnet", "tidyr", "readr", "VGAM")
+for (pkg in packages) {
+    cit <- citation(pkg)
+
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
+}
+```

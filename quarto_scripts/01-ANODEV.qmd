@@ -2,13 +2,15 @@
 title: "ANOVA and Deviance Analysis"
 subtitle: "Binomial GLM with Logit and Probit Links"
 date: today
+nocite: |
+    @fahrmeir_multivariate_2001
 ---
 
 ## Overview
 
 The [Fahrmeir & Tutz book is available to download for free from the University of Melbourne Library](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-1-4757-3454-6)
 
-This script reproduces **Examples 2.1, 2.4** from Fahrmeir & Tutz (pages 30 and 51).
+This script reproduces **Examples 2.1, 2.4** from @fahrmeir_multivariate_2001 (pages 30 and 51).
 We consider the Caesarian birth study with 251 births.
 We consider the binary response variable $y$,
 which is 1 for infection, and 0 for no infection.
@@ -38,7 +40,7 @@ We want to replicate the following table from page 30:
 
 ## Data Setup
 
-We start by loading the Caesar dataset from the Fahrmeir package.
+We start by loading the Caesar dataset from the `Fahrmeir` package.
 If you don't already have the packages installed, run
 ```{r}
 #| eval: false
@@ -538,13 +540,17 @@ Below are the formal citations for the packages used in this analysis:
 packages <- c("conflicted", "dplyr", "forcats", "Fahrmeir")
 for (pkg in packages) {
     cit <- citation(pkg)
-    # Extract only the text citation, not BibTeX
-    cit_text <- format(cit, style = "text")
-    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
 }
 ```
-
-## References
-
-- Fahrmeir, L., & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models (Second Edition)*. Springer. https://doi.org/10.1007/978-1-4757-3454-6
-- [R documentation on `glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html)

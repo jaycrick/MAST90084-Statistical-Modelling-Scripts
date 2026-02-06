@@ -7,13 +7,7 @@ author:
   - name: Jacob Cumming
 nocite: |
   @bartlett_deviance_2014
-  @conflicted_package
-  @dplyr_package
-  @fahrmeir_package
-  @gee_package
-  @hojsgaard_r_2005
   @noauthor_poisson_2026
-  @wickham_ggplot2_2016
   @venables_modern_2002
 ---
 
@@ -573,3 +567,32 @@ the robust $p$-values match the ones in @fahrmeir_multivariate_2001.
 confirming all the $p$-values
 reported in parentheses of Table 2.7 of @fahrmeir_multivariate_2001
 should have been robust $p$-values.
+
+```{r}
+#| results: asis
+#| code-fold: true
+
+
+library(dplyr)
+library(Fahrmeir)
+library(gee)
+library(geepack)
+library(ggplot2)
+library(MASS)
+packages <- c("conflicted", "dplyr", "Fahrmeir",  "gee", "geepack", "ggplot2", "MASS")
+for (pkg in packages) {
+    cit <- citation(pkg)
+
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
+}
+```
