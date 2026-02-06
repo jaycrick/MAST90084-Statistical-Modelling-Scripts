@@ -39,8 +39,10 @@ website:
           - text: "Survival Analysis"
             file: quarto_scripts/11-survival.qmd
           - text: "---"
-          - text: "Appendix: Dispersion with Working Residuals"
+          - text: "Appendix 1: Dispersion with Working Residuals"
             file: quarto_scripts/A1-dispersion-working-residuals.qmd
+          - text: "Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data"
+            file: quarto_scripts/A2-likelihood-multinomial.qmd
 
 format:
   html:
