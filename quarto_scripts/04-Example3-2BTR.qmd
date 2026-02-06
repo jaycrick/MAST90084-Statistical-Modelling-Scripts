@@ -1,12 +1,15 @@
 ---
-title: "Example 3.2 & 3.4: BTR Analysis"
+title: "Example 3.2 & 3.4: Breathing Test Results Analysis"
 subtitle: "Ordinal Regression on Breathing Test Results"
 date: today
 ---
 
-## Example 3.2 and 3.4: Breathing Test Results
+## TODO
 
-### Data Loading and Setup
+- Look at 3.3.3 pg 31/40 for variable information on thetas and gammas.
+- Write up more about the different link functions (2025-04-11 lecture 23 min)
+
+## Data Loading and Setup
 
 ```{r}
 library(conflicted)
@@ -78,35 +81,64 @@ The dummy coding creates indicator variables for each level relative to a refere
 
 ## Model Fitting: Proportional Odds Models
 
-The `polr()` function fits cumulative logit (and other) models. Key note: **the sign of coefficients in `polr()` is opposite to the textbook formula**—compare with the documentation to reconcile.
+The `polr()` function fits cumulative logit (and other) models. Key note: **the sign of coefficients in `polr()` is opposite to the textbook formula**—[compare with the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html) using `?polr` to reconcile.
 
-### Main Model with Interaction (Logistic Link)
-
-Fit the cumulative logistic/proportional odds model with age, smoking, and their interaction:
+Fit the cumulative logistic/proportional odds model with and intercept, age, smoking, and their interaction:
 
 ```{r}
 btr_logit <- polr(
-    BTR ~ Age + Smoking + Age:Smoking,
+    BTR ~ Age * Smoking,
     data = btr_dat,
     weights = Freq,
     Hess = TRUE,
     method = "logistic"
 )
+```
 
+::: {.callout-tip collapse="true"}
+## `polr()` Function Syntax
+
+- **`formula`**: Model structure `response ~ predictors`; response must be an ordered factor
+- **`data`**: Data frame containing the variables
+- **`weights`**: Case weights (here, frequency counts for each covariate combination)
+- **`Hess = TRUE`**: Return the Hessian matrix; needed for `summary()` and confidence intervals
+- **`method`**: Link function—`"logistic"` (default, proportional odds), `"probit"`, `"cloglog"`, `"loglog"`, or `"cauchit"`
+:::
+
+The `polr()` function is limited.
+It doesn't allowed for extended cumulative model where we can have threshold variables.
+We can see that the only coefficients that change with the thresholds are the thresholds themselves shown below.
+
+```{r}
 summary(btr_logit)
 ```
 
-Extract model components:
+There is only one coefficient for `Age`, since the other age category is the reference.
+Similarly for `Smoking`, we only have two coefficients reported.
+The interaction terms are also present as expected.
 
+We need to be able to interpret the coefficients.
+If you have a smoker who is Age 40 to 59 who is a former smokers, then the cumulative odds of having a normal test compared to not having a normal test is $\exp()$ the sum of those two estimates (0.158) than a person who has never smoked.
+
+If smoking has no association with the breathing test results, then we would expect this number to be 1.
+
+
+There is no residual readily available, but we can observe the linear predictor (represented as $\eta$ in the documentation).
 ```{r}
 # Linear predictors (eta values)
 btr_logit$lp
+```
 
+For our notation, if we are trying to recover $x*\hat{\gamma}$, which is our version of the linear predictor, we need to invert the signs.
+
+The $\zeta$'s are our theshold parameters $\theta$
+
+```{r}
 # Threshold parameters (cutpoints/intercepts)
 btr_logit$zeta
 ```
 
-Verify coefficients by hand-computing the linear predictor:
+We can verify the linear predictors by hand-computing the linear predictor:
 
 ```{r}
 Z <- cbind(
@@ -118,13 +150,17 @@ Z <- cbind(
 )
 
 # Hand-computed eta should match btr_logit$lp
-head(Z %*% btr_logit$coeff)
-head(btr_logit$lp)
+tibble(
+    manual = c(Z %*% btr_logit$coeff),
+    polr = btr_logit$lp
+)
 ```
 
-### Model Comparison (with and without interaction)
+We see that they line up.
 
-Fit a main-effects-only model and compare using the likelihood ratio test:
+### Fit Model without Interaction
+
+Here we fit a main-effects-only model without interaction:
 
 ```{r}
 btr_logit1 <- polr(
@@ -138,23 +174,37 @@ btr_logit1 <- polr(
 summary(btr_logit1)
 ```
 
-::: {.callout-note}
-The LR statistic in the `anova()` output is the difference between the deviances of the two models. Each deviance reported is `-2 * log(likelihood)` for that model.
-:::
+Again the signs of the coefficients are the opposite to our model.
+
+Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.
+The test should have 2 degrees of freedom since we are adding two interaction terms (`Age40to59:Smoking2Former` and `Age40to59:Smoking3Current`).
+
+We can use `anova()`:
 
 ```{r}
 anova(btr_logit, btr_logit1)
 ```
 
+We reject the null hypothesis that there is no interaction,
+at all reasonable significance levels.
+
+::: {.callout-note}
+The LR statistic in the `anova()` output is the difference between the deviances of the two models. Each deviance reported is `-2 * log(likelihood)` for that model.
+:::
+
 ## Alternative Link Functions
 
-The proportional odds assumption can be tested by fitting models with different link functions. The `polr()` function supports:
+The proportional odds assumption can be tested by fitting models with different link functions.
+The `polr()` function supports:
+
 - **logistic**: cumulative logit model (default)
 - **probit**: cumulative normal model
 - **cloglog**: complementary log-log (grouped Cox/proportional hazards)
 - **loglog**: extreme maximal-value distribution
 
-### Grouped Cox / Complementary Log-Log
+### Grouped Cox / Proportional Hazards (Complementary Log-Log Link)
+
+The grouped Cox model has
 
 ```{r}
 btr_ph <- polr(
@@ -170,6 +220,8 @@ summary(btr_ph)
 
 ### Extreme Maximal-Value Distribution
 
+This model is just a reparameterisation of the proportional hazard model.
+
 ```{r}
 btr_extm <- polr(
     BTR ~ Age + Smoking + Age:Smoking,
@@ -182,9 +234,11 @@ btr_extm <- polr(
 summary(btr_extm)
 ```
 
-## Effect Coding (Fahrmeir & Tutz Parameterization)
+## Matching our Results to @fahrmeir_multivariate_2001 Example 3.4
 
-By default, R uses dummy coding. To match the textbook and get effect coding (deviation contrasts), switch the global contrast option and refit:
+By default, R uses dummy coding.
+To match to the textbook, we need to use effect coding.
+We switch the global contrast option and refit:
 
 ```{r}
 options(contrasts = c("contr.sum", "contr.poly"))
@@ -194,7 +248,8 @@ contrasts(btr_dat$Smoking)
 contrasts(btr_dat$Age)
 ```
 
-Refit both models with effect coding:
+We now have the reference category coded as -1, as required.
+Therefore we refit both models:
 
 ```{r}
 btr_logit_eff <- polr(
@@ -217,13 +272,13 @@ summary(btr_logit_eff)
 summary(btr_logit1_eff)
 ```
 
-::: {.callout-tip}
-With effect coding, the coefficients now match Table 3.3 in Fahrmeir & Tutz. The deviances remain the same (model fit is unchanged), only the parameterization differs.
-:::
+The values reported in the summaries now match the textbook (excluding rounding errors).
 
 ```{r}
 anova(btr_logit_eff, btr_logit1_eff)
 ```
+
+As expected, the likelihood ratio test results are the same as before since the models are the same, just with different parameterisations.
 
 ## Saturated Model and Deviance Calculation
 
@@ -244,7 +299,9 @@ for (row in seq_len(nrow(data_mat))) {
         eval_vec[col] <- 1
         increment <- data_mat[row, col] *
             dmultinom(x = eval_vec, prob = probs[row, ], log = TRUE)
-        if (!is.na(increment)) loglike_saturated <- loglike_saturated + increment
+        if (!is.na(increment)) {
+            loglike_saturated <- loglike_saturated + increment
+        }
     }
 }
 
