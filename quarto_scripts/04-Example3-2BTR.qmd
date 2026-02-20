@@ -1,53 +1,66 @@
 ---
-title: "Example 3.2 & 3.4: BTR Analysis"
+title: "Example 3.2 & 3.4: Breathing Test Results Analysis"
 subtitle: "Ordinal Regression on Breathing Test Results"
 date: today
 ---
 
-## Overview
+## TODO
 
-This script reproduces **Examples 3.2 and 3.4** from Fahrmeir & Tutz, analyzing **breathing test results (BTR)** with ordinal outcomes.
-
-Topics covered:
-- **Ordinal logistic regression** with `polr()` (proportional odds/cumulative logit)
-- Alternative link functions: probit, complementary log-log, log-log
-- Contrast coding systems: dummy vs. effect coding
-- Model comparison and proportional odds assumption testing
-- Saturated model deviance calculations
+- Look at 3.3.3 pg 31/40 for variable information on thetas and gammas.
+- Write up more about the different link functions (2025-04-11 lecture 23 min)
 
 ## Data Loading and Setup
 
 ```{r}
+#| label: libs
 library(conflicted)
-library(MASS)
 library(dplyr)
+library(MASS)
+library(readr)
+library(tidyr)
 ```
 
-Load the BTR dataset. It contains breathing test results (ordinal outcome) with covariates age and smoking status, along with frequency counts for each combination.
+We load the BTR dataset.
+It contains breathing test results (ordinal outcome) with covariates age and smoking status,
+along with frequency counts for each combination.
 
 ```{r}
-btr_dat <- read.csv(
+#| label: load-btr
+btr_dat <- read_csv(
     "data/Example3-2BTR.csv",
-    colClasses = c("factor", "factor", "factor", "numeric")
+    col_types = cols(
+        BTR = col_factor(),
+        Age = col_factor(),
+        Smoking = col_factor(),
+        Freq = col_double()
+    )
 )
 
-str(btr_dat)
 btr_dat
 ```
 
-## Factor Coding and Contrast Systems
-
 The breathing test result (BTR) must be converted to an **ordered factor** since we have three ordered categories. By default, R uses **dummy coding** with `contr.treatment`.
 
-First, check and set the appropriate factor structure:
+First, we check if the BTR variable is currently an ordered factor:
 
 ```{r}
-is.factor(btr_dat$BTR)
+#| label: check-btr-ordered
 is.ordered(btr_dat$BTR)
+```
 
-# Set BTR to ordinal (ordered categorical)
+Currently it is not ordered, so we convert it to an ordered factor:
+```{r}
+#| label: order-btr
 btr_dat$BTR <- as.ordered(btr_dat$BTR)
+class(btr_dat$BTR)
+btr_dat$BTR
+```
 
+The default ordering happens to be good for us,
+but if we needed to change the order, we could specify it with `factor(..., levels = c(...), ordered = TRUE)`.
+
+```{r}
+#| label: check-factor-types
 is.factor(btr_dat$Age)
 is.factor(btr_dat$Smoking)
 is.factor(btr_dat$Freq)
@@ -56,47 +69,91 @@ is.factor(btr_dat$Freq)
 Examine the current contrast coding scheme:
 
 ```{r}
-getOption(x = "contrasts")
+#| label: get-contrasts-opt
+getOption("contrasts")
+```
 
+When you see "contr.treatment" for unordered factors, it means dummy coding is being used. For ordered factors, the default is "contr.poly" (orthogonal polynomials).
+Age and Smoking are unordered factors, so they will use dummy coding.
+
+```{r}
+#| label: show-contrasts
 contrasts(btr_dat$Smoking)
 contrasts(btr_dat$Age)
 ```
+
+Here it is choosing the never-smoked category as the reference for Smoking, and the <40 category as the reference for Age.
+These are what we want to match @fahrmeir_multivariate_2001.
 
 The dummy coding creates indicator variables for each level relative to a reference category. This is the default but leads to coefficient estimates that differ from Fahrmeir & Tutz due to their use of **effect coding**.
 
 ## Model Fitting: Proportional Odds Models
 
-The `polr()` function fits cumulative logit (and other) models. Key note: **the sign of coefficients in `polr()` is opposite to the textbook formula**—compare with the documentation to reconcile.
+The `polr()` function fits cumulative logit (and other) models. Key note: **the sign of coefficients in `polr()` is opposite to the textbook formula**—[compare with the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html) using `?polr` to reconcile.
 
-### Main Model with Interaction (Logistic Link)
-
-Fit the cumulative logistic/proportional odds model with age, smoking, and their interaction:
+Fit the cumulative logistic/proportional odds model with and intercept, age, smoking, and their interaction:
 
 ```{r}
+#| label: fit-logit-int
 btr_logit <- polr(
-    BTR ~ Age + Smoking + Age:Smoking,
+    BTR ~ Age * Smoking,
     data = btr_dat,
     weights = Freq,
     Hess = TRUE,
     method = "logistic"
 )
+```
 
+::: {.callout-tip collapse="true"}
+## `polr()` Function Syntax
+
+- **`formula`**: Model structure `response ~ predictors`; response must be an ordered factor
+- **`data`**: Data frame containing the variables
+- **`weights`**: Case weights (here, frequency counts for each covariate combination)
+- **`Hess = TRUE`**: Return the Hessian matrix; needed for `summary()` and confidence intervals
+- **`method`**: Link function—`"logistic"` (default, proportional odds), `"probit"`, `"cloglog"`, `"loglog"`, or `"cauchit"`
+:::
+
+The `polr()` function is limited.
+It doesn't allowed for extended cumulative model where we can have threshold variables.
+We can see that the only coefficients that change with the thresholds are the thresholds themselves shown below.
+
+```{r}
+#| label: summary-logit-int
 summary(btr_logit)
 ```
 
-Extract model components:
+There is only one coefficient for `Age`, since the other age category is the reference.
+Similarly for `Smoking`, we only have two coefficients reported.
+The interaction terms are also present as expected.
 
+We need to be able to interpret the coefficients.
+If you have a smoker who is Age 40 to 59 who is a former smokers, then the cumulative odds of having a normal test compared to not having a normal test is $\exp()$ the sum of those two estimates (0.158) than a person who has never smoked.
+
+If smoking has no association with the breathing test results, then we would expect this number to be 1.
+
+
+There is no residual readily available, but we can observe the linear predictor (represented as $\eta$ in the documentation).
 ```{r}
+#| label: linear-predictor
 # Linear predictors (eta values)
 btr_logit$lp
+```
 
+For our notation, if we are trying to recover $x*\hat{\gamma}$, which is our version of the linear predictor, we need to invert the signs.
+
+The $\zeta$'s are our theshold parameters $\theta$
+
+```{r}
+#| label: threshold-zeta
 # Threshold parameters (cutpoints/intercepts)
 btr_logit$zeta
 ```
 
-Verify coefficients by hand-computing the linear predictor:
+We can verify the linear predictors by hand-computing the linear predictor:
 
 ```{r}
+#| label: manual-lp-check
 Z <- cbind(
     (btr_dat$Age == "40to59"),
     (btr_dat$Smoking == "2Former"),
@@ -106,15 +163,20 @@ Z <- cbind(
 )
 
 # Hand-computed eta should match btr_logit$lp
-head(Z %*% btr_logit$coeff)
-head(btr_logit$lp)
+tibble(
+    manual = c(Z %*% btr_logit$coeff),
+    polr = btr_logit$lp
+)
 ```
 
-### Model Comparison (with and without interaction)
+We see that they line up.
 
-Fit a main-effects-only model and compare using the likelihood ratio test:
+### Fit Model without Interaction
+
+Here we fit a main-effects-only model without interaction:
 
 ```{r}
+#| label: fit-logit-main
 btr_logit1 <- polr(
     BTR ~ Age + Smoking,
     data = btr_dat,
@@ -126,25 +188,41 @@ btr_logit1 <- polr(
 summary(btr_logit1)
 ```
 
+Again the signs of the coefficients are the opposite to our model.
+
+Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.
+The test should have 2 degrees of freedom since we are adding two interaction terms (`Age40to59:Smoking2Former` and `Age40to59:Smoking3Current`).
+
+We can use `anova()`:
+
+```{r}
+#| label: anova-logit-models
+anova(btr_logit, btr_logit1)
+```
+
+We reject the null hypothesis that there is no interaction,
+at all reasonable significance levels.
+
 ::: {.callout-note}
 The LR statistic in the `anova()` output is the difference between the deviances of the two models. Each deviance reported is `-2 * log(likelihood)` for that model.
 :::
 
-```{r}
-anova(btr_logit, btr_logit1)
-```
-
 ## Alternative Link Functions
 
-The proportional odds assumption can be tested by fitting models with different link functions. The `polr()` function supports:
+The proportional odds assumption can be tested by fitting models with different link functions.
+The `polr()` function supports:
+
 - **logistic**: cumulative logit model (default)
 - **probit**: cumulative normal model
 - **cloglog**: complementary log-log (grouped Cox/proportional hazards)
 - **loglog**: extreme maximal-value distribution
 
-### Grouped Cox / Complementary Log-Log
+### Grouped Cox / Proportional Hazards (Complementary Log-Log Link)
+
+The grouped Cox model has
 
 ```{r}
+#| label: fit-cloglog-int
 btr_ph <- polr(
     BTR ~ Age + Smoking + Age:Smoking,
     data = btr_dat,
@@ -158,7 +236,10 @@ summary(btr_ph)
 
 ### Extreme Maximal-Value Distribution
 
+This model is just a reparameterisation of the proportional hazard model.
+
 ```{r}
+#| label: fit-loglog-int
 btr_extm <- polr(
     BTR ~ Age + Smoking + Age:Smoking,
     data = btr_dat,
@@ -170,11 +251,14 @@ btr_extm <- polr(
 summary(btr_extm)
 ```
 
-## Effect Coding (Fahrmeir & Tutz Parameterization)
+## Matching our Results to @fahrmeir_multivariate_2001 Example 3.4
 
-By default, R uses dummy coding. To match the textbook and get effect coding (deviation contrasts), switch the global contrast option and refit:
+By default, R uses dummy coding.
+To match to the textbook, we need to use effect coding.
+We switch the global contrast option and refit:
 
 ```{r}
+#| label: set-effect-coding
 options(contrasts = c("contr.sum", "contr.poly"))
 
 # Verify the contrast change
@@ -182,9 +266,11 @@ contrasts(btr_dat$Smoking)
 contrasts(btr_dat$Age)
 ```
 
-Refit both models with effect coding:
+We now have the reference category coded as -1, as required.
+Therefore we refit both models:
 
 ```{r}
+#| label: fit-logit-eff
 btr_logit_eff <- polr(
     BTR ~ Age + Smoking + Age:Smoking,
     data = btr_dat,
@@ -205,55 +291,104 @@ summary(btr_logit_eff)
 summary(btr_logit1_eff)
 ```
 
-::: {.callout-tip}
-With effect coding, the coefficients now match Table 3.3 in Fahrmeir & Tutz. The deviances remain the same (model fit is unchanged), only the parameterization differs.
-:::
+The values reported in the summaries now match the textbook (excluding rounding errors).
 
 ```{r}
+#| label: anova-logit-eff
 anova(btr_logit_eff, btr_logit1_eff)
 ```
 
+As expected, the likelihood ratio test results are the same as before since the models are the same, just with different parameterisations.
+
 ## Saturated Model and Deviance Calculation
+
+Is each of the regressed model summaries,
+there is a value "Residual Deviance" reported.
+We need to be careful to understand what this exactly means, because as we have previously seen,
+this can be highly package dependent.
 
 The deviance reported by `polr()` is `-2 * log(likelihood)` for the fitted model. To compute the **residual deviance** (difference from saturated model), we manually compute the saturated model log-likelihood.
 
-```{r}
-# Reshape frequency counts into a matrix (rows = covariate combinations, cols = BTR categories)
-data_mat <- t(matrix(btr_dat$Freq, nr = 3))
+To explore, we first compute the log-likelihood of the saturated model.
+We create a matrix with each row corresponding to a unique covariate combination,
+and each column counting the frequency of each response per category for that covariate combination.
 
-# Compute MLE probabilities for the saturated model (empirical proportions)
+```{r}
+#| label: make-count-matrix
+btr_counts <- btr_dat |>
+    pivot_wider(
+        id_cols = c(Age, Smoking),
+        names_from = BTR,
+        values_from = Freq
+    )
+btr_counts
+
+data_mat <- btr_counts |>
+    dplyr::select(-Age, -Smoking) |>
+    as.matrix()
+data_mat
+```
+
+We can also represent the data as a matrix of empirical proportions (dividing each row by it's row sum).
+
+```{r}
+#| label: count-proportions
 probs <- data_mat / rowSums(data_mat)
-
-# Compute saturated log-likelihood via multinomial
-loglike_saturated <- 0
-for (row in seq_len(nrow(data_mat))) {
-    for (col in 1:3) {
-        eval_vec <- rep(0, 3)
-        eval_vec[col] <- 1
-        increment <- data_mat[row, col] *
-            dmultinom(x = eval_vec, prob = probs[row, ], log = TRUE)
-        if (!is.na(increment)) loglike_saturated <- loglike_saturated + increment
-    }
-}
-
-cat("Saturated model log-likelihood:", loglike_saturated, "\n")
+probs
 ```
 
-Compute residual deviances (deviance of fitted model minus deviance of saturated model):
+This is the also the matrix of maximum likelihood estimates
+for the saturated model.
+Therefore we manually calculate the log-likelihood of the saturated model
+using the multinomial distribution.
+We first calculate the likelihood for each cell, treating $0 \log(0) = 0$,
+and then we sum over all cells to get the total log-likelihood for the saturated model.
 
 ```{r}
-residual_dev_logit <- btr_logit_eff$deviance - abs(2 * loglike_saturated)
-residual_dev_logit1 <- btr_logit1_eff$deviance - abs(2 * loglike_saturated)
-
-cat("Residual deviance (interaction):", residual_dev_logit, "\n")
-cat("Residual deviance (main effects):", residual_dev_logit1, "\n")
-cat("These should match Table 3.3 in Fahrmeir & Tutz\n")
+#| label: loglike-matrix
+loglike_matrix <- ifelse(data_mat > 0, data_mat * log(probs), 0)
+loglike_matrix
 ```
 
-Compute residual deviances for alternative link functions:
+```{r}
+#| label: loglike-saturated
+loglike_saturated <- sum(loglike_matrix)
+loglike_saturated
+```
+
+::: {.callout-note collapse="true"}
+# Explain why we can compute the saturated log-likelihood with this sum
+The above computation is under the ungrouped view of the data.
+The probability mass function for the multinomial distribution is hence:
+$$P(Y_1 = y_1, \ldots, Y_k = y_k) = \prod_{i = 1}^{6} p_1^{y_{i1}} p_2^{y_{i2}} p_3^{y_{i3}},$$
+where $y_i$ are the observed counts and $p_i$ are the probabilities for each category.
+The log-likelihood is then:
+$$\sum_{i,j} y_{ij} \log(p_{ij}),$$
+where we treat $0 \log(0) = 0$.
+:::
+
+We can recover the deviance reported in Table 3.3 of @fahrmeir_multivariate_2001
+by computing the residual deviance as the difference
+between the reported 'deviance' of the fitted model and the deviance of the saturated model.
 
 ```{r}
-# Refit with effect coding
+#| label: residual-dev-logit
+residual_dev_logit <- 2 * loglike_saturated + btr_logit_eff$deviance
+residual_dev_logit
+```
+
+This tells us that the so called 'deviance' reported by `polr()` is actually just
+2 times negative of the log-likelihood of the fitted model.
+This is very different from what we usually consider the deviance.
+
+### Returning the Deviance for Alternative Link Functions
+
+Fit models with complementary log-log and loglog link functions using effect coding, then summarize results in a comparison table:
+
+```{r}
+#| label: fit-alt-links-eff
+
+# Fit complementary log-log (proportional hazards)
 btr_ph_eff <- polr(
     BTR ~ Age + Smoking + Age:Smoking,
     data = btr_dat,
@@ -262,6 +397,7 @@ btr_ph_eff <- polr(
     method = "cloglog"
 )
 
+# Fit loglog (extreme maximal-value)
 btr_extm_eff <- polr(
     BTR ~ Age + Smoking + Age:Smoking,
     data = btr_dat,
@@ -270,66 +406,161 @@ btr_extm_eff <- polr(
     method = "loglog"
 )
 
-residual_dev_ph <- btr_ph_eff$deviance - abs(2 * loglike_saturated)
-residual_dev_extm <- btr_extm_eff$deviance - abs(2 * loglike_saturated)
+# Create a list of models for easy iteration
+models <- list(
+    Logistic = summary(btr_logit_eff),
+    `Complementary Log-Log` = summary(btr_ph_eff),
+    Loglog = summary(btr_extm_eff)
+)
 
-cat("Residual deviance (cloglog):", residual_dev_ph, "\n")
-cat("Residual deviance (loglog):", residual_dev_extm, "\n")
+# Extract variable names
+coef_names <- rownames(coef(models[[1]]))
+
+results_table <- bind_rows(
+    # Coefficients
+    tibble(
+        Parameter = coef_names,
+        `Cum Log` = coef(summary(btr_logit_eff))[,"Value"],
+        `Prop Haz` = coef(summary(btr_ph_eff))[,"Value"],
+        `Ext Max Val` = coef(summary(btr_extm_eff))[,"Value"]
+    ),
+    # Residual Deviance
+    tibble(
+        Parameter = "Residual Deviance",
+        `Cum Log` = 2 * loglike_saturated + btr_logit_eff$deviance,
+        `Prop Haz` = 2 * loglike_saturated + btr_ph_eff$deviance,
+        `Ext Max Val` = 2 * loglike_saturated + btr_extm_eff$deviance
+    )
+) |>
+    mutate(across(where(is.numeric), ~ round(., 4)))
+
+results_table
+
 ```
 
-## Model Diagnostics
+We have now matched Table 3.3 of @fahrmeir_multivariate_2001
+(with inverse signs for the coefficients).
+
+At this point, it is a good idea to read through Example 3.4 in the textbook
+to get an idea of the results interpretation.
+
+The proportional hazard has the lowest deviance, and gives a much smaller threshold parameter.
+
+## Other Tricks and Commands
+
+### Residuals
+
+The `polr()` function does not readily provide residuals.
+
+```{r}
+#| label: residuals-check
+residuals(btr_logit_eff)
+```
 
 ### Fitted Values and Predictions
 
+Fitted probabilities can be extracted directly or using the generic `predict()` function:
+
 ```{r}
-# Fitted probabilities (first few rows)
-head(predict(btr_logit_eff, btr_dat, type = "probs"))
+#| label: fitted-probs
+# Extracting fitted probabilities directly
+head(btr_logit_eff$fitted)
+head(predict(btr_logit_eff, type = "probs"))
 ```
+
+Both approaches yield identical results.
 
 ### Model Selection with AIC
 
-```{r}
-# Automatic stepwise selection based on AIC
-btr_step <- step(btr_logit_eff)
-
-summary(btr_step)
-```
-
-### Variance-Covariance Matrix and Confidence Intervals
+The `step()` function performs automatic model selection using the AIC criterion.
+(not directly covered in this course unless time allows)
 
 ```{r}
-# Variance-covariance matrix of parameter estimates
-vcov(btr_logit_eff)
-
-# Standard errors from summary
-sqrt(diag(vcov(btr_logit_eff)))
+#| label: model-selection-aic
+step(btr_logit_eff)
 ```
 
-Compute confidence intervals using the profile likelihood (more accurate than Wald intervals):
+### Variance-Covariance Matrix and Standard Errors
+
+We can extract the estimated variance-covariance matrix of the parameter estimates using `vcov()`.
+This should line up with the inverse of the Fisher information matrix.
 
 ```{r}
-confint(btr_logit_eff)
+#| label: vcov-extraction
+logit_vcov <- vcov(btr_logit_eff)
+logit_vcov
 ```
 
-### Profile Likelihood
-
-For detailed inference, examine the profile likelihood for individual parameters:
+From this we can match the standard errors reported in the summary output,
+since they are the square root of the diagonal elements of the variance-covariance matrix:
 
 ```{r}
-profile(btr_logit_eff)
+#| label: vcov-comparison
+se_from_vcov <- sqrt(diag(logit_vcov))
+se_from_summary <- summary(btr_logit_eff)$coefficients[, "Std. Error"]
+
+se_from_vcov == se_from_summary
+```
+We should be able to recover the same confidence intervals by using the variance-covariance matrix and a normal approximation (Wald intervals).
+
+We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by `polr()`:
+
+```{r}
+#| label: hessian-comparison
+hessian_inv <- solve(btr_logit_eff$Hess)
 ```
 
-## Key Learning Points
+We can see that the matrices are slightly different.
+```{r}
+all.equal(hessian_inv, logit_vcov)
+```
 
-1. **Ordinal outcomes**: BTR has three ordered categories; use ordered factors
-2. **Proportional odds**: Assumes coefficients are constant across all cutpoints
-3. **Link functions**: Different links (logit, probit, cloglog, loglog) test proportional odds
-4. **Contrast coding**: Dummy vs. effect coding changes parameterization, not model fit
-5. **Deviance interpretation**: Always distinguish between `-2*log(L)` and residual deviance
-6. **Saturated model**: Needed to compute residual deviance for GOF
+### Confidence Intervals
 
-## References
+R provides the generic method `confint()` to compute confidence intervals for model parameters.
 
-- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling*
-- Venables, W. N., & Ripley, B. D. (2002). Modern applied statistics with S (4th ed.)
-- [polr() documentation](https://www.rdocumentation.org/packages/MASS/versions/7.3-51.6/topics/polr)
+```{r}
+#| label: confint-profile
+confint(btr_logit_eff) |> round(3)
+```
+
+We can attempt to recovery the same confidence intervals using a Wald approximation based on the coefficient estimates and their standard errors:
+
+```{r}
+#| label: confint-wald-manual-upper
+# Manual Wald CI (upper limit)
+coeff_est <- summary(btr_logit_eff)$coefficients[, 1]
+wald_upper <- coeff_est + qnorm(0.975) * sqrt(diag(vcov(btr_logit_eff)))
+wald_lower <- coeff_est + qnorm(0.025) * sqrt(diag(vcov(btr_logit_eff)))
+tibble(wald_lower, wald_upper)
+```
+
+These values are different from the confidence intervals computed by `confint()`.
+This is because the `confint()` function uses the profile likelihood method,
+which is more suitable for some non-linear regression problems.
+
+For more details see @venables_modern_2002, p. 220,
+and run `profile(btr_logit_eff)`.
+
+```{r}
+#| label: package-citations
+#| results: asis
+#| code-fold: true
+
+packages <- c("conflicted", "dplyr", "MASS", "readr")
+for (pkg in packages) {
+    cit <- citation(pkg)
+
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
+}
+```
