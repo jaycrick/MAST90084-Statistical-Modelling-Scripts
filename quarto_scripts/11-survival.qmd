@@ -13,9 +13,10 @@ This script demonstrates survival analysis techniques on breast cancer data.
 ```{r}
 #| label: 11-survival-chunk-1
 library(conflicted)
+library(readr)
 library(survival)
 
-bcancer <- read.csv("data/survival.csv")
+bcancer <- read_csv("data/survival.csv")
 
 head(bcancer)
 tail(bcancer)
