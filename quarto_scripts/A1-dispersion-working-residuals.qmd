@@ -37,7 +37,7 @@ $$
 \mathrm{w}_i = \omega_i V(\hat{\mu}_i)^{-1} D_i(\hat{\boldsymbol{\beta}})^2
 $$
 
-are the working weights [@venables_modern_2002, p. 186] used in the IRLS method.
+are the working weights [@venables_modern_2002, p.186] used in the IRLS method.
 
 ## Interpretation Under Poisson Full Likelihood
 
