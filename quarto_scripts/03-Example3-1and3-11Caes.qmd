@@ -7,6 +7,10 @@ nocite: |
     @venables_modern_2002
 ---
 
+## TODO
+
+- Go through and add appropriate documentation to functions.
+
 ## Overview
 
 This document mirrors the R script for Examples 3.1 and 3.11 (Fahrmeir & Tutz), covering:
@@ -22,12 +26,14 @@ Load all required packages and the prepared Caesar dataset.
 As always, we load `conflicted` to manage any function name conflicts across packages.
 
 ```{r}
+#| label: load-conflicted
 library(conflicted)
 ```
 
 Then we load the necessary packages for data manipulation and modelling.
 
 ```{r}
+#| label: load-modelling-packages
 library(dplyr)
 library(Fahrmeir)
 library(glmnet)
@@ -40,6 +46,7 @@ library(VGAM)
 ## Example 3.1: Caesarian Birth Study (p. 73)
 
 ```{r}
+#| label: read-caes-data
 caes_dat <- read_csv("data/Example3-1Caes.csv")
 caes_dat
 ```
@@ -56,6 +63,7 @@ Alternatively, one can manipulate the dataset directly from the Fahrmeir package
 5. Computes total counts and recodes factors to integers matching the textbook coding
 
 ```{r}
+#| label: prepare-caesar-from-package
 caesar_clean <- caesar |>
     as_tibble() |>
     select(-patco, -yl) |>
@@ -101,6 +109,7 @@ which requires computing the Hessian matrix at each iteration.
 
 We convert the response variables to a matrix format suitable for `multinom()`,
 ```{r}
+#| label: fit-multinom-caes
 caes_response <- caes_dat |>
     select(noInf, Inf1, Inf2) |>
     as.matrix()
@@ -120,6 +129,7 @@ We can print the coefficients in a format that matches the
 table on @fahrmeir_multivariate_2001 page 75.
 
 ```{r}
+#| label: coef-table-caes-nnet
 round(t(coef(caes_nnet_summary)), 3)
 ```
 
@@ -127,6 +137,7 @@ This matches the textbook results.
 We can also have a look at the deviance of the fitted model.
 
 ```{r}
+#| label: deviance-caes-nnet
 caes_nnet$deviance
 ```
 
@@ -153,6 +164,7 @@ Similarly, `str()` shows the internal structure,
 and `names()` lists just the accessible components.
 
 ```{r}
+#| label: attributes-caes-nnet
 attributes(caes_nnet)
 ```
 
@@ -173,6 +185,7 @@ We can use `glmnet` to fit the same multinomial model
 by setting `lambda = 0` to get the unregularized estimates.
 
 ```{r}
+#| label: glmnet-multinomial-fit
 caes_predictors <- caes_dat |>
     select(NoPlan, Antib, RiskF) |>
     as.matrix()
@@ -201,6 +214,7 @@ We can therefore retrieve the `multinom()` coefficients by taking differences of
 2. Extract intercept coefficients and compute differences relative to the reference category intercept
 
 ```{r}
+#| label: glmnet-to-multinom-coefs
 beta_matrix <- cbind(
     caes_glmnet$beta[[2]] - caes_glmnet$beta[[1]],
     caes_glmnet$beta[[3]] - caes_glmnet$beta[[1]]
@@ -222,6 +236,7 @@ This also matches the coefficients from @fahrmeir_multivariate_2001 p. 75.
 We can fit instead using the `caesar` data from the Fahrmeir package, setting preferred reference levels before modeling.
 
 ```{r}
+#| label: fit-multinom-caesar-weighted
 caesar_prepared <- caesar |>
     as_tibble() |>
     mutate(
@@ -247,6 +262,7 @@ We can also check the deviance of this fit,
 which should be the same as before since it's the same model.
 
 ```{r}
+#| label: compare-deviance-multinom-fits
 caes_nnet2$deviance
 caes_nnet$deviance
 ```
@@ -259,6 +275,7 @@ We now inspect the fitted values and residuals of the `caes_nnet` model.
 The fitted values are the predicted probabilities for each category.
 
 ```{r}
+#| label: print-fitted-values
 caes_nnet$fitted.values
 ```
 
@@ -266,6 +283,7 @@ The residuals are the differences
 between the observed proportions and the fitted probabilities.
 
 ```{r}
+#| label: print-residuals
 caes_nnet$residuals
 ```
 
@@ -273,6 +291,7 @@ We can manually validate the residuals by computing the observed proportions
 and subtracting the fitted probabilities.
 
 ```{r}
+#| label: manual-residual-check
 caes_nnet_prop <- caes_dat |>
     mutate(
         noInf = noInf / size,
@@ -289,6 +308,7 @@ Given a new observation, we can either predict the most likely category
 (with `type = "probs"`).
 
 ```{r}
+#| label: predict-new-case
 new_case <- tibble(NoPlan = 1, Antib = 1, RiskF = 0)
 
 predict(caes_nnet, newdata = new_case, type = "probs")
@@ -299,6 +319,7 @@ For a sanity check, we can also compute the predicted probabilities manually
 using the coefficients.
 
 ```{r}
+#| label: manual-probability-check
 coef_matrix <- coef(caes_nnet)
 ratios <- exp(coef_matrix %*% c(1, 1, 1, 0))
 prob_no_inf <- 1 / (sum(ratios) + 1)
@@ -325,6 +346,7 @@ for the `vglm()` function
 with `?vglm` to understand the arguments and output structure.
 
 ```{r}
+#| label: fit-vgam-caes
 caes_vgam <- vglm(
     formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
     family = multinomial(refLevel = "noInf"),
@@ -344,6 +366,7 @@ and the coefficients are interpreted relative to `noInf`.
 :::
 
 ```{r}
+#| label: summary-vgam-caes
 summary(caes_vgam)
 ```
 
@@ -354,6 +377,7 @@ Remember that the deviance reported by `nnet::multinom()`
 is twice the negative log-likelihood.
 Therefore the log-likelihood from `nnet` can be computed as:
 ```{r}
+#| label: nnet-loglik-from-deviance
 -caes_nnet$deviance / 2
 ```
 
@@ -370,6 +394,7 @@ Extracting the coefficients from the `vglm` fit we see they also those in @fahrm
 and the fitted probabilities match those from `multinom()`.
 
 ```{r}
+#| label: coef-and-fitted-vgam
 round(coef(caes_vgam, matrix.out = TRUE), 3)
 
 fitted(caes_vgam)
@@ -377,9 +402,13 @@ fitted(caes_vgam)
 
 ## Example 3.11
 
-Constrain `NoPlan` and `RiskF` to be equal across categories using the `parallel` argument.
+We now move on to Example 3.11.
+We constrain `NoPlan` and `RiskF` to be equal across categories using the `parallel` argument.
+This means that the coefficients for `NoPlan` and `RiskF` will be the same for both `Inf1` and `Inf2` categories, while `Antib` can still vary freely.
+We run the regression, and extract the coefficients.
 
 ```{r}
+#| label: fit-vgam-parallel
 caes_vgam_parallel <- vglm(
     formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
     data = caes_dat,
@@ -394,63 +423,97 @@ coefvlm(caes_vgam_parallel, matrix.out = TRUE)
 
 ## VGAM on Filtered Fahrmeir Data
 
-Filter out zero-count rows, reset reference levels, and fit with `vglm`; compare criteria and log-likelihoods.
+We can try running the `vglm()` function on the original `caesar` data
+[we manipulated earlier](#alternative-original-fahrmeir-data)
+from the Fahrmeir package.
+Note that this has the correct reference levels set already.
 
 ```{r}
-caesar_no_zero_w <- dplyr::filter(caesar, w > 0)
-levels(caesar_no_zero_w$noplan)
-levels(caesar_no_zero_w$antib)
-levels(caesar_no_zero_w$factor)
+#| label: fit-vgam-fahrmeir
+#| warning: true
+#| error: true
 
-caesar_no_zero_w$noplan <- relevel(caesar_no_zero_w$noplan, ref = "planned")
-caesar_no_zero_w$antib <- relevel(caesar_no_zero_w$antib, ref = "without")
-caesar_no_zero_w$factor <- relevel(caesar_no_zero_w$factor, ref = "without")
+vglm(
+  formula = y ~ noplan + antib + factor,
+  data = caesar_prepared,
+  weights = w,
+  family = VGAM::multinomial(refLevel = "3")
+)
+```
+
+This is showing an error, and so we need to filter out the zero-count rows and try again.
+
+```{r}
+#| label: fit-vgam-filtered-fahrmeir
+
+caesar_no_zero_w <- caesar_prepared |> dplyr::filter(w > 0)
+caesar_no_zero_w
 
 caes_vgam2 <- vglm(
     formula = y ~ noplan + antib + factor,
     data = caesar_no_zero_w,
     weights = w,
-    family = VGAM::multinomial(refLevel = "3")
+    family = multinomial(refLevel = "3")
 )
 
 summary(caes_vgam2)
+```
+
+We can compare the coefficients from this fit to the earlier `vglm` fit on the wide-format data.
+
+```{r}
+#| label: coefs-vgam2
+
 coefvlm(caes_vgam2, matrix.out = TRUE)
+coefvlm(caes_vgam, matrix.out = TRUE)
+```
+
+```{r}
+#| label: compare-criteria-vgam-fits
 
 attributes(caes_vgam)$criterion
 attributes(caes_vgam2)$criterion
-logLik(caes_vgam)
-logLik(caes_vgam2)
 ```
 
-## Long-Form Data (Wide-to-Long)
+We can see that the deviance and log-likelihoods are different between the fits.
+The deviance of `caes_vgam` matches that of in the book,
+however the deviance of `caes_vgam2` is just two times the negative log-likelihood of the fitted model.
 
-Reshape the prepared data to long format and fit the multinomial model with weights; coefficients should match earlier fits.
+## Long-Form Data (extra)
+
+:::{.callout-note}
+##
+
+We can convert the data back into long format and confirm we still get the same fit.
 
 ```{r}
-caesar_new <- pivot_longer(
-    data = caes_dat[, -1],
-    cols = noInf:Inf2,
-    names_to = "inf_type",
-    values_to = "w"
-)
-caesar_new$inf_type <- factor(
-    caesar_new$inf_type,
-    levels = unique(caesar_new$inf_type)
-)
-# Extract coefficient matrix
+#| label: fit-nnet-long-form
+
+caesar_long <- caes_dat |>
+    select(-size) |>
+    pivot_longer(
+        cols = noInf:Inf2,
+        names_to = "inf_type",
+        values_to = "w"
+    ) |>
+    mutate(inf_type = factor(inf_type, levels = c("noInf", "Inf1", "Inf2")))
 
 caes_nnet_tibble <- multinom(
     inf_type ~ NoPlan + Antib + RiskF,
-    data = caesar_new,
+    data = caesar_long,
     weights = w
 )
-summary(caes_nnet_tibble)$coeff
-summary(caes_nnet2)$coeff
+
+coef(caes_nnet_tibble)
+coef(caes_nnet2)
 ```
+
+:::
 
 ## Package citations and references
 
 ```{r}
+#| label: package-citations
 #| results: asis
 #| code-fold: true
 

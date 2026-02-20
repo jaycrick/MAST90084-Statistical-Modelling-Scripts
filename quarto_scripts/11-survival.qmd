@@ -11,10 +11,12 @@ This script demonstrates survival analysis techniques on breast cancer data.
 ## Data Loading
 
 ```{r}
+#| label: 11-survival-chunk-1
 library(conflicted)
+library(readr)
 library(survival)
 
-bcancer <- read.csv("data/survival.csv")
+bcancer <- read_csv("data/survival.csv")
 
 head(bcancer)
 tail(bcancer)
@@ -31,6 +33,7 @@ Group is for staining status: positive (P) or negative (N) staining.
 Fit KM estimator for the survival function:
 
 ```{r}
+#| label: 11-survival-chunk-2
 cancer.km <- survfit(Surv(time, status) ~ group, data = bcancer)
 
 cancer.km
@@ -42,6 +45,7 @@ summary(cancer.km)
 Set up graphical parameters:
 
 ```{r}
+#| label: 11-survival-chunk-3
 par()$las
 
 orig_par <- par(mar = c(3, 3, 1, 1), las = 1)
@@ -57,6 +61,7 @@ par()$mar
 Plot KM survival curves for the two groups:
 
 ```{r}
+#| label: 11-survival-chunk-4
 plot(cancer.km, lwd = 2, cex.axis = 1.5)
 par(orig_par)
 ```
@@ -66,6 +71,7 @@ par(orig_par)
 Check Weibull suitability:
 
 ```{r}
+#| label: 11-survival-chunk-5
 opar <- par(mar = c(4, 4, 0, 0), las = 1)
 negative <- bcancer$group == "N"
 positive <- bcancer$group == "P"
@@ -102,6 +108,7 @@ par()$mar
 Check PH assumption with cloglog plot:
 
 ```{r}
+#| label: 11-survival-chunk-6
 opar <- par(mar = c(2, 2, 0, 0), las = 1)
 
 plot(
@@ -126,6 +133,7 @@ par(opar)
 ## Exponential Regression
 
 ```{r}
+#| label: 11-survival-chunk-7
 cancer_exp <- survreg(
     Surv(time, status) ~ group,
     data = bcancer,
@@ -138,6 +146,7 @@ summary(cancer_exp)
 ### Wald Test
 
 ```{r}
+#| label: 11-survival-chunk-8
 wald_stat <- cancer_exp$coeff[2] / sqrt(cancer_exp$var[2, 2])
 2 * pnorm(-abs(wald_stat))
 ```
@@ -147,6 +156,7 @@ p-value
 ### Likelihood Ratio Test
 
 ```{r}
+#| label: 11-survival-chunk-9
 lr_stat <- -2 * (cancer_exp$loglik[1] - cancer_exp$loglik[2])
 pchisq(q = lr_stat, df = 1, lower.tail = FALSE)
 ```
@@ -156,6 +166,7 @@ p-value
 ### Rate Parameters
 
 ```{r}
+#| label: 11-survival-chunk-10
 exp(-cancer_exp$coef[1])
 
 exp(-sum(cancer_exp$coef))
@@ -166,6 +177,7 @@ exp(-sum(cancer_exp$coef))
 For exponential distribution, MLE of lambda is # events / total time at risk:
 
 ```{r}
+#| label: 11-survival-chunk-11
 sum(bcancer$status[bcancer$group == "N"]) /
     sum(bcancer$time[bcancer$group == "N"])
 
@@ -176,6 +188,7 @@ sum(bcancer$status[bcancer$group == "P"]) /
 ### Delta Method Confidence Interval
 
 ```{r}
+#| label: 11-survival-chunk-12
 beta <- cancer_exp$coeff[2]
 var_beta <- (cancer_exp$var)[2, 2]
 var_delta <- (exp(-beta))^2 * var_beta
@@ -189,6 +202,7 @@ The lower bound doesn't cross to the negative number region, which is lucky.
 Alternative using monotone transformation:
 
 ```{r}
+#| label: 11-survival-chunk-13
 exp(-(beta - qnorm(0.975) * sqrt(var_beta)))
 exp(-(beta + qnorm(0.975) * sqrt(var_beta)))
 ```
@@ -198,6 +212,7 @@ This guarantees that the lower bound doesn't cross to the negative number region
 ## Weibull Regression
 
 ```{r}
+#| label: 11-survival-chunk-14
 cancer_wbl <- survreg(
     Surv(time, status) ~ group,
     data = bcancer,
@@ -213,6 +228,7 @@ cancer_wbl$var
 ### Rate and Shape Parameters
 
 ```{r}
+#| label: 11-survival-chunk-15
 lambda_n <- exp(-cancer_wbl$coef[1])
 lambda_p <- exp(-sum(cancer_wbl$coef))
 
@@ -231,6 +247,7 @@ s_p_100
 ### Hazard Ratio
 
 ```{r}
+#| label: 11-survival-chunk-16
 hazard_ratio <- (lambda_p / lambda_n)^alpha
 hazard_ratio
 ```
@@ -238,6 +255,7 @@ hazard_ratio
 ### Wald Test for Shape Parameter
 
 ```{r}
+#| label: 11-survival-chunk-17
 log(cancer_wbl$scale) / sqrt(cancer_wbl$var[3, 3])
 
 2 * pnorm(-abs(log(cancer_wbl$scale) / sqrt(cancer_wbl$var[3, 3])))
@@ -248,6 +266,7 @@ p-value
 ### Likelihood Ratio Test
 
 ```{r}
+#| label: 11-survival-chunk-18
 2 * (cancer_wbl$loglik[2] - cancer_exp$loglik[2])
 
 qchisq(.95, df = 1)

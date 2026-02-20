@@ -11,6 +11,7 @@ This script compares different **ordinal regression models** for analyzing the *
 ## Data and Packages
 
 ```{r}
+#| label: 05-tonsil-chunk-1
 library(conflicted)
 library(dplyr)
 library(Fahrmeir)
@@ -18,10 +19,12 @@ library(VGAM)
 ```
 
 ```{r}
+#| label: 05-tonsil-chunk-2
 ?tonsil
 ```
 
 ```{r}
+#| label: 05-tonsil-chunk-3
 data(tonsil)
 head(tonsil)
 ```
@@ -31,6 +34,7 @@ head(tonsil)
 Change the dataset into wide format for the vglm function. The commented-out code below shows an alternative approach using tidyverse:
 
 ```{r}
+#| label: 05-tonsil-chunk-4
 # Alternative tidyverse approach (commented out):
 # tonsil_df <- dplyr::tbl_df(tonsil)
 # tonsil_grouped <- dplyr::group_by(tonsil_df, Streptococcus.p)
@@ -46,6 +50,7 @@ Change the dataset into wide format for the vglm function. The commented-out cod
 Using reshape instead:
 
 ```{r}
+#| label: 05-tonsil-chunk-5
 tonsil <- reshape(
     tonsil,
     idvar = "Streptococcus.p",
@@ -59,6 +64,7 @@ tonsil
 Change the column names:
 
 ```{r}
+#| label: 05-tonsil-chunk-6
 colnames(tonsil) <- c(
     "Streptococcus.p",
     "present",
@@ -72,6 +78,7 @@ colnames(tonsil) <- c(
 Change to effect coding for Streptococcus.p:
 
 ```{r}
+#| label: 05-tonsil-chunk-7
 options(contrasts = c("contr.sum", "contr.poly"))
 contrasts(tonsil$Streptococcus.p)
 ```
@@ -81,6 +88,7 @@ contrasts(tonsil$Streptococcus.p)
 Fit with proportional odds assumption (parallel constraint):
 
 ```{r}
+#| label: 05-tonsil-chunk-8
 fit_cumulative <- vglm(
     cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
     family = cumulative(parallel = TRUE ~ Streptococcus.p - 1),
@@ -97,6 +105,7 @@ These numbers check out with Table 3.6 in Example 3.7 of F & T.
 Fit without the parallel constraint to allow category-specific effects:
 
 ```{r}
+#| label: 05-tonsil-chunk-9
 fit_cumulative_extended <- vglm(
     cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
     family = cumulative(),
@@ -111,6 +120,7 @@ summary(fit_cumulative_extended)
 Fit sequential model with proportionality assumption:
 
 ```{r}
+#| label: 05-tonsil-chunk-10
 fit_sequential <- vglm(
     cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
     family = sratio(parallel = TRUE ~ Streptococcus.p - 1),
@@ -127,6 +137,7 @@ Note: The p-values reported in F&T appear to be incorrect.
 Try using `polr()` from MASS package for comparison:
 
 ```{r}
+#| label: 05-tonsil-chunk-11
 response <- c(
     "present",
     "enlarged",
