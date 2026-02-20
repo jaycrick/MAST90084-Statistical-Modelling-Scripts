@@ -72,6 +72,7 @@ that can give rise to the same grouped multinomial data.
 ## Example: C-Section Dataset
 
 ```{r}
+#| label: a2-likelihood-multinomial-chunk-1
 #| code-fold: true
 #| message: false
 library(conflicted)
@@ -83,6 +84,7 @@ library(nnet)
 Consider the original wide format of the C-section dataset:
 
 ```{r}
+#| label: a2-likelihood-multinomial-chunk-2
 caes_dat <- read_csv("data/Example3-1Caes.csv")
 caes_dat
 ```
@@ -93,6 +95,7 @@ When we fit a multinomial model using `nnet::multinom()`,
 treating the data as ungrouped:
 
 ```{r}
+#| label: a2-likelihood-multinomial-chunk-3
 #| message: false
 caes_nnet <- nnet::multinom(
     cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
@@ -110,6 +113,7 @@ The reported log-likelihood is `r round(nnet_logLik, 3)`.
 When we fit using `VGAM::vglm()` with the data in grouped format:
 
 ```{r}
+#| label: a2-likelihood-multinomial-chunk-4
 Caes_vgam <- VGAM::vglm(
     formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
     data = caes_dat,
@@ -131,6 +135,7 @@ $$
 in (-@eq-grouped) for the seven covariate groups:
 
 ```{r}
+#| label: a2-likelihood-multinomial-chunk-5
 perm_fact_sum <- sum(log(
     factorial(caes_dat$size) /
         (factorial(caes_dat$noInf) *
@@ -144,6 +149,7 @@ perm_fact_sum
 This is precisely the difference between the two log-likelihoods:
 
 ```{r}
+#| label: a2-likelihood-multinomial-chunk-6
 vgam_logLik - nnet_logLik
 ```
 

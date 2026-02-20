@@ -43,6 +43,7 @@ We want to replicate the following table from page 30:
 We start by loading the Caesar dataset from the `Fahrmeir` package.
 If you don't already have the packages installed, run
 ```{r}
+#| label: 01-anodev-chunk-1
 #| eval: false
 install.packages(c("conflicted", "dplyr", "Fahrmeir"))
 ```
@@ -53,6 +54,7 @@ This is very important, particularly if you are looking at legacy code (old code
 from someone else who may have had particular functions loaded.
 
 ```{r}
+#| label: 01-anodev-chunk-2
 library(conflicted) # avoid calling functions in multiple libraries
 library(dplyr) # manipulate dataframes
 library(forcats) # deal with categorical data (factors)
@@ -63,6 +65,7 @@ We load the Caeser dataset in (from the Fahrmeir package),
 and inspect the top few rows using `head`.
 
 ```{r}
+#| label: 01-anodev-chunk-3
 data(caesar)
 head(caesar)
 ```
@@ -71,6 +74,7 @@ You can inspect information about the data set
 by running the following command in RStudio
 
 ```{r}
+#| label: 01-anodev-chunk-4
 #| eval: false
 ?caeser
 ```
@@ -86,6 +90,7 @@ First, convert to a tibble for clearer printing, and easier data manipulation.
 Note that tibble print the data types of each column.
 
 ```{r}
+#| label: 01-anodev-chunk-5
 caesar_tbl <- as_tibble(caesar)
 caesar_tbl
 ```
@@ -100,6 +105,7 @@ Think of the pipe as saying "and then...":
 - Count totals and infections per group
 
 ```{r}
+#| label: 01-anodev-chunk-6
 caesar_tbl <- caesar_tbl |>
     group_by(noplan, factor, antib) |>
     summarize(
@@ -117,6 +123,7 @@ The third row has `size` zero, and so we remove it
 (and any other empty variable combinations)
 
 ```{r}
+#| label: 01-anodev-chunk-7
 caesar_tbl <- caesar_tbl |>
     dplyr::filter(size != 0)
 
@@ -126,6 +133,7 @@ caesar_tbl
 Unfold the following code to see the equivalent unpiped version.
 
 ```{r}
+#| label: 01-anodev-chunk-8
 #| eval: false
 #| code-fold: true
 # Step 1: Group by covariates
@@ -155,6 +163,7 @@ Look at a description of the structure of caesar and the coding scheme of each
 variable of type "factor" using the function `contrasts()`.
 
 ```{r}
+#| label: 01-anodev-chunk-9
 contrasts(caesar_tbl$noplan)
 contrasts(caesar_tbl$factor)
 contrasts(caesar_tbl$antib)
@@ -166,6 +175,7 @@ Set the reference level for each factor. The reference level (first level) becom
 the baseline category in regression coefficients.
 
 ```{r}
+#| label: 01-anodev-chunk-10
 caesar_tbl <- caesar_tbl |>
     mutate(
         noplan = fct_relevel(noplan, "planned"),
@@ -195,6 +205,7 @@ because it ignores the fact that deviance only becomes
 twice the log-likelihood difference when rescaled by the dispersion.)
 
 ```{r}
+#| label: 01-anodev-chunk-11
 caesar_glm_fct <- glm(
     Infect_count / size ~ antib + factor + noplan,
     family = binomial,
@@ -211,6 +222,7 @@ Alternatively, we can assign integer values to the factors.
 This makes the dataframe look exactly like it matches the books notation exactly.
 
 ```{r}
+#| label: 01-anodev-chunk-12
 caesar_tbl_int <- caesar_tbl |>
     mutate(
         noplan = as.integer(noplan == "not"),
@@ -225,6 +237,7 @@ caesar_tbl
 We can see that we get the same results for the integer version
 
 ```{r}
+#| label: 01-anodev-chunk-13
 caesar_int_glm <- glm(
     Infect_count / size ~ antib + factor + noplan,
     family = binomial,
@@ -238,6 +251,7 @@ caesar_int_glm
 We can see the results more fully by using `summary()`
 
 ```{r}
+#| label: 01-anodev-chunk-14
 summary(caesar_int_glm)
 ```
 
@@ -256,6 +270,7 @@ twice the log-likelihood difference when rescaled by the dispersion.
 We can now consider the significance of each of the variables
 
 ```{r}
+#| label: 01-anodev-chunk-15
 anova(caesar_int_glm, test = "Chisq")
 ```
 
@@ -263,6 +278,7 @@ This table closely matches the one in the notes.
 All three effects are highly significant.
 
 ```{r}
+#| label: 01-anodev-chunk-16
 anova(caesar_int_glm, test = "F")
 ```
 
@@ -282,6 +298,7 @@ We can extract residuals of different types; here we collect them
 into a single tibble and round to three decimals for readability.
 
 ```{r}
+#| label: 01-anodev-chunk-17
 tibble(
     deviance = resid(caesar_int_glm, type = "deviance"),
     pearson = resid(caesar_int_glm, type = "pearson"),
@@ -297,6 +314,7 @@ Perform Pearson and deviance tests for model goodness-of-fit.
 Compare fitted and realized proportions as on the top of p.52.
 
 ```{r}
+#| label: 01-anodev-chunk-18
 sum(resid(caesar_int_glm, type = "deviance")^2)
 deviance(caesar_int_glm)
 ```
@@ -311,11 +329,13 @@ and the degrees of freedom in the glm model (4).
 
 Both the deviance test
 ```{r}
+#| label: 01-anodev-chunk-19
 1 - pchisq(caesar_int_glm$deviance, df = 3)
 ```
 
 and the Pearson test
 ```{r}
+#| label: 01-anodev-chunk-20
 1 - pchisq(sum(resid(caesar_int_glm, type = "pearson")^2), df = 3)
 ```
 
@@ -328,6 +348,7 @@ We can investigate why this might be by comparing the observed
 and fitted proportions side by side:
 
 ```{r}
+#| label: 01-anodev-chunk-21
 tibble(
     observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
     fitted = round(caesar_int_glm$fitted.values, 2)
@@ -345,6 +366,7 @@ Example 2.1). The coefficient estimates should be the same as those reported by 
 book.
 
 ```{r}
+#| label: 01-anodev-chunk-22
 caesar_glm_probit <- glm(
     Infect_count / size ~ antib + factor + noplan,
     data = caesar_tbl_int,
@@ -371,6 +393,7 @@ The deviance must decrease, since it is a larger, nested model.
 :::
 
 ```{r}
+#| label: 01-anodev-chunk-23
 caesar_glm_noplan_antib <- glm(
     Infect_count / size ~ factor + noplan * antib,
     data = caesar_tbl_int,
@@ -393,6 +416,7 @@ Make sure you know why the degree of freedom is one.
 We extract the deviance for the interaction term and compute the $p$-value manually:
 
 ```{r}
+#| label: 01-anodev-chunk-24
 anova_result <- anova(caesar_glm_noplan_antib)
 interaction_deviance <- tail(anova_result$Deviance, 1)
 interaction_deviance
@@ -408,6 +432,7 @@ This is not the only possible interaction effect.
 We now try the interaction effect `noplan:factor`.
 
 ```{r}
+#| label: 01-anodev-chunk-25
 caesar_glm_noplan_factor <- glm(
     Infect_count / size ~ noplan + factor + antib + noplan:factor,
     data = caesar_tbl_int,
@@ -450,6 +475,7 @@ we can continue by testing for goodness-of-fit.
 Compare fitted and realized proportions as on p.53.
 
 ```{r}
+#| label: 01-anodev-chunk-26
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "pearson")^2), df = 2)
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
 ```
@@ -457,6 +483,7 @@ Compare fitted and realized proportions as on p.53.
 Both statistics give a large $p$-value, and so we don't reject the interaction.
 
 ```{r}
+#| label: 01-anodev-chunk-27
 tibble(
     observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
     fitted = round(caesar_glm_noplan_factor$fitted.values, 2)
@@ -473,6 +500,7 @@ to avoid existence of MLE issue.
 We do this by adding a 'count' of 0.5 infections and 1 total case to problematic row.
 
 ```{r}
+#| label: 01-anodev-chunk-28
 caesar_tbl_int
 caesar_augment <- caesar_tbl_int
 caesar_augment$Infect_count[3] <- 0.5
@@ -493,6 +521,7 @@ summary(caesar_glm_noplan_factor_augment)
 Compare observed and fitted proportions:
 
 ```{r}
+#| label: 01-anodev-chunk-29
 tibble(
     observed = round(caesar_augment$Infect_count / caesar_augment$size, 2),
     fitted = round(caesar_glm_noplan_factor_augment$fitted.values, 2)
@@ -502,6 +531,7 @@ tibble(
 Test goodness-of-fit using Pearson and deviance statistics:
 
 ```{r}
+#| label: 01-anodev-chunk-30
 pearson_pval <- 1 -
     pchisq(
         sum(resid(caesar_glm_noplan_factor_augment, type = "pearson")^2),
@@ -527,6 +557,7 @@ at usual levels such as 0.1 or 0.05.
 ### Session Information
 
 ```{r}
+#| label: 01-anodev-chunk-31
 sessionInfo()
 ```
 
@@ -535,6 +566,7 @@ sessionInfo()
 Below are the formal citations for the packages used in this analysis:
 
 ```{r}
+#| label: 01-anodev-chunk-32
 #| results: asis
 #| code-fold: true
 packages <- c("conflicted", "dplyr", "forcats", "Fahrmeir")

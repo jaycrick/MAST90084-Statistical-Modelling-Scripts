@@ -13,6 +13,7 @@ Note: To reproduce the first regression in section 3.5.3 of F&T, we cannot use `
 ## Data Loading
 
 ```{r}
+#| label: 06-happiness-chunk-1
 library(conflicted)
 library(Fahrmeir)
 library(VGAM)
@@ -20,6 +21,7 @@ library(dplyr)
 ```
 
 ```{r}
+#| label: 06-happiness-chunk-2
 data(happy)
 happy
 ?happy
@@ -30,7 +32,8 @@ happy
 Arrange the data into wide form for the first regression part in (3.5.3):
 
 ```{r}
-happy_tibble <- dplyr::tbl_df(happy)
+#| label: 06-happiness-chunk-3
+happy_tibble <- tibble::as_tibble(happy)
 
 happy_grouped1 <- dplyr::group_by(happy_tibble, Sex)
 
@@ -51,6 +54,7 @@ happy1
 Effect coding is needed to reproduce the numbers in the book:
 
 ```{r}
+#| label: 06-happiness-chunk-4
 options("contrasts")
 contrasts(happy1$Sex)
 
@@ -67,6 +71,7 @@ Adjust the contrast matrix so female serves as reference.
 Regression for the first line of display (3.5.3) in F&T:
 
 ```{r}
+#| label: 06-happiness-chunk-5
 happy_logit1_vglm <- vglm(
     cbind(school1, school2, school3, school4) ~ Sex,
     data = happy1,
@@ -79,12 +84,14 @@ summary(happy_logit1_vglm)
 The coefficient values are the same as those reported in the first six rows of Table 3.11 in F&T.
 
 ```{r}
+#| label: 06-happiness-chunk-6
 attributes(happy_logit1_vglm)$predictors
 ```
 
 We can also look at the predictors.
 
 ```{r}
+#| label: 06-happiness-chunk-7
 sqrt(diag(vcov(happy_logit1_vglm)))
 ```
 
@@ -95,6 +102,7 @@ Same as the std. error reported by `summary(happy_logit1_vglm)`.
 Arrange the data into wide form for the second regression part in (3.5.3):
 
 ```{r}
+#| label: 06-happiness-chunk-8
 happy_grouped2 <- dplyr::group_by(happy_tibble, Sex, School)
 
 happy_summary2 <- dplyr::summarize(
@@ -113,6 +121,7 @@ happy2
 Switch to dummy coding with `<12` as reference level:
 
 ```{r}
+#| label: 06-happiness-chunk-9
 contrasts(happy2$School)
 
 options(contrasts = c("contr.treatment", "contr.poly"))
@@ -126,6 +135,7 @@ contrasts(happy2$School)
 Regression for the second line of display (3.5.3) in F&T:
 
 ```{r}
+#| label: 06-happiness-chunk-10
 happy_logit2_vglm <- vglm(
     cbind(happy_low, happy_medium, happy_high) ~ School,
     data = happy2,
@@ -142,6 +152,7 @@ summary(happy_logit2_vglm)
 Only the two intercept estimates (corresponding to reference level `<12` of School) match the numbers in the book. To recover the original estimates in F&T, we need to add the intercepts to each pair of coefficients for each other Schooling levels:
 
 ```{r}
+#| label: 06-happiness-chunk-11
 happy_logit2_vglm_coeff <- attributes(happy_logit2_vglm)$coeff
 happy_logit2_vglm_coeff
 
@@ -155,6 +166,7 @@ The numbers in the books are now recovered, as reported in the last 6 rows of F&
 Add the log likelihood resulting from the first and second parts of (3.5.3), to give the likelihood of the full GLM model:
 
 ```{r}
+#| label: 06-happiness-chunk-12
 log_lik_glm <- logLik(happy_logit1_vglm) + logLik(happy_logit2_vglm)
 log_lik_glm
 ```
@@ -162,6 +174,7 @@ log_lik_glm
 Alternatively:
 
 ```{r}
+#| label: 06-happiness-chunk-13
 logLik(happy_logit1_vglm, sum = FALSE)
 logLik(happy_logit2_vglm, sum = FALSE)
 ```
@@ -171,6 +184,7 @@ These get the log likelihood of individual groups.
 ### Computing Saturated Model Likelihood
 
 ```{r}
+#| label: 06-happiness-chunk-14
 happy_male <- happy[which(happy$Sex == "Males"), ]
 happy_female <- happy[which(happy$Sex == "Females"), ]
 
@@ -193,5 +207,6 @@ logLik_saturated
 This is the deviance 13.27, as reported in the book:
 
 ```{r}
+#| label: 06-happiness-chunk-15
 2 * (logLik_saturated - log_lik_glm)
 ```

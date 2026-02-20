@@ -15,22 +15,26 @@ Paper for lme4 package: <https://cran.r-project.org/web/packages/lme4/vignettes/
 This example is from p.200, ch 10 of Faraway (2016) on random effect models. The dataset tests paper brightness depending on a shift operator:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-1
 library(conflicted)
 library(lme4)
 library(faraway)
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-2
 help(pulp)
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-3
 pulp
 ```
 
 Use REML estimate for var-cov component by default. Use MLE if you want:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-4
 mmod <- lmer(bright ~ 1 + (1 | operator), pulp)
 smod <- lmer(bright ~ 1 + (1 | operator), pulp, REML = FALSE)
 ```
@@ -38,16 +42,19 @@ smod <- lmer(bright ~ 1 + (1 | operator), pulp, REML = FALSE)
 mmod is an object of class lmerMod:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-5
 summary(mmod)
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-6
 summary(smod)
 ```
 
 Note that lmer doesn't report p-values for their estimates. The between subject SD 0.21 of the MLE method is smaller than the between subject SD 0.26 of the REML method because MLE tends to bias the estimates towards zero.
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-7
 fixef(mmod)
 fixef(smod)
 ```
@@ -57,28 +64,33 @@ The fixed effect estimates of the two methods happen to be the same, but they sh
 One can also estimate the random effects, which are the posterior means (or modes):
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-8
 ranef(mmod)$operator
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-9
 summary(mmod)$vcov
 ```
 
 This gives the variance-covariance for the fixed effects, same as 0.1494^2. Section 5.1 in lme4's JSS paper gives more details on how this is computed.
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-10
 summary(mmod)$sigma
 ```
 
 Residual standard error (estimated standard deviation for the epsilon errors).
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-11
 summary(mmod)$varcor
 ```
 
 This reports the estimated random effect std dev and the error std dev.
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-12
 summary(mmod)$coeff
 ```
 
@@ -87,6 +99,7 @@ Fixed effect coefficient, etc.
 ### Hand-Computed Fixed Effect Estimate
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-13
 components <- as.data.frame(VarCorr(mmod))$vcov
 Vi <- components[2] * diag(5) + components[1] * tcrossprod(rep(1, 5))
 
@@ -97,12 +110,14 @@ Z <- rep(1, 20)
 Hand-computed fixed effect estimate:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-14
 (1 / (t(Z) %*% solve(V) %*% Z)) * t(Z) %*% solve(V) %*% pulp$bright
 ```
 
 Hand-computed standard error for fixed effect (the usual covariance matrix for the GLS (general least square) estimate):
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-15
 sqrt(1 / (t(Z) %*% solve(V) %*% Z))
 ```
 
@@ -113,6 +128,7 @@ These numbers check out with ones reported in `summary(mmod)$coeff`.
 One can also plot the residuals as model diagnostics. The default residuals are computed using the estimated random effects. This means these residuals can be regarded as estimates of epsilons which is usually what we want:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-16
 par(mfrow = c(1, 2))
 qqnorm(residuals(mmod), main = "")
 plot(fitted(mmod), residuals(mmod), xlab = "Fitted", ylab = "Residuals")
@@ -123,6 +139,7 @@ dev.off()
 Compute the residual by hand:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-17
 residual_manual <- pulp$bright -
     rep(ranef(mmod)$operator[, 1], each = 5) -
     fixef(mmod)
@@ -131,6 +148,7 @@ residual_manual <- pulp$bright -
 They check out with the residual reported:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-18
 residual_manual == residuals(mmod)
 ```
 
@@ -139,20 +157,24 @@ residual_manual == residuals(mmod)
 From longitudinal data chapter (Ch 11) of Faraway 2016:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-19
 help(psid)
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-20
 head(psid, 20)
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-21
 psid$cyear <- psid$year - 78
 ```
 
 As explained by Faraway, the year is centered at the year 1978 so that the intercept will predict the log income in 1978, but not 1900!
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-22
 mmod <- lmer(log(income) ~ cyear * sex + age + educ + (cyear | person), psid)
 
 smod <- lmer(
@@ -163,25 +185,30 @@ smod <- lmer(
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-23
 summary(mmod)
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-24
 summary(mmod)$vcov
 ```
 
 This time REML and MLE give different fixed effect estimates:
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-25
 fixef(mmod)
 fixef(smod)
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-26
 sqrt(diag(summary(mmod)$vcov))
 ```
 
 ```{r}
+#| label: 10-lm-mixed-effect-chunk-27
 VarCorr(mmod)
 ```
 

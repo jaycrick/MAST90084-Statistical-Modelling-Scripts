@@ -17,12 +17,14 @@ As in the previous script, for safety we import the `conflicted` package first
 to manage any function name conflicts.
 
 ```{r}
+#| label: 02-celldiff-chunk-1
 library(conflicted)
 ```
 
 We import the other packages needed to complete the analysis.
 
 ```{r}
+#| label: 02-celldiff-chunk-2
 library(dplyr)
 library(Fahrmeir)
 library(gee)
@@ -47,6 +49,7 @@ stimulate cell differentiation synergistically (is an interaction between the ag
 or independently.
 
 ```{r}
+#| label: 02-celldiff-chunk-3
 data(cells)
 cells_tbl <- as_tibble(cells)
 cells_tbl
@@ -69,6 +72,7 @@ meaning that we assume $\log(\texttt{y})$ depends linearly on the covariates.
 :::
 
 ```{r}
+#| label: 02-celldiff-chunk-4
 glm_poisson <- glm(formula = y ~ TNF * IFN, family = poisson, data = cells_tbl)
 ```
 
@@ -87,6 +91,7 @@ This is equivalent to `y ~ 1 + TNF + IFN + TNF * IFN`.
 We inspect the returned coefficients.
 
 ```{r}
+#| label: 02-celldiff-chunk-5
 glm_poisson_summary <- summary(glm_poisson)
 round(glm_poisson_summary$coefficients, digits = 4)
 ```
@@ -122,6 +127,7 @@ and the model we are testing has 4.
 We can directly access the deviance
 and we can calculate the Pearson chi-squared statistic with
 ```{r}
+#| label: 02-celldiff-chunk-6
 poisson_deviance <- glm_poisson$deviance
 round(poisson_deviance, 1)
 pearson_chisq_stat <-
@@ -136,6 +142,7 @@ which are identical to the values reported on page 54 of @fahrmeir_multivariate_
 
 We inspect the covariance matrices of the coefficient estimates
 ```{r}
+#| label: 02-celldiff-chunk-7
 glm_poisson_summary$cov.scaled
 glm_poisson_summary$cov.unscaled
 ```
@@ -152,6 +159,7 @@ The typical way of creating an estimate $\hat{\phi}$ for the dispersion paramete
 is by dividing the Pearson $\chi^2$ statistic by the degrees of freedom.
 
 ```{r}
+#| label: 02-celldiff-chunk-8
 est_dispersion <- pearson_chisq_stat / 12
 round(est_dispersion, 3)
 ```
@@ -169,6 +177,7 @@ We now formally test the goodness of fit
 by looking at the $p$-values of the deviance and Pearson $\chi^2$ statistics.
 
 ```{r}
+#| label: 02-celldiff-chunk-9
 1 - pchisq(poisson_deviance, df = 12)
 1 - pchisq(pearson_chisq_stat, df = 12)
 ```
@@ -221,6 +230,7 @@ showing the comparison between the two models:
 [Adapted from @fahrmeir_multivariate_2001, Table 2.6, p. 54] {#tbl-poisson-compare}
 
 ```{r}
+#| label: 02-celldiff-chunk-10
 glm_quasi_poisson <- glm(
     formula = y ~ TNF * IFN,
     family = quasipoisson,
@@ -239,6 +249,7 @@ the standard errors are not derived using the more robust sandwich covariance ma
 We can compare the coefficients between the from the full Poisson model.
 
 ```{r}
+#| label: 02-celldiff-chunk-11
 round(glm_poisson_summary$coefficients, 5)
 round(glm_quasi_poisson_summary$coefficients, 5)
 ```
@@ -255,6 +266,7 @@ we can still use the standard `anova()` function,
 and extract the various residuals:
 
 ```{r}
+#| label: 02-celldiff-chunk-12
 residuals_tbl <- tibble(
     default = resid(glm_quasi_poisson),
     deviance = resid(glm_quasi_poisson, type = "deviance"),
@@ -269,6 +281,7 @@ to be different from the unscaled covariance matrix,
 since the dispersion parameter is no longer fixed to 1.
 
 ```{r}
+#| label: 02-celldiff-chunk-13
 glm_quasi_poisson_summary$cov.unscaled
 glm_quasi_poisson_summary$cov.scaled
 ```
@@ -276,6 +289,7 @@ glm_quasi_poisson_summary$cov.scaled
 We can do a sanity check in order to determine if we can recover the scaled deviance.
 
 ```{r}
+#| label: 02-celldiff-chunk-14
 glm_poisson_summary$cov.unscaled * glm_quasi_poisson_summary$dispersion
 ```
 
@@ -290,6 +304,7 @@ We can see that the dispersion estimate reported by `glm()`
 does not exactly match our own calculation based on Pearson residuals.
 
 ```{r}
+#| label: 02-celldiff-chunk-15
 est_dispersion
 glm_quasi_poisson_summary$dispersion
 ```
@@ -297,6 +312,7 @@ glm_quasi_poisson_summary$dispersion
 We can recover the exact number reported by `glm()` as follows:
 
 ```{r}
+#| label: 02-celldiff-chunk-16
 sum(glm_quasi_poisson$weights * glm_quasi_poisson$residuals^2) / 12
 ```
 
@@ -325,6 +341,7 @@ we have to use the biased variance estimate.
 :::
 
 ```{r}
+#| label: 02-celldiff-chunk-17
 variance_summary_by_TNF <- cells_tbl |>
     group_by(TNF) |>
     summarize(
@@ -345,6 +362,7 @@ ggplot(variance_summary_by_TNF, aes(x = est_mean, y = est_var, color = factor(TN
 We can do a similar plot by `IFN` instead of `TNF`:
 
 ```{r}
+#| label: 02-celldiff-chunk-18
 variance_summary_by_IFN <- cells_tbl |>
     group_by(IFN) |>
     summarize(
@@ -374,6 +392,7 @@ ggplot(variance_summary_by_IFN, aes(x = est_mean, y = est_var, color = factor(IF
 
 The equivalent base R code to create the same scatter plot would be:
 ```{r}
+#| label: 02-celldiff-chunk-19
 #| eval: false
 plot(
     variance_summary_by_TFN$est_mean,
@@ -415,6 +434,7 @@ adapted below:
 We start by considering the linear variance structure $\sigma^2(\mu) = \phi \mu$.
 
 ```{r}
+#| label: 02-celldiff-chunk-20
 gee_mu <- gee(
     formula = y ~ TNF * IFN,
     id = seq_len(nrow(cells_tbl)),
@@ -435,6 +455,7 @@ treating observations as independent
 :::
 
 ```{r}
+#| label: 02-celldiff-chunk-21
 gee_mu_summary <- summary(gee_mu)
 gee_mu_summary
 ```
@@ -444,6 +465,7 @@ as the one we manually calculated based on Pearson residuals.
 We compare the coefficients and standard errors to the previous models:
 
 ```{r}
+#| label: 02-celldiff-chunk-22
 round(gee_mu_summary$coefficients, 4)
 round(glm_quasi_poisson_summary$coefficients, 4)
 ```
@@ -481,6 +503,7 @@ Dividing the coefficient by its standard error gives the z-value.
 Assuming we have correctly specified the variance structure (naive approach):
 
 ```{r}
+#| label: 02-celldiff-chunk-23
 naive_z_values <- tibble(
     coefficient = names(gee_mu$coefficients),
     z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$naive.variance)),
@@ -492,6 +515,7 @@ naive_z_values
 Without assuming the variance structure is correct (robust approach):
 
 ```{r}
+#| label: 02-celldiff-chunk-24
 robust_z_values <- tibble(
     coefficient = names(gee_mu$coefficients),
     z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$robust.variance)),
@@ -517,6 +541,7 @@ There is an alternative package `geepack` which also implements GEE models.
 Under the hood, there are some small differences in implementation between `gee` and `geepack`.
 
 ```{r}
+#| label: 02-celldiff-chunk-25
 geepack_mu <- geeglm(
     formula = y ~ TNF * IFN,
     family = poisson(link = "log"),
@@ -535,6 +560,7 @@ geepack_mu_summary
 Finally, we try the quadratic variance structure $\sigma^2(\mu) = \phi \mu^2$.
 
 ```{r}
+#| label: 02-celldiff-chunk-26
 gee_mu2 <- gee(
     formula = y ~ TNF * IFN,
     id = seq_len(nrow(cells_tbl)),
@@ -551,6 +577,7 @@ The coefficients almost match those in @fahrmeir_multivariate_2001 Table 2.7 on 
 For a final sanity check, we manually compute both the naive and robust $Z$ and $p$-values.
 
 ```{r}
+#| label: 02-celldiff-chunk-27
 gee_mu2_inference <- tibble(
     coefficient = names(gee_mu2$coefficients),
     naive_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$naive.variance)),
@@ -569,6 +596,7 @@ reported in parentheses of Table 2.7 of @fahrmeir_multivariate_2001
 should have been robust $p$-values.
 
 ```{r}
+#| label: 02-celldiff-chunk-28
 #| results: asis
 #| code-fold: true
 

@@ -512,6 +512,7 @@ hessian_inv <- solve(btr_logit_eff$Hess)
 
 We can see that the matrices are slightly different.
 ```{r}
+#| label: 04-example3-2btr-chunk-32
 all.equal(hessian_inv, logit_vcov)
 ```
 
