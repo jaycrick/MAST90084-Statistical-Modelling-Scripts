@@ -9,7 +9,7 @@ nocite: |
 
 ## TODO
 
-- Go through and add apppropriate documentation to functions.
+- Go through and add appropriate documentation to functions.
 
 ## Overview
 
@@ -402,7 +402,10 @@ fitted(caes_vgam)
 
 ## Example 3.11
 
-Constrain `NoPlan` and `RiskF` to be equal across categories using the `parallel` argument.
+We now move on to Example 3.11.
+We constrain `NoPlan` and `RiskF` to be equal across categories using the `parallel` argument.
+This means that the coefficients for `NoPlan` and `RiskF` will be the same for both `Inf1` and `Inf2` categories, while `Antib` can still vary freely.
+We run the regression, and extract the coefficients.
 
 ```{r}
 #| label: fit-vgam-parallel
@@ -420,61 +423,92 @@ coefvlm(caes_vgam_parallel, matrix.out = TRUE)
 
 ## VGAM on Filtered Fahrmeir Data
 
-Filter out zero-count rows, reset reference levels, and fit with `vglm`; compare criteria and log-likelihoods.
+We can try running the `vglm()` function on the original `caesar` data
+[we manipulated earlier](#alternative-original-fahrmeir-data)
+from the Fahrmeir package.
+Note that this has the correct reference levels set already.
+
+```{r}
+#| label: fit-vgam-fahrmeir
+#| warning: true
+#| error: true
+
+vglm(
+  formula = y ~ noplan + antib + factor,
+  data = caesar_prepared,
+  weights = w,
+  family = VGAM::multinomial(refLevel = "3")
+)
+```
+
+This is showing an error, and so we need to filter out the zero-count rows and try again.
 
 ```{r}
 #| label: fit-vgam-filtered-fahrmeir
-caesar_no_zero_w <- dplyr::filter(caesar, w > 0)
-levels(caesar_no_zero_w$noplan)
-levels(caesar_no_zero_w$antib)
-levels(caesar_no_zero_w$factor)
 
-caesar_no_zero_w$noplan <- relevel(caesar_no_zero_w$noplan, ref = "planned")
-caesar_no_zero_w$antib <- relevel(caesar_no_zero_w$antib, ref = "without")
-caesar_no_zero_w$factor <- relevel(caesar_no_zero_w$factor, ref = "without")
+caesar_no_zero_w <- caesar_prepared |> dplyr::filter(w > 0)
+caesar_no_zero_w
 
 caes_vgam2 <- vglm(
     formula = y ~ noplan + antib + factor,
     data = caesar_no_zero_w,
     weights = w,
-    family = VGAM::multinomial(refLevel = "3")
+    family = multinomial(refLevel = "3")
 )
 
 summary(caes_vgam2)
+```
+
+We can compare the coefficients from this fit to the earlier `vglm` fit on the wide-format data.
+
+```{r}
+#| label: coefs-vgam2
+
 coefvlm(caes_vgam2, matrix.out = TRUE)
+coefvlm(caes_vgam, matrix.out = TRUE)
+```
+
+```{r}
+#| label: compare-criteria-vgam-fits
 
 attributes(caes_vgam)$criterion
 attributes(caes_vgam2)$criterion
-logLik(caes_vgam)
-logLik(caes_vgam2)
 ```
 
-## Long-Form Data (Wide-to-Long)
+We can see that the deviance and log-likelihoods are different between the fits.
+The deviance of `caes_vgam` matches that of in the book,
+however the deviance of `caes_vgam2` is just two times the negative log-likelihood of the fitted model.
 
-Reshape the prepared data to long format and fit the multinomial model with weights; coefficients should match earlier fits.
+## Long-Form Data (extra)
+
+:::{.callout-note}
+##
+
+We can convert the data back into long format and confirm we still get the same fit.
 
 ```{r}
 #| label: fit-nnet-long-form
-caesar_new <- pivot_longer(
-    data = caes_dat[, -1],
-    cols = noInf:Inf2,
-    names_to = "inf_type",
-    values_to = "w"
-)
-caesar_new$inf_type <- factor(
-    caesar_new$inf_type,
-    levels = unique(caesar_new$inf_type)
-)
-# Extract coefficient matrix
+
+caesar_long <- caes_dat |>
+    select(-size) |>
+    pivot_longer(
+        cols = noInf:Inf2,
+        names_to = "inf_type",
+        values_to = "w"
+    ) |>
+    mutate(inf_type = factor(inf_type, levels = c("noInf", "Inf1", "Inf2")))
 
 caes_nnet_tibble <- multinom(
     inf_type ~ NoPlan + Antib + RiskF,
-    data = caesar_new,
+    data = caesar_long,
     weights = w
 )
-summary(caes_nnet_tibble)$coeff
-summary(caes_nnet2)$coeff
+
+coef(caes_nnet_tibble)
+coef(caes_nnet2)
 ```
+
+:::
 
 ## Package citations and references
 
