@@ -8,23 +8,24 @@ date: today
 
 This script demonstrates **ordinal (cumulative link) regression** on the **happiness dataset**, analyzing **ordered categorical responses**.
 
-Note: To reproduce the first regression in section 3.5.3 of F&T, we cannot use `polr()` since it doesn't allow for category-specific beta coefficients.
-
 ## Data Loading
 
 ```{r}
 #| label: 06-happiness-chunk-1
 library(conflicted)
-library(Fahrmeir)
-library(VGAM)
 library(dplyr)
+library(Fahrmeir)
+library(tidyr)
+library(VGAM)
 ```
+
+We load the `happy` dataset from the `Fahrmeir` package, which contains data on happiness levels.
+Since it is a small dataset, we can print it in its entirety.
 
 ```{r}
 #| label: 06-happiness-chunk-2
 data(happy)
 happy
-?happy
 ```
 
 ## Part 1: School Education Levels by Sex
@@ -33,21 +34,33 @@ Arrange the data into wide form for the first regression part in (3.5.3):
 
 ```{r}
 #| label: 06-happiness-chunk-3
-happy_tibble <- tibble::as_tibble(happy)
+happy_wide <- happy |>
+  as_tibble() |>
+  mutate(
+    School = factor(
+      School,
+      levels = c("<12", "12", "13-16", ">16"),
+      labels = c("school1", "school2", "school3", "school4")
+    )
+  ) |>
+  summarize(n = sum(n), .by = c(Sex, School)) |>
+  pivot_wider(
+    names_from = School,
+    values_from = n,
+    values_fill = 0
+  )
 
-happy_grouped1 <- dplyr::group_by(happy_tibble, Sex)
-
-happy_summary1 <- dplyr::summarize(
-    happy_grouped1,
-    school1 = as.numeric(sum(n[which(School == "<12")])),
-    school2 = as.numeric(sum(n[which(School == "12")])),
-    school3 = as.numeric(sum(n[which(School == "13-16")])),
-    school4 = as.numeric(sum(n[which(School == ">16")]))
-)
-
-happy1 <- as.data.frame(happy_summary1)
-happy1
+happy_wide
 ```
+
+::: {.callout-tip collapse="true"}
+## Understanding the tidying
+
+- `as_tibble()` makes the data print-friendly and consistent with tidyverse tools.
+- `mutate()` recodes factor levels so the column names match the model inputs.
+- `summarize(..., .by = ...)` aggregates counts within each group.
+- `pivot_wider()` spreads groups into columns and fills missing combinations with 0.
+:::
 
 ### Setting Contrasts for Part 1
 
@@ -56,12 +69,12 @@ Effect coding is needed to reproduce the numbers in the book:
 ```{r}
 #| label: 06-happiness-chunk-4
 options("contrasts")
-contrasts(happy1$Sex)
+contrasts(happy_wide$Sex)
 
 options(contrasts = c("contr.sum", "contr.poly"))
-contrasts(happy1$Sex)
+contrasts(happy_wide$Sex)
 
-contrasts(happy1$Sex) <- as.matrix(c(-1, 1))
+contrasts(happy_wide$Sex) <- as.matrix(c(-1, 1))
 ```
 
 Adjust the contrast matrix so female serves as reference.
@@ -69,13 +82,14 @@ Adjust the contrast matrix so female serves as reference.
 ### Fit First Model
 
 Regression for the first line of display (3.5.3) in F&T:
+To reproduce the first regression in section 3.5.3 of F&T, we cannot use `polr()` since it doesn't allow for category-specific beta coefficients.
 
 ```{r}
 #| label: 06-happiness-chunk-5
 happy_logit1_vglm <- vglm(
-    cbind(school1, school2, school3, school4) ~ Sex,
-    data = happy1,
-    family = cumulative()
+  cbind(school1, school2, school3, school4) ~ Sex,
+  data = happy_wide,
+  family = cumulative()
 )
 
 summary(happy_logit1_vglm)
@@ -103,16 +117,23 @@ Arrange the data into wide form for the second regression part in (3.5.3):
 
 ```{r}
 #| label: 06-happiness-chunk-8
-happy_grouped2 <- dplyr::group_by(happy_tibble, Sex, School)
+happy2 <- happy |>
+  as_tibble() |>
+  mutate(
+    Rep.happiness = recode(
+      Rep.happiness,
+      "Not to happy" = "happy_low",
+      "Pretty happy" = "happy_medium",
+      "Very happy" = "happy_high"
+    )
+  ) |>
+  summarize(n = sum(n), .by = c(Sex, School, Rep.happiness)) |>
+  tidyr::pivot_wider(
+    names_from = Rep.happiness,
+    values_from = n,
+    values_fill = 0
+  )
 
-happy_summary2 <- dplyr::summarize(
-    happy_grouped2,
-    happy_low = as.numeric(sum(n[which(Rep.happiness == "Not to happy")])),
-    happy_medium = as.numeric(sum(n[which(Rep.happiness == "Pretty happy")])),
-    happy_high = as.numeric(sum(n[which(Rep.happiness == "Very happy")]))
-)
-
-happy2 <- as.data.frame(happy_summary2)
 happy2
 ```
 
@@ -137,9 +158,9 @@ Regression for the second line of display (3.5.3) in F&T:
 ```{r}
 #| label: 06-happiness-chunk-10
 happy_logit2_vglm <- vglm(
-    cbind(happy_low, happy_medium, happy_high) ~ School,
-    data = happy2,
-    family = cumulative(link = "logitlink")
+  cbind(happy_low, happy_medium, happy_high) ~ School,
+  data = happy2,
+  family = cumulative(link = "logitlink")
 )
 
 summary(happy_logit2_vglm)
@@ -188,18 +209,18 @@ These get the log likelihood of individual groups.
 happy_male <- happy[which(happy$Sex == "Males"), ]
 happy_female <- happy[which(happy$Sex == "Females"), ]
 
-logLik_saturated <- dmultinom(
-    happy_male$n,
-    prob = happy_male$n / sum(happy_male$n),
-    log = TRUE
+log_lik_saturated <- dmultinom(
+  happy_male$n,
+  prob = happy_male$n / sum(happy_male$n),
+  log = TRUE
 ) +
-    dmultinom(
-        happy_female$n,
-        prob = happy_female$n / sum(happy_female$n),
-        log = TRUE
-    )
+  dmultinom(
+    happy_female$n,
+    prob = happy_female$n / sum(happy_female$n),
+    log = TRUE
+  )
 
-logLik_saturated
+log_lik_saturated
 ```
 
 ### Deviance
@@ -208,5 +229,33 @@ This is the deviance 13.27, as reported in the book:
 
 ```{r}
 #| label: 06-happiness-chunk-15
-2 * (logLik_saturated - log_lik_glm)
+2 * (log_lik_saturated - log_lik_glm)
+```
+
+
+## Package citations and references
+
+```{r}
+#| label: package-citations
+#| results: asis
+#| code-fold: true
+
+packages <- c(
+  "conflicted", "dplyr", "Fahrmeir", "tidyr", "VGAM"
+)
+for (pkg in packages) {
+  cit <- citation(pkg)
+
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
+    }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
+}
 ```
