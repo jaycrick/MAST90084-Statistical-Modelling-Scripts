@@ -13,12 +13,8 @@ nocite: |
 
 ## Overview
 
-This document mirrors the R script for Examples 3.1 and 3.11 (Fahrmeir & Tutz), covering:
-
-- Multinomial logistic regression on three infection categories (noInf, Inf1, Inf2)
-- Fits via `nnet::multinom()` (BFGS) and `VGAM::vglm()` (Fisher scoring)
-- A constrained parallel-coefficients model (Example 3.11)
-- Additional fits with `glmnet` and alternative wide-format data
+This script replicates the analyses
+from Examples 3.1 and 3.11 in @fahrmeir_multivariate_2001.
 
 ## Packages and Data
 
@@ -45,6 +41,27 @@ library(VGAM)
 
 ## Example 3.1: Caesarian Birth Study (p. 73)
 
+This data is the same as the data we examined in [the first script](01-ANODEV.qmd.qmd),
+but now we distinguish between the two infection types `Inf1` and `Inf2`
+instead of just a binary `Inf` variable. We import the ready made dataset.
+
+We do this using a basic multinomial logit model
+with no infection as the reference category.
+
+:::{.callout-important collapse="true"}
+## What is the Model Specification: Expand for Answer
+$$
+\log\frac{P(\texttt{Inf1})}{P(\texttt{Noinf})}
+= \beta_{10} + \beta_{1N}\mathbb{1}_{\texttt{NoPlan}}
++ \beta_{1F}\mathbb{1}_{\texttt{RiskF}} + \beta_{1A}\mathbb{1}_{\texttt{Antib}}
+$$
+$$
+\log\frac{P(\texttt{Inf2})}{P(\texttt{Noinf})}
+= \beta_{20} + \beta_{2N}\mathbb{1}_{\texttt{NoPlan}}
++ \beta_{2F}\mathbb{1}_{\texttt{RiskF}} + \beta_{2A}\mathbb{1}_{\texttt{Antib}}
+$$
+:::
+
 ```{r}
 #| label: read-caes-data
 caes_dat <- read_csv("data/Example3-1Caes.csv")
@@ -54,12 +71,23 @@ caes_dat
 :::{.callout-note collapse="true"}
 ## Alternative Data Preparation (from `Fahrmeir` Package)
 
-Alternatively, one can manipulate the dataset directly from the Fahrmeir package using `dplyr`. The code below:
+Instead of using the pre-prepared CSV file,
+we could also start from the original `caesar` dataset in the `Fahrmeir` package,
+and manipulate it into the required format for modeling.
+
+```{r}
+#| label: fahrmeir-caesar
+head(caesar)
+```
+
+The code below:
 
 1. Converts the caesar data to a tibble and removes unused columns
-2. Filters to non-zero weights
-3. Pivots from long format (one row per infection type) to wide format (one row per covariate combination)
-4. Renames infection type codes to interpretable labels (3→Noinf, 1→Inf1, 2→Inf2)
+2. Removes any rows with zero counts
+3. Pivots from long format (one row per infection type) to wide format
+(one row per covariate combination)
+4. Renames infection type codes `1`, `2`, and `3`
+to `Inf1`, `Inf2`, and `Noinf` respectively
 5. Computes total counts and recodes factors to integers matching the textbook coding
 
 ```{r}
@@ -92,14 +120,18 @@ caesar_clean
 
 To fit the a multinomial log-linear model
 we use the `multinom()` function from the `nnet` package.
-The `nnet` package is largely documented in @venables_modern_2002,
-and is also written by the authors of that book.
+The `nnet` package is written by the authors of
+and well documented in @venables_modern_2002.
 To see more information about the `multinom()` function,
 you can
 [refer to the documentation](https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html)
 by running `?multinom` in your R environment.
+It is especially useful to check the arguments controlling optimisation
+(`maxit`, `trace`, `Hess`) when reproducing textbook results.
 
-:::{.callout-note}
+:::{.callout-note collapse="true"}
+## `multinom` Optimization Method
+
 The `multinom()` function uses the BFGS optimization method,
 which is a quasi-Newton method for finding
 the maximum likelihood estimates of the model parameters.
@@ -107,15 +139,20 @@ This is quicker than the Fisher scoring algorithm
 which requires computing the Hessian matrix at each iteration.
 :::
 
-We convert the response variables to a matrix format suitable for `multinom()`,
+We extract the response variables as a matrix format for the `multinom` function,
 ```{r}
-#| label: fit-multinom-caes
+#| label: extract-response-matrix
 caes_response <- caes_dat |>
     select(noInf, Inf1, Inf2) |>
     as.matrix()
 
 caes_response
+```
 
+and fit the model.
+
+```{r}
+#| label: fit-multinom-caes
 caes_nnet <- multinom(
     caes_response ~ NoPlan + Antib + RiskF,
     data = caes_dat
@@ -124,7 +161,7 @@ caes_nnet_summary <- summary(caes_nnet)
 caes_nnet_summary
 ```
 
-The first column (`noInf`) of the response is treated as reference category.
+The first column (`noInf`) of the response is treated as reference category as desired.
 We can print the coefficients in a format that matches the
 table on @fahrmeir_multivariate_2001 page 75.
 
@@ -133,7 +170,6 @@ table on @fahrmeir_multivariate_2001 page 75.
 round(t(coef(caes_nnet_summary)), 3)
 ```
 
-This matches the textbook results.
 We can also have a look at the deviance of the fitted model.
 
 ```{r}
@@ -144,14 +180,13 @@ caes_nnet$deviance
 :::{.callout-caution}
 ## Deviance Interpretation
 
-The deviance reported by `multinom()` is simply
+Looking at the documentation of the `multinom()` function by running `?multinom`,
+we see that the deviance reported by `multinom()` is
 $-2 \times \text{log-likelihood}$
-and has **not been adjusted** by the saturated model.
+and has **not been adjusted** by the saturated model (or the scale parameter).
 This differs from deviance in `glm()` and our usual deviance.
 Always check the documentation for how deviance is calculated.
 :::
-
-These values match the textbook results
 
 :::{.callout-tip collapse="true"}
 ## Exploring Model Objects
@@ -170,10 +205,8 @@ attributes(caes_nnet)
 
 :::
 
-
-## `glmnet` Comparison
-
-:::{.callout-note}
+:::{.callout-note collapse="true"}
+## Fit with `glmnet` Package
 
 This section is not examinable, but just for fun.
 `glmnet` is written by Jerome Friedman and Trevor Hastie,
@@ -182,7 +215,10 @@ and is a popular package for regularized regression
 The codebase is in Fortran, and is very fast.
 
 We can use `glmnet` to fit the same multinomial model
-by setting `lambda = 0` to get the unregularized estimates.
+by setting `lambda = 0` (giving no weight to the regularisation step)
+to get the unregularized estimates.
+If you look up `?glmnet`, pay attention to the multinomial parameterization,
+since the returned coefficients are not on the same baseline coding as `multinom()`.
 
 ```{r}
 #| label: glmnet-multinomial-fit
@@ -201,17 +237,25 @@ caes_glmnet <- glmnet(
 coef(caes_glmnet, s = 0)
 ```
 
-These coefficients are different from the `multinom()` fit,
-but rather correspond to the alphas in
+These coefficients correspond to the alphas in
 
 $$
-\tilde{u}_{ir} = u_{ir} - u_{ik} = \underbrace{(\alpha_{r0} - \alpha_{k0})}_{\beta_{r0}} + \mathbf{z}_i^T\underbrace{(\boldsymbol{\alpha}_r - \boldsymbol{\alpha}_k)}_{\boldsymbol{\beta}_r} = \beta_{r0} + \mathbf{z}_i^T\boldsymbol{\beta}_r.
+\tilde{u}_{ir}
+= u_{ir} - u_{ik}
+= \underbrace{(\alpha_{r0} - \alpha_{k0})}_{\beta_{r0}}
++ \mathbf{z}_i^T\underbrace{
+    (\boldsymbol{\alpha}_r - \boldsymbol{\alpha}_k)
+}_{\boldsymbol{\beta}_r}
+= \beta_{r0} + \mathbf{z}_i^T\boldsymbol{\beta}_r.
 $$
 
-We can therefore retrieve the `multinom()` coefficients by taking differences of the `glmnet` alphas:
+Therefore, we can retrieve the `multinom()` coefficients
+by taking differences of the `glmnet` alphas:
 
-1. Extract slope coefficients for each category and compute differences relative to the reference category
-2. Extract intercept coefficients and compute differences relative to the reference category intercept
+1. Extract slope coefficients for each category
+and compute differences relative to the reference category
+2. Extract intercept coefficients and compute differences
+relative to the reference category intercept
 
 ```{r}
 #| label: glmnet-to-multinom-coefs
@@ -226,14 +270,15 @@ beta_matrix <- rbind(
 round(beta_matrix, 3)
 ```
 
-This also matches the coefficients from @fahrmeir_multivariate_2001 p. 75.
+These also matches the coefficients from @fahrmeir_multivariate_2001 p. 75.
 
 :::
 
-::: {.callout-note}
-## Alternative: Original Fahrmeir Data
+::: {.callout-note collapse="true"}
+## Alternative Using `Fahrmeir` Package Data
 
-We can fit instead using the `caesar` data from the Fahrmeir package, setting preferred reference levels before modeling.
+We can fit instead using the `caesar` data from the Fahrmeir package,
+setting preferred reference levels before modeling.
 
 ```{r}
 #| label: fit-multinom-caesar-weighted
@@ -246,14 +291,14 @@ caesar_prepared <- caesar |>
         factor = relevel(factor, ref = "without")
     )
 
-caes_nnet2 <- multinom(
+caes_nnet_prepared <- multinom(
     y ~ noplan + antib + factor,
     data = caesar_prepared,
     weights = w
 )
 
-summary(caes_nnet2)
-round(t(coef(caes_nnet2)), 3)
+summary(caes_nnet_prepared)
+round(t(coef(caes_nnet_prepared)), 3)
 ```
 
 This again matches the textbook.
@@ -263,7 +308,7 @@ which should be the same as before since it's the same model.
 
 ```{r}
 #| label: compare-deviance-multinom-fits
-caes_nnet2$deviance
+caes_nnet_prepared$deviance
 caes_nnet$deviance
 ```
 
@@ -306,6 +351,8 @@ caes_nnet_prop - caes_nnet$fitted
 Given a new observation, we can either predict the most likely category
 (with `type = "class"`) or the probabilities for each category
 (with `type = "probs"`).
+Checking `?predict.multinom` is recommended here,
+because these two `type` options return different output scales and structures.
 
 ```{r}
 #| label: predict-new-case
@@ -328,22 +375,28 @@ prob_no_inf
 ```
 
 :::{.callout-caution}
-For some unknown reason,
-the `predict()` function returns a slightly different probability
-for the `noInf` category than the manual calculation.
+We see that the manually calculated probability for `noInf`
+is slightly different from the one returned by `predict()`.
+The exact reason for this discrepancy is not clear.
 :::
 
-### Fit with `VGAM`
+:::{.callout-note collapse="true"}
+## Alternative Fit with `VGAM` Package
 
 The `VGAM` package will be used a lot more later in the course,
 because it fits a wide variety of multivariate response regression models.
 It is not as fast as `glmnet` or `nnet` for large datasets,
-because it uses the Fisher scoring algorithm.
+because it uses the Fisher scoring algorithm (like the book).
 
 Is is good practice to
 [read the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html)
 for the `vglm()` function
 with `?vglm` to understand the arguments and output structure.
+Also check `?multinomial`, especially `refLevel` and `parallel`,
+since these choices directly affect model interpretation.
+
+We use the raw data `caes_dat` extracted from the CSV file.
+`multinomial()` has a `refLevel` argument to specify the reference category.
 
 ```{r}
 #| label: fit-vgam-caes
@@ -355,14 +408,14 @@ caes_vgam <- vglm(
 ```
 
 :::{.callout-tip collapse="true"}
-## `vglm` Syntax
+## `vglm` Default Reference Level
 [Looking at the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/multinomial.html)
 for `multinomial()`,
 we can see that the default parameter for `refLevel` is `"(Last)"`.
 This means that the last category in the response matrix is treated as the reference.
-In our case, this is `Inf2`, which is not what we want.
-By setting `refLevel = "noInf"`, we ensure that `noInf` is treated as the reference category,
-and the coefficients are interpreted relative to `noInf`.
+In our case, this would be `Inf2`, which is not what we want.
+we ensure that `noInf` is treated as the reference category
+by setting `refLevel = "noInf"`.
 :::
 
 ```{r}
@@ -390,7 +443,8 @@ for a detailed explanation of how this arises
 and why you must be careful when comparing results across packages.
 :::
 
-Extracting the coefficients from the `vglm` fit we see they also those in @fahrmeir_multivariate_2001 p. 75,
+Extracting the coefficients from the `vglm` fit
+we see they also those in @fahrmeir_multivariate_2001 p. 75,
 and the fitted probabilities match those from `multinom()`.
 
 ```{r}
@@ -400,11 +454,31 @@ round(coef(caes_vgam, matrix.out = TRUE), 3)
 fitted(caes_vgam)
 ```
 
+:::
+
 ## Example 3.11
 
 We now move on to Example 3.11.
-We constrain `NoPlan` and `RiskF` to be equal across categories using the `parallel` argument.
-This means that the coefficients for `NoPlan` and `RiskF` will be the same for both `Inf1` and `Inf2` categories, while `Antib` can still vary freely.
+Looking at the coefficients from the multinomial logit model,
+we can see that the coefficients for `NoPlan` and `RiskF`
+are very similar across the two infection types.
+Therefore we can constrain the coefficients for `NoPlan` and `RiskF` to be equal
+across infection types using the `parallel` argument.
+
+:::{.callout-important collapse="true"}
+## What is the Model Specification: Expand for Answer
+$$
+\log\frac{P(\texttt{Inf1})}{P(\texttt{Noinf})}
+= \beta_{10} + \beta_{N}\mathbb{1}_{\texttt{NoPlan}}
++ \beta_{F}\mathbb{1}_{\texttt{RiskF}} + \beta_{1A}\mathbb{1}_{\texttt{Antib}}
+$$
+$$
+\log\frac{P(\texttt{Inf2})}{P(\texttt{Noinf})}
+= \beta_{20} + \beta_{N}\mathbb{1}_{\texttt{NoPlan}}
++ \beta_{F}\mathbb{1}_{\texttt{RiskF}} + \beta_{2A}\mathbb{1}_{\texttt{Antib}}
+$$
+:::
+
 We run the regression, and extract the coefficients.
 
 ```{r}
@@ -421,33 +495,38 @@ caes_vgam_parallel <- vglm(
 coefvlm(caes_vgam_parallel, matrix.out = TRUE)
 ```
 
-## VGAM on Filtered Fahrmeir Data
+:::{.callout-note collapse="true"}
+## `VGAM` Using `Fahrmeir` Package Data
 
 We can try running the `vglm()` function on the original `caesar` data
 [we manipulated earlier](#alternative-original-fahrmeir-data)
-from the Fahrmeir package.
-Note that this has the correct reference levels set already.
+from the `Fahrmeir` package.
+We don't fit the parallel model here.
 
 ```{r}
 #| label: fit-vgam-fahrmeir
-#| warning: true
+#| warning: false
 #| error: true
 
 vglm(
-  formula = y ~ noplan + antib + factor,
-  data = caesar_prepared,
-  weights = w,
-  family = VGAM::multinomial(refLevel = "3")
+    formula = y ~ noplan + antib + factor,
+    data = caesar_prepared,
+    weights = w,
+    family = multinomial(refLevel = "3")
 )
 ```
 
-This is showing an error, and so we need to filter out the zero-count rows and try again.
+This error is due to the zero-count rows. We remove them and try again.
 
 ```{r}
 #| label: fit-vgam-filtered-fahrmeir
 
 caesar_no_zero_w <- caesar_prepared |> dplyr::filter(w > 0)
 caesar_no_zero_w
+
+levels(caesar_no_zero_w$noplan)
+levels(caesar_no_zero_w$factor)
+levels(caesar_no_zero_w$antib)
 
 caes_vgam2 <- vglm(
     formula = y ~ noplan + antib + factor,
@@ -471,20 +550,39 @@ coefvlm(caes_vgam, matrix.out = TRUE)
 ```{r}
 #| label: compare-criteria-vgam-fits
 
-attributes(caes_vgam)$criterion
-attributes(caes_vgam2)$criterion
+caes_vgam@criterion
+caes_vgam2@criterion
 ```
 
 We can see that the deviance and log-likelihoods are different between the fits.
 The deviance of `caes_vgam` matches that of in the book,
 however the deviance of `caes_vgam2` is just two times the negative log-likelihood of the fitted model.
 
-## Long-Form Data (extra)
+:::{.callout-tip collapse="true"}
+## Why `@` Here Instead of `$`?
 
-:::{.callout-note}
-##
+In R, `@` accesses **slots** of S4 objects, while `$` accesses named elements
+in lists, data frames, and many S3 objects.
 
+`vglm()` returns an S4 object, so `criterion` is stored as a slot,
+and we use `caes_vgam@criterion` rather than `caes_vgam$criterion`.
+:::
+:::
+
+:::{.callout-note collapse="true"}
+## Using `dplyr` and `tidyr` to Reshape Data
+
+When fitting multinomial models, the data can be structured in either long or wide format.
 We can convert the data back into long format and confirm we still get the same fit.
+
+The manipulation below:
+
+1. Removes the total-count column (`size`)
+because the long-form weight column will carry counts
+2. Pivots infection outcomes (`noInf`, `Inf1`, `Inf2`) into two columns:
+category name (`inf_type`) and count (`w`)
+3. Sets an explicit factor order for `inf_type`
+so the reference and comparisons are reproducible
 
 ```{r}
 #| label: fit-nnet-long-form
@@ -498,14 +596,16 @@ caesar_long <- caes_dat |>
     ) |>
     mutate(inf_type = factor(inf_type, levels = c("noInf", "Inf1", "Inf2")))
 
-caes_nnet_tibble <- multinom(
+caesar_long
+
+caes_nnet_long <- multinom(
     inf_type ~ NoPlan + Antib + RiskF,
     data = caesar_long,
     weights = w
 )
 
-coef(caes_nnet_tibble)
-coef(caes_nnet2)
+coef(caes_nnet_long)
+coef(caes_nnet_prepared)
 ```
 
 :::
@@ -517,7 +617,16 @@ coef(caes_nnet2)
 #| results: asis
 #| code-fold: true
 
-packages <- c("conflicted", "dplyr", "Fahrmeir", "glmnet", "nnet", "tidyr", "readr", "VGAM")
+packages <- c(
+    "conflicted",
+    "dplyr",
+    "Fahrmeir",
+    "glmnet",
+    "nnet",
+    "tidyr",
+    "readr",
+    "VGAM"
+)
 for (pkg in packages) {
     cit <- citation(pkg)
 
