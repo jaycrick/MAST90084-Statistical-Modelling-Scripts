@@ -20,7 +20,7 @@ library(VGAM)
 ```
 
 We load the `happy` dataset from the `Fahrmeir` package, which contains data on happiness levels.
-Since it is a small dataset, we can print it in its entirety.
+Since it is a small dataset, we print it in full.
 
 ```{r}
 #| label: 06-happiness-chunk-2
@@ -77,7 +77,7 @@ contrasts(happy_wide$Sex)
 contrasts(happy_wide$Sex) <- as.matrix(c(-1, 1))
 ```
 
-Adjust the contrast matrix so female serves as reference.
+Adjust the contrast matrix so females serve as the reference group.
 
 ### Fit First Model
 
@@ -99,17 +99,17 @@ The coefficient values are the same as those reported in the first six rows of T
 
 ```{r}
 #| label: 06-happiness-chunk-6
-attributes(happy_logit1_vglm)$predictors
+model.matrix(happy_logit1_vglm)
 ```
 
-We can also look at the predictors.
+We can also inspect the design matrix.
 
 ```{r}
 #| label: 06-happiness-chunk-7
 sqrt(diag(vcov(happy_logit1_vglm)))
 ```
 
-Same as the std. error reported by `summary(happy_logit1_vglm)`.
+These match the standard errors reported by `summary(happy_logit1_vglm)`.
 
 ## Part 2: Happiness Levels by Education
 
@@ -120,8 +120,10 @@ Arrange the data into wide form for the second regression part in (3.5.3):
 happy2 <- happy |>
   as_tibble() |>
   mutate(
+    School = factor(School, levels = c("<12", "12", "13-16", ">16")),
     Rep.happiness = recode(
       Rep.happiness,
+      "Not too happy" = "happy_low",
       "Not to happy" = "happy_low",
       "Pretty happy" = "happy_medium",
       "Very happy" = "happy_high"
@@ -170,17 +172,17 @@ summary(happy_logit2_vglm)
 
 ### Recovering Coefficients
 
-Only the two intercept estimates (corresponding to reference level `<12` of School) match the numbers in the book. To recover the original estimates in F&T, we need to add the intercepts to each pair of coefficients for each other Schooling levels:
+Only the two intercept estimates (corresponding to reference level `<12` of School) match the numbers in the book. To recover the original estimates in F&T, add the intercepts to each pair of coefficients for the other schooling levels:
 
 ```{r}
 #| label: 06-happiness-chunk-11
-happy_logit2_vglm_coeff <- attributes(happy_logit2_vglm)$coeff
+happy_logit2_vglm_coeff <- coef(happy_logit2_vglm)
 happy_logit2_vglm_coeff
 
 rep(happy_logit2_vglm_coeff[1:2], 3) + happy_logit2_vglm_coeff[3:8]
 ```
 
-The numbers in the books are now recovered, as reported in the last 6 rows of F&T Table 3.11.
+These recover the values reported in the last six rows of F&T Table 3.11.
 
 ## Log-Likelihood and Model Fit
 
@@ -206,8 +208,8 @@ These get the log likelihood of individual groups.
 
 ```{r}
 #| label: 06-happiness-chunk-14
-happy_male <- happy[which(happy$Sex == "Males"), ]
-happy_female <- happy[which(happy$Sex == "Females"), ]
+happy_male <- dplyr::filter(happy, Sex == "Males")
+happy_female <- dplyr::filter(happy, Sex == "Females")
 
 log_lik_saturated <- dmultinom(
   happy_male$n,
@@ -225,7 +227,7 @@ log_lik_saturated
 
 ### Deviance
 
-This is the deviance 13.27, as reported in the book:
+This gives deviance $13.27$, as reported in the book:
 
 ```{r}
 #| label: 06-happiness-chunk-15
