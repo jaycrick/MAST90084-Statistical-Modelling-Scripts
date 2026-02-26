@@ -434,10 +434,10 @@ Note that this has the correct reference levels set already.
 #| error: true
 
 vglm(
-  formula = y ~ noplan + antib + factor,
-  data = caesar_prepared,
-  weights = w,
-  family = VGAM::multinomial(refLevel = "3")
+    formula = y ~ noplan + antib + factor,
+    data = caesar_prepared,
+    weights = w,
+    family = VGAM::multinomial(refLevel = "3")
 )
 ```
 
