@@ -7,10 +7,6 @@ nocite: |
     @venables_modern_2002
 ---
 
-## TODO
-
-- Go through and add appropriate documentation to functions.
-
 ## Overview
 
 This script replicates the analyses
