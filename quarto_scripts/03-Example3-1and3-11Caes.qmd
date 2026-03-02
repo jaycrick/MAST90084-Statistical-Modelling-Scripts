@@ -37,7 +37,7 @@ library(VGAM)
 
 ## Example 3.1: Caesarian Birth Study (p. 73)
 
-This data is the same as the data we examined in [the first script](01-ANODEV.qmd.qmd),
+This data is the same as the data we examined in [the first script](01-ANODEV.qmd),
 but now we distinguish between the two infection types `Inf1` and `Inf2`
 instead of just a binary `Inf` variable. We import the ready made dataset.
 
