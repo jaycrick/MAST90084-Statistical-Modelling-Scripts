@@ -5,7 +5,8 @@ subtitle: "Interactive Quarto Guides"
 
 ## Welcome
 
-This site contains detailed educational guides for statistical modeling concepts, covering:
+This site contains detailed educational guides for statistical modeling concepts,
+covering:
 
 - **Generalized Linear Models** - Binomial, Poisson, and ordinal regression
 - **Mixed Effects Models** - Random intercepts and multilevel analysis
@@ -14,11 +15,13 @@ This site contains detailed educational guides for statistical modeling concepts
 
 ## Browse the Analyses
 
-Use the **Analyses** menu above to explore topic-by-topic walkthroughs with code explanations, interpretations, and diagnostics.
+Use the **Analyses** menu above to explore topic-by-topic walkthroughs
+with code explanations, interpretations, and diagnostics.
 
 ## Key Features
 
-Each guide includes clear explanations, step-by-step code, statistical interpretations, and reproducible examples from *Fahrmeir & Tutz (2001)* and *Faraway (2016)*.
+Each guide includes clear explanations, step-by-step code, statistical interpretations,
+and reproducible examples from *Fahrmeir & Tutz (2001)* and *Faraway (2016)*.
 
 ## Acknowledgements
 
