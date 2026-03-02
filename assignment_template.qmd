@@ -1,0 +1,184 @@
+---
+title: "MAST90084 Assignment X"
+author: "Your Name (Student ID)"
+date: today
+format:
+  pdf:
+    papersize: a4
+    geometry:
+      - margin=1in
+knitr:
+  opts_chunk:
+    fig.align: "center"
+    fig.width: 7
+    fig.height: 4.5
+---
+
+```{r}
+#| label: setup
+# Reproducibility
+library(conflicted)
+library(tidyverse)
+set.seed(1) # CHANGE TO YOUR STUDENT ID
+```
+
+## Simple simulation + ggplot example
+
+```{r}
+#| label: sim-ggplot-example
+# Simulate basic data
+n <- 100
+x <- rnorm(n, mean = 0, sd = 1)
+y <- 2 + 0.8 * x + rnorm(n, mean = 0, sd = 1)
+sim_data <- tibble(x = x, y = y) |>
+    arrange(x)
+
+sim_data
+
+# Plot with ggplot2
+ggplot(sim_data, ggplot2::aes(x = x, y = y)) +
+    geom_point(alpha = 0.7) +
+    geom_smooth(method = "lm", se = TRUE) +
+    labs(
+        title = "Simulated data with linear trend",
+        x = "x",
+        y = "y"
+    ) +
+    theme_minimal()
+```
+
+## LaTeX examples (quick reference)
+
+Use `equation` for one numbered equation.
+
+\begin{equation}
+\label{eq:single}
+\hat{\theta} = \arg\max_{\theta} \; \ell(\theta)
+\end{equation}
+
+Use `split` inside `equation` when one equation is too long and needs line breaks,
+or has a flow of equals signs.
+
+\begin{equation}
+\label{eq:split}
+\begin{split}
+\log L(\beta)
+&= \sum_{i=1}^n \left\{ y_i x_i^T\beta - \log\left(1 + e^{x_i^T\beta}\right) \right\} \\
+&\quad - \frac{\lambda}{2}\,\beta^T\beta\\
+&= \sum_{i=1}^n \left\{ y_i x_i^T\beta - \log\left(1 + e^{x_i^T\beta}\right) \right\} - \frac{\lambda}{2}\,\beta^T\beta
+\end{split}
+\end{equation}
+
+Use `gather` for multiple equations that are centered and not aligned at symbols.
+
+\begin{gather}
+\label{eq:gather-a}
+\mathbb{E}[X] = \mu \\
+\label{eq:gather-b}
+\mathrm{Var}(X) = \sigma^2
+\end{gather}
+
+Use `align` for multiple equations aligned at `=` (or another symbol via `&`).
+
+\begin{align}
+\Pr(Y=1\mid x)
+&= \frac{e^{\eta}}{1 + e^{\eta}}, \quad\text{for } \eta = x^T\beta \\
+\log\left(\frac{\Pr(Y=1\mid x)}{1-\Pr(Y=1\mid x)}\right)
+&= x^T\beta
+\end{align}
+
+You can reference these using `Equation \ref{eq:single}`.
+
+## Question 1
+
+### (a)
+
+Write your answer here.
+
+```{r}
+#| label: q1a-code
+#| eval: false
+# Code for Question 1(a)
+```
+
+### (b)
+
+Write your answer here.
+
+```{r}
+#| label: q1b-code
+#| eval: false
+# Code for Question 1(b)
+```
+
+\clearpage
+
+## Question 2
+
+### (a)
+
+Write your answer here.
+
+```{r}
+#| label: q2a-code
+#| eval: false
+# Code for Question 2(a)
+```
+
+### (b)
+
+Write your answer here.
+
+```{r}
+#| label: q2b-code
+#| eval: false
+# Code for Question 2(b)
+```
+
+\clearpage
+
+## Question 3
+
+### (a)
+
+Write your answer here.
+
+```{r}
+#| label: q3a-code
+#| eval: false
+# Code for Question 3(a)
+```
+
+### (b)
+
+Write your answer here.
+
+```{r}
+#| label: q3b-code
+#| eval: false
+# Code for Question 3(b)
+```
+
+\clearpage
+
+## Question 4
+
+### (a)
+
+Write your answer here.
+
+```{r}
+#| label: q4a-code
+#| eval: false
+# Code for Question 4(a)
+```
+
+### (b)
+
+Write your answer here.
+
+```{r}
+#| label: q4b-code
+#| eval: false
+# Code for Question 4(b)
+```
