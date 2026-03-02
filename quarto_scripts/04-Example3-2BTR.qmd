@@ -1,6 +1,6 @@
 ---
-title: "Ordinal Regression on Breathing Test Results."
-subtitle: "@fahrmeir_multivariate_2001 Examples 3.2 & 3.4: Breathing Test Results"
+title: "Ordinal Regression: Breathing Test Results."
+subtitle: "@fahrmeir_multivariate_2001 Examples 3.2 & 3.4"
 date: today
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: "ANOVA and Deviance Analysis"
-subtitle: "Binomial GLM with Logit and Probit Links"
+title: "Binomial General Linear Models: Caesarian Birth Study"
+subtitle: "@fahrmeir_multivariate_2001 Examples 2.1 and 2.4"
 date: today
 nocite: |
     @fahrmeir_multivariate_2001

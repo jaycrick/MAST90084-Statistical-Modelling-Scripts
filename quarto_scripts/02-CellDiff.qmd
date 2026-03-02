@@ -1,6 +1,6 @@
 ---
-title: "Cell Differentiation Study"
-subtitle: "(Quasi-)Poisson GLM with Interaction Effects"
+title: "(Quasi-)Poisson GLM: Cell Differentiation Study"
+subtitle: "@fahrmeir_multivariate_2001 Examples 2.3, 2.6, and 2.7"
 date: today
 author:
   - name: Dennis Leung

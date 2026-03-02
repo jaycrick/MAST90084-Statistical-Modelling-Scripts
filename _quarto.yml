@@ -16,13 +16,13 @@ website:
         file: default.qmd
       - text: "Scripts"
         menu:
-          - text: "ANOVA/Deviance Analysis"
+          - text: "Binomial GLMS: Caesarian Birth"
             file: quarto_scripts/01-ANODEV.qmd
-          - text: "Cell Differentiation"
+          - text: "(Quasi-)Poisson GLM: Cell Differentiation"
             file: quarto_scripts/02-CellDiff.qmd
-          - text: "Example 3.1 & 3.11 Caesar"
+          - text: "Multinomial Logistic Regression: Caesarian Birth"
             file: quarto_scripts/03-Example3-1and3-11Caes.qmd
-          - text: "Example 3.2 BTR"
+          - text: "Ordinal Regression: Breathing Test Results"
             file: quarto_scripts/04-Example3-2BTR.qmd
           - text: "Tonsil Data"
             file: quarto_scripts/05-tonsil.qmd
@@ -38,7 +38,7 @@ website:
             file: quarto_scripts/10-LM_mixed_effect.qmd
           - text: "Survival Analysis"
             file: quarto_scripts/11-survival.qmd
-          - text: "---"
+          - text: "APPENDICES"
           - text: "Appendix 1: Dispersion with Working Residuals"
             file: quarto_scripts/A1-dispersion-working-residuals.qmd
           - text: "Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data"
