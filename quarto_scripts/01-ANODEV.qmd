@@ -1,5 +1,5 @@
 ---
-title: "Binomial General Linear Models: Caesarian Birth Study"
+title: "Binomial Generalized Linear Models: Caesarian Birth Study"
 subtitle: "@fahrmeir_multivariate_2001 Examples 2.1 and 2.4"
 date: today
 nocite: |
