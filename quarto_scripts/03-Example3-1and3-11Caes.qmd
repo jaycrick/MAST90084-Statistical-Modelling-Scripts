@@ -213,8 +213,7 @@ The codebase is in Fortran, and is very fast.
 We can use `glmnet` to fit the same multinomial model
 by setting `lambda = 0` (giving no weight to the regularisation step)
 to get the unregularized estimates.
-If you look up `?glmnet`, pay attention to the multinomial parameterization,
-since the returned coefficients are not on the same baseline coding as `multinom()`.
+If you look up `?glmnet`, pay attention to what they said about symmetric multinomial model which has a different parametrization; [see the section on "Multinomial Regression" in their vignette](https://glmnet.stanford.edu/articles/glmnet.html#multinomial-regression-family-multinomial) for the precise form of this parametrization. Because of a different parametrization, the returned fitted coefficients won't be same as `multinom()`.
 
 ```{r}
 #| label: glmnet-multinomial-fit
@@ -384,7 +383,7 @@ because it fits a wide variety of multivariate response regression models.
 It is not as fast as `glmnet` or `nnet` for large datasets,
 because it uses the Fisher scoring algorithm (like the book).
 
-Is is good practice to
+It is good practice to
 [read the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html)
 for the `vglm()` function
 with `?vglm` to understand the arguments and output structure.
