@@ -2,6 +2,12 @@
 
 R scripts for MAST90084 Statistical Modelling, rewritten as interactive Quarto documents.
 
+## Published Website
+
+[![Published Website](https://img.shields.io/badge/View-Published%20Website-1f6feb?style=for-the-badge)](https://jaycrick.github.io/MAST90084-Statistical-Modelling-Scripts/default.html)
+
+Direct link: https://jaycrick.github.io/MAST90084-Statistical-Modelling-Scripts/default.html
+
 ## Quick Start
 
 **1. Install prerequisites:**
