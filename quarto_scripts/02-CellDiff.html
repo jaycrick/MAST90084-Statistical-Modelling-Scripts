@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.31">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Dennis Leung">
+<meta name="author" content="Jacob Cumming">
+<meta name="dcterms.date" content="2026-03-11">
+
+<title>(Quasi-)Poisson GLM: Cell Differentiation Study – MAST90084 - Statistical Modelling Scripts</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-fced259a1985fd972ecb57c7cd45153f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-449bc4893ad0110d90ad3b5e1881b435.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">MAST90084 - Statistical Modelling Scripts</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../default.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-scripts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Scripts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-scripts">    
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/01-ANODEV.html">
+ <span class="dropdown-text">Binomial GLMS: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/02-CellDiff.html">
+ <span class="dropdown-text">(Quasi-)Poisson GLM: Cell Differentiation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/03-Example3-1and3-11Caes.html">
+ <span class="dropdown-text">Multinomial Logistic Regression: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/04-Example3-2BTR.html">
+ <span class="dropdown-text">Ordinal Regression: Breathing Test Results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
+ <span class="dropdown-text">Tonsil Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Happiness Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Ohio Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">GEE CTSIB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-GLM_mixed_Effect.html">
+ <span class="dropdown-text">GLM Mixed Effects</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-LM_mixed_effect.html">
+ <span class="dropdown-text">LM Mixed Effects</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis</span></a>
+  </li>  
+        <li class="dropdown-header">APPENDICES</li>
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
+ <span class="dropdown-text">Appendix 1: Dispersion with Working Residuals</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A2-likelihood-multinomial.html">
+ <span class="dropdown-text">Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#package-setup-and-data" id="toc-package-setup-and-data" class="nav-link active" data-scroll-target="#package-setup-and-data">Package Setup and Data</a></li>
+  <li><a href="#example-2.3-p.-37-cell-differentiation-data" id="toc-example-2.3-p.-37-cell-differentiation-data" class="nav-link" data-scroll-target="#example-2.3-p.-37-cell-differentiation-data">Example 2.3 (p.&nbsp;37): Cell Differentiation Data</a>
+  <ul class="collapse">
+  <li><a href="#load-and-inspect-data" id="toc-load-and-inspect-data" class="nav-link" data-scroll-target="#load-and-inspect-data">Load and Inspect Data</a></li>
+  <li><a href="#fit-poisson-glm-model" id="toc-fit-poisson-glm-model" class="nav-link" data-scroll-target="#fit-poisson-glm-model">Fit Poisson GLM Model</a></li>
+  <li><a href="#inspect-results" id="toc-inspect-results" class="nav-link" data-scroll-target="#inspect-results">Inspect Results</a></li>
+  </ul></li>
+  <li><a href="#example-2.6-p.-54-goodness-of-fit-and-overdispersion" id="toc-example-2.6-p.-54-goodness-of-fit-and-overdispersion" class="nav-link" data-scroll-target="#example-2.6-p.-54-goodness-of-fit-and-overdispersion">Example 2.6 (p.&nbsp;54): Goodness-of-Fit and Overdispersion</a>
+  <ul class="collapse">
+  <li><a href="#test-goodness-of-fit" id="toc-test-goodness-of-fit" class="nav-link" data-scroll-target="#test-goodness-of-fit">Test Goodness of Fit</a></li>
+  <li><a href="#fit-a-quasi-poisson-glm-model" id="toc-fit-a-quasi-poisson-glm-model" class="nav-link" data-scroll-target="#fit-a-quasi-poisson-glm-model">Fit a Quasi-Poisson GLM Model</a></li>
+  <li><a href="#inspect-quasi-poisson-results" id="toc-inspect-quasi-poisson-results" class="nav-link" data-scroll-target="#inspect-quasi-poisson-results">Inspect Quasi-Poisson Results</a></li>
+  </ul></li>
+  <li><a href="#example-2.7-variance-functions-and-gee" id="toc-example-2.7-variance-functions-and-gee" class="nav-link" data-scroll-target="#example-2.7-variance-functions-and-gee">Example 2.7: Variance Functions and GEE</a>
+  <ul class="collapse">
+  <li><a href="#assess-variance-mean-relationship" id="toc-assess-variance-mean-relationship" class="nav-link" data-scroll-target="#assess-variance-mean-relationship">Assess Variance-Mean Relationship</a></li>
+  <li><a href="#fit-gee-with-linear-variance" id="toc-fit-gee-with-linear-variance" class="nav-link" data-scroll-target="#fit-gee-with-linear-variance">Fit GEE with Linear Variance</a></li>
+  <li><a href="#fit-gee-with-quadratic-variance" id="toc-fit-gee-with-quadratic-variance" class="nav-link" data-scroll-target="#fit-gee-with-quadratic-variance">Fit GEE with Quadratic Variance</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/02-CellDiff.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">(Quasi-)Poisson GLM: Cell Differentiation Study</h1>
+<p class="subtitle lead"><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Examples 2.3, 2.6, and 2.7</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Dennis Leung </p>
+             <p>Jacob Cumming </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 11, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="package-setup-and-data" class="level2">
+<h2 class="anchored" data-anchor-id="package-setup-and-data">Package Setup and Data</h2>
+<p>As in the previous script, for safety we import the <code>conflicted</code> package first to manage any function name conflicts.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>We import the other packages needed to complete the analysis.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Fahrmeir)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gee)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geepack)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Thorough MASS documentation is available in the book <a href="https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2">Modern Applied Statistics with S (MASS)</a> <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span> which is available to you for free.</p>
+</section>
+<section id="example-2.3-p.-37-cell-differentiation-data" class="level2">
+<h2 class="anchored" data-anchor-id="example-2.3-p.-37-cell-differentiation-data">Example 2.3 (p.&nbsp;37): Cell Differentiation Data</h2>
+<section id="load-and-inspect-data" class="level3">
+<h3 class="anchored" data-anchor-id="load-and-inspect-data">Load and Inspect Data</h3>
+<p>We now attempt to replicate the results in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 2.3 (p.&nbsp;37). We import and preview the <code>cells</code> data from the <code>Fahrmeir</code> package. The purpose of this dataset is to explore whether the two agents stimulate cell differentiation synergistically (is an interaction between the agents) or independently.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(cells)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>cells_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(cells)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>cells_tbl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 16 × 3
+       y   TNF   IFN
+   &lt;int&gt; &lt;int&gt; &lt;int&gt;
+ 1    11     0     0
+ 2    18     0     4
+ 3    20     0    20
+ 4    39     0   100
+ 5    22     1     0
+ 6    38     1     4
+ 7    52     1    20
+ 8    69     1   100
+ 9    31    10     0
+10    68    10     4
+11    69    10    20
+12   128    10   100
+13   102   100     0
+14   171   100     4
+15   180   100    20
+16   193   100   100</code></pre>
+</div>
+</div>
+<p>All the variables are encoded as integers and so we do not need to manipulate the data types. It is also good practice in RStudio to run <code>?cells</code> to inspect <a href="https://search.r-project.org/CRAN/refmans/Fahrmeir/html/cells.html">the documentation for the dataset</a>.</p>
+</section>
+<section id="fit-poisson-glm-model" class="level3">
+<h3 class="anchored" data-anchor-id="fit-poisson-glm-model">Fit Poisson GLM Model</h3>
+<p>We initially just fit the Poisson GLM as in Ex 2.3.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What is the canonical link function for Poisson regression? Expand for answer.
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The default link is the log link, meaning that we assume <span class="math inline">\(\log(\texttt{y})\)</span> depends linearly on the covariates.</p>
+</div>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>glm_poisson <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN, <span class="at">family =</span> poisson, <span class="at">data =</span> cells_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+glm() Syntax Explanation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><code>formula = y ~ TNF * IFN</code>: Response variable <code>y</code> modeled with main effects and interaction for <code>TNF</code> and <code>IFN</code>. This is equivalent to <code>y ~ 1 + TNF + IFN + TNF * IFN</code>.</li>
+<li><code>family = poisson</code>: Specifies Poisson distribution with default log link function</li>
+<li><code>data = cells_tbl</code>: Data frame containing the variables</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section id="inspect-results" class="level3">
+<h3 class="anchored" data-anchor-id="inspect-results">Inspect Results</h3>
+<p>We inspect the returned coefficients.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>glm_poisson_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(glm_poisson)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(glm_poisson_summary<span class="sc">$</span>coefficients, <span class="at">digits =</span> <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)   3.4356     0.0638 53.8773        0
+TNF           0.0155     0.0008 18.6895        0
+IFN           0.0089     0.0010  9.2529        0
+TNF:IFN      -0.0001     0.0000 -4.2050        0</code></pre>
+</div>
+</div>
+<p>We see that these estimates line up with those reported in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> p.&nbsp;38. Two things should catch our eye as requiring further investigation:</p>
+<ol type="1">
+<li>the interactive effect has a small coefficient suggesting that perhaps <strong>there may be no true effect</strong>,</li>
+<li>the <span class="math inline">\(p\)</span>-value for the interaction is very small, suggesting that <strong>there is a true effect</strong>.</li>
+</ol>
+<p>We continue to explore this in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 2.6.</p>
+</section>
+</section>
+<section id="example-2.6-p.-54-goodness-of-fit-and-overdispersion" class="level2">
+<h2 class="anchored" data-anchor-id="example-2.6-p.-54-goodness-of-fit-and-overdispersion">Example 2.6 (p.&nbsp;54): Goodness-of-Fit and Overdispersion</h2>
+<p>A simple explanation for the apparent contradiction in the previous example is that the data is not well explained by the Poisson model. We test the goodness of fit with the deviance and the Pearson <span class="math inline">\(\chi^2\)</span> statistic using an asymptotic <span class="math inline">\(\chi^2\)</span> test.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What will the degrees of freedom be for this test? Expand for answer.
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>There must be <span class="math inline">\(16 - 4 = 12\)</span> degrees of freedom, since the saturated model has 16 parameters, and the model we are testing has 4.</p>
+</div>
+</div>
+</div>
+<section id="test-goodness-of-fit" class="level3">
+<h3 class="anchored" data-anchor-id="test-goodness-of-fit">Test Goodness of Fit</h3>
+<p>We can directly access the deviance and we can calculate the Pearson chi-squared statistic with</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>poisson_deviance <span class="ot">&lt;-</span> glm_poisson<span class="sc">$</span>deviance</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(poisson_deviance, <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 142.4</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pearson_chisq_stat <span class="ot">&lt;-</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        (glm_poisson<span class="sc">$</span>y <span class="sc">-</span> glm_poisson<span class="sc">$</span>fitted.values)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>            glm_poisson<span class="sc">$</span>fitted.values</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(pearson_chisq_stat, <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 140.8</code></pre>
+</div>
+</div>
+<p>which are identical to the values reported on page 54 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<p>We inspect the covariance matrices of the coefficient estimates</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>glm_poisson_summary<span class="sc">$</span>cov.scaled</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              (Intercept)           TNF           IFN       TNF:IFN
+(Intercept)  4.066330e-03 -4.169093e-05 -4.449198e-05  4.566589e-07
+TNF         -4.169093e-05  6.903075e-07  4.566594e-07 -7.700253e-09
+IFN         -4.449198e-05  4.566594e-07  9.347980e-07 -9.662192e-09
+TNF:IFN      4.566589e-07 -7.700253e-09 -9.662192e-09  1.818182e-10</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>glm_poisson_summary<span class="sc">$</span>cov.unscaled</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              (Intercept)           TNF           IFN       TNF:IFN
+(Intercept)  4.066330e-03 -4.169093e-05 -4.449198e-05  4.566589e-07
+TNF         -4.169093e-05  6.903075e-07  4.566594e-07 -7.700253e-09
+IFN         -4.449198e-05  4.566594e-07  9.347980e-07 -9.662192e-09
+TNF:IFN      4.566589e-07 -7.700253e-09 -9.662192e-09  1.818182e-10</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why are these covariance matrices identical? Expand for answer.
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The scaled covariance matrix is scaled by the dispersion parameter <span class="math inline">\(\phi\)</span>, but the Poisson model has a fixed dispersion parameter <span class="math inline">\(\phi= 1\)</span>.</p>
+</div>
+</div>
+</div>
+<p>We can look for overdispersion as evidence of poor fit. The typical way of creating an estimate <span class="math inline">\(\hat{\phi}\)</span> for the dispersion parameter <span class="math inline">\(\phi\)</span>, is by dividing the Pearson <span class="math inline">\(\chi^2\)</span> statistic by the degrees of freedom.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>est_dispersion <span class="ot">&lt;-</span> pearson_chisq_stat <span class="sc">/</span> <span class="dv">12</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(est_dispersion, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 11.735</code></pre>
+</div>
+</div>
+<p>Heuristically, this is not close to a value of 1, which is what we would expect if the Poisson model was a good fit.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For an unknown reason our <span class="math inline">\(\hat{\phi}\)</span> is not exactly the same as the book (which has 11.734), but it is very close.</p>
+</div>
+</div>
+<p>We now formally test the goodness of fit by looking at the <span class="math inline">\(p\)</span>-values of the deviance and Pearson <span class="math inline">\(\chi^2\)</span> statistics.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(poisson_deviance, <span class="at">df =</span> <span class="dv">12</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(pearson_chisq_stat, <span class="at">df =</span> <span class="dv">12</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What is the correct interpretation of these results? Expand for answer.
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Both the deviance test and the Pearson <span class="math inline">\(\chi^2\)</span> tests reject the null hypothesis that the data are produced from the Poisson model at any reasonable level of significance.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>There is an important caveat to this result. The sample size of the data is <span class="math inline">\(16\)</span>, since the data isn’t actually grouped. Since this is equal to the degrees of freedom in the saturated model, the dimensionality of the model grows with more samples (which must necessarily be new unique combinations of the covariates). Therefore the asymptotics are not fully valid, since we don’t have a stabilising null distribution. For more information see what the biostatistician Jonathan Bartlett says in <a href="https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/">his blog post</a>.</p>
+<p>There is a case to redeem the tests when the mean of the Poisson random variables are large (given by <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> p.&nbsp;54 in this example). Heuristically, this is because the Poisson distribution looks normal (see the <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Wikipedia page on the Poisson distribution</a> for a visual demonstration), and for the normal distribution, the chi-squared distribution is exact. For more information see also <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span> page 187.</p>
+</div>
+</div>
+</section>
+<section id="fit-a-quasi-poisson-glm-model" class="level3">
+<h3 class="anchored" data-anchor-id="fit-a-quasi-poisson-glm-model">Fit a Quasi-Poisson GLM Model</h3>
+<p>Having rejected the Poisson model, we move to a quasi “model-based” (also known as “naive”) approach by loosening the variance structure, but still assuming we can correctly specify it. We start with a linear and overdispersed quasi-Poisson variance structure <span class="math inline">\(\sigma^2(\mu) = \phi\mu\)</span>, and we will try to replicate the results copied below, of Table 2.6 on page 54 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, showing the comparison between the two models:</p>
+<div id="tbl-poisson-compare" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-poisson-compare-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Log-linear model fits to cellular differentiation data based on Poisson-likelihoods <span class="citation" data-cites="fahrmeir_multivariate_2001">(Adapted from <a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">Fahrmeir and Tutz 2001</a>, Table 2.6, p.&nbsp;54)</span>
+</figcaption>
+<div aria-describedby="tbl-poisson-compare-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Parameter</th>
+<th style="text-align: right;">Poisson, <span class="math inline">\(\phi = 1\)</span></th>
+<th style="text-align: right;">Poisson, <span class="math inline">\(\hat{\phi} = 11.734\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><code>1</code></td>
+<td style="text-align: right;">3.436 (.0)</td>
+<td style="text-align: right;">3.436 (.0)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>TNF</code></td>
+<td style="text-align: right;">.016 (.0)</td>
+<td style="text-align: right;">.016 (.0)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>IFN</code></td>
+<td style="text-align: right;">.009 (.0)</td>
+<td style="text-align: right;">.009 (.0)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>TNF*IFN</code></td>
+<td style="text-align: right;">-.001 (.0)</td>
+<td style="text-align: right;">-.001 (.22)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> quasipoisson,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(glm_quasi_poisson)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = y ~ TNF * IFN, family = quasipoisson, data = cells_tbl)
+
+Coefficients:
+              Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  3.436e+00  2.184e-01  15.727 2.26e-09 ***
+TNF          1.553e-02  2.846e-03   5.456 0.000146 ***
+IFN          8.946e-03  3.312e-03   2.701 0.019273 *  
+TNF:IFN     -5.670e-05  4.619e-05  -1.227 0.243176    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for quasipoisson family taken to be 11.73534)
+
+    Null deviance: 707.03  on 15  degrees of freedom
+Residual deviance: 142.39  on 12  degrees of freedom
+AIC: NA
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+</div>
+<p>Note that since the variance structure is assumed to be correct, the standard errors are not derived using the more robust sandwich covariance matrix.</p>
+</section>
+<section id="inspect-quasi-poisson-results" class="level3">
+<h3 class="anchored" data-anchor-id="inspect-quasi-poisson-results">Inspect Quasi-Poisson Results</h3>
+<p>We can compare the coefficients between the from the full Poisson model.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(glm_poisson_summary<span class="sc">$</span>coefficients, <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std. Error  z value Pr(&gt;|z|)
+(Intercept)  3.43564    0.06377 53.87730    0e+00
+TNF          0.01553    0.00083 18.68948    0e+00
+IFN          0.00895    0.00097  9.25287    0e+00
+TNF:IFN     -0.00006    0.00001 -4.20498    3e-05</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(glm_quasi_poisson_summary<span class="sc">$</span>coefficients, <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std. Error  t value Pr(&gt;|t|)
+(Intercept)  3.43564    0.21845 15.72744  0.00000
+TNF          0.01553    0.00285  5.45568  0.00015
+IFN          0.00895    0.00331  2.70102  0.01927
+TNF:IFN     -0.00006    0.00005 -1.22748  0.24318</code></pre>
+</div>
+</div>
+<p>We see that the coefficients are the exact same and match <a href="#tbl-poisson-compare" class="quarto-xref">Table&nbsp;1</a>, but the standard errors between the two models are significantly different. This is because the estimating equations in both the standard and quasi-Poisson models are identical, giving us identical coefficient estimates, but the dispersion parameter effects our standard errors.</p>
+<p>As with the typical <code>glm()</code> and <code>lm()</code> analysis, we can still use the standard <code>anova()</code> function, and extract the various residuals:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>residuals_tbl <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">default =</span> <span class="fu">resid</span>(glm_quasi_poisson),</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">deviance =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"deviance"</span>),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">working =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"working"</span>),</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">pearson =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"pearson"</span>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>residuals_tbl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 16 × 4
+   default deviance working pearson
+     &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+ 1  -4.16    -4.16  -0.646   -3.60 
+ 2  -2.73    -2.73  -0.441   -2.50 
+ 3  -3.08    -3.08  -0.461   -2.81 
+ 4  -4.68    -4.68  -0.487   -4.24 
+ 5  -1.80    -1.80  -0.302   -1.70 
+ 6   0.907    0.907  0.163    0.931
+ 7   2.21     2.21   0.380    2.33 
+ 8  -0.896   -0.896 -0.101   -0.881
+ 9  -0.897   -0.897 -0.145   -0.875
+10   4.47     4.47   0.813    4.98 
+11   3.66     3.66   0.609    3.99 
+12   4.47     4.47   0.527    4.82 
+13  -3.91    -3.91  -0.305   -3.69 
+14   1.79     1.79   0.150    1.83 
+15   1.82     1.82   0.149    1.87 
+16  -0.748   -0.748 -0.0520  -0.742</code></pre>
+</div>
+</div>
+<p>We now also expect the scaled covariance matrix to be different from the unscaled covariance matrix, since the dispersion parameter is no longer fixed to 1.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson_summary<span class="sc">$</span>cov.unscaled</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              (Intercept)           TNF           IFN       TNF:IFN
+(Intercept)  4.066330e-03 -4.169093e-05 -4.449198e-05  4.566589e-07
+TNF         -4.169093e-05  6.903075e-07  4.566594e-07 -7.700253e-09
+IFN         -4.449198e-05  4.566594e-07  9.347980e-07 -9.662192e-09
+TNF:IFN      4.566589e-07 -7.700253e-09 -9.662192e-09  1.818182e-10</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson_summary<span class="sc">$</span>cov.scaled</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              (Intercept)           TNF           IFN       TNF:IFN
+(Intercept)  4.771979e-02 -4.892574e-04 -5.221287e-04  5.359050e-06
+TNF         -4.892574e-04  8.100996e-06  5.359056e-06 -9.036512e-08
+IFN         -5.221287e-04  5.359056e-06  1.097018e-05 -1.133891e-07
+TNF:IFN      5.359050e-06 -9.036512e-08 -1.133891e-07  2.133699e-09</code></pre>
+</div>
+</div>
+<p>We can do a sanity check in order to determine if we can recover the scaled deviance.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>glm_poisson_summary<span class="sc">$</span>cov.unscaled <span class="sc">*</span> glm_quasi_poisson_summary<span class="sc">$</span>dispersion</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              (Intercept)           TNF           IFN       TNF:IFN
+(Intercept)  4.771979e-02 -4.892574e-04 -5.221287e-04  5.359050e-06
+TNF         -4.892574e-04  8.100996e-06  5.359056e-06 -9.036512e-08
+IFN         -5.221287e-04  5.359056e-06  1.097018e-05 -1.133891e-07
+TNF:IFN      5.359050e-06 -9.036512e-08 -1.133891e-07  2.133699e-09</code></pre>
+</div>
+</div>
+<p>This looks good!</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Dispersion estimation with <code>glm()</code> does not match our Pearson residuals estimate
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We can see that the dispersion estimate reported by <code>glm()</code> does not exactly match our own calculation based on Pearson residuals.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>est_dispersion</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 11.73516</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson_summary<span class="sc">$</span>dispersion</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 11.73534</code></pre>
+</div>
+</div>
+<p>We can recover the exact number reported by <code>glm()</code> as follows:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(glm_quasi_poisson<span class="sc">$</span>weights <span class="sc">*</span> glm_quasi_poisson<span class="sc">$</span>residuals<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="dv">12</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 11.73534</code></pre>
+</div>
+</div>
+<p>The dispersion estimate provided by <code>glm()</code> actually leverages the “working residuals” and the IWLS weights. So it is not the same as our standard estimate based on Pearson residuals! Note that the weights here are same as <code>glm_poisson$weights</code>, the weights by assuming <span class="math inline">\(\phi = 1\)</span> under the full likelihood model.</p>
+<p>For a detailed mathematical explanation of why this difference exists, see <a href="../quarto_scripts/A1-dispersion-working-residuals.html">Appendix: Estimating the Dispersion with Working Residuals</a>.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="example-2.7-variance-functions-and-gee" class="level2">
+<h2 class="anchored" data-anchor-id="example-2.7-variance-functions-and-gee">Example 2.7: Variance Functions and GEE</h2>
+<section id="assess-variance-mean-relationship" class="level3">
+<h3 class="anchored" data-anchor-id="assess-variance-mean-relationship">Assess Variance-Mean Relationship</h3>
+<p>We can further explore different variance structures for the data, beyond just the linear variance structure <span class="math inline">\(\sigma^2(\mu) = \phi \mu\)</span>.</p>
+<p>We can get some visual ideas by plotting the variance against mean per covariate.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>var()</code> computes the unbiased variance estimate by default. To visually reproduce the results on p.&nbsp;59 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, we have to use the biased variance estimate.</p>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>variance_summary_by_TNF <span class="ot">&lt;-</span> cells_tbl <span class="sc">|&gt;</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(TNF) <span class="sc">|&gt;</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_var =</span> <span class="fu">var</span>(y) <span class="sc">*</span> <span class="dv">3</span> <span class="sc">/</span> <span class="dv">4</span>,</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_mean =</span> <span class="fu">mean</span>(y),</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(variance_summary_by_TNF, <span class="fu">aes</span>(<span class="at">x =</span> est_mean, <span class="at">y =</span> est_var, <span class="at">color =</span> <span class="fu">factor</span>(TNF))) <span class="sc">+</span></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Biased Variance"</span>,</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"TNF Level"</span></span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02-CellDiff_files/figure-html/02-celldiff-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can do a similar plot by <code>IFN</code> instead of <code>TNF</code>:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>variance_summary_by_IFN <span class="ot">&lt;-</span> cells_tbl <span class="sc">|&gt;</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(IFN) <span class="sc">|&gt;</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_var =</span> <span class="fu">var</span>(y) <span class="sc">*</span> <span class="dv">3</span> <span class="sc">/</span> <span class="dv">4</span>,</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_mean =</span> <span class="fu">mean</span>(y),</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(variance_summary_by_IFN, <span class="fu">aes</span>(<span class="at">x =</span> est_mean, <span class="at">y =</span> est_var, <span class="at">color =</span> <span class="fu">factor</span>(IFN))) <span class="sc">+</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Biased Variance"</span>,</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"IFN Level"</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02-CellDiff_files/figure-html/02-celldiff-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+ggplot2 Syntax Explanation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><code>ggplot(data, aes(...))</code>: Initialize plot with aesthetic mappings (x, y, color, size, etc.)
+<ul>
+<li><code>color = factor(TNF)</code>: Convert numeric to factor for discrete coloring</li>
+</ul></li>
+<li><code>geom_point()</code>: Add scatter plot layer</li>
+<li><code>labs()</code>: Set axis and legend labels (<code>color = "TNF Level"</code> customizes legend title)</li>
+<li><code>theme_minimal()</code>: Apply clean theme</li>
+<li>Layers combined with <code>+</code> (similar to piping)</li>
+</ul>
+<p>The equivalent base R code to create the same scatter plot would be:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    variance_summary_by_TFN<span class="sc">$</span>est_mean,</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    variance_summary_by_TFN<span class="sc">$</span>est_var,</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">"Biased Variance"</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</div>
+</div>
+</div>
+<p>The non-linear relationship between the variance and the means suggests that we should consider some non-linear variance structures. In particular, we compare:</p>
+<ul>
+<li><span class="math inline">\(\sigma^2(\mu) = \phi \mu\)</span> (linear)</li>
+<li><span class="math inline">\(\sigma^2(\mu) = \phi \mu^2\)</span> (quadratic)</li>
+<li><span class="math inline">\(\sigma^2(\mu) = \phi \mu + {\phi}_2 \mu^2\)</span> (linear + quadratic—not explored here).</li>
+</ul>
+<p>We leave the linear + quadratic case for further exploration.</p>
+</section>
+<section id="fit-gee-with-linear-variance" class="level3">
+<h3 class="anchored" data-anchor-id="fit-gee-with-linear-variance">Fit GEE with Linear Variance</h3>
+<p>We will now use the <code>gee()</code> function for “robust inference”. This means that we do not assume that the variance structure is correctly specified, but instead use the sandwich variance estimator for inference. We now try to partially replicate Table 2.7 from <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, adapted below:</p>
+<table class="caption-top table">
+<caption>Log-linear model fits to cellular differentiation data based on quasi-likelihoods (Table 2.7, p.&nbsp;60)</caption>
+<colgroup>
+<col style="width: 20%">
+<col style="width: 36%">
+<col style="width: 42%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Parameter</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2(\mu) = \phi\mu\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2(\mu) = \phi\mu^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><code>1</code></td>
+<td style="text-align: right;">3.436 (0.0)</td>
+<td style="text-align: right;">3.394 (0.0)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>TNF</code></td>
+<td style="text-align: right;">0.016 (0.0)</td>
+<td style="text-align: right;">0.016 (0.0)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>IFN</code></td>
+<td style="text-align: right;">0.009 (0.0)</td>
+<td style="text-align: right;">0.009 (0.003)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>TNF*IFN</code></td>
+<td style="text-align: right;">-0.001 (0.22)</td>
+<td style="text-align: right;">-0.001 (0.099)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\hat{\phi}\)</span></td>
+<td style="text-align: right;">11.734</td>
+<td style="text-align: right;">0.243</td>
+</tr>
+</tbody>
+</table>
+<p>We start by considering the linear variance structure <span class="math inline">\(\sigma^2(\mu) = \phi \mu\)</span>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>gee_mu <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl)),</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl,</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">quasi</span>(<span class="at">variance =</span> <span class="st">"mu"</span>, <span class="at">link =</span> <span class="st">"log"</span>)</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>running glm to get initial regression estimate</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  (Intercept)           TNF           IFN       TNF:IFN 
+ 3.435636e+00  1.552810e-02  8.946132e-03 -5.669994e-05 </code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<code>gee()</code> Syntax Explanation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><code>id</code>: Cluster identifier for which observations are correlated. Here <code>seq_len(nrow(cells_tbl))</code> creates unique IDs (1, 2, …, n) for each row, treating observations as independent</li>
+<li><code>family = quasi(variance = "...", link = "...")</code>: Specifies the assumed variance function and link function
+<ul>
+<li><code>variance = "mu"</code>: Linear variance structure <span class="math inline">\(\sigma^2(\mu) = \phi \mu\)</span></li>
+<li><code>link = "log"</code>: Log link function</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>gee_mu_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(gee_mu)</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>gee_mu_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ GEE:  GENERALIZED LINEAR MODELS FOR DEPENDENT DATA
+ gee S-function, version 4.13 modified 98/01/27 (1998) 
+
+Model:
+ Link:                      Logarithm 
+ Variance to Mean Relation: Poisson 
+ Correlation Structure:     Independent 
+
+Call:
+gee(formula = y ~ TNF * IFN, id = seq_len(nrow(cells_tbl)), data = cells_tbl, 
+    family = quasi(variance = "mu", link = "log"))
+
+Summary of Residuals:
+      Min        1Q    Median        3Q       Max 
+-44.70834 -14.92057  -6.49156  22.60660  44.16668 
+
+
+Coefficients:
+                 Estimate   Naive S.E.   Naive z  Robust S.E.  Robust z
+(Intercept)  3.435636e+00 0.2184496319 15.727361 1.851532e-01 18.555643
+TNF          1.552810e-02 0.0028462236  5.455686 2.329065e-03  6.667096
+IFN          8.946132e-03 0.0033121255  2.701024 3.242937e-03  2.758652
+TNF:IFN     -5.669994e-05 0.0000461918 -1.227489 3.598629e-05 -1.575599
+
+Estimated Scale Parameter:  11.73516
+Number of Iterations:  1
+
+Working Correlation
+     [,1]
+[1,]    1</code></pre>
+</div>
+</div>
+<p>We can see now that the dispersion estimate is the same as the one we manually calculated based on Pearson residuals. We compare the coefficients and standard errors to the previous models:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(gee_mu_summary<span class="sc">$</span>coefficients, <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
+(Intercept)   3.4356     0.2184 15.7274      0.1852  18.5556
+TNF           0.0155     0.0028  5.4557      0.0023   6.6671
+IFN           0.0089     0.0033  2.7010      0.0032   2.7587
+TNF:IFN      -0.0001     0.0000 -1.2275      0.0000  -1.5756</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(glm_quasi_poisson_summary<span class="sc">$</span>coefficients, <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   3.4356     0.2184 15.7274   0.0000
+TNF           0.0155     0.0028  5.4557   0.0001
+IFN           0.0089     0.0033  2.7010   0.0193
+TNF:IFN      -0.0001     0.0000 -1.2275   0.2432</code></pre>
+</div>
+</div>
+<p>The coefficients are be identical to the previous models, since the same score function is being solved. We can see that the naive standard errors are those assuming the variance structure is correct, while the robust standard errors are those using the sandwich variance estimator.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why use the sandwich variance estimator? Expand for answer.
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The sandwich variance estimator is “robust” because it is guaranteed to be asymptotically correct even if the variance structure is misspecified. If we incorrectly assume <span class="math inline">\(\sigma^2(\mu) = \phi\mu\)</span> when the true structure is different, the naive standard errors will be biased, but the sandwich estimator will still provide valid inference.</p>
+</div>
+</div>
+</div>
+<p>We can then calculate the <span class="math inline">\(p\)</span>-values corresponding to the naive and robust standard errors.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Understanding the z-value Calculation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><code>diag(...)</code> extracts the diagonal elements from a matrix (variance-covariance matrix in this case). Standard errors are obtained by taking the square root of these diagonal elements: <code>sqrt(diag(covariance_matrix))</code>. Dividing the coefficient by its standard error gives the z-value.</p>
+</div>
+</div>
+</div>
+<p>Assuming we have correctly specified the variance structure (naive approach):</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>naive_z_values <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu<span class="sc">$</span>coefficients),</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">z_value =</span> gee_mu<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>((gee_mu)<span class="sc">$</span>naive.variance)),</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z_value), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>naive_z_values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  coefficient z_value p_value
+  &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;
+1 (Intercept)   15.7    0    
+2 TNF            5.46   0    
+3 IFN            2.70   0.007
+4 TNF:IFN       -1.23   0.22 </code></pre>
+</div>
+</div>
+<p>Without assuming the variance structure is correct (robust approach):</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>robust_z_values <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu<span class="sc">$</span>coefficients),</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">z_value =</span> gee_mu<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>((gee_mu)<span class="sc">$</span>robust.variance)),</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z_value), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>robust_z_values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  coefficient z_value p_value
+  &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;
+1 (Intercept)   18.6    0    
+2 TNF            6.67   0    
+3 IFN            2.76   0.006
+4 TNF:IFN       -1.58   0.115</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Table 2.7, the <span class="math inline">\(p\)</span>-values of the <span class="math inline">\(\sigma^2(\mu) = \phi \mu\)</span> column corresponds to the naive <span class="math inline">\(p\)</span>-values, whereas they should actually correspond to the robust <span class="math inline">\(p\)</span>-values (read ahead below).</p>
+</div>
+</div>
+<p>Expand the following note for an alternative implementation of GEE models using the <code>geepack</code> package.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Alternative <code>geepack</code> Implementation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-15" class="callout-15-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>There is an alternative package <code>geepack</code> which also implements GEE models. Under the hood, there are some small differences in implementation between <code>gee</code> and <code>geepack</code>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>geepack_mu <span class="ot">&lt;-</span> <span class="fu">geeglm</span>(</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">"log"</span>),</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl,</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl))</span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>geepack_mu</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+geeglm(formula = y ~ TNF * IFN, family = poisson(link = "log"), 
+    data = cells_tbl, id = seq_len(nrow(cells_tbl)))
+
+Coefficients:
+  (Intercept)           TNF           IFN       TNF:IFN 
+ 3.435636e+00  1.552810e-02  8.946132e-03 -5.669994e-05 
+
+Degrees of Freedom: 16 Total (i.e. Null);  12 Residual
+
+Scale Link:                   identity
+Estimated Scale Parameters:  [1] 8.801367
+
+Correlation:  Structure = independence  
+Number of clusters:   16   Maximum cluster size: 1 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>geepack_mu_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(geepack_mu)</span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>geepack_mu_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+geeglm(formula = y ~ TNF * IFN, family = poisson(link = "log"), 
+    data = cells_tbl, id = seq_len(nrow(cells_tbl)))
+
+ Coefficients:
+              Estimate    Std.err    Wald Pr(&gt;|W|)    
+(Intercept)  3.436e+00  1.852e-01 344.312  &lt; 2e-16 ***
+TNF          1.553e-02  2.329e-03  44.450 2.61e-11 ***
+IFN          8.946e-03  3.243e-03   7.610   0.0058 ** 
+TNF:IFN     -5.670e-05  3.599e-05   2.483   0.1151    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation structure = independence 
+Estimated Scale Parameters:
+
+            Estimate Std.err
+(Intercept)    8.801   1.944
+Number of clusters:   16  Maximum cluster size: 1 </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="fit-gee-with-quadratic-variance" class="level3">
+<h3 class="anchored" data-anchor-id="fit-gee-with-quadratic-variance">Fit GEE with Quadratic Variance</h3>
+<p>Finally, we try the quadratic variance structure <span class="math inline">\(\sigma^2(\mu) = \phi \mu^2\)</span>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>gee_mu2 <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl)),</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">quasi</span>(<span class="at">variance =</span> <span class="st">"mu^2"</span>, <span class="at">link =</span> <span class="st">"log"</span>),</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl</span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>running glm to get initial regression estimate</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)         TNF         IFN     TNF:IFN 
+  3.393e+00   1.626e-02   9.433e-03  -6.011e-05 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>gee_mu2_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(gee_mu2)</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>gee_mu2_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ GEE:  GENERALIZED LINEAR MODELS FOR DEPENDENT DATA
+ gee S-function, version 4.13 modified 98/01/27 (1998) 
+
+Model:
+ Link:                      Logarithm 
+ Variance to Mean Relation: Gamma 
+ Correlation Structure:     Independent 
+
+Call:
+gee(formula = y ~ TNF * IFN, id = seq_len(nrow(cells_tbl)), data = cells_tbl, 
+    family = quasi(variance = "mu^2", link = "log"))
+
+Summary of Residuals:
+    Min      1Q  Median      3Q     Max 
+-49.322 -16.653  -6.135  17.683  43.290 
+
+
+Coefficients:
+              Estimate Naive S.E. Naive z Robust S.E. Robust z
+(Intercept)  3.393e+00  1.863e-01 18.2156   1.834e-01   18.499
+TNF          1.626e-02  3.707e-03  4.3861   2.284e-03    7.118
+IFN          9.433e-03  3.651e-03  2.5840   3.158e-03    2.987
+TNF:IFN     -6.011e-05  7.265e-05 -0.8274   3.638e-05   -1.652
+
+Estimated Scale Parameter:  0.2435
+Number of Iterations:  1
+
+Working Correlation
+     [,1]
+[1,]    1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(gee_mu2_summary<span class="sc">$</span>scale, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.244</code></pre>
+</div>
+</div>
+<p>The coefficients almost match those in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Table 2.7 on page 60.</p>
+<p>For a final sanity check, we manually compute both the naive and robust <span class="math inline">\(Z\)</span> and <span class="math inline">\(p\)</span>-values.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>gee_mu2_inference <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu2<span class="sc">$</span>coefficients),</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">naive_z =</span> gee_mu2<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(gee_mu2<span class="sc">$</span>naive.variance)),</span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">naive_p =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(naive_z), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>),</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">robust_z =</span> gee_mu2<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(gee_mu2<span class="sc">$</span>robust.variance)),</span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">robust_p =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(robust_z), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>gee_mu2_inference</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 5
+  coefficient naive_z naive_p robust_z robust_p
+  &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+1 (Intercept)  18.2     0        18.5     0    
+2 TNF           4.39    0         7.12    0    
+3 IFN           2.58    0.01      2.99    0.003
+4 TNF:IFN      -0.827   0.408    -1.65    0.099</code></pre>
+</div>
+</div>
+<p>Unlike for the linear variance structure, for the quadratic variance structure, the robust <span class="math inline">\(p\)</span>-values match the ones in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. This confirms that all the <span class="math inline">\(p\)</span>-values reported in parentheses of Table 2.7 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> should have been robust <span class="math inline">\(p\)</span>-values.</p>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"Fahrmeir"</span>,  <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"ggplot2"</span>, <span class="st">"MASS"</span>)</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>    cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check if multiple citations</span></span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb73-9"><a href="#cb73-9" aria-hidden="true" tabindex="-1"></a>            cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb73-12"><a href="#cb73-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb73-13"><a href="#cb73-13" aria-hidden="true" tabindex="-1"></a>        cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb73-14"><a href="#cb73-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb73-15"><a href="#cb73-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb73-16"><a href="#cb73-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<ul>
+<li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
+<li><p><strong>dplyr</strong>: Wickham H, François R, Henry L, Müller K, Vaughan D (2026). <em>dplyr: A Grammar of Data Manipulation</em>. R package version 1.2.0, https://github.com/tidyverse/dplyr, <a href="https://dplyr.tidyverse.org" class="uri">https://dplyr.tidyverse.org</a>.</p></li>
+<li><p><strong>Fahrmeir</strong>: Halvorsen cbKB (2016). <em>Fahrmeir: Data from the Book “Multivariate Statistical Modelling Based on Generalized Linear Models”, First Edition, by Ludwig Fahrmeir and Gerhard Tutz</em>. R package version 2016.5.31.</p></li>
+<li><p><strong>gee</strong>: Carey VJ (2024). <em>gee: Generalized Estimation Equation Solver</em>. R package version 4.13-29.</p></li>
+<li><p><strong>geepack</strong>:</p>
+<ul>
+<li><p>Halekoh U, Højsgaard S, Yan J (2006). “The R Package geepack for Generalized Estimating Equations.” <em>Journal of Statistical Software</em>, <em>15/2</em>, 1-11.</p></li>
+<li><p>Yan J, Fine JP (2004). “Estimating Equations for Association Structures.” <em>Statistics in Medicine</em>, <em>23</em>, 859-880.</p></li>
+<li><p>Yan J (2002). “geepack: Yet Another Package for Generalized Estimating Equations.” <em>R-News</em>, <em>2/3</em>, 12-14.</p></li>
+<li><p>Xu, Z., Fine, P. J, Song, W., Yan, J. (2025). “On GEE for mean-variance-correlation models: Variance estimation and model selection.” <em>Statistics in Medicine</em>, <em>44</em>, 1-2.</p></li>
+</ul></li>
+<li><p><strong>ggplot2</strong>: Wickham H (2016). <em>ggplot2: Elegant Graphics for Data Analysis</em>. Springer-Verlag New York. ISBN 978-3-319-24277-4, <a href="https://ggplot2.tidyverse.org" class="uri">https://ggplot2.tidyverse.org</a>.</p></li>
+<li><p><strong>MASS</strong>: Venables WN, Ripley BD (2002). <em>Modern Applied Statistics with S</em>, Fourth edition. Springer, New York. ISBN 0-387-95457-0, <a href="https://www.stats.ox.ac.uk/pub/MASS4/" class="uri">https://www.stats.ox.ac.uk/pub/MASS4/</a>.</p></li>
+</ul>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-bartlett_deviance_2014" class="csl-entry" role="listitem">
+Bartlett, Jonathan. 2014. <span>“Deviance Goodness of Fit Test for <span>Poisson</span> Regression.”</span> <em>The Stats Geek</em>. <a href="https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/">https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/</a>.
+</div>
+<div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
+Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. New York, <span>NY</span>: Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
+</div>
+<div id="ref-noauthor_poisson_2026" class="csl-entry" role="listitem">
+<span>“Poisson Distribution.”</span> 2026. <em>Wikipedia</em>. <a href="https://en.wikipedia.org/w/index.php?title=Poisson_distribution&amp;oldid=1335765635">https://en.wikipedia.org/w/index.php?title=Poisson_distribution&amp;oldid=1335765635</a>.
+</div>
+<div id="ref-venables_modern_2002" class="csl-entry" role="listitem">
+Venables, W. N., and B. D. Ripley. 2002. <em>Modern Applied Statistics with <span>S</span></em>. Fourth. New York: Springer. <a href="https://www.stats.ox.ac.uk/pub/MASS4/">https://www.stats.ox.ac.uk/pub/MASS4/</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jaycrick\.github\.io\/MAST90084-Statistical-Modelling-Scripts\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/02-CellDiff.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

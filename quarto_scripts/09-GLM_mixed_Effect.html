@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.31">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-03-11">
+
+<title>GLM with Mixed Effects – MAST90084 - Statistical Modelling Scripts</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-fced259a1985fd972ecb57c7cd45153f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-449bc4893ad0110d90ad3b5e1881b435.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">MAST90084 - Statistical Modelling Scripts</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../default.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-scripts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Scripts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-scripts">    
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/01-ANODEV.html">
+ <span class="dropdown-text">Binomial GLMS: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/02-CellDiff.html">
+ <span class="dropdown-text">(Quasi-)Poisson GLM: Cell Differentiation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/03-Example3-1and3-11Caes.html">
+ <span class="dropdown-text">Multinomial Logistic Regression: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/04-Example3-2BTR.html">
+ <span class="dropdown-text">Ordinal Regression: Breathing Test Results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
+ <span class="dropdown-text">Tonsil Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Happiness Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Ohio Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">GEE CTSIB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-GLM_mixed_Effect.html">
+ <span class="dropdown-text">GLM Mixed Effects</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-LM_mixed_effect.html">
+ <span class="dropdown-text">LM Mixed Effects</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis</span></a>
+  </li>  
+        <li class="dropdown-header">APPENDICES</li>
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
+ <span class="dropdown-text">Appendix 1: Dispersion with Working Residuals</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A2-likelihood-multinomial.html">
+ <span class="dropdown-text">Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a>
+  <ul class="collapse">
+  <li><a href="#available-glmm-software-comparison" id="toc-available-glmm-software-comparison" class="nav-link" data-scroll-target="#available-glmm-software-comparison">Available GLMM Software Comparison</a></li>
+  </ul></li>
+  <li><a href="#ohio-respiratory-data-setup" id="toc-ohio-respiratory-data-setup" class="nav-link" data-scroll-target="#ohio-respiratory-data-setup">Ohio Respiratory Data Setup</a></li>
+  <li><a href="#glmm-via-laplace-approximation" id="toc-glmm-via-laplace-approximation" class="nav-link" data-scroll-target="#glmm-via-laplace-approximation">GLMM via Laplace Approximation</a></li>
+  <li><a href="#glmm-via-adaptive-gauss-hermite-quadrature" id="toc-glmm-via-adaptive-gauss-hermite-quadrature" class="nav-link" data-scroll-target="#glmm-via-adaptive-gauss-hermite-quadrature">GLMM via Adaptive Gauss-Hermite Quadrature</a></li>
+  <li><a href="#alternative-penalized-quasi-likelihood" id="toc-alternative-penalized-quasi-likelihood" class="nav-link" data-scroll-target="#alternative-penalized-quasi-likelihood">Alternative: Penalized Quasi-Likelihood</a></li>
+  <li><a href="#wine-bitterness-ordinal-mixed-models" id="toc-wine-bitterness-ordinal-mixed-models" class="nav-link" data-scroll-target="#wine-bitterness-ordinal-mixed-models">Wine Bitterness: Ordinal Mixed Models</a>
+  <ul class="collapse">
+  <li><a href="#data-setup-and-contrast-coding" id="toc-data-setup-and-contrast-coding" class="nav-link" data-scroll-target="#data-setup-and-contrast-coding">Data Setup and Contrast Coding</a></li>
+  <li><a href="#fixed-effects-ordinal-model-polr" id="toc-fixed-effects-ordinal-model-polr" class="nav-link" data-scroll-target="#fixed-effects-ordinal-model-polr">Fixed Effects Ordinal Model: polr()</a></li>
+  <li><a href="#fixed-effects-ordinal-model-clm" id="toc-fixed-effects-ordinal-model-clm" class="nav-link" data-scroll-target="#fixed-effects-ordinal-model-clm">Fixed Effects Ordinal Model: clm()</a></li>
+  <li><a href="#comparing-with-fahrmeir-tutz-book-values" id="toc-comparing-with-fahrmeir-tutz-book-values" class="nav-link" data-scroll-target="#comparing-with-fahrmeir-tutz-book-values">Comparing with Fahrmeir &amp; Tutz Book Values</a></li>
+  <li><a href="#random-effects-clmm" id="toc-random-effects-clmm" class="nav-link" data-scroll-target="#random-effects-clmm">Random Effects: clmm()</a></li>
+  <li><a href="#results-interpretation" id="toc-results-interpretation" class="nav-link" data-scroll-target="#results-interpretation">Results Interpretation</a></li>
+  </ul></li>
+  <li><a href="#key-learning-points" id="toc-key-learning-points" class="nav-link" data-scroll-target="#key-learning-points">Key Learning Points</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/09-GLM_mixed_Effect.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">GLM with Mixed Effects</h1>
+<p class="subtitle lead">Binomial GLMM on Ohio Respiratory Data and Ordinal Mixed Models</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 11, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>This script demonstrates <strong>Generalized Linear Mixed Models (GLMM)</strong> for handling <strong>subject-specific random effects</strong> in longitudinal and ordinal data.</p>
+<p>Methods covered: - Laplace approximation via <code>glmer()</code> (lme4) - Adaptive Gauss-Hermite quadrature (AGHQ) for improved accuracy - Penalized Quasi-Likelihood (PQL) via <code>glmmPQL()</code> (MASS) - Ordinal mixed models via <code>clmm()</code> (ordinal)</p>
+<section id="available-glmm-software-comparison" class="level3">
+<h3 class="anchored" data-anchor-id="available-glmm-software-comparison">Available GLMM Software Comparison</h3>
+<p>Many R packages exist for fitting GLMMs, using different estimation methods:</p>
+<ul>
+<li><strong>MASS::glmmPQL</strong>: Penalized quasi-likelihood</li>
+<li><strong>lme4::glmer</strong>: Laplace approximation and adaptive Gauss-Hermite quadrature (AGHQ)</li>
+<li><strong>MCMCglmm</strong>: Markov chain Monte Carlo</li>
+<li><strong>glmmML</strong>: AGHQ</li>
+<li><strong>glmmADMB</strong>: Laplace</li>
+<li><strong>glmm</strong> (from Jim Lindsey’s repeated package): AGHQ</li>
+<li><strong>ordinal::clmm</strong>: For ordinal outcomes with random effects</li>
+<li><strong>gamlss.mx</strong>, <strong>ASREML-R</strong>, <strong>sabreR</strong>, <strong>mcemGLM</strong>: Other specialized approaches</li>
+</ul>
+<p>We’ll focus on the most commonly used: <code>glmer()</code>, <code>glmmPQL()</code>, and <code>clmm()</code>.</p>
+</section>
+</section>
+<section id="ohio-respiratory-data-setup" class="level2">
+<h2 class="anchored" data-anchor-id="ohio-respiratory-data-setup">Ohio Respiratory Data Setup</h2>
+<p>Load required packages and prepare the Ohio respiratory dataset:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Matrix</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geepack)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ordinal)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Load and examine the data structure:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ohio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  resp id age smoke
+1    0  0  -2     0
+2    0  0  -1     0
+3    0  0   0     0
+4    0  0   1     0
+5    0  1  -2     0
+6    0  1  -1     0</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check current variable classes</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ohio<span class="sc">$</span>resp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "integer"</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ohio<span class="sc">$</span>age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "integer"</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ohio<span class="sc">$</span>smoke)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "integer"</code></pre>
+</div>
+</div>
+<p>Convert age and smoke to factors, and set up effect coding to match Fahrmeir &amp; Tutz:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ohio<span class="sc">$</span>age <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(ohio<span class="sc">$</span>age)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>ohio<span class="sc">$</span>smoke <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(ohio<span class="sc">$</span>smoke)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check default contrasts</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   -1 0 1
+-2  0 0 0
+-1  1 0 0
+0   0 1 0
+1   0 0 1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  1
+0 0
+1 1</code></pre>
+</div>
+</div>
+<p>Set effect coding (Fahrmeir &amp; Tutz use this parameterization):</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   [,1] [,2] [,3]
+-2    1    0    0
+-1    0    1    0
+0     0    0    1
+1    -1   -1   -1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [,1]
+0    1
+1   -1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Adjust smoke contrast to match book</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke) <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [,1]
+0   -1
+1    1</code></pre>
+</div>
+</div>
+</section>
+<section id="glmm-via-laplace-approximation" class="level2">
+<h2 class="anchored" data-anchor-id="glmm-via-laplace-approximation">GLMM via Laplace Approximation</h2>
+<p>The default <code>glmer()</code> approach uses the <strong>Laplace approximation</strong>, which is fast and reasonably accurate. The Nelder-Mead optimizer is recommended by Faraway (2016):</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>glmer_fit <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    resp <span class="sc">~</span> age <span class="sc">*</span> smoke <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id),</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">control =</span> <span class="fu">glmerControl</span>(<span class="at">optimizer =</span> <span class="st">"Nelder_Mead"</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, : Model failed to converge with max|grad| = 0.0589882 (tol = 0.002, component 1)
+  See ?lme4::convergence and ?lme4::troubleshooting.</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glmer_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: resp ~ age * smoke + (1 | id)
+   Data: ohio
+Control: glmerControl(optimizer = "Nelder_Mead")
+
+      AIC       BIC    logLik -2*log(L)  df.resid 
+   1601.5    1652.6    -791.8    1583.5      2139 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.4901 -0.1804 -0.1578 -0.1167  2.7920 
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ id     (Intercept) 5.69     2.385   
+Number of obs: 2148, groups:  id, 537
+
+Fixed effects:
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -3.11945    0.25264 -12.347   &lt;2e-16 ***
+age1         0.09502    0.13432   0.707   0.4793    
+age2         0.25267    0.13147   1.922   0.0546 .  
+age3         0.09991    0.13351   0.748   0.4542    
+smoke1       0.20884    0.14602   1.430   0.1526    
+age1:smoke1 -0.17498    0.13444  -1.302   0.1931    
+age2:smoke1  0.11722    0.13119   0.894   0.3716    
+age3:smoke1  0.03809    0.13346   0.285   0.7753    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) age1   age2   age3   smoke1 ag1:s1 ag2:s1
+age1        -0.029                                          
+age2        -0.086 -0.298                                   
+age3        -0.035 -0.313 -0.292                            
+smoke1       0.115  0.025 -0.019 -0.007                     
+age1:smoke1  0.054  0.276 -0.088 -0.094 -0.016              
+age2:smoke1 -0.041 -0.083  0.218 -0.054 -0.041 -0.302       
+age3:smoke1 -0.014 -0.093 -0.054  0.229 -0.019 -0.315 -0.295
+optimizer (Nelder_Mead) convergence code: 0 (OK)
+Model failed to converge with max|grad| = 0.0589882 (tol = 0.002, component 1)
+  See ?lme4::convergence and ?lme4::troubleshooting.</code></pre>
+</div>
+</div>
+</section>
+<section id="glmm-via-adaptive-gauss-hermite-quadrature" class="level2">
+<h2 class="anchored" data-anchor-id="glmm-via-adaptive-gauss-hermite-quadrature">GLMM via Adaptive Gauss-Hermite Quadrature</h2>
+<p>More accurate numerical integration with <code>nAGQ</code>. Using 10 quadrature points closely reproduces the numbers in Table 7.2 of Fahrmeir &amp; Tutz:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>glmer_fit_n_agq_10 <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    resp <span class="sc">~</span> age <span class="sc">*</span> smoke <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id),</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">control =</span> <span class="fu">glmerControl</span>(<span class="at">optimizer =</span> <span class="st">"Nelder_Mead"</span>),</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">nAGQ =</span> <span class="dv">10</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, : Model failed to converge with max|grad| = 0.00324443 (tol = 0.002, component 1)
+  See ?lme4::convergence and ?lme4::troubleshooting.</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glmer_fit_n_agq_10)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Adaptive
+  Gauss-Hermite Quadrature, nAGQ = 10) [glmerMod]
+ Family: binomial  ( logit )
+Formula: resp ~ age * smoke + (1 | id)
+   Data: ohio
+Control: glmerControl(optimizer = "Nelder_Mead")
+
+      AIC       BIC    logLik -2*log(L)  df.resid 
+   1607.3    1658.3    -794.6    1589.3      2139 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.4424 -0.2052 -0.1800 -0.1340  2.7803 
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ id     (Intercept) 4.695    2.167   
+Number of obs: 2148, groups:  id, 537
+
+Fixed effects:
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -2.82523    0.18481 -15.287   &lt;2e-16 ***
+age1         0.08869    0.13353   0.664   0.5066    
+age2         0.24571    0.13085   1.878   0.0604 .  
+age3         0.10149    0.13264   0.765   0.4442    
+smoke1       0.19939    0.13721   1.453   0.1462    
+age1:smoke1 -0.17926    0.13365  -1.341   0.1798    
+age2:smoke1  0.11447    0.13064   0.876   0.3809    
+age3:smoke1  0.04149    0.13261   0.313   0.7544    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) age1   age2   age3   smoke1 ag1:s1 ag2:s1
+age1        -0.023                                          
+age2        -0.076 -0.302                                   
+age3        -0.032 -0.315 -0.296                            
+smoke1       0.158  0.026 -0.021 -0.008                     
+age1:smoke1  0.050  0.270 -0.086 -0.092 -0.013              
+age2:smoke1 -0.040 -0.083  0.215 -0.055 -0.042 -0.305       
+age3:smoke1 -0.015 -0.091 -0.055  0.224 -0.019 -0.316 -0.298
+optimizer (Nelder_Mead) convergence code: 0 (OK)
+Model failed to converge with max|grad| = 0.00324443 (tol = 0.002, component 1)
+  See ?lme4::convergence and ?lme4::troubleshooting.</code></pre>
+</div>
+</div>
+<p>“Estimate” the random effects, which are conditional modes as indicated by the documentation of <code>ranef()</code>:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">ranef</span>(glmer_fit))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>$id
+    (Intercept)
+0    -0.5006512
+1    -0.5006512
+2    -0.5006512
+3    -0.5006512
+4    -0.5006512
+5    -0.5006512
+6    -0.5006512
+7    -0.5006512
+8    -0.5006512
+9    -0.5006512
+10   -0.5006512
+11   -0.5006512
+12   -0.5006512
+13   -0.5006512
+14   -0.5006512
+15   -0.5006512
+16   -0.5006512
+17   -0.5006512
+18   -0.5006512
+19   -0.5006512
+20   -0.5006512
+21   -0.5006512
+22   -0.5006512
+23   -0.5006512
+24   -0.5006512
+25   -0.5006512
+26   -0.5006512
+27   -0.5006512
+28   -0.5006512
+29   -0.5006512
+30   -0.5006512
+31   -0.5006512
+32   -0.5006512
+33   -0.5006512
+34   -0.5006512
+35   -0.5006512
+36   -0.5006512
+37   -0.5006512
+38   -0.5006512
+39   -0.5006512
+40   -0.5006512
+41   -0.5006512
+42   -0.5006512
+43   -0.5006512
+44   -0.5006512
+45   -0.5006512
+46   -0.5006512
+47   -0.5006512
+48   -0.5006512
+49   -0.5006512
+50   -0.5006512
+51   -0.5006512
+52   -0.5006512
+53   -0.5006512
+54   -0.5006512
+55   -0.5006512
+56   -0.5006512
+57   -0.5006512
+58   -0.5006512
+59   -0.5006512
+60   -0.5006512
+61   -0.5006512
+62   -0.5006512
+63   -0.5006512
+64   -0.5006512
+65   -0.5006512
+66   -0.5006512
+67   -0.5006512
+68   -0.5006512
+69   -0.5006512
+70   -0.5006512
+71   -0.5006512
+72   -0.5006512
+73   -0.5006512
+74   -0.5006512
+75   -0.5006512
+76   -0.5006512
+77   -0.5006512
+78   -0.5006512
+79   -0.5006512
+80   -0.5006512
+81   -0.5006512
+82   -0.5006512
+83   -0.5006512
+84   -0.5006512
+85   -0.5006512
+86   -0.5006512
+87   -0.5006512
+88   -0.5006512
+89   -0.5006512
+90   -0.5006512
+91   -0.5006512
+92   -0.5006512
+93   -0.5006512
+94   -0.5006512
+95   -0.5006512
+96   -0.5006512
+97   -0.5006512
+98   -0.5006512
+99   -0.5006512
+100  -0.5006512
+101  -0.5006512
+102  -0.5006512
+103  -0.5006512
+104  -0.5006512
+105  -0.5006512
+106  -0.5006512
+107  -0.5006512
+108  -0.5006512
+109  -0.5006512
+110  -0.5006512
+111  -0.5006512
+112  -0.5006512
+113  -0.5006512
+114  -0.5006512
+115  -0.5006512
+116  -0.5006512
+117  -0.5006512
+118  -0.5006512
+119  -0.5006512
+120  -0.5006512
+121  -0.5006512
+122  -0.5006512
+123  -0.5006512
+124  -0.5006512
+125  -0.5006512
+126  -0.5006512
+127  -0.5006512
+128  -0.5006512
+129  -0.5006512
+130  -0.5006512
+131  -0.5006512
+132  -0.5006512
+133  -0.5006512
+134  -0.5006512
+135  -0.5006512
+136  -0.5006512
+137  -0.5006512
+138  -0.5006512
+139  -0.5006512
+140  -0.5006512
+141  -0.5006512
+142  -0.5006512
+143  -0.5006512
+144  -0.5006512
+145  -0.5006512
+146  -0.5006512
+147  -0.5006512
+148  -0.5006512
+149  -0.5006512
+150  -0.5006512
+151  -0.5006512
+152  -0.5006512
+153  -0.5006512
+154  -0.5006512
+155  -0.5006512
+156  -0.5006512
+157  -0.5006512
+158  -0.5006512
+159  -0.5006512
+160  -0.5006512
+161  -0.5006512
+162  -0.5006512
+163  -0.5006512
+164  -0.5006512
+165  -0.5006512
+166  -0.5006512
+167  -0.5006512
+168  -0.5006512
+169  -0.5006512
+170  -0.5006512
+171  -0.5006512
+172  -0.5006512
+173  -0.5006512
+174  -0.5006512
+175  -0.5006512
+176  -0.5006512
+177  -0.5006512
+178  -0.5006512
+179  -0.5006512
+180  -0.5006512
+181  -0.5006512
+182  -0.5006512
+183  -0.5006512
+184  -0.5006512
+185  -0.5006512
+186  -0.5006512
+187  -0.5006512
+188  -0.5006512
+189  -0.5006512
+190  -0.5006512
+191  -0.5006512
+192  -0.5006512
+193  -0.5006512
+194  -0.5006512
+195  -0.5006512
+196  -0.5006512
+197  -0.5006512
+198  -0.5006512
+199  -0.5006512
+200  -0.5006512
+201  -0.5006512
+202  -0.5006512
+203  -0.5006512
+204  -0.5006512
+205  -0.5006512
+206  -0.5006512
+207  -0.5006512
+208  -0.5006512
+209  -0.5006512
+210  -0.5006512
+211  -0.5006512
+212  -0.5006512
+213  -0.5006512
+214  -0.5006512
+215  -0.5006512
+216  -0.5006512
+217  -0.5006512
+218  -0.5006512
+219  -0.5006512
+220  -0.5006512
+221  -0.5006512
+222  -0.5006512
+223  -0.5006512
+224  -0.5006512
+225  -0.5006512
+226  -0.5006512
+227  -0.5006512
+228  -0.5006512
+229  -0.5006512
+230  -0.5006512
+231  -0.5006512
+232  -0.5006512
+233  -0.5006512
+234  -0.5006512
+235  -0.5006512
+236  -0.5006512
+237   1.7420345
+238   1.7420345
+239   1.7420345
+240   1.7420345
+241   1.7420345
+242   1.7420345
+243   1.7420345
+244   1.7420345
+245   1.7420345
+246   1.7420345
+247   1.7420345
+248   1.7420345
+249   1.7420345
+250   1.7420345
+251   1.7420345
+252   1.7420345
+253   1.7420345
+254   1.7420345
+255   1.7420345
+256   1.7420345
+257   1.7420345
+258   1.7420345
+259   1.7420345
+260   1.7420345
+261   1.7420345
+262   2.8125700
+263   2.8125700
+264   2.8125700
+265   2.8125700
+266   1.7420345
+267   1.7420345
+268   1.7420345
+269   1.7420345
+270   1.7420345
+271   1.7420345
+272   1.7420345
+273   1.7420345
+274   1.7420345
+275   1.7420345
+276   1.7420345
+277   1.7420345
+278   1.7420345
+279   1.7420345
+280   1.7420345
+281   1.7420345
+282   2.8125700
+283   2.8125700
+284   2.8125700
+285   2.8125700
+286   2.8125700
+287   2.8125700
+288   2.8125700
+289   2.8125700
+290   2.8125700
+291   3.6889563
+292   3.6889563
+293   3.6889563
+294   1.7420345
+295   1.7420345
+296   1.7420345
+297   1.7420345
+298   1.7420345
+299   1.7420345
+300   1.7420345
+301   1.7420345
+302   1.7420345
+303   1.7420345
+304   1.7420345
+305   1.7420345
+306   1.7420345
+307   1.7420345
+308   1.7420345
+309   1.7420345
+310   1.7420345
+311   1.7420345
+312   1.7420345
+313   1.7420345
+314   1.7420345
+315   1.7420345
+316   1.7420345
+317   1.7420345
+318   2.8125700
+319   2.8125700
+320   2.8125700
+321   2.8125700
+322   2.8125700
+323   2.8125700
+324   3.6889563
+325   3.6889563
+326   2.8125700
+327   2.8125700
+328   2.8125700
+329   2.8125700
+330   2.8125700
+331   2.8125700
+332   3.6889563
+333   3.6889563
+334   3.6889563
+335   3.6889563
+336   3.6889563
+337   3.6889563
+338   3.6889563
+339   4.6978286
+340   4.6978286
+341   4.6978286
+342   4.6978286
+343   4.6978286
+344   4.6978286
+345   4.6978286
+346   4.6978286
+347   4.6978286
+348   4.6978286
+349   4.6978286
+350  -0.6521807
+351  -0.6521807
+352  -0.6521807
+353  -0.6521807
+354  -0.6521807
+355  -0.6521807
+356  -0.6521807
+357  -0.6521807
+358  -0.6521807
+359  -0.6521807
+360  -0.6521807
+361  -0.6521807
+362  -0.6521807
+363  -0.6521807
+364  -0.6521807
+365  -0.6521807
+366  -0.6521807
+367  -0.6521807
+368  -0.6521807
+369  -0.6521807
+370  -0.6521807
+371  -0.6521807
+372  -0.6521807
+373  -0.6521807
+374  -0.6521807
+375  -0.6521807
+376  -0.6521807
+377  -0.6521807
+378  -0.6521807
+379  -0.6521807
+380  -0.6521807
+381  -0.6521807
+382  -0.6521807
+383  -0.6521807
+384  -0.6521807
+385  -0.6521807
+386  -0.6521807
+387  -0.6521807
+388  -0.6521807
+389  -0.6521807
+390  -0.6521807
+391  -0.6521807
+392  -0.6521807
+393  -0.6521807
+394  -0.6521807
+395  -0.6521807
+396  -0.6521807
+397  -0.6521807
+398  -0.6521807
+399  -0.6521807
+400  -0.6521807
+401  -0.6521807
+402  -0.6521807
+403  -0.6521807
+404  -0.6521807
+405  -0.6521807
+406  -0.6521807
+407  -0.6521807
+408  -0.6521807
+409  -0.6521807
+410  -0.6521807
+411  -0.6521807
+412  -0.6521807
+413  -0.6521807
+414  -0.6521807
+415  -0.6521807
+416  -0.6521807
+417  -0.6521807
+418  -0.6521807
+419  -0.6521807
+420  -0.6521807
+421  -0.6521807
+422  -0.6521807
+423  -0.6521807
+424  -0.6521807
+425  -0.6521807
+426  -0.6521807
+427  -0.6521807
+428  -0.6521807
+429  -0.6521807
+430  -0.6521807
+431  -0.6521807
+432  -0.6521807
+433  -0.6521807
+434  -0.6521807
+435  -0.6521807
+436  -0.6521807
+437  -0.6521807
+438  -0.6521807
+439  -0.6521807
+440  -0.6521807
+441  -0.6521807
+442  -0.6521807
+443  -0.6521807
+444  -0.6521807
+445  -0.6521807
+446  -0.6521807
+447  -0.6521807
+448  -0.6521807
+449  -0.6521807
+450  -0.6521807
+451  -0.6521807
+452  -0.6521807
+453  -0.6521807
+454  -0.6521807
+455  -0.6521807
+456  -0.6521807
+457  -0.6521807
+458  -0.6521807
+459  -0.6521807
+460  -0.6521807
+461  -0.6521807
+462  -0.6521807
+463  -0.6521807
+464  -0.6521807
+465  -0.6521807
+466  -0.6521807
+467  -0.6521807
+468   1.4186362
+469   1.4186362
+470   1.4186362
+471   1.4186362
+472   1.4186362
+473   1.4186362
+474   1.4186362
+475   1.4186362
+476   1.4186362
+477   1.4186362
+478   1.4186362
+479   1.4186362
+480   1.4186362
+481   1.4186362
+482   2.4613124
+483   2.4613124
+484   1.4186362
+485   1.4186362
+486   1.4186362
+487   1.4186362
+488   1.4186362
+489   1.4186362
+490   1.4186362
+491   1.4186362
+492   1.4186362
+493   1.4186362
+494   1.4186362
+495   2.4613124
+496   2.4613124
+497   2.4613124
+498   2.4613124
+499   2.4613124
+500   2.4613124
+501   2.4613124
+502   3.3383266
+503   3.3383266
+504   3.3383266
+505   3.3383266
+506   1.4186362
+507   1.4186362
+508   1.4186362
+509   1.4186362
+510   1.4186362
+511   1.4186362
+512   1.4186362
+513   2.4613124
+514   2.4613124
+515   2.4613124
+516   2.4613124
+517   2.4613124
+518   2.4613124
+519   3.3383266
+520   2.4613124
+521   2.4613124
+522   2.4613124
+523   2.4613124
+524   3.3383266
+525   3.3383266
+526   3.3383266
+527   3.3383266
+528   3.3383266
+529   3.3383266
+530   4.3731743
+531   4.3731743
+532   4.3731743
+533   4.3731743
+534   4.3731743
+535   4.3731743
+536   4.3731743</code></pre>
+</div>
+</div>
+</section>
+<section id="alternative-penalized-quasi-likelihood" class="level2">
+<h2 class="anchored" data-anchor-id="alternative-penalized-quasi-likelihood">Alternative: Penalized Quasi-Likelihood</h2>
+<p>This is an alternative (and faster) method for fitting GLMM that doesn’t require numerical integration. See Chapter 13 in Faraway (2016) for more details. This approach is based on penalized quasi-likelihood:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>glmm_pql_fit <span class="ot">&lt;-</span> <span class="fu">glmmPQL</span>(</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">random =</span> <span class="sc">~</span> <span class="dv">1</span> <span class="sc">|</span> id,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 7</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 8</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glmm_pql_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed-effects model fit by maximum likelihood
+  Data: ohio 
+  AIC BIC logLik
+   NA  NA     NA
+
+Random effects:
+ Formula: ~1 | id
+        (Intercept)  Residual
+StdDev:     2.07297 0.6341298
+
+Variance function:
+ Structure: fixed weights
+ Formula: ~invwt 
+Fixed effects:  resp ~ age * smoke 
+                 Value  Std.Error   DF    t-value p-value
+(Intercept) -2.5323392 0.11682431 1605 -21.676475  0.0000
+age1         0.0913145 0.08635904 1605   1.057382  0.2905
+age2         0.2553234 0.08463119 1605   3.016895  0.0026
+age3         0.1054854 0.08581869 1605   1.229166  0.2192
+smoke1       0.1621624 0.11682431  535   1.388088  0.1657
+age1:smoke1 -0.1858799 0.08635904 1605  -2.152408  0.0315
+age2:smoke1  0.1190618 0.08463119 1605   1.406832  0.1597
+age3:smoke1  0.0426174 0.08581869 1605   0.496598  0.6195
+ Correlation: 
+            (Intr) age1   age2   age3   smoke1 ag1:s1 ag2:s1
+age1        -0.009                                          
+age2        -0.042 -0.304                                   
+age3        -0.017 -0.316 -0.297                            
+smoke1       0.273  0.025 -0.024 -0.009                     
+age1:smoke1  0.025  0.271 -0.086 -0.092 -0.009              
+age2:smoke1 -0.024 -0.086  0.218 -0.056 -0.042 -0.304       
+age3:smoke1 -0.009 -0.092 -0.056  0.226 -0.017 -0.316 -0.297
+
+Standardized Within-Group Residuals:
+       Min         Q1        Med         Q3        Max 
+-2.7730944 -0.2836175 -0.2612394 -0.1922996  3.8397997 
+
+Number of Observations: 2148
+Number of Groups: 537 </code></pre>
+</div>
+</div>
+<p>This should use the version of <code>ranef()</code> from the nlme package:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">ranef</span>(glmm_pql_fit))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  (Intercept)
+0   -1.036249
+1   -1.036249
+2   -1.036249
+3   -1.036249
+4   -1.036249
+5   -1.036249</code></pre>
+</div>
+</div>
+</section>
+<section id="wine-bitterness-ordinal-mixed-models" class="level2">
+<h2 class="anchored" data-anchor-id="wine-bitterness-ordinal-mixed-models">Wine Bitterness: Ordinal Mixed Models</h2>
+<p>Now we demonstrate <strong>ordinal regression with random effects</strong> on the wine tasting dataset from the ordinal package.</p>
+<section id="data-setup-and-contrast-coding" class="level3">
+<h3 class="anchored" data-anchor-id="data-setup-and-contrast-coding">Data Setup and Contrast Coding</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(wine)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  response rating temp contact bottle judge
+1       36      2 cold      no      1     1
+2       48      3 cold      no      2     1
+3       47      3 cold     yes      3     1
+4       67      4 cold     yes      4     1
+5       77      4 warm      no      5     1
+6       60      4 warm      no      6     1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check variable classes</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wine<span class="sc">$</span>bottle)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "factor"</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wine<span class="sc">$</span>rating)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "ordered" "factor" </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wine<span class="sc">$</span>judge)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "factor"</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wine<span class="sc">$</span>temp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "factor"</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(wine<span class="sc">$</span>contact)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "factor"</code></pre>
+</div>
+</div>
+<p>Reset contrasts to treatment coding:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.treatment"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Check default contrasts</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine<span class="sc">$</span>contact)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    yes
+no    0
+yes   1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine<span class="sc">$</span>temp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     warm
+cold    0
+warm    1</code></pre>
+</div>
+</div>
+<p>Adjust contrasts to specific coding scheme:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine<span class="sc">$</span>contact) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine<span class="sc">$</span>temp) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine<span class="sc">$</span>contact)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    [,1]
+no     0
+yes    1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine<span class="sc">$</span>temp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1]
+cold    1
+warm    0</code></pre>
+</div>
+</div>
+</section>
+<section id="fixed-effects-ordinal-model-polr" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-effects-ordinal-model-polr">Fixed Effects Ordinal Model: polr()</h3>
+<p>Fit using <code>MASS::polr()</code> for comparison with the ordinal package:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>wine_fixed_fit_polr <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>    rating <span class="sc">~</span> temp <span class="sc">+</span> contact,</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> wine,</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine_fixed_fit_polr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = rating ~ temp + contact, data = wine, Hess = TRUE, 
+    method = "logistic")
+
+Coefficients:
+          Value Std. Error t value
+temp1    -2.503     0.5287  -4.735
+contact1  1.528     0.4766   3.205
+
+Intercepts:
+    Value   Std. Error t value
+1|2 -3.8475  0.6450    -5.9649
+2|3 -1.2523  0.4600    -2.7221
+3|4  0.9638  0.4344     2.2185
+4|5  2.5033  0.5404     4.6323
+
+Residual Deviance: 172.9838 
+AIC: 184.9838 </code></pre>
+</div>
+</div>
+</section>
+<section id="fixed-effects-ordinal-model-clm" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-effects-ordinal-model-clm">Fixed Effects Ordinal Model: clm()</h3>
+<p>Alternative fixed-effects fit using the ordinal package:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>wine_fixed_fit_clm <span class="ot">&lt;-</span> <span class="fu">clm</span>(rating <span class="sc">~</span> temp <span class="sc">+</span> contact, <span class="at">data =</span> wine)</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine_fixed_fit_clm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>formula: rating ~ temp + contact
+data:    wine
+
+ link  threshold nobs logLik AIC    niter max.grad cond.H 
+ logit flexible  72   -86.49 184.98 6(0)  4.01e-12 1.8e+01
+
+Coefficients:
+         Estimate Std. Error z value Pr(&gt;|z|)    
+temp1     -2.5031     0.5287  -4.735 2.19e-06 ***
+contact1   1.5278     0.4766   3.205  0.00135 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Threshold coefficients:
+    Estimate Std. Error z value
+1|2  -3.8475     0.6450  -5.965
+2|3  -1.2523     0.4600  -2.722
+3|4   0.9638     0.4344   2.218
+4|5   2.5033     0.5404   4.632</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>wine_fixed_fit_clm<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       1|2        2|3        3|4        4|5      temp1   contact1 
+-3.8474854 -1.2522932  0.9637849  2.5033022 -2.5031020  1.5277977 </code></pre>
+</div>
+</div>
+</section>
+<section id="comparing-with-fahrmeir-tutz-book-values" class="level3">
+<h3 class="anchored" data-anchor-id="comparing-with-fahrmeir-tutz-book-values">Comparing with Fahrmeir &amp; Tutz Book Values</h3>
+<p>The book reports thresholds computed via specific spacing. Let’s check:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>book_coeff <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>    <span class="sc">-</span><span class="fl">5.289</span>,</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>    <span class="sc">-</span><span class="fl">5.289</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.974</span>),</span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>    <span class="sc">-</span><span class="fl">5.289</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.974</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.739</span>),</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>    <span class="sc">-</span><span class="fl">5.289</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.974</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.739</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.426</span>)</span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>book_coeff</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -5.2890000 -2.6404826 -0.5466420  0.9844788</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The reported log-likelihood is close to Table 7.4 in Fahrmeir &amp; Tutz, but the estimated coefficients are not exactly the same. This may be due to:</p>
+<ul>
+<li>Different parameterizations or contrast coding</li>
+<li>Software implementation differences</li>
+<li>Rounding or convergence tolerances</li>
+</ul>
+<p>Using the Fahrmeir package dataset directly doesn’t fully resolve the discrepancy either.</p>
+</div>
+</div>
+</section>
+<section id="random-effects-clmm" class="level3">
+<h3 class="anchored" data-anchor-id="random-effects-clmm">Random Effects: clmm()</h3>
+<p>Fit ordinal mixed model with judge random effects using 10 AGHQ quadrature points:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>wine_mixed_fit <span class="ot">&lt;-</span> <span class="fu">clmm</span>(</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>    rating <span class="sc">~</span> temp <span class="sc">+</span> contact <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> judge),</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> wine,</span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">nAGQ =</span> <span class="dv">10</span></span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine_mixed_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cumulative Link Mixed Model fitted with the adaptive Gauss-Hermite 
+quadrature approximation with 10 quadrature points 
+
+formula: rating ~ temp + contact + (1 | judge)
+data:    wine
+
+ link  threshold nobs logLik AIC    niter    max.grad cond.H 
+ logit flexible  72   -81.53 177.06 314(945) 4.17e-06 1.8e+01
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ judge  (Intercept) 1.288    1.135   
+Number of groups:  judge 9 
+
+Coefficients:
+         Estimate Std. Error z value Pr(&gt;|z|)    
+temp1     -3.0619     0.5951  -5.145 2.67e-07 ***
+contact1   1.8334     0.5122   3.580 0.000344 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Threshold coefficients:
+    Estimate Std. Error z value
+1|2  -4.6854     0.8698  -5.387
+2|3  -1.5491     0.6228  -2.487
+3|4   1.1652     0.6089   1.914
+4|5   3.0243     0.7177   4.214</code></pre>
+</div>
+</div>
+</section>
+<section id="results-interpretation" class="level3">
+<h3 class="anchored" data-anchor-id="results-interpretation">Results Interpretation</h3>
+<p>The mixed model results are consistent in the sense that the fixed-effect coefficients (beta’s) have larger magnitudes when accounting for judge-specific random effects.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitted values</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(wine_mixed_fit<span class="sc">$</span>fitted.values)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.4188897 0.4724067 0.5499014 0.2607458 0.4203981 0.4203981</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Contrast structure</span></span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>wine_mixed_fit<span class="sc">$</span>contrasts</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>$temp
+     [,1]
+cold    1
+warm    0
+
+$contact
+    [,1]
+no     0
+yes    1</code></pre>
+</div>
+</div>
+<p>Extract judge random effects (note: <code>ranef()</code> here comes from the ordinal package):</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ranef</span>(wine_mixed_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>$judge
+  (Intercept)
+1  1.69846572
+2 -0.56657832
+3  0.97052548
+4 -0.05939074
+5  0.23110513
+6  0.47795107
+7 -1.91361387
+8 -0.27303452
+9 -0.55517332</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="key-learning-points" class="level2">
+<h2 class="anchored" data-anchor-id="key-learning-points">Key Learning Points</h2>
+<ol type="1">
+<li><strong>Subject-specific vs.&nbsp;population-average</strong>: GLMM coefficients are conditional (subject-specific), differing from GEE marginal effects</li>
+<li><strong>Estimation methods</strong>:
+<ul>
+<li><strong>Laplace</strong>: Fast, reasonable accuracy</li>
+<li><strong>AGHQ</strong>: Slower, higher accuracy (more quadrature points = better approximation)</li>
+<li><strong>PQL</strong>: Fastest, lower accuracy (avoids integration entirely)</li>
+</ul></li>
+<li><strong>Random effects</strong>: Represent between-subject heterogeneity; extracted as conditional modes</li>
+<li><strong>Ordinal mixed models</strong>: Use <code>clmm()</code> for cumulative link models with random effects</li>
+<li><strong>Contrast coding</strong>: Effect coding vs.&nbsp;dummy coding changes coefficient interpretation but not model fit</li>
+</ol>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>Fahrmeir, L. &amp; Tutz, G. (2001). <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em> (2nd ed.)</li>
+<li>Faraway, J. J. (2016). <em>Extending the Linear Model with R</em> (2nd ed.), Chapter 13</li>
+<li>Venables, W. N., &amp; Ripley, B. D. (2002). Modern applied statistics with S (4th ed.)</li>
+<li><a href="https://cran.r-project.org/package=lme4">lme4 documentation</a></li>
+<li><a href="https://cran.r-project.org/package=ordinal">ordinal package documentation</a></li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jaycrick\.github\.io\/MAST90084-Statistical-Modelling-Scripts\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/09-GLM_mixed_Effect.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

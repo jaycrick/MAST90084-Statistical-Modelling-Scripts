@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.31">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-03-11">
+
+<title>Ordinal Regression: Breathing Test Results. – MAST90084 - Statistical Modelling Scripts</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-fced259a1985fd972ecb57c7cd45153f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-449bc4893ad0110d90ad3b5e1881b435.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">MAST90084 - Statistical Modelling Scripts</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../default.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-scripts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Scripts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-scripts">    
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/01-ANODEV.html">
+ <span class="dropdown-text">Binomial GLMS: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/02-CellDiff.html">
+ <span class="dropdown-text">(Quasi-)Poisson GLM: Cell Differentiation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/03-Example3-1and3-11Caes.html">
+ <span class="dropdown-text">Multinomial Logistic Regression: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/04-Example3-2BTR.html">
+ <span class="dropdown-text">Ordinal Regression: Breathing Test Results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
+ <span class="dropdown-text">Tonsil Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Happiness Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Ohio Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">GEE CTSIB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-GLM_mixed_Effect.html">
+ <span class="dropdown-text">GLM Mixed Effects</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-LM_mixed_effect.html">
+ <span class="dropdown-text">LM Mixed Effects</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis</span></a>
+  </li>  
+        <li class="dropdown-header">APPENDICES</li>
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
+ <span class="dropdown-text">Appendix 1: Dispersion with Working Residuals</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A2-likelihood-multinomial.html">
+ <span class="dropdown-text">Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#todo" id="toc-todo" class="nav-link active" data-scroll-target="#todo">TODO</a></li>
+  <li><a href="#data-loading-and-setup" id="toc-data-loading-and-setup" class="nav-link" data-scroll-target="#data-loading-and-setup">Data Loading and Setup</a></li>
+  <li><a href="#model-fitting-proportional-odds-models" id="toc-model-fitting-proportional-odds-models" class="nav-link" data-scroll-target="#model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</a>
+  <ul class="collapse">
+  <li><a href="#fit-model-without-interaction" id="toc-fit-model-without-interaction" class="nav-link" data-scroll-target="#fit-model-without-interaction">Fit Model without Interaction</a></li>
+  </ul></li>
+  <li><a href="#alternative-link-functions" id="toc-alternative-link-functions" class="nav-link" data-scroll-target="#alternative-link-functions">Alternative Link Functions</a>
+  <ul class="collapse">
+  <li><a href="#grouped-cox-proportional-hazards-complementary-log-log-link" id="toc-grouped-cox-proportional-hazards-complementary-log-log-link" class="nav-link" data-scroll-target="#grouped-cox-proportional-hazards-complementary-log-log-link">Grouped Cox / Proportional Hazards (Complementary Log-Log Link)</a></li>
+  <li><a href="#extreme-maximal-value-distribution" id="toc-extreme-maximal-value-distribution" class="nav-link" data-scroll-target="#extreme-maximal-value-distribution">Extreme Maximal-Value Distribution</a></li>
+  </ul></li>
+  <li><a href="#matching-our-results-to-fahrmeir_multivariate_2001-example-3.4" id="toc-matching-our-results-to-fahrmeir_multivariate_2001-example-3.4" class="nav-link" data-scroll-target="#matching-our-results-to-fahrmeir_multivariate_2001-example-3.4">Matching our Results to <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (2001)</span> Example 3.4</a></li>
+  <li><a href="#saturated-model-and-deviance-calculation" id="toc-saturated-model-and-deviance-calculation" class="nav-link" data-scroll-target="#saturated-model-and-deviance-calculation">Saturated Model and Deviance Calculation</a>
+  <ul class="collapse">
+  <li><a href="#returning-the-deviance-for-alternative-link-functions" id="toc-returning-the-deviance-for-alternative-link-functions" class="nav-link" data-scroll-target="#returning-the-deviance-for-alternative-link-functions">Returning the Deviance for Alternative Link Functions</a></li>
+  </ul></li>
+  <li><a href="#other-tricks-and-commands" id="toc-other-tricks-and-commands" class="nav-link" data-scroll-target="#other-tricks-and-commands">Other Tricks and Commands</a>
+  <ul class="collapse">
+  <li><a href="#residuals" id="toc-residuals" class="nav-link" data-scroll-target="#residuals">Residuals</a></li>
+  <li><a href="#fitted-values-and-predictions" id="toc-fitted-values-and-predictions" class="nav-link" data-scroll-target="#fitted-values-and-predictions">Fitted Values and Predictions</a></li>
+  <li><a href="#model-selection-with-aic" id="toc-model-selection-with-aic" class="nav-link" data-scroll-target="#model-selection-with-aic">Model Selection with AIC</a></li>
+  <li><a href="#variance-covariance-matrix-and-standard-errors" id="toc-variance-covariance-matrix-and-standard-errors" class="nav-link" data-scroll-target="#variance-covariance-matrix-and-standard-errors">Variance-Covariance Matrix and Standard Errors</a></li>
+  <li><a href="#confidence-intervals" id="toc-confidence-intervals" class="nav-link" data-scroll-target="#confidence-intervals">Confidence Intervals</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/04-Example3-2BTR.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Ordinal Regression: Breathing Test Results.</h1>
+<p class="subtitle lead"><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Examples 3.2 &amp; 3.4</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 11, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="todo" class="level2">
+<h2 class="anchored" data-anchor-id="todo">TODO</h2>
+<ul>
+<li>Look at 3.3.3 pg 31/40 for variable information on thetas and gammas.</li>
+<li>Write up more about the different link functions (2025-04-11 lecture 23 min)</li>
+</ul>
+</section>
+<section id="data-loading-and-setup" class="level2">
+<h2 class="anchored" data-anchor-id="data-loading-and-setup">Data Loading and Setup</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>We load the BTR dataset. It contains breathing test results normal, borderline, and abnormal (which we can consider ordered categories), and considered the effects of the covariates age and smoking status.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>btr_dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"data/Example3-2BTR.csv"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">BTR =</span> <span class="fu">col_factor</span>(),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">Age =</span> <span class="fu">col_factor</span>(),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">Smoking =</span> <span class="fu">col_factor</span>(),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">Freq =</span> <span class="fu">col_double</span>()</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>btr_dat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 18 × 4
+   BTR     Age    Smoking   Freq
+   &lt;fct&gt;   &lt;fct&gt;  &lt;fct&gt;    &lt;dbl&gt;
+ 1 1Normal &lt;40    1Never     577
+ 2 2Border &lt;40    1Never      27
+ 3 3Abnorm &lt;40    1Never       7
+ 4 1Normal &lt;40    2Former    192
+ 5 2Border &lt;40    2Former     20
+ 6 3Abnorm &lt;40    2Former      3
+ 7 1Normal &lt;40    3Current   682
+ 8 2Border &lt;40    3Current    46
+ 9 3Abnorm &lt;40    3Current    11
+10 1Normal 40to59 1Never     164
+11 2Border 40to59 1Never       4
+12 3Abnorm 40to59 1Never       0
+13 1Normal 40to59 2Former    145
+14 2Border 40to59 2Former     15
+15 3Abnorm 40to59 2Former      7
+16 1Normal 40to59 3Current   245
+17 2Border 40to59 3Current    47
+18 3Abnorm 40to59 3Current    27</code></pre>
+</div>
+</div>
+<p>We can see that <code>BTR</code>, <code>Age</code>, and <code>Smoking</code> are all factors. We check if the breathing test result (<code>BTR</code>) is encoded as an ordered factor, and if not, we convert it to an ordered factor.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">is.ordered</span>(btr_dat<span class="sc">$</span>BTR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>btr_dat<span class="sc">$</span>BTR <span class="ot">&lt;-</span> <span class="fu">as.ordered</span>(btr_dat<span class="sc">$</span>BTR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>We can now confirm the conversion was successful.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(btr_dat<span class="sc">$</span>BTR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "ordered" "factor" </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>btr_dat<span class="sc">$</span>BTR</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 1Normal 2Border 3Abnorm 1Normal 2Border 3Abnorm 1Normal 2Border 3Abnorm
+[10] 1Normal 2Border 3Abnorm 1Normal 2Border 3Abnorm 1Normal 2Border 3Abnorm
+Levels: 1Normal &lt; 2Border &lt; 3Abnorm</code></pre>
+</div>
+</div>
+<p>The default ordering happens to be good for us, but if we needed to change the order, we could specify it with <code>factor(..., levels = c(...), ordered = TRUE)</code>.</p>
+<p>We now examine the current contrast coding scheme:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getOption</span>(<span class="st">"contrasts"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>        unordered           ordered 
+"contr.treatment"      "contr.poly" </code></pre>
+</div>
+</div>
+<p><code>"contr.treatment"</code> corresponds to dummy coding for unordered factors. For ordered factors, the default is <code>"contr.poly"</code> (orthogonal polynomials). We consider <code>Age</code> and <code>Smoking</code> as unordered factors, and we will use dummy coding.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Smoking)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>         2Former 3Current
+1Never         0        0
+2Former        1        0
+3Current       0        1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       40to59
+&lt;40         0
+40to59      1</code></pre>
+</div>
+</div>
+<p>The default reference categories are <code>never-smoked</code> for <code>Smoking</code>, and the <code>&lt;40</code> for Age, which matches <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, however they use <strong>effect coding</strong> rather than <strong>dummy coding.</strong></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Dummy coding</strong>: Reference category is 0, other categories are 1; coefficients represent difference from reference category</li>
+<li><strong>Effect coding</strong>: Reference category is -1, other categories are 0 or 1; coefficients represent difference from overall mean</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="model-fitting-proportional-odds-models" class="level2">
+<h2 class="anchored" data-anchor-id="model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</h2>
+<p>The <code>polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html">Looking at the documentation</a> using <code>?polr</code>, the sign of coefficients in <code>polr()</code> is <strong>opposite</strong> to the textbook formula.</p>
+<p>We first fit a cumulative logistic/proportional odds model with an intercept, age, smoking. We also include an interaction effect between age and smoking.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">*</span> Smoking,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<code>polr()</code> Function Syntax
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong><code>formula</code></strong>: Model structure <code>response ~ predictors</code>; response must be an ordered factor</li>
+<li><strong><code>data</code></strong>: Data frame containing the variables</li>
+<li><strong><code>weights</code></strong>: Case weights (here, frequency counts for each covariate combination)</li>
+<li><strong><code>Hess = TRUE</code></strong>: Return the Hessian matrix; needed for <code>summary()</code> and confidence intervals</li>
+<li><strong><code>method</code></strong>: Link function—<code>"logistic"</code> (default, proportional odds), <code>"probit"</code>, <code>"cloglog"</code>, <code>"loglog"</code>, or <code>"cauchit"</code></li>
+</ul>
+</div>
+</div>
+</div>
+<p>The <code>polr()</code> function is limited. It can model standard cumulative models (see section 3.3.1 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>), but doesn’t allow for extended cumulative model with threshold variables (see section 3.3.2 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>).</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_inter)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = BTR ~ Age * Smoking, data = btr_dat, weights = Freq, 
+    Hess = TRUE, method = "logistic")
+
+Coefficients:
+                            Value Std. Error t value
+Age40to59                 -0.8857     0.5359  -1.653
+Smoking2Former             0.6973     0.2822   2.471
+Smoking3Current            0.3472     0.2238   1.551
+Age40to59:Smoking2Former   1.1458     0.6228   1.840
+Age40to59:Smoking3Current  2.2007     0.5689   3.868
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.8334  0.1764    16.0603
+2Border|3Abnorm  4.3078  0.2130    20.2210
+
+Residual Deviance: 1564.968 
+AIC: 1578.968 </code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age 40 to 59
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>A former smoker who is Age 40 to 59 then the cumulative odds of having a normal test compared to not having a normal test is <span class="math inline">\(\exp(2.8334)\)</span> times the odds for a person who has never smoked.</p>
+<p>If smoking has no association with the breathing test results, then we would expect this number to be 1.</p>
+</div>
+</div>
+</div>
+<p>There is no residual readily available, but we can observe the linear predictor (represented as <span class="math inline">\(\eta\)</span> in the documentation, but referred to in our subject with <span class="math inline">\(\mathbf{x} \hat{\boldsymbol{\gamma}}\)</span>).</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter<span class="sc">$</span>lp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>         1          2          3          4          5          6          7 
+ 0.0000000  0.0000000  0.0000000  0.6972823  0.6972823  0.6972823  0.3472245 
+         8          9         10         11         12         13         14 
+ 0.3472245  0.3472245 -0.8857462 -0.8857462 -0.8857462  0.9573393  0.9573393 
+        15         16         17         18 
+ 0.9573393  1.6621466  1.6621466  1.6621466 </code></pre>
+</div>
+</div>
+<p>The <span class="math inline">\(\zeta\)</span>’s are our theshold parameters <span class="math inline">\(\theta\)</span></p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter<span class="sc">$</span>zeta</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>1Normal|2Border 2Border|3Abnorm 
+       2.833443        4.307832 </code></pre>
+</div>
+</div>
+<p>We verify the linear predictors by hand-computing the linear predictor.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>),</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"2Former"</span>),</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"3Current"</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>) <span class="sc">*</span> (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"2Former"</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>) <span class="sc">*</span> (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"3Current"</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">manual =</span> <span class="fu">c</span>(Z <span class="sc">%*%</span> btr_logit_inter<span class="sc">$</span>coeff),</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">polr =</span> btr_logit_inter<span class="sc">$</span>lp</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 18 × 2
+   manual   polr
+    &lt;dbl&gt;  &lt;dbl&gt;
+ 1  0      0    
+ 2  0      0    
+ 3  0      0    
+ 4  0.697  0.697
+ 5  0.697  0.697
+ 6  0.697  0.697
+ 7  0.347  0.347
+ 8  0.347  0.347
+ 9  0.347  0.347
+10 -0.886 -0.886
+11 -0.886 -0.886
+12 -0.886 -0.886
+13  0.957  0.957
+14  0.957  0.957
+15  0.957  0.957
+16  1.66   1.66 
+17  1.66   1.66 
+18  1.66   1.66 </code></pre>
+</div>
+</div>
+<p>We see that they line up.</p>
+<section id="fit-model-without-interaction" class="level3">
+<h3 class="anchored" data-anchor-id="fit-model-without-interaction">Fit Model without Interaction</h3>
+<p>We fit a main-effects-only model without interaction.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>btr_logit_main <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = BTR ~ Age + Smoking, data = btr_dat, weights = Freq, 
+    Hess = TRUE, method = "logistic")
+
+Coefficients:
+                 Value Std. Error t value
+Age40to59       0.7772     0.1482   5.243
+Smoking2Former  0.7815     0.2333   3.350
+Smoking3Current 0.9607     0.1918   5.010
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  3.1927  0.1749    18.2544
+2Border|3Abnorm  4.6543  0.2125    21.9076
+
+Residual Deviance: 1589.744 
+AIC: 1599.744 </code></pre>
+</div>
+</div>
+<p>Again the signs of the coefficients are the opposite to our model.</p>
+<p>Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+SELF TEST: How Many Degrees of Freedom will the Likelihood Ratio Test have?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The test has 2 degrees of freedom since we are adding two interaction terms (<code>Age40to59:Smoking2Former</code> and <code>Age40to59:Smoking3Current</code>).</p>
+</div>
+</div>
+</div>
+<p>We can use <code>anova()</code>:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(btr_logit_inter, btr_logit_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Likelihood ratio tests of ordinal regression models
+
+Response: BTR
+          Model Resid. df Resid. Dev   Test    Df LR stat.      Pr(Chi)
+1 Age + Smoking      2214   1589.744                                   
+2 Age * Smoking      2212   1564.968 1 vs 2     2 24.77585 4.168619e-06</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+SELF TEST: Interpret the Likelihood Ratio Test Results
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>We reject the null hypothesis that there is no interaction, at all reasonable significance levels.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The LR statistic in the <code>anova()</code> output is the difference between the deviances of the two models. Each deviance reported is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for that model.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="alternative-link-functions" class="level2">
+<h2 class="anchored" data-anchor-id="alternative-link-functions">Alternative Link Functions</h2>
+<p>The proportional odds assumption can be tested by fitting models with different link functions. The <code>polr()</code> function supports:</p>
+<ul>
+<li><strong>logistic</strong>: cumulative logit model (default)</li>
+<li><strong>probit</strong>: cumulative normal model</li>
+<li><strong>cloglog</strong>: complementary log-log (grouped Cox/proportional hazards)</li>
+<li><strong>loglog</strong>: extreme maximal-value distribution.</li>
+</ul>
+<p>See Figure 3.1 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> for some good diagrams demonstrating the shapes of these link functions.</p>
+<section id="grouped-cox-proportional-hazards-complementary-log-log-link" class="level3">
+<h3 class="anchored" data-anchor-id="grouped-cox-proportional-hazards-complementary-log-log-link">Grouped Cox / Proportional Hazards (Complementary Log-Log Link)</h3>
+<p>We run a grouped Cox model with the complementary log-log link function.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>btr_ph <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"cloglog"</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_ph)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = BTR ~ Age + Smoking + Age:Smoking, data = btr_dat, 
+    weights = Freq, Hess = TRUE, method = "cloglog")
+
+Coefficients:
+                            Value Std. Error t value
+Age40to59                 -0.2865    0.14264  -2.008
+Smoking2Former             0.2125    0.10054   2.114
+Smoking3Current            0.1088    0.07301   1.490
+Age40to59:Smoking2Former   0.4333    0.18941   2.288
+Age40to59:Smoking3Current  0.8379    0.16357   5.122
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  1.0477  0.0558    18.7612
+2Border|3Abnorm  1.5528  0.0629    24.6916
+
+Residual Deviance: 1559.949 
+AIC: 1573.949 </code></pre>
+</div>
+</div>
+</section>
+<section id="extreme-maximal-value-distribution" class="level3">
+<h3 class="anchored" data-anchor-id="extreme-maximal-value-distribution">Extreme Maximal-Value Distribution</h3>
+<p>This model is just a reparameterisation of the proportional hazard model.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>btr_extm <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"loglog"</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_extm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = BTR ~ Age + Smoking + Age:Smoking, data = btr_dat, 
+    weights = Freq, Hess = TRUE, method = "loglog")
+
+Coefficients:
+                            Value Std. Error t value
+Age40to59                 -0.8672     0.5286  -1.640
+Smoking2Former             0.6755     0.2700   2.501
+Smoking3Current            0.3368     0.2167   1.554
+Age40to59:Smoking2Former   1.1003     0.6070   1.813
+Age40to59:Smoking3Current  2.0724     0.5573   3.719
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.8614  0.1715    16.6838
+2Border|3Abnorm  4.2761  0.2080    20.5605
+
+Residual Deviance: 1566.335 
+AIC: 1580.335 </code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="matching-our-results-to-fahrmeir_multivariate_2001-example-3.4" class="level2">
+<h2 class="anchored" data-anchor-id="matching-our-results-to-fahrmeir_multivariate_2001-example-3.4">Matching our Results to <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 3.4</h2>
+<p>By default, R uses dummy coding. To match to the textbook, we need to use effect coding. We switch the global contrast option and refit.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify the contrast change</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Smoking)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>         [,1] [,2]
+1Never      1    0
+2Former     0    1
+3Current   -1   -1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       [,1]
+&lt;40       1
+40to59   -1</code></pre>
+</div>
+</div>
+<p>We now have the final categories coded as -1, as required. Therefore we refit both models:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>btr_logit_main_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking,</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_inter_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = BTR ~ Age + Smoking + Age:Smoking, data = btr_dat, 
+    weights = Freq, Hess = TRUE, method = "logistic")
+
+Coefficients:
+                 Value Std. Error t value
+Age1          -0.11487     0.1086 -1.0580
+Smoking1      -0.90596     0.1890 -4.7933
+Smoking2       0.36428     0.1421  2.5644
+Age1:Smoking1  0.55777     0.1890  2.9512
+Age1:Smoking2 -0.01517     0.1421 -0.1068
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.3704  0.1086    21.8209
+2Border|3Abnorm  3.8447  0.1599    24.0486
+
+Residual Deviance: 1564.968 
+AIC: 1578.968 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = BTR ~ Age + Smoking, data = btr_dat, weights = Freq, 
+    Hess = TRUE, method = "logistic")
+
+Coefficients:
+           Value Std. Error t value
+Age1     -0.3886    0.07412  -5.243
+Smoking1 -0.5807    0.12807  -4.535
+Smoking2  0.2008    0.12549   1.600
+
+Intercepts:
+                Value   Std. Error t value
+1Normal|2Border  2.2234  0.0835    26.6418
+2Border|3Abnorm  3.6850  0.1434    25.6938
+
+Residual Deviance: 1589.744 
+AIC: 1599.744 </code></pre>
+</div>
+</div>
+<p>The values reported in the summaries now match the textbook (excluding rounding errors).</p>
+<p>In addition, we can redo the likelihood ratio test with the new models to confirm we get the same result.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(btr_logit_inter_eff, btr_logit_main_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Likelihood ratio tests of ordinal regression models
+
+Response: BTR
+                        Model Resid. df Resid. Dev   Test    Df LR stat.
+1               Age + Smoking      2214   1589.744                      
+2 Age + Smoking + Age:Smoking      2212   1564.968 1 vs 2     2 24.77585
+       Pr(Chi)
+1             
+2 4.168618e-06</code></pre>
+</div>
+</div>
+<p>As expected, the likelihood ratio test results are the same as before.</p>
+</section>
+<section id="saturated-model-and-deviance-calculation" class="level2">
+<h2 class="anchored" data-anchor-id="saturated-model-and-deviance-calculation">Saturated Model and Deviance Calculation</h2>
+<p>In each of the regressed model summaries, there is a value “Residual Deviance” reported. We need to be careful to understand what this exactly means, because as we have previously seen, this can be highly package dependent.</p>
+<p>The deviance reported by <code>polr()</code> is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for the fitted model. We can manually compute the <strong>residual deviance</strong> (difference from saturated model).</p>
+<p>We first compute the log-likelihood of the saturated model. We create a matrix with each row corresponding to a unique covariate combination, and each column counting the frequency of each response per category for that covariate combination.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>btr_counts <span class="ot">&lt;-</span> btr_dat <span class="sc">|&gt;</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">id_cols =</span> <span class="fu">c</span>(Age, Smoking),</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_from =</span> BTR,</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_from =</span> Freq</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>btr_counts</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 5
+  Age    Smoking  `1Normal` `2Border` `3Abnorm`
+  &lt;fct&gt;  &lt;fct&gt;        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+1 &lt;40    1Never         577        27         7
+2 &lt;40    2Former        192        20         3
+3 &lt;40    3Current       682        46        11
+4 40to59 1Never         164         4         0
+5 40to59 2Former        145        15         7
+6 40to59 3Current       245        47        27</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>data_mat <span class="ot">&lt;-</span> btr_counts <span class="sc">|&gt;</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>Age, <span class="sc">-</span>Smoking) <span class="sc">|&gt;</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>data_mat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     1Normal 2Border 3Abnorm
+[1,]     577      27       7
+[2,]     192      20       3
+[3,]     682      46      11
+[4,]     164       4       0
+[5,]     145      15       7
+[6,]     245      47      27</code></pre>
+</div>
+</div>
+<p>We can also represent the data as a matrix of empirical proportions (dividing each row by it’s row sum).</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>probs <span class="ot">&lt;-</span> data_mat <span class="sc">/</span> <span class="fu">rowSums</span>(data_mat)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>probs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       1Normal    2Border    3Abnorm
+[1,] 0.9443535 0.04418985 0.01145663
+[2,] 0.8930233 0.09302326 0.01395349
+[3,] 0.9228687 0.06224628 0.01488498
+[4,] 0.9761905 0.02380952 0.00000000
+[5,] 0.8682635 0.08982036 0.04191617
+[6,] 0.7680251 0.14733542 0.08463950</code></pre>
+</div>
+</div>
+<p>This is the also the matrix of maximum likelihood estimates for the saturated model. We can manually calculate the log-likelihood of the saturated model using the multinomial distribution by first calculating the likelihood for each cell, (treating <span class="math inline">\(0 \log(0) := 0\)</span>), and summing over all cells to get the total log-likelihood for the saturated model.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>loglike_matrix <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data_mat <span class="sc">&gt;</span> <span class="dv">0</span>, data_mat <span class="sc">*</span> <span class="fu">log</span>(probs), <span class="dv">0</span>)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>loglike_matrix</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>        1Normal    2Border   3Abnorm
+[1,] -33.035958  -84.22002 -31.28431
+[2,] -21.723390  -47.49812 -12.81608
+[3,] -54.742955 -127.72620 -46.28143
+[4,]  -3.951998  -14.95068   0.00000
+[5,] -20.482710  -36.14915 -22.20459
+[6,] -64.663559  -90.00704 -66.67256</code></pre>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>loglike_saturated <span class="ot">&lt;-</span> <span class="fu">sum</span>(loglike_matrix)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>loglike_saturated</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -778.4107</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+SELF TEST: Explain Why We Compute the Saturated Log-Likelihood with this Sum
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The above computation is under the ungrouped view of the data. The probability mass function for the multinomial distribution is hence: <span class="math display">\[
+    \Pr(Y_1 = y_1, \ldots, Y_k = y_k)
+    = \prod_{i = 1}^{6} p_1^{y_{i1}} p_2^{y_{i2}} p_3^{y_{i3}},
+\]</span> where <span class="math inline">\(y_i\)</span> are the observed counts and <span class="math inline">\(p_i\)</span> are the probabilities for each category. The log-likelihood is then: <span class="math display">\[\sum_{i,j} y_{ij} \log(p_{ij}),\]</span> where we treat <span class="math inline">\(0 \log(0) = 0\)</span>.</p>
+</div>
+</div>
+</div>
+<p>We can recover the deviance reported in Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> by computing the residual deviance as the difference between the reported ‘deviance’ of the fitted model and the deviance of the saturated model.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>residual_dev_logit <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_logit_inter_eff<span class="sc">$</span>deviance</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>residual_dev_logit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 8.146686</code></pre>
+</div>
+</div>
+<p>This confirms that the so called ‘deviance’ reported by <code>polr()</code> is actually just twice the negative of the log-likelihood of the fitted model. This is very different from what we usually consider the deviance.</p>
+<section id="returning-the-deviance-for-alternative-link-functions" class="level3">
+<h3 class="anchored" data-anchor-id="returning-the-deviance-for-alternative-link-functions">Returning the Deviance for Alternative Link Functions</h3>
+<p>We fit models with complementary log-log and loglog link functions using effect coding, then summarize results in a comparison table:</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The table is built in three steps:</p>
+<ol type="1">
+<li>Fit one model per link and extract coefficient estimates with <code>coef(summary(...))[ ,"Value"]</code>.</li>
+<li>Build two small tibbles (one for coefficients, one for residual deviance) and stack them with <code>bind_rows()</code>.</li>
+<li>Use <code>mutate(across(where(is.numeric), ~ round(., 4)))</code> to round all numeric columns for cleaner display.</li>
+</ol>
+<p><code>rownames(coef(...))</code> supplies the parameter labels so each estimate aligns across link functions.</p>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit complementary log-log (proportional hazards)</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>btr_ph_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"cloglog"</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit loglog (extreme maximal-value)</span></span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>btr_extm_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
+<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
+<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb56-16"><a href="#cb56-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"loglog"</span></span>
+<span id="cb56-17"><a href="#cb56-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb56-18"><a href="#cb56-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-19"><a href="#cb56-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a list of models for easy iteration</span></span>
+<span id="cb56-20"><a href="#cb56-20" aria-hidden="true" tabindex="-1"></a>models <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb56-21"><a href="#cb56-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">Logistic =</span> <span class="fu">summary</span>(btr_logit_inter_eff),</span>
+<span id="cb56-22"><a href="#cb56-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Complementary Log-Log</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">summary</span>(btr_ph_eff),</span>
+<span id="cb56-23"><a href="#cb56-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Loglog =</span> <span class="fu">summary</span>(btr_extm_eff)</span>
+<span id="cb56-24"><a href="#cb56-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb56-25"><a href="#cb56-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-26"><a href="#cb56-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract variable names</span></span>
+<span id="cb56-27"><a href="#cb56-27" aria-hidden="true" tabindex="-1"></a>coef_names <span class="ot">&lt;-</span> <span class="fu">rownames</span>(<span class="fu">coef</span>(models[[<span class="dv">1</span>]]))</span>
+<span id="cb56-28"><a href="#cb56-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-29"><a href="#cb56-29" aria-hidden="true" tabindex="-1"></a>results_table <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb56-30"><a href="#cb56-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Coefficients</span></span>
+<span id="cb56-31"><a href="#cb56-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb56-32"><a href="#cb56-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">Parameter =</span> coef_names,</span>
+<span id="cb56-33"><a href="#cb56-33" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Cum Log</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(<span class="fu">summary</span>(btr_logit_inter_eff))[,<span class="st">"Value"</span>],</span>
+<span id="cb56-34"><a href="#cb56-34" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Prop Haz</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(<span class="fu">summary</span>(btr_ph_eff))[,<span class="st">"Value"</span>],</span>
+<span id="cb56-35"><a href="#cb56-35" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Ext Max Val</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(<span class="fu">summary</span>(btr_extm_eff))[,<span class="st">"Value"</span>]</span>
+<span id="cb56-36"><a href="#cb56-36" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb56-37"><a href="#cb56-37" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Residual Deviance</span></span>
+<span id="cb56-38"><a href="#cb56-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb56-39"><a href="#cb56-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">Parameter =</span> <span class="st">"Residual Deviance"</span>,</span>
+<span id="cb56-40"><a href="#cb56-40" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Cum Log</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_logit_inter_eff<span class="sc">$</span>deviance,</span>
+<span id="cb56-41"><a href="#cb56-41" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Prop Haz</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_ph_eff<span class="sc">$</span>deviance,</span>
+<span id="cb56-42"><a href="#cb56-42" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Ext Max Val</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_extm_eff<span class="sc">$</span>deviance</span>
+<span id="cb56-43"><a href="#cb56-43" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb56-44"><a href="#cb56-44" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb56-45"><a href="#cb56-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">4</span>)))</span>
+<span id="cb56-46"><a href="#cb56-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-47"><a href="#cb56-47" aria-hidden="true" tabindex="-1"></a>results_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 4
+  Parameter         `Cum Log` `Prop Haz` `Ext Max Val`
+  &lt;chr&gt;                 &lt;dbl&gt;      &lt;dbl&gt;         &lt;dbl&gt;
+1 Age1                -0.115     -0.0686       -0.0952
+2 Smoking1            -0.906     -0.319        -0.866 
+3 Smoking2             0.364      0.110         0.359 
+4 Age1:Smoking1        0.558      0.212         0.529 
+5 Age1:Smoking2       -0.0152    -0.0048       -0.0214
+6 1Normal|2Border      2.37       0.872         2.43  
+7 2Border|3Abnorm      3.84       1.38          3.84  
+8 Residual Deviance    8.15       3.13          9.51  </code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Alternative: Nested Data + Functional Mapping Workflow
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This can be written in a nested/list-column style using functional programming. The idea is to store one row per link function, fit each model via <code>map()</code>, then map again to extract coefficients and residual deviance.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>link_specs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"Cum Log"</span>, <span class="st">"Prop Haz"</span>, <span class="st">"Ext Max Val"</span>),</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"logistic"</span>, <span class="st">"cloglog"</span>, <span class="st">"loglog"</span>)</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit one model per row (list-column of models)</span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>model_tbl <span class="ot">&lt;-</span> link_specs <span class="sc">|&gt;</span></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">model =</span> <span class="fu">map</span>(</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>            method,</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>            <span class="sc">~</span> <span class="fu">polr</span>(</span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>                BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> btr_dat,</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">weights =</span> Freq,</span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">method =</span> .x</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">coef_value =</span> <span class="fu">map</span>(model, <span class="sc">~</span> <span class="fu">coef</span>(<span class="fu">summary</span>(.x))[ , <span class="st">"Value"</span>]),</span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">residual_dev =</span> <span class="fu">map_dbl</span>(model, <span class="sc">~</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> .x<span class="sc">$</span>deviance)</span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Expand mapped coefficients to long format</span></span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a>coef_long <span class="ot">&lt;-</span> model_tbl <span class="sc">|&gt;</span></span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">Parameter =</span> <span class="fu">map</span>(coef_value, names),</span>
+<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">estimate =</span> coef_value</span>
+<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(label, Parameter, estimate) <span class="sc">|&gt;</span></span>
+<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a>    tidyr<span class="sc">::</span><span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(Parameter, estimate))</span>
+<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Add residual deviance row in matching long format</span></span>
+<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a>dev_long <span class="ot">&lt;-</span> model_tbl <span class="sc">|&gt;</span></span>
+<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">transmute</span>(</span>
+<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>        label,</span>
+<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">Parameter =</span> <span class="st">"Residual Deviance"</span>,</span>
+<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">estimate =</span> residual_dev</span>
+<span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-40"><a href="#cb58-40" aria-hidden="true" tabindex="-1"></a>results_table_map <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(coef_long, dev_long) <span class="sc">|&gt;</span></span>
+<span id="cb58-41"><a href="#cb58-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(</span>
+<span id="cb58-42"><a href="#cb58-42" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_from =</span> label,</span>
+<span id="cb58-43"><a href="#cb58-43" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_from =</span> estimate</span>
+<span id="cb58-44"><a href="#cb58-44" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">4</span>)))</span>
+<span id="cb58-46"><a href="#cb58-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a>results_table_map</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 4
+  Parameter         `Cum Log` `Prop Haz` `Ext Max Val`
+  &lt;chr&gt;                 &lt;dbl&gt;      &lt;dbl&gt;         &lt;dbl&gt;
+1 Age1                -0.115     -0.0686       -0.0952
+2 Smoking1            -0.906     -0.319        -0.866 
+3 Smoking2             0.364      0.110         0.359 
+4 Age1:Smoking1        0.558      0.212         0.529 
+5 Age1:Smoking2       -0.0152    -0.0048       -0.0214
+6 1Normal|2Border      2.37       0.872         2.43  
+7 2Border|3Abnorm      3.84       1.38          3.84  
+8 Residual Deviance    8.15       3.13          9.51  </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>We have now matched Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> (with inverse signs for the coefficients).</p>
+<p>It is <strong>highly recommended</strong> that you read through Example 3.4 in the textbook to get an idea of intepreting the results. It is worth considering here that the proportional hazard has the lowest deviance, and gives a much smaller threshold parameter.</p>
+</section>
+</section>
+<section id="other-tricks-and-commands" class="level2">
+<h2 class="anchored" data-anchor-id="other-tricks-and-commands">Other Tricks and Commands</h2>
+<section id="residuals" class="level3">
+<h3 class="anchored" data-anchor-id="residuals">Residuals</h3>
+<p>The <code>polr()</code> function does not readily provide residuals.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">residuals</span>(btr_logit_inter_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>NULL</code></pre>
+</div>
+</div>
+</section>
+<section id="fitted-values-and-predictions" class="level3">
+<h3 class="anchored" data-anchor-id="fitted-values-and-predictions">Fitted Values and Predictions</h3>
+<p>Fitted probabilities can be extracted directly or using the generic <code>predict()</code> function:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(btr_logit_inter_eff<span class="sc">$</span>fitted)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    1Normal    2Border    3Abnorm
+1 0.9444565 0.04225911 0.01328436
+2 0.9444565 0.04225911 0.01328436
+3 0.9444565 0.04225911 0.01328436
+4 0.8943660 0.07930714 0.02632687
+5 0.8943660 0.07930714 0.02632687
+6 0.8943660 0.07930714 0.02632687</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">predict</span>(btr_logit_inter_eff, <span class="at">type =</span> <span class="st">"probs"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    1Normal    2Border    3Abnorm
+1 0.9444565 0.04225911 0.01328436
+2 0.9444565 0.04225911 0.01328436
+3 0.9444565 0.04225911 0.01328436
+4 0.8943660 0.07930714 0.02632687
+5 0.8943660 0.07930714 0.02632687
+6 0.8943660 0.07930714 0.02632687</code></pre>
+</div>
+</div>
+<p>Both approaches yield identical results.</p>
+</section>
+<section id="model-selection-with-aic" class="level3">
+<h3 class="anchored" data-anchor-id="model-selection-with-aic">Model Selection with AIC</h3>
+<p>The <code>step()</code> function performs automatic model selection using the AIC criterion. (not directly covered in this course unless time allows)</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">step</span>(btr_logit_inter_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Start:  AIC=1578.97
+BTR ~ Age + Smoking + Age:Smoking
+
+              Df    AIC
+&lt;none&gt;           1579.0
+- Age:Smoking  2 1599.7</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = BTR ~ Age + Smoking + Age:Smoking, data = btr_dat, 
+    weights = Freq, Hess = TRUE, method = "logistic")
+
+Coefficients:
+         Age1      Smoking1      Smoking2 Age1:Smoking1 Age1:Smoking2 
+  -0.11486771   -0.90596380    0.36428448    0.55777234   -0.01516692 
+
+Intercepts:
+1Normal|2Border 2Border|3Abnorm 
+       2.370384        3.844735 
+
+Residual Deviance: 1564.968 
+AIC: 1578.968 </code></pre>
+</div>
+</div>
+</section>
+<section id="variance-covariance-matrix-and-standard-errors" class="level3">
+<h3 class="anchored" data-anchor-id="variance-covariance-matrix-and-standard-errors">Variance-Covariance Matrix and Standard Errors</h3>
+<p>We can extract the estimated variance-covariance matrix of the parameter estimates using <code>vcov()</code>. This should line up with the inverse of the Fisher information matrix.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>logit_vcov <span class="ot">&lt;-</span> <span class="fu">vcov</span>(btr_logit_inter_eff)</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>logit_vcov</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                        Age1    Smoking1     Smoking2 Age1:Smoking1
+Age1             0.011787741 -0.01243168  0.005998232    0.01214182
+Smoking1        -0.012431684  0.03572298 -0.020537642   -0.02505560
+Smoking2         0.005998232 -0.02053764  0.020179329    0.01274490
+Age1:Smoking1    0.012141822 -0.02505560  0.012744904    0.03571939
+Age1:Smoking2   -0.003394051  0.01274270 -0.006617613   -0.02053578
+1Normal|2Border  0.006312767 -0.01213435  0.003392219    0.01242837
+2Border|3Abnorm  0.006164206 -0.01244460  0.003424437    0.01263740
+                Age1:Smoking2 1Normal|2Border 2Border|3Abnorm
+Age1             -0.003394051     0.006312767     0.006164206
+Smoking1          0.012742700    -0.012134352    -0.012444602
+Smoking2         -0.006617613     0.003392219     0.003424437
+Age1:Smoking1    -0.020535784     0.012428367     0.012637403
+Age1:Smoking2     0.020179722    -0.006001108    -0.005918600
+1Normal|2Border  -0.006001108     0.011800241     0.011347044
+2Border|3Abnorm  -0.005918600     0.011347044     0.025559519</code></pre>
+</div>
+</div>
+<p>From this we can match the standard errors reported in the summary output, since they are the square root of the diagonal elements of the variance-covariance matrix:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(logit_vcov))</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>se_from_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_inter_eff)<span class="sc">$</span>coefficients[, <span class="st">"Std. Error"</span>]</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="sc">==</span> se_from_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>           Age1        Smoking1        Smoking2   Age1:Smoking1   Age1:Smoking2 
+           TRUE            TRUE            TRUE            TRUE            TRUE 
+1Normal|2Border 2Border|3Abnorm 
+           TRUE            TRUE </code></pre>
+</div>
+</div>
+<p>We should be able to recover the same confidence intervals by using the variance-covariance matrix and a normal approximation (Wald intervals).</p>
+<p>We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by <code>polr()</code>:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>hessian_inv <span class="ot">&lt;-</span> <span class="fu">solve</span>(btr_logit_inter_eff<span class="sc">$</span>Hess)</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>hessian_inv</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                         Age1     Smoking1      Smoking2 Age1:Smoking1
+Age1             0.0117877412 -0.012431684  5.998232e-03  0.0121418216
+Smoking1        -0.0124316842  0.035722975 -2.053764e-02 -0.0250556010
+Smoking2         0.0059982315 -0.020537642  2.017933e-02  0.0127449043
+Age1:Smoking1    0.0121418216 -0.025055601  1.274490e-02  0.0357193912
+Age1:Smoking2   -0.0033940507  0.012742700 -6.617613e-03 -0.0205357845
+1Normal|2Border  0.0063127668 -0.012134352  3.392219e-03  0.0124283674
+2Border|3Abnorm -0.0001007637 -0.000210432  2.185198e-05  0.0001417814
+                Age1:Smoking2 1Normal|2Border 2Border|3Abnorm
+Age1            -3.394051e-03    0.0063127668   -1.007637e-04
+Smoking1         1.274270e-02   -0.0121343518   -2.104320e-04
+Smoking2        -6.617613e-03    0.0033922194    2.185198e-05
+Age1:Smoking1   -2.053578e-02    0.0124283674    1.417814e-04
+Age1:Smoking2    2.017972e-02   -0.0060011075    5.596186e-05
+1Normal|2Border -6.001108e-03    0.0118002410   -3.073874e-04
+2Border|3Abnorm  5.596186e-05   -0.0003073874    6.746838e-03</code></pre>
+</div>
+</div>
+<p>We can see that the matrices are slightly different.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(hessian_inv, logit_vcov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Mean relative difference: 0.2624136"</code></pre>
+</div>
+</div>
+</section>
+<section id="confidence-intervals" class="level3">
+<h3 class="anchored" data-anchor-id="confidence-intervals">Confidence Intervals</h3>
+<p>R provides the generic method <code>confint()</code> to compute confidence intervals for model parameters.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(btr_logit_inter_eff) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Waiting for profiling to be done...</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               2.5 % 97.5 %
+Age1          -0.315  0.118
+Smoking1      -1.328 -0.570
+Smoking2       0.088  0.651
+Age1:Smoking1  0.221  0.980
+Age1:Smoking2 -0.305  0.257</code></pre>
+</div>
+</div>
+<p>We can attempt to recovery the same confidence intervals using a Wald approximation based on the coefficient estimates and their standard errors:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manual Wald CI (upper limit)</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>coeff_est <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_inter_eff)<span class="sc">$</span>coefficients[, <span class="dv">1</span>]</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>wald_upper <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>wald_lower <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.025</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(wald_lower, wald_upper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 7 × 2
+  wald_lower wald_upper
+       &lt;dbl&gt;      &lt;dbl&gt;
+1    -0.328      0.0979
+2    -1.28      -0.536 
+3     0.0859     0.643 
+4     0.187      0.928 
+5    -0.294      0.263 
+6     2.16       2.58  
+7     3.53       4.16  </code></pre>
+</div>
+</div>
+<p>These values are different from the confidence intervals computed by <code>confint()</code>. This is because the <code>confint()</code> function uses the profile likelihood method, which is more suitable for some non-linear regression problems.</p>
+<p>For more details see <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.&nbsp;220, and run <code>profile(btr_logit_inter_eff)</code>.</p>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"MASS"</span>, <span class="st">"purrr"</span>, <span class="st">"readr"</span>, <span class="st">"tidyr"</span>)</span>
+<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>    cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check if multiple citations</span></span>
+<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>            cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a>        cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb82-16"><a href="#cb82-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<ul>
+<li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
+<li><p><strong>dplyr</strong>: Wickham H, François R, Henry L, Müller K, Vaughan D (2026). <em>dplyr: A Grammar of Data Manipulation</em>. R package version 1.2.0, https://github.com/tidyverse/dplyr, <a href="https://dplyr.tidyverse.org" class="uri">https://dplyr.tidyverse.org</a>.</p></li>
+<li><p><strong>MASS</strong>: Venables WN, Ripley BD (2002). <em>Modern Applied Statistics with S</em>, Fourth edition. Springer, New York. ISBN 0-387-95457-0, <a href="https://www.stats.ox.ac.uk/pub/MASS4/" class="uri">https://www.stats.ox.ac.uk/pub/MASS4/</a>.</p></li>
+<li><p><strong>purrr</strong>: Wickham H, Henry L (2026). <em>purrr: Functional Programming Tools</em>. R package version 1.2.1, https://github.com/tidyverse/purrr, <a href="https://purrr.tidyverse.org/" class="uri">https://purrr.tidyverse.org/</a>.</p></li>
+<li><p><strong>readr</strong>: Wickham H, Hester J, Bryan J (2025). <em>readr: Read Rectangular Text Data</em>. R package version 2.1.6, https://github.com/tidyverse/readr, <a href="https://readr.tidyverse.org" class="uri">https://readr.tidyverse.org</a>.</p></li>
+<li><p><strong>tidyr</strong>: Wickham H, Vaughan D, Girlich M (2025). <em>tidyr: Tidy Messy Data</em>. R package version 1.3.2, https://github.com/tidyverse/tidyr, <a href="https://tidyr.tidyverse.org" class="uri">https://tidyr.tidyverse.org</a>.</p></li>
+</ul>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
+Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. New York, <span>NY</span>: Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
+</div>
+<div id="ref-venables_modern_2002" class="csl-entry" role="listitem">
+Venables, W. N., and B. D. Ripley. 2002. <em>Modern Applied Statistics with <span>S</span></em>. Fourth. New York: Springer. <a href="https://www.stats.ox.ac.uk/pub/MASS4/">https://www.stats.ox.ac.uk/pub/MASS4/</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jaycrick\.github\.io\/MAST90084-Statistical-Modelling-Scripts\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/04-Example3-2BTR.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
