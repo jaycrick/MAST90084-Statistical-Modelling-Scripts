@@ -198,34 +198,6 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/04-Example3-2BTR.html">
  <span class="dropdown-text">Ordinal Regression: Breathing Test Results</span></a>
   </li>  
-        <li>
-    <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
- <span class="dropdown-text">Tonsil Data</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
- <span class="dropdown-text">Happiness Data</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
- <span class="dropdown-text">Ohio Data</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
- <span class="dropdown-text">GEE CTSIB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../quarto_scripts/09-GLM_mixed_Effect.html">
- <span class="dropdown-text">GLM Mixed Effects</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../quarto_scripts/10-LM_mixed_effect.html">
- <span class="dropdown-text">LM Mixed Effects</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
- <span class="dropdown-text">Survival Analysis</span></a>
-  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -635,7 +607,7 @@ Fit with <code>glmnet</code> Package
 <div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>This section is not examinable, but just for fun. <code>glmnet</code> is written by Jerome Friedman and Trevor Hastie, and is a popular package for regularized regression (that is, Lasso and Ridge regression). The codebase is in Fortran, and is very fast.</p>
-<p>We can use <code>glmnet</code> to fit the same multinomial model by setting <code>lambda = 0</code> (giving no weight to the regularisation step) to get the unregularized estimates. If you look up <code>?glmnet</code>, pay attention to the multinomial parameterization, since the returned coefficients are not on the same baseline coding as <code>multinom()</code>.</p>
+<p>We can use <code>glmnet</code> to fit the same multinomial model by setting <code>lambda = 0</code> (giving no weight to the regularisation step) to get the unregularized estimates. If you look up <code>?glmnet</code>, pay attention to what they said about symmetric multinomial model which has a different parametrization; <a href="https://glmnet.stanford.edu/articles/glmnet.html#multinomial-regression-family-multinomial">see the section on “Multinomial Regression” in their vignette</a> for the precise form of this parametrization. Because of a different parametrization, the returned fitted coefficients won’t be same as <code>multinom()</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -936,7 +908,7 @@ Alternative Fit with <code>VGAM</code> Package
 <div id="callout-11" class="callout-11-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The <code>VGAM</code> package will be used a lot more later in the course, because it fits a wide variety of multivariate response regression models. It is not as fast as <code>glmnet</code> or <code>nnet</code> for large datasets, because it uses the Fisher scoring algorithm (like the book).</p>
-<p>Is is good practice to <a href="https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html">read the documentation</a> for the <code>vglm()</code> function with <code>?vglm</code> to understand the arguments and output structure. Also check <code>?multinomial</code>, especially <code>refLevel</code> and <code>parallel</code>, since these choices directly affect model interpretation.</p>
+<p>It is good practice to <a href="https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html">read the documentation</a> for the <code>vglm()</code> function with <code>?vglm</code> to understand the arguments and output structure. Also check <code>?multinomial</code>, especially <code>refLevel</code> and <code>parallel</code>, since these choices directly affect model interpretation.</p>
 <p>We use the raw data <code>caes_dat</code> extracted from the CSV file. <code>multinomial()</code> has a <code>refLevel</code> argument to specify the reference category.</p>
 <div class="cell">
 <details open="" class="code-fold">
