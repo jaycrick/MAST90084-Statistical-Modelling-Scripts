@@ -9,22 +9,18 @@ nocite: |
 ## Overview
 
 This script reproduces Examples 3.6 and 3.7 from @fahrmeir_multivariate_2001.
-We analyse the relationship between tonsil size and
+We analyse the relationship between tonsil size of children and their
 *Streptococcus pyogenes* carrier status.
 
 The response has three ordered categories:
 
 1. `present`
 2. `enlarged`
-3. `great_enlarged`
+3. `great_enlarged`.
 
-We compare three ordinal regression specifications using `VGAM::vglm()`:
-
-1. Cumulative link model with proportional odds
-2. Cumulative link model without proportional odds
-3. Sequential (continuation-ratio) model with proportionality
-
-Finally, we fit `MASS::polr()` as a cross-check of the cumulative model.
+There is a good physical interpretation of the ordering,
+where a normal tonsil must first become enlarged before it can become greatly enlarged,
+and so we are motivated to try a sequential regression model.
 
 ## Data and Packages
 
@@ -53,7 +49,7 @@ tonsil_tbl
 
 The `tonsil` data are in long format: one row per carrier-status and size category.
 For `vglm`, we want one row per carrier-status and one column per size count,
-refered to as wide format.
+referred to as wide format.
 We can reshape using `tidyr::pivot_wider()`.
 We also rename the size category to be more descriptive
 and convert it to a factor with labels.
@@ -91,7 +87,7 @@ passes the result of one step to the next, making the workflow readable top-to-b
 
 ### Understanding Factor Coding
 
-As in the other scripts, we use want to ensure effect coding (`contr.sum`)
+As in the other scripts, we want to ensure effect coding (`contr.sum`)
 is used for factors.
 This gives coefficients that are directly comparable to the textbook output.
 
@@ -104,7 +100,7 @@ contrasts(tonsil_wide$Streptococcus.p)
 
 ## Model 1: Cumulative Link Model (Proportional Odds)
 
-We first use the cumulative logit model.
+We first fit a cumulative logit model.
 
 ```{r}
 #| label: 05-tonsil-fit-cumulative-parallel
@@ -121,17 +117,17 @@ summary(fit_cumulative)
 Here, the `parallel = TRUE ~ Streptococcus.p - 1`
 argument specifies that the effect of `Streptococcus.p` is the same across all levels,
 and the `- 1` removes the intercept from the model,
-which sets the the intercept to be different,
-since the intercepts here are exactly the $\theta$s
+which sets the intercept to be different,
+since the intercepts here are exactly the $\theta$s.
 :::
 
-Note that the p-values do not line up with the $p$-values
+Note that the $p$-values do not line up with those
 in Table 3.6 of @fahrmeir_multivariate_2001 for a completely unknown reason.
 If you manage to figure out why, please let me know.
 
 ## Model 2: Extended Cumulative Model
 
-Here we don't set `parallel = TRUE` and allow level-specific effects.
+Here we don't set `parallel = TRUE` and allow category-specific effects.
 
 ```{r}
 #| label: 05-tonsil-fit-cumulative-nonparallel
@@ -146,7 +142,18 @@ summary(fit_cumulative_extended)
 
 ## Model 3: Sequential Model
 
-Here we fit a sequential model with `sratio()`.
+Here we fit a sequential model using `VGAM::sratio()`.
+
+::: {.callout-important collapse="true"}
+## Make sure you can write down the mathematical form of the model. Expand for hint.
+
+HINT: it should have the form:
+\begin{equation*}
+    \Pr(Y = r | Y \geq r, x) = \ldots
+\end{equation*}
+
+Check @fahrmeir_multivariate_2001 page 94 for answer.
+:::
 
 ```{r}
 #| label: 05-tonsil-fit-sequential-parallel
@@ -159,7 +166,10 @@ fit_sequential <- vglm(
 summary(fit_sequential)
 ```
 
-Again, the $p$-values do not line up with the textbook output for an unknown reason.
+Again, the $p$-values do not line up with those in Table 3.6 for an unknown reason,
+but the deviances do match.
+We can see that the deviance for the sequential model is much smaller
+than that of the cumulative model which suggests a much better fit to the data.
 
 ::: {.callout-tip collapse="true"}
 ## Alternative: MASS::polr() Implementation
