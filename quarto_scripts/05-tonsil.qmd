@@ -1,6 +1,6 @@
 ---
-title: "Tonsil Size and Streptococcus"
-subtitle: "@fahrmeir_multivariate_2001 Example 3.7"
+title: "Sequential Regression: Tonsil Size and Streptococcus"
+subtitle: "@fahrmeir_multivariate_2001 Examples 3.6 and 3.7"
 date: today
 nocite: |
     @fahrmeir_multivariate_2001
@@ -8,8 +8,8 @@ nocite: |
 
 ## Overview
 
-This script reproduces and extends Example 3.7 from @fahrmeir_multivariate_2001.
-We analyse the relationship between tonsil size (an ordered response) and
+This script reproduces Examples 3.6 and 3.7 from @fahrmeir_multivariate_2001.
+We analyse the relationship between tonsil size and
 *Streptococcus pyogenes* carrier status.
 
 The response has three ordered categories:
@@ -39,22 +39,28 @@ library(VGAM)
 ```
 
 Run `?tonsil` for information about the data.
+This dataset is very simple, since it only contains one predictor.
+We load it and preview the contents to see how it's structured.
 
 ```{r}
 #| label: 05-tonsil-load-and-preview-data
 data(tonsil)
-head(tonsil)
+tonsil_tbl <- as_tibble(tonsil)
+tonsil_tbl
 ```
 
 ### Data Reshaping
 
 The `tonsil` data are in long format: one row per carrier-status and size category.
-For `vglm(cbind(...))`, we want one row per carrier-status and one column per size count.
-We can do this directly with `pivot_wider()`.
+For `vglm`, we want one row per carrier-status and one column per size count,
+refered to as wide format.
+We can reshape using `tidyr::pivot_wider()`.
+We also rename the size category to be more descriptive
+and convert it to a factor with labels.
 
 ```{r}
 #| label: 05-tonsil-reshape-to-wide
-tonsil_wide <- tonsil |>
+tonsil_wide <- tonsil_tbl |>
     mutate(
         Size = factor(
             Size,
@@ -85,19 +91,20 @@ passes the result of one step to the next, making the workflow readable top-to-b
 
 ### Understanding Factor Coding
 
-As in the other scripts, we use effect coding (`contr.sum`) for factors.
+As in the other scripts, we use want to ensure effect coding (`contr.sum`)
+is used for factors.
 This gives coefficients that are directly comparable to the textbook output.
 
 ```{r}
 #| label: 05-tonsil-set-factor-contrasts
+contrasts(tonsil_wide$Streptococcus.p)
 options(contrasts = c("contr.sum", "contr.poly"))
 contrasts(tonsil_wide$Streptococcus.p)
 ```
 
 ## Model 1: Cumulative Link Model (Proportional Odds)
 
-The proportional-odds assumption constrains the effect of
-`Streptococcus.p` to be the same across cut-points.
+We first use the cumulative logit model.
 
 ```{r}
 #| label: 05-tonsil-fit-cumulative-parallel
@@ -110,11 +117,21 @@ fit_cumulative <- vglm(
 summary(fit_cumulative)
 ```
 
-These estimates agree with Table 3.6 in Example 3.7.
+::: {.callout-caution}
+Here, the `parallel = TRUE ~ Streptococcus.p - 1`
+argument specifies that the effect of `Streptococcus.p` is the same across all levels,
+and the `- 1` removes the intercept from the model,
+which sets the the intercept to be different,
+since the intercepts here are exactly the $\theta$s
+:::
 
-## Model 2: Extended (Partial Proportional Odds)
+Note that the p-values do not line up with the $p$-values
+in Table 3.6 of @fahrmeir_multivariate_2001 for a completely unknown reason.
+If you manage to figure out why, please let me know.
 
-Now we relax proportional odds and allow category-specific effects.
+## Model 2: Extended Cumulative Model
+
+Here we don't set `parallel = TRUE` and allow level-specific effects.
 
 ```{r}
 #| label: 05-tonsil-fit-cumulative-nonparallel
@@ -127,10 +144,9 @@ fit_cumulative_extended <- vglm(
 summary(fit_cumulative_extended)
 ```
 
-## Model 3: Sequential (Continuation Ratio) Model
+## Model 3: Sequential Model
 
-As an alternative ordinal specification, fit a continuation-ratio model
-with proportionality imposed for `Streptococcus.p`.
+Here we fit a sequential model with `sratio()`.
 
 ```{r}
 #| label: 05-tonsil-fit-sequential-parallel
@@ -143,27 +159,13 @@ fit_sequential <- vglm(
 summary(fit_sequential)
 ```
 
-The p-values reported in F&T for this section appear to contain an error.
+Again, the $p$-values do not line up with the textbook output for an unknown reason.
 
-## Quick Model Comparison
+::: {.callout-tip collapse="true"}
+## Alternative: MASS::polr() Implementation
 
-```{r}
-#| label: 05-tonsil-compare-model-aic
-tibble(
-    model = c(
-        "Cumulative (parallel)",
-        "Cumulative (non-parallel)",
-        "Sequential (parallel)"
-    ),
-    AIC = c(AIC(fit_cumulative), AIC(fit_cumulative_extended), AIC(fit_sequential))
-)
-```
-
-## Alternative: MASS::polr() Function
-
-We can fit the same proportional-odds model using `MASS::polr()`.
-Rather than manually constructing response and predictor vectors,
-we reshape once and use the count column as case weights.
+Here we fit the same cumulative model using `MASS::polr()` to verify our $p$-values.
+We convert our data back to long format.
 
 ```{r}
 #| label: 05-tonsil-prepare-polr-data
@@ -204,6 +206,7 @@ summary(polr_obj)
 ```
 
 The `polr()` standard errors agree with the cumulative `vglm()` fit.
+:::
 
 ## Reproducibility
 
