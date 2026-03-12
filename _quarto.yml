@@ -24,8 +24,8 @@ website:
             file: quarto_scripts/03-Example3-1and3-11Caes.qmd
           - text: "Ordinal Regression: Breathing Test Results"
             file: quarto_scripts/04-Example3-2BTR.qmd
-          # - text: "Tonsil Data"
-          #   file: quarto_scripts/05-tonsil.qmd
+          - text: "Sequential Regression: Tonsil Size"
+            file: quarto_scripts/05-tonsil.qmd
           # - text: "Happiness Data"
           #   file: quarto_scripts/06-Happiness.qmd
           # - text: "Ohio Data"
