@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-11">
+<meta name="dcterms.date" content="2026-03-12">
 
-<title>Tonsil Size and Streptococcus – MAST90084 - Statistical Modelling Scripts</title>
+<title>Sequential Regression: Tonsil Size and Streptococcus – MAST90084 - Statistical Modelling Scripts</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -56,7 +56,27 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -104,6 +124,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -149,6 +198,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../quarto_scripts/04-Example3-2BTR.html">
  <span class="dropdown-text">Ordinal Regression: Breathing Test Results</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
+ <span class="dropdown-text">Sequential Regression: Tonsil Size</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -180,12 +233,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#data-and-packages" id="toc-data-and-packages" class="nav-link" data-scroll-target="#data-and-packages">Data and Packages</a>
   <ul class="collapse">
   <li><a href="#data-reshaping" id="toc-data-reshaping" class="nav-link" data-scroll-target="#data-reshaping">Data Reshaping</a></li>
-  <li><a href="#setting-contrasts" id="toc-setting-contrasts" class="nav-link" data-scroll-target="#setting-contrasts">Setting Contrasts</a></li>
+  <li><a href="#understanding-factor-coding" id="toc-understanding-factor-coding" class="nav-link" data-scroll-target="#understanding-factor-coding">Understanding Factor Coding</a></li>
   </ul></li>
   <li><a href="#model-1-cumulative-link-model-proportional-odds" id="toc-model-1-cumulative-link-model-proportional-odds" class="nav-link" data-scroll-target="#model-1-cumulative-link-model-proportional-odds">Model 1: Cumulative Link Model (Proportional Odds)</a></li>
-  <li><a href="#model-2-extended-partial-proportional-odds" id="toc-model-2-extended-partial-proportional-odds" class="nav-link" data-scroll-target="#model-2-extended-partial-proportional-odds">Model 2: Extended (Partial Proportional Odds)</a></li>
-  <li><a href="#model-3-sequential-continuation-ratio-model" id="toc-model-3-sequential-continuation-ratio-model" class="nav-link" data-scroll-target="#model-3-sequential-continuation-ratio-model">Model 3: Sequential (Continuation Ratio) Model</a></li>
-  <li><a href="#alternative-masspolr-function" id="toc-alternative-masspolr-function" class="nav-link" data-scroll-target="#alternative-masspolr-function">Alternative: MASS::polr() Function</a></li>
+  <li><a href="#model-2-extended-cumulative-model" id="toc-model-2-extended-cumulative-model" class="nav-link" data-scroll-target="#model-2-extended-cumulative-model">Model 2: Extended Cumulative Model</a></li>
+  <li><a href="#model-3-sequential-model" id="toc-model-3-sequential-model" class="nav-link" data-scroll-target="#model-3-sequential-model">Model 3: Sequential Model</a></li>
+  <li><a href="#reproducibility" id="toc-reproducibility" class="nav-link" data-scroll-target="#reproducibility">Reproducibility</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/05-tonsil.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -194,8 +247,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Tonsil Size and Streptococcus</h1>
-<p class="subtitle lead">Ordinal Regression Models Comparison</p>
+<h1 class="title">Sequential Regression: Tonsil Size and Streptococcus</h1>
+<p class="subtitle lead"><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Examples 3.6 and 3.7</p>
 </div>
 
 
@@ -206,7 +259,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 11, 2026</p>
+      <p class="date">March 12, 2026</p>
     </div>
   </div>
   
@@ -220,7 +273,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>This script compares different <strong>ordinal regression models</strong> for analyzing the <strong>tonsil dataset</strong>, which examines the relationship between tonsil size (ordered categorical) and Streptococcus pyogenes carrier status.</p>
+<p>This script reproduces Examples 3.6 and 3.7 from <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. We analyse the relationship between tonsil size of children and their <em>Streptococcus pyogenes</em> carrier status.</p>
+<p>The response has three ordered categories:</p>
+<ol type="1">
+<li><code>present</code></li>
+<li><code>enlarged</code></li>
+<li><code>great_enlarged</code>.</li>
+</ol>
+<p>There is a good physical interpretation of the ordering, where a normal tonsil must first become enlarged before it can become greatly enlarged, and so we are motivated to try a sequential regression model.</p>
 </section>
 <section id="data-and-packages" class="level2">
 <h2 class="anchored" data-anchor-id="data-and-packages">Data and Packages</h2>
@@ -230,7 +290,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Fahrmeir)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(VGAM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(VGAM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Loading required package: stats4</code></pre>
@@ -239,86 +301,93 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Loading required package: splines</code></pre>
 </div>
 </div>
+<p>Run <code>?tonsil</code> for information about the data. This dataset is very simple, since it only contains one predictor. We load it and preview the contents to see how it’s structured.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>?tonsil</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(tonsil)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tonsil)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(tonsil)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tonsil_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(tonsil)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>tonsil_tbl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Streptococcus.p Size   n
-1        carriers    1  19
-2        carriers    2  29
-3        carriers    3  24
-4     noncarriers    1 497
-5     noncarriers    2 560
-6     noncarriers    3 269</code></pre>
+<pre><code># A tibble: 6 × 3
+  Streptococcus.p  Size     n
+  &lt;fct&gt;           &lt;int&gt; &lt;int&gt;
+1 carriers            1    19
+2 carriers            2    29
+3 carriers            3    24
+4 noncarriers         1   497
+5 noncarriers         2   560
+6 noncarriers         3   269</code></pre>
 </div>
 </div>
 <section id="data-reshaping" class="level3">
 <h3 class="anchored" data-anchor-id="data-reshaping">Data Reshaping</h3>
-<p>Change the dataset into wide format for the vglm function. The commented-out code below shows an alternative approach using tidyverse:</p>
+<p>The <code>tonsil</code> data are in long format: one row per carrier-status and size category. For <code>vglm</code>, we want one row per carrier-status and one column per size count, referred to as wide format. We can reshape using <code>tidyr::pivot_wider()</code>. We also rename the size category to be more descriptive and convert it to a factor with labels.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Alternative tidyverse approach (commented out):</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># tonsil_df &lt;- dplyr::tbl_df(tonsil)</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># tonsil_grouped &lt;- dplyr::group_by(tonsil_df, Streptococcus.p)</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># tonsil_summary &lt;- dplyr::summarize(</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   tonsil_grouped,</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   present = n[which(Size == 1)],</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   enlarged = n[which(Size == 2)],</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   great_enlarged = n[which(Size == 3)]</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># tonsil &lt;- as.data.frame(tonsil_summary)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<p>Using reshape instead:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tonsil <span class="ot">&lt;-</span> <span class="fu">reshape</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    tonsil,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">idvar =</span> <span class="st">"Streptococcus.p"</span>,</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">timevar =</span> <span class="st">"Size"</span>,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">direction =</span> <span class="st">"wide"</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>tonsil</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>tonsil_wide <span class="ot">&lt;-</span> tonsil_tbl <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">Size =</span> <span class="fu">factor</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            Size,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"present"</span>, <span class="st">"enlarged"</span>, <span class="st">"great_enlarged"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(Streptococcus.p, Size, n) <span class="sc">|&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Size, <span class="at">values_from =</span> n)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>tonsil_wide</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Streptococcus.p n.1 n.2 n.3
-1        carriers  19  29  24
-4     noncarriers 497 560 269</code></pre>
+<pre><code># A tibble: 2 × 4
+  Streptococcus.p present enlarged great_enlarged
+  &lt;fct&gt;             &lt;int&gt;    &lt;int&gt;          &lt;int&gt;
+1 carriers             19       29             24
+2 noncarriers         497      560            269</code></pre>
 </div>
 </div>
-<p>Change the column names:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tonsil) <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Streptococcus.p"</span>,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"present"</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"enlarged"</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"great_enlarged"</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What each step is doing
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><code>mutate(...)</code>: creates or updates columns; here it rewrites <code>Size</code> as a labelled factor.</li>
+<li><code>factor(...)</code>: converts numeric codes (<code>1, 2, 3</code>) into ordered category labels used in output.</li>
+<li><code>dplyr::select(Streptococcus.p, Size, n)</code>: keeps only the columns needed for reshaping.</li>
+<li><code>pivot_wider(names_from = Size, values_from = n)</code>: converts long data into wide data, so each size category becomes its own count column.</li>
+<li><code>|&gt;</code>: passes the result of one step to the next, making the workflow readable top-to-bottom.</li>
+</ul>
+</div>
+</div>
 </div>
 </section>
-<section id="setting-contrasts" class="level3">
-<h3 class="anchored" data-anchor-id="setting-contrasts">Setting Contrasts</h3>
-<p>Change to effect coding for Streptococcus.p:</p>
+<section id="understanding-factor-coding" class="level3">
+<h3 class="anchored" data-anchor-id="understanding-factor-coding">Understanding Factor Coding</h3>
+<p>As in the other scripts, we want to ensure effect coding (<code>contr.sum</code>) is used for factors. This gives coefficients that are directly comparable to the textbook output.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(tonsil<span class="sc">$</span>Streptococcus.p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(tonsil_wide<span class="sc">$</span>Streptococcus.p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            noncarriers
+carriers              0
+noncarriers           1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(tonsil_wide<span class="sc">$</span>Streptococcus.p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            [,1]
@@ -330,24 +399,24 @@ noncarriers   -1</code></pre>
 </section>
 <section id="model-1-cumulative-link-model-proportional-odds" class="level2">
 <h2 class="anchored" data-anchor-id="model-1-cumulative-link-model-proportional-odds">Model 1: Cumulative Link Model (Proportional Odds)</h2>
-<p>Fit with proportional odds assumption (parallel constraint):</p>
+<p>We first fit a cumulative logit model.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fit_cumulative <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cbind</span>(present, enlarged, great_enlarged) <span class="sc">~</span> Streptococcus.p,</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">cumulative</span>(<span class="at">parallel =</span> <span class="cn">TRUE</span> <span class="sc">~</span> Streptococcus.p <span class="sc">-</span> <span class="dv">1</span>),</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> tonsil</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_cumulative)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fit_cumulative <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cbind</span>(present, enlarged, great_enlarged) <span class="sc">~</span> Streptococcus.p,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">cumulative</span>(<span class="at">parallel =</span> <span class="cn">TRUE</span> <span class="sc">~</span> Streptococcus.p <span class="sc">-</span> <span class="dv">1</span>),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> tonsil_wide</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_cumulative)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
 vglm(formula = cbind(present, enlarged, great_enlarged) ~ Streptococcus.p, 
     family = cumulative(parallel = TRUE ~ Streptococcus.p - 1), 
-    data = tonsil)
+    data = tonsil_wide)
 
 Coefficients: 
                  Estimate Std. Error z value Pr(&gt;|z|)    
@@ -371,19 +440,32 @@ Streptococcus.p1
        0.7398377 </code></pre>
 </div>
 </div>
-<p>These numbers check out with Table 3.6 in Example 3.7 of F &amp; T.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here, the <code>parallel = TRUE ~ Streptococcus.p - 1</code> argument specifies that the effect of <code>Streptococcus.p</code> is the same across all levels, and the <code>- 1</code> removes the intercept from the model, which sets the intercept to be different, since the intercepts here are exactly the <span class="math inline">\(\theta\)</span>s.</p>
+</div>
+</div>
+<p>Note that the <span class="math inline">\(p\)</span>-values do not line up with those in Table 3.6 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> for a completely unknown reason. If you manage to figure out why, please let me know.</p>
 </section>
-<section id="model-2-extended-partial-proportional-odds" class="level2">
-<h2 class="anchored" data-anchor-id="model-2-extended-partial-proportional-odds">Model 2: Extended (Partial Proportional Odds)</h2>
-<p>Fit without the parallel constraint to allow category-specific effects:</p>
+<section id="model-2-extended-cumulative-model" class="level2">
+<h2 class="anchored" data-anchor-id="model-2-extended-cumulative-model">Model 2: Extended Cumulative Model</h2>
+<p>Here we don’t set <code>parallel = TRUE</code> and allow category-specific effects.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fit_cumulative_extended <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cbind</span>(present, enlarged, great_enlarged) <span class="sc">~</span> Streptococcus.p,</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">cumulative</span>(),</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> tonsil</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fit_cumulative_extended <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cbind</span>(present, enlarged, great_enlarged) <span class="sc">~</span> Streptococcus.p,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">cumulative</span>(),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> tonsil_wide</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning in vglm.fitter(x = x, y = y, w = w, offset = offset, Xm2 = Xm2, :
@@ -396,13 +478,13 @@ half-step</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_cumulative_extended)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_cumulative_extended)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
 vglm(formula = cbind(present, enlarged, great_enlarged) ~ Streptococcus.p, 
-    family = cumulative(), data = tonsil)
+    family = cumulative(), data = tonsil_wide)
 
 Coefficients: 
                    Estimate Std. Error z value Pr(&gt;|z|)    
@@ -428,25 +510,44 @@ Streptococcus.p1:1 Streptococcus.p1:2
 </div>
 </div>
 </section>
-<section id="model-3-sequential-continuation-ratio-model" class="level2">
-<h2 class="anchored" data-anchor-id="model-3-sequential-continuation-ratio-model">Model 3: Sequential (Continuation Ratio) Model</h2>
-<p>Fit sequential model with proportionality assumption:</p>
+<section id="model-3-sequential-model" class="level2">
+<h2 class="anchored" data-anchor-id="model-3-sequential-model">Model 3: Sequential Model</h2>
+<p>Here we fit a sequential model using <code>VGAM::sratio()</code>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Make sure you can write down the mathematical form of the model. Expand for hint.
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>HINT: it should have the form: <span class="math display">\[\begin{equation*}
+    \Pr(Y = r | Y \geq r, x) = \ldots
+\end{equation*}\]</span></p>
+<p>Check <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> page 94 for answer.</p>
+</div>
+</div>
+</div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>fit_sequential <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cbind</span>(present, enlarged, great_enlarged) <span class="sc">~</span> Streptococcus.p,</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">sratio</span>(<span class="at">parallel =</span> <span class="cn">TRUE</span> <span class="sc">~</span> Streptococcus.p <span class="sc">-</span> <span class="dv">1</span>),</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> tonsil</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_sequential)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fit_sequential <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cbind</span>(present, enlarged, great_enlarged) <span class="sc">~</span> Streptococcus.p,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">sratio</span>(<span class="at">parallel =</span> <span class="cn">TRUE</span> <span class="sc">~</span> Streptococcus.p <span class="sc">-</span> <span class="dv">1</span>),</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> tonsil_wide</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_sequential)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
 vglm(formula = cbind(present, enlarged, great_enlarged) ~ Streptococcus.p, 
-    family = sratio(parallel = TRUE ~ Streptococcus.p - 1), data = tonsil)
+    family = sratio(parallel = TRUE ~ Streptococcus.p - 1), data = tonsil_wide)
 
 Coefficients: 
                  Estimate Std. Error z value Pr(&gt;|z|)    
@@ -470,59 +571,90 @@ Streptococcus.p1
        0.7677964 </code></pre>
 </div>
 </div>
-<p>Note: The p-values reported in F&amp;T appear to be incorrect.</p>
-</section>
-<section id="alternative-masspolr-function" class="level2">
-<h2 class="anchored" data-anchor-id="alternative-masspolr-function">Alternative: MASS::polr() Function</h2>
-<p>Try using <code>polr()</code> from MASS package for comparison:</p>
+<p>Again, the <span class="math inline">\(p\)</span>-values do not line up with those in Table 3.6 for an unknown reason, but the deviances do match. We can see that the deviance for the sequential model is much smaller than that of the cumulative model which suggests a much better fit to the data.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Alternative: MASS::polr() Implementation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Here we fit the same cumulative model using <code>MASS::polr()</code> to verify our <span class="math inline">\(p\)</span>-values. We convert our data back to long format.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"present"</span>,</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"enlarged"</span>,</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"great_enlarged"</span>,</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"present"</span>,</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"enlarged"</span>,</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"great_enlarged"</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> <span class="fu">ordered</span>(</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    response,</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"present"</span>, <span class="st">"enlarged"</span>, <span class="st">"great_enlarged"</span>)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"carriers"</span>,</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"carriers"</span>,</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"carriers"</span>,</span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"noncarriers"</span>,</span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"noncarriers"</span>,</span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"noncarriers"</span></span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>polr_obj <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">polr</span>(</span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> response <span class="sc">~</span> x,</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> <span class="fu">c</span>(</span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.numeric</span>(tonsil[<span class="dv">1</span>, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]),</span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.numeric</span>(tonsil[<span class="dv">2</span>, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>])</span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(polr_obj)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>polr_dat <span class="ot">&lt;-</span> tonsil_wide <span class="sc">|&gt;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">cols =</span> <span class="fu">c</span>(present, enlarged, great_enlarged),</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_to =</span> <span class="st">"size"</span>,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_to =</span> <span class="st">"weight"</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">ordered</span>(size, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"present"</span>, <span class="st">"enlarged"</span>, <span class="st">"great_enlarged"</span>))</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>polr_dat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Re-fitting to get Hessian</code></pre>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  Streptococcus.p size           weight
+  &lt;fct&gt;           &lt;ord&gt;           &lt;int&gt;
+1 carriers        present            19
+2 carriers        enlarged           29
+3 carriers        great_enlarged     24
+4 noncarriers     present           497
+5 noncarriers     enlarged          560
+6 noncarriers     great_enlarged    269</code></pre>
 </div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What each step is doing
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><code>pivot_longer(...)</code>: turns the wide count columns back into long format (one row per category).</li>
+<li><code>cols = c(present, enlarged, great_enlarged)</code>: chooses which columns to stack into one variable.</li>
+<li><code>names_to = "size"</code>: stores the former column names as category labels in a new <code>size</code> column.</li>
+<li><code>values_to = "weight"</code>: stores the corresponding counts in a new <code>weight</code> column used as case weights.</li>
+<li><code>ordered(...)</code>: makes <code>size</code> an ordered factor so <code>polr()</code> respects the category order.</li>
+<li><code>|&gt;</code>: pipes each intermediate result to the next transformation step.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>polr_obj <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> size <span class="sc">~</span> Streptococcus.p,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> polr_dat,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> weight,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(polr_obj)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
-MASS::polr(formula = response ~ x, weights = c(as.numeric(tonsil[1, 
-    2:4]), as.numeric(tonsil[2, 2:4])))
+polr(formula = size ~ Streptococcus.p, data = polr_dat, weights = weight, 
+    Hess = TRUE)
 
 Coefficients:
-    Value Std. Error t value
-x1 0.3013     0.1137    2.65
+                  Value Std. Error t value
+Streptococcus.p1 0.3013     0.1137    2.65
 
 Intercepts:
                         Value   Std. Error t value
@@ -533,12 +665,102 @@ Residual Deviance: 2955.495
 AIC: 2961.495 </code></pre>
 </div>
 </div>
-<p>The standard errors are the same as vglm. These numbers check out with Table 3.6 in Example 3.7 of F &amp; T.</p>
+<p>The <code>polr()</code> standard errors agree with the cumulative <code>vglm()</code> fit.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="reproducibility" class="level2">
+<h2 class="anchored" data-anchor-id="reproducibility">Reproducibility</h2>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"Fahrmeir"</span>, <span class="st">"MASS"</span>, <span class="st">"tidyr"</span>, <span class="st">"VGAM"</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check if multiple citations</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>            cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<ul>
+<li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
+<li><p><strong>dplyr</strong>: Wickham H, François R, Henry L, Müller K, Vaughan D (2026). <em>dplyr: A Grammar of Data Manipulation</em>. R package version 1.2.0, https://github.com/tidyverse/dplyr, <a href="https://dplyr.tidyverse.org" class="uri">https://dplyr.tidyverse.org</a>.</p></li>
+<li><p><strong>Fahrmeir</strong>: Halvorsen cbKB (2016). <em>Fahrmeir: Data from the Book “Multivariate Statistical Modelling Based on Generalized Linear Models”, First Edition, by Ludwig Fahrmeir and Gerhard Tutz</em>. R package version 2016.5.31.</p></li>
+<li><p><strong>MASS</strong>: Venables WN, Ripley BD (2002). <em>Modern Applied Statistics with S</em>, Fourth edition. Springer, New York. ISBN 0-387-95457-0, <a href="https://www.stats.ox.ac.uk/pub/MASS4/" class="uri">https://www.stats.ox.ac.uk/pub/MASS4/</a>.</p></li>
+<li><p><strong>tidyr</strong>: Wickham H, Vaughan D, Girlich M (2025). <em>tidyr: Tidy Messy Data</em>. R package version 1.3.2, https://github.com/tidyverse/tidyr, <a href="https://tidyr.tidyverse.org" class="uri">https://tidyr.tidyverse.org</a>.</p></li>
+<li><p><strong>VGAM</strong>:</p>
+<ul>
+<li><p>Yee TW (2015). <em>Vector Generalized Linear and Additive Models: With an Implementation in R</em>. Springer, New York, USA.</p></li>
+<li><p>Yee TW, Wild CJ (1996). “Vector Generalized Additive Models.” <em>Journal of Royal Statistical Society, Series B</em>, <em>58</em>(3), 481-493.</p></li>
+<li><p>Yee TW (2010). “The VGAM Package for Categorical Data Analysis.” <em>Journal of Statistical Software</em>, <em>32</em>(10), 1-34. doi:10.18637/jss.v032.i10 <a href="https://doi.org/10.18637/jss.v032.i10" class="uri">https://doi.org/10.18637/jss.v032.i10</a>.</p></li>
+<li><p>Yee TW, Hadi AF (2014). “Row-column interaction models, with an R implementation.” <em>Computational Statistics</em>, <em>29</em>(6), 1427-1445.</p></li>
+<li><p>Yee TW (2025). <em>VGAM: Vector Generalized Linear and Additive Models</em>. R package version 1.1-14, <a href="https://CRAN.R-project.org/package=VGAM" class="uri">https://CRAN.R-project.org/package=VGAM</a>.</p></li>
+<li><p>Yee TW (2013). “Two-parameter reduced-rank vector generalized linear models.” <em>Computational Statistics and Data Analysis</em>, <em>71</em>, 889-902.</p></li>
+<li><p>Yee TW, Stoklosa J, Huggins RM (2015). “The VGAM Package for Capture-Recapture Data Using the Conditional Likelihood.” <em>Journal of Statistical Software</em>, <em>65</em>(5), 1-33. doi:10.18637/jss.v065.i05 <a href="https://doi.org/10.18637/jss.v065.i05" class="uri">https://doi.org/10.18637/jss.v065.i05</a>.</p></li>
+<li><p>Yee TW (2020). “The VGAM package for negative binomial regression.” <em>Australian and New Zealand Journal of Statistics</em>, <em>62</em>(1), 116-131.</p></li>
+<li><p>Yee TW (2022). “On the Hauck-Donner effect in Wald tests: Detection, tipping points and parameter space characterization.” <em>Journal of the American Statistical Association</em>, <em>117</em>(540), 1763-1774.</p></li>
+<li><p>Yee TW, Ma C (2024). “Generally altered, inflated, truncated and deflated regression.” <em>Statistical Science</em>, <em>39</em>(4), 568-588.</p></li>
+<li><p>Yee TW, Frigau L, Ma C (2025). “Heaping and seeping, GAITD regression and doubly constrained reduced-rank vector generalized linear models.” <em>Annals of Applied Statistics</em>, <em>(in press)</em>, 1-25.</p></li>
+</ul></li>
+</ul>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: aarch64-apple-darwin20
+Running under: macOS 26.3.1
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
+
+time zone: Australia/Melbourne
+tzcode source: internal
+
+attached base packages:
+[1] splines   stats4    stats     graphics  grDevices datasets  utils    
+[8] methods   base     
+
+other attached packages:
+[1] VGAM_1.1-14        tidyr_1.3.2        MASS_7.3-61        Fahrmeir_2016.5.31
+[5] dplyr_1.2.0        conflicted_1.2.0  
+
+loaded via a namespace (and not attached):
+ [1] vctrs_0.7.1      cli_3.6.5        knitr_1.51       rlang_1.1.7     
+ [5] xfun_0.56        otel_0.2.0       purrr_1.2.1      renv_1.1.7      
+ [9] generics_0.1.4   jsonlite_2.0.0   glue_1.8.0       htmltools_0.5.9 
+[13] rmarkdown_2.30   evaluate_1.0.5   tibble_3.3.1     fastmap_1.2.0   
+[17] yaml_2.3.12      lifecycle_1.0.5  memoise_2.0.1    compiler_4.4.2  
+[21] pkgconfig_2.0.3  digest_0.6.39    R6_2.6.1         utf8_1.2.6      
+[25] tidyselect_1.2.1 pillar_1.11.1    magrittr_2.0.4   withr_3.0.2     
+[29] tools_4.4.2      cachem_1.1.0    </code></pre>
+</div>
+</div>
+
 
 
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
+Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. New York, <span>NY</span>: Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
