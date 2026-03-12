@@ -5,23 +5,32 @@ subtitle: "Interactive Quarto Guides"
 
 ## Welcome
 
-This site contains detailed educational guides for statistical modeling concepts,
-covering:
-
-- **Generalized Linear Models** - Binomial, Poisson, and ordinal regression
-- **Mixed Effects Models** - Random intercepts and multilevel analysis
-- **Longitudinal Data** - GEE and repeated measures analysis
-- **Survival Analysis** - Kaplan-Meier and parametric methods
+This site supports the University of Melbourne subject
+[Statistical Modelling (MAST90084)](https://handbook.unimelb.edu.au/subjects/mast90084).
+It brings together material from the subject in a more readable format by converting
+what were previously standalone R scripts into Quarto documents with narrative
+explanations, code walkthroughs, and reproducible outputs for student use.
 
 ## Browse the Analyses
 
-Use the **Analyses** menu above to explore topic-by-topic walkthroughs
-with code explanations, interpretations, and diagnostics.
+Use the **Scripts** menu above, or jump directly to one of the guides below.
 
-## Key Features
+- [Binomial GLMs: Caesarian Birth](quarto_scripts/01-ANODEV.qmd)
+- [Quasi-Poisson GLM: Cell Differentiation](quarto_scripts/02-CellDiff.qmd)
+- [Multinomial Logistic Regression: Caesarian Birth](quarto_scripts/03-Example3-1and3-11Caes.qmd)
+- [Ordinal Regression: Breathing Test Results](quarto_scripts/04-Example3-2BTR.qmd)
+- [Sequential Regression: Tonsil Size](quarto_scripts/05-tonsil.qmd)
+- [Appendix 1: Dispersion with Working Residuals](quarto_scripts/A1-dispersion-working-residuals.qmd)
+- [Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data](quarto_scripts/A2-likelihood-multinomial.qmd)
 
-Each guide includes clear explanations, step-by-step code, statistical interpretations,
-and reproducible examples from *Fahrmeir & Tutz (2001)* and *Faraway (2016)*.
+<!--
+- [Happiness Data](quarto_scripts/06-Happiness.qmd)
+- [Ohio Data](quarto_scripts/07-ohio.qmd)
+- [GEE CTSIB](quarto_scripts/08-gee_ctsib.qmd)
+- [GLM Mixed Effects](quarto_scripts/09-GLM_mixed_Effect.qmd)
+- [LM Mixed Effects](quarto_scripts/10-LM_mixed_effect.qmd)
+- [Survival Analysis](quarto_scripts/11-survival.qmd)
+-->
 
 ## Acknowledgements
 

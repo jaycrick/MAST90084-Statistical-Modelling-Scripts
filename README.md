@@ -56,3 +56,24 @@ To keep things organized and safe:
 5. **One branch per correction** — keep changes small and focused
 
 Never edit the main branch directly. All changes should go through a pull request.
+
+## Publishing with Quarto
+
+This project is configured as a Quarto website (`_quarto.yml`), with output written to `_output/`.
+
+Basic publish workflow:
+
+1. Render the site locally:
+	```bash
+	quarto render
+	```
+2. Preview and check pages:
+	```bash
+	quarto preview
+	```
+3. Publish to GitHub Pages:
+	```bash
+	quarto publish gh-pages
+	```
+
+Quarto updates the `gh-pages` branch, and GitHub Pages serves the published site from there.
