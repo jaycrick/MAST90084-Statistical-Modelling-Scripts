@@ -45,7 +45,7 @@ If you don't already have the packages installed, run
 ```{r}
 #| label: 01-anodev-chunk-1
 #| eval: false
-install.packages(c("conflicted", "dplyr", "Fahrmeir"))
+install.packages(c("conflicted", "dplyr", "forcats", "Fahrmeir"))
 ```
 
 The `conflicted` library forces you to choose which library
@@ -76,7 +76,7 @@ by running the following command in RStudio
 ```{r}
 #| label: 01-anodev-chunk-4
 #| eval: false
-?caeser
+?caesar
 ```
 
 ## Data Transformation
