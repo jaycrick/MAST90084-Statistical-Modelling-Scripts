@@ -285,11 +285,13 @@ anova(caesar_int_glm, test = "F")
 ::: {.callout-tip collapse="true"}
 ## Why is an F test inappropriate here? Expand for answer
 
-For binomial GLMs, the natural test for nested models
+For binomial GLMs, because the dispersion parameter $\phi$ is fixed at $1$, the natural test for nested models
 is based on differences in deviance,
 which asymptotically follows a chi-square distribution.
-The F test is appropriate for Gaussian linear models with unknown dispersion
-(and certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
+The F test is exact for Gaussian GLMs with identity link (i.e. the classical Gaussian linear model) when the dispersion (i.e. the variance) is unknown and has to be estimated, and, by heuristic extension, appropriate for GLMs with unknown dispersion, such as Gamma GLMs
+(and perhaps certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
+
+See the documentation of `anova.glm()`, as well as @venables_modern_2002, p.186-187 and Section 7.5, for more discussion.
 :::
 
 ## Model Diagnostics
