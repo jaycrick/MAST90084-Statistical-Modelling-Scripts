@@ -36,7 +36,10 @@ btr_dat <- read_csv(
   )
 ```
 
-If we just read_csv() as it is, we can see that the variables `BTR`, `Age`, and `Smoking` are all read as characters. This is not what we want, and we will use the `col_types` argument to specify that we want them as factors.
+If we just read_csv() as it is, we can see that the variables `BTR`,
+`Age`, and `Smoking` are all read as characters. This is not what we
+want, and we will use the `col_types` argument to specify that we want
+them as factors.
 
 ```{r}
 #| label: load-btr-factor
@@ -53,9 +56,9 @@ btr_dat <- read_csv(
 btr_dat
 ```
 
-We can see that `BTR`, `Age`, and `Smoking` are all factors now. We check if
-the breathing test result (`BTR`) is encoded as an ordered factor, and
-if not, we convert it to an ordered factor.
+We can see that `BTR`, `Age`, and `Smoking` are all factors now. We
+check if the breathing test result (`BTR`) is encoded as an ordered
+factor, and if not, we convert it to an ordered factor.
 
 ```{r}
 #| label: order-btr
@@ -152,14 +155,14 @@ summary(btr_logit_inter)
 ```
 
 ::: {.callout-important collapse="true"}
-## SELF TEST: Interpret Coefficients in `polr()` for a Former Smoker age 40 to 59
+## SELF TEST: Provided that a worker is less than 40 years of age, what is his/her (cumulative) odds of having a normal test result if s/he is a current smoker, compared to if s/he has never smoked?
 
-A former smoker who is Age 40 to 59 then the cumulative odds of having a
-normal test compared to not having a normal test is $\exp(2.8334)$ times
-the odds for a person who has never smoked.
+Given that a worker is less than 40 years of age, the cumulative odds of having a normal test result for a current smoker is $\exp(-0.6973)= 0.5$ times that for a person who has never smoked.
+
+
 
 If smoking has no association with the breathing test results, then we
-would expect this number to be 1.
+would expect this cumulative odds ratio to be 1.
 :::
 
 There is no residual readily available, but we can observe the linear
