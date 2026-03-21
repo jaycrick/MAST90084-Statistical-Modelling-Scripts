@@ -6,13 +6,6 @@ editor:
     wrap: 72
 ---
 
-## TODO
-
--   Look at 3.3.3 pg 31/40 for variable information on thetas and
-    gammas.
--   Write up more about the different link functions (2025-04-11 lecture
-    23 min)
-
 ## Data Loading and Setup
 
 ```{r}
@@ -97,8 +90,7 @@ contrasts(btr_dat$Age)
 ```
 
 The default reference categories are `never-smoked` for `Smoking`, and
-the `<40` for Age, which matches @fahrmeir_multivariate_2001, however
-they use **effect coding** rather than **dummy coding.**
+the `<40` for Age.
 
 ::: callout-note
 -   **Dummy coding**: Reference category is 0, other categories are 1;
@@ -112,8 +104,9 @@ they use **effect coding** rather than **dummy coding.**
 The `polr()` function fits cumulative logit (and other) models. [Looking
 at the
 documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html)
-using `?polr`, the sign of coefficients in `polr()` is **opposite** to
-the textbook formula.
+using `?polr`, particularly how $\eta$ is defined therein; the signs of
+beta coefficients in `polr()` is **opposite** to the corresponding
+coefficients in the textbook (@fahrmeir_multivariate_2001)'s formula.
 
 We first fit a cumulative logistic/proportional odds model with an
 intercept, age, smoking. We also include an interaction effect between
@@ -157,9 +150,9 @@ summary(btr_logit_inter)
 ::: {.callout-important collapse="true"}
 ## SELF TEST: Provided that a worker is less than 40 years of age, what is his/her (cumulative) odds of having a normal test result if s/he is a current smoker, compared to if s/he has never smoked?
 
-Given that a worker is less than 40 years of age, the cumulative odds of having a normal test result for a current smoker is $\exp(-0.6973)= 0.5$ times that for a person who has never smoked.
-
-
+Given that a worker is less than 40 years of age, the cumulative odds of
+having a normal test result for a current smoker is $\exp(-0.6973)= 0.5$
+times that for a person who has never smoked.
 
 If smoking has no association with the breathing test results, then we
 would expect this cumulative odds ratio to be 1.
@@ -175,7 +168,7 @@ btr_logit_inter$lp
 ```
 
 The $\zeta$'s are the theshold parameters $\theta$'s as defined in our
-textbook and slides.
+textbook (@fahrmeir_multivariate_2001) and slides.
 
 ```{r}
 #| label: threshold-zeta
@@ -247,7 +240,7 @@ reasonable significance levels.
 
 ::: callout-note
 The LR statistic in the `anova()` output is the difference between the
-deviances of the two models. Each deviance reported is
+deviances of the two models. Each residual deviance reported is
 $-2 \times \log(\text{likelihood})$ for that model.
 :::
 
@@ -302,8 +295,9 @@ summary(btr_extm)
 
 ## Matching our Results to @fahrmeir_multivariate_2001 Example 3.4
 
-By default, R uses dummy coding. To match to the textbook, we need to
-use effect coding. We switch the global contrast option and refit.
+By default, R uses dummy coding. To match to the results in the
+textbook, we need to use effect coding. We switch the global contrast
+option and refit.
 
 ```{r}
 #| label: set-effect-coding
@@ -314,8 +308,8 @@ contrasts(btr_dat$Smoking)
 contrasts(btr_dat$Age)
 ```
 
-We now have the final categories coded as -1, as required. Therefore we
-refit both models:
+We now have the final categories coded as -1, as also done in the
+textbook. Therefore we refit both models:
 
 ```{r}
 #| label: fit-logit-eff
@@ -359,14 +353,17 @@ Deviance" reported. We need to be careful to understand what this
 exactly means, because as we have previously seen, this can be highly
 package dependent.
 
-The deviance reported by `polr()` is $-2 \times \log(\text{likelihood})$
-for the fitted model. We can manually compute the **residual deviance**
-(difference from saturated model).
+The `deviance` component (reported as "residual deviance" by the
+`summary()` function) contained in a `polr` object is
+$-2 \times \log(\text{likelihood})$ for the fitted model. We can
+manually compute the (scaled) deviance as defined in class , i.e. twice
+the difference between the maximum log-likelihoods of the saturated
+model and the GLM.
 
-We first compute the log-likelihood of the saturated model. We create a
-matrix with each row corresponding to a unique covariate combination,
-and each column counting the frequency of each response per category for
-that covariate combination.
+We first compute the maximum log-likelihood of the saturated model. We
+create a matrix with each row corresponding to a unique covariate
+combination, and each column counting the frequency of each response per
+category for that covariate combination.
 
 ```{r}
 #| label: make-count-matrix
@@ -394,10 +391,12 @@ probs
 ```
 
 This is the also the matrix of maximum likelihood estimates for the
-saturated model. We can manually calculate the log-likelihood of the
-saturated model using the multinomial distribution by first calculating
-the likelihood for each cell, (treating $0 \log(0) := 0$), and summing
-over all cells to get the total log-likelihood for the saturated model.
+saturated model. We can manually calculate the maximum log-likelihood of
+the saturated model using the multinomial distribution by first
+calculating the log-likelihood for each cell, (treating
+$0 \log(0) := 0$, as one of the cells in `data_mat` is a zero entry),
+and summing over all cells to get the total log-likelihood for the
+saturated model.
 
 ```{r}
 #| label: loglike-matrix
@@ -414,19 +413,20 @@ loglike_saturated
 ::: {.callout-note collapse="true"}
 ## SELF TEST: Explain Why We Compute the Saturated Log-Likelihood with this Sum
 
-The above computation is under the ungrouped view of the data. The
-probability mass function for the multinomial distribution is hence: $$
-    \Pr(Y_1 = y_1, \ldots, Y_k = y_k)
-    = \prod_{i = 1}^{6} p_1^{y_{i1}} p_2^{y_{i2}} p_3^{y_{i3}},
-$$ where $y_i$ are the observed counts and $p_i$ are the probabilities
-for each category. The log-likelihood is then:
-$$\sum_{i,j} y_{ij} \log(p_{ij}),$$ where we treat $0 \log(0) = 0$.
+The above computation is under the ungrouped view of the multinomial
+data as in [Appendix A2](A2-likelihood-multinomial.qmd). The
+log-likelihood is then: $$
+\sum_{i = 1}^6 \sum_{j = 1}^3 \Big(\log(p_{ij}) \tilde{y}_{ij} \Big),
+$$ where $\tilde{y}_{ij}$ (the entries in `data_mat`) is the count of
+workers in response category $j$ (one of "Normal", "Border" or
+"Abnormal") within covariate group $i$ (defined by "Age" and "Smoking"),
+and we treat $0 \log(0) = 0$.
 :::
 
 We can recover the deviance reported in Table 3.3 of
-@fahrmeir_multivariate_2001 by computing the residual deviance as the
-difference between the reported 'deviance' of the fitted model and the
-deviance of the saturated model.
+@fahrmeir_multivariate_2001 by computing twice the difference between
+the reported `deviance` of the fitted model and the log-likelihood of
+the saturated model just manually computed.
 
 ```{r}
 #| label: residual-dev-logit
@@ -434,15 +434,16 @@ residual_dev_logit <- 2 * loglike_saturated + btr_logit_inter_eff$deviance
 residual_dev_logit
 ```
 
-This confirms that the so called 'deviance' reported by `polr()` is
-actually just twice the negative of the log-likelihood of the fitted
+This confirms that the so called `deviance` component of a `polr` object
+is actually just twice the negative of the log-likelihood of the fitted
 model. This is very different from what we usually consider the
 deviance.
 
 ### Returning the Deviance for Alternative Link Functions
 
-We fit models with complementary log-log and loglog link functions using
-effect coding, then summarize results in a comparison table:
+We also fit the models with complementary log-log and loglog link
+functions using effect coding, then summarize results in a comparison
+table similar to Table 3.3 of @fahrmeir_multivariate_2001, p.90:
 
 ::: callout-tip
 The table is built in three steps:
@@ -451,8 +452,8 @@ The table is built in three steps:
     `coef(summary(...))[ ,"Value"]`.
 2.  Build two small tibbles (one for coefficients, one for residual
     deviance) and stack them with `bind_rows()`.
-3.  Use `mutate(across(where(is.numeric), ~ round(., 4)))` to round all
-    numeric columns for cleaner display.
+3.  Use `mutate(across(where(is.numeric), ~ round(., 3)))` to round all
+    numeric columns to 3 decimal places for cleaner display.
 
 `rownames(coef(...))` supplies the parameter labels so each estimate
 aligns across link functions.
@@ -499,19 +500,19 @@ results_table <- bind_rows(
     ),
     # Residual Deviance
     tibble(
-        Parameter = "Residual Deviance",
+        Parameter = "Deviance",
         `Cum Log` = 2 * loglike_saturated + btr_logit_inter_eff$deviance,
         `Prop Haz` = 2 * loglike_saturated + btr_ph_eff$deviance,
         `Ext Max Val` = 2 * loglike_saturated + btr_extm_eff$deviance
     )
 ) |>
-    mutate(across(where(is.numeric), ~ round(., 4)))
+    mutate(across(where(is.numeric), ~ round(., 3)))
 
 results_table
 ```
 
 ::: {.callout-tip collapse="true"}
-## Alternative: Nested Data + Functional Mapping Workflow
+## Alternative (completely optional!): Nested Data + Functional Mapping Workflow
 
 This can be written in a nested/list-column style using functional
 programming. The idea is to store one row per link function, fit each
@@ -572,12 +573,12 @@ results_table_map
 :::
 
 We have now matched Table 3.3 of @fahrmeir_multivariate_2001 (with
-inverse signs for the coefficients).
+reverse signs for the non-threshold coefficients).
 
 It is **highly recommended** that you read through Example 3.4 in the
 textbook to get an idea of intepreting the results. It is worth
-considering here that the proportional hazard has the lowest deviance,
-and gives a much smaller threshold parameter.
+considering here that the proportional hazard has the lowest deviance
+and hence the best fit.
 
 ## Other Tricks and Commands
 
@@ -617,8 +618,8 @@ step(btr_logit_inter_eff)
 ### Variance-Covariance Matrix and Standard Errors
 
 We can extract the estimated variance-covariance matrix of the parameter
-estimates using `vcov()`. This should line up with the inverse of the
-Fisher information matrix.
+estimates using `vcov()`. This should roughly line up with the inverse
+of the Fisher information matrix.
 
 ```{r}
 #| label: vcov-extraction
@@ -642,7 +643,10 @@ We should be able to recover the same confidence intervals by using the
 variance-covariance matrix and a normal approximation (Wald intervals).
 
 We can check the covariance matrix against the inverse of the Hessian
-matrix (Fisher information) returned by `polr()`:
+matrix (Fisher information) returned by `polr()`; note that I can simply
+refer to it as `btr_logit_inter_eff$Hess` instead of
+`btr_logit_inter_eff$Hessian` because of [partial matching in
+R](https://humdrumr.ccml.gtcmt.gatech.edu/reference/partialMatching.html#:~:text=Partial%20matching%20explained,as%20do%20many%20humdrumR%20functions.):
 
 ```{r}
 #| label: hessian-comparison
@@ -650,7 +654,9 @@ hessian_inv <- solve(btr_logit_inter_eff$Hess)
 hessian_inv
 ```
 
-We can see that the matrices are slightly different.
+We can visually see that the two matrices `hessian_inv` and `logit_vcov`
+show slight differences in certain smaller entries. (The exact reason
+isn't known to us yet; mostly numerical.)
 
 ```{r}
 #| label: 04-example3-2btr-chunk-32
@@ -681,12 +687,13 @@ tibble(wald_lower, wald_upper)
 ```
 
 These values are different from the confidence intervals computed by
-`confint()`. This is because the `confint()` function uses the profile
-likelihood method, which is more suitable for some non-linear regression
-problems.
+`confint()`; in particular, they don't give symmetric CIs around the
+parameter estimates. This is because the `confint()` function uses the
+profile likelihood confidence intervals contructed by inverting the likelihood ratio tests, which is more suitable for some non-linear
+regression problems. See @agresti_cda_2013, sections 1.3.4 for constructing CIs by inverting tests and 3.2.6 for constructing profile likelihood confidence intervals.
 
-For more details see @venables_modern_2002, p. 220, and run
-`profile(btr_logit_inter_eff)`.
+Run `profile(btr_logit_inter_eff)` and see @venables_modern_2002, p. 220
+for more details on the `profile()` function.
 
 ```{r}
 #| label: package-citations
