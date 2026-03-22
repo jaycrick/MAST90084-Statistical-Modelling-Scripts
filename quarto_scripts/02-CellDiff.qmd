@@ -2,9 +2,6 @@
 title: "(Quasi-)Poisson GLM: Cell Differentiation Study"
 subtitle: "@fahrmeir_multivariate_2001 Examples 2.3, 2.6, and 2.7"
 date: today
-author:
-  - name: Dennis Leung
-  - name: Jacob Cumming
 nocite: |
   @bartlett_deviance_2014
   @noauthor_poisson_2026
