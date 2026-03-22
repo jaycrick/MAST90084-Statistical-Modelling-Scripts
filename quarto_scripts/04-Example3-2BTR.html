@@ -2,13 +2,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.9.36">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
 <title>Ordinal Regression: Breathing Test Results. – MAST90084 - Statistical Modelling Scripts</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -59,7 +62,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
-  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -91,10 +93,10 @@ div.csl-indent {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-fced259a1985fd972ecb57c7cd45153f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-975e726794ce811e14261b5ab5acfd7c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-449bc4893ad0110d90ad3b5e1881b435.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-48bd3c6b253a25ccd03947192839ad8b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -124,7 +126,7 @@ div.csl-indent {
 }</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 const typesetMath = (el) => {
@@ -137,7 +139,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -228,8 +230,7 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#todo" id="toc-todo" class="nav-link active" data-scroll-target="#todo">TODO</a></li>
-  <li><a href="#data-loading-and-setup" id="toc-data-loading-and-setup" class="nav-link" data-scroll-target="#data-loading-and-setup">Data Loading and Setup</a></li>
+  <li><a href="#data-loading-and-setup" id="toc-data-loading-and-setup" class="nav-link active" data-scroll-target="#data-loading-and-setup">Data Loading and Setup</a></li>
   <li><a href="#model-fitting-proportional-odds-models" id="toc-model-fitting-proportional-odds-models" class="nav-link" data-scroll-target="#model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</a>
   <ul class="collapse">
   <li><a href="#fit-model-without-interaction" id="toc-fit-model-without-interaction" class="nav-link" data-scroll-target="#fit-model-without-interaction">Fit Model without Interaction</a></li>
@@ -278,33 +279,26 @@ window.Quarto = {
 </header>
 
 
-<section id="todo" class="level2">
-<h2 class="anchored" data-anchor-id="todo">TODO</h2>
-<ul>
-<li>Look at 3.3.3 pg 31/40 for variable information on thetas and gammas.</li>
-<li>Write up more about the different link functions (2025-04-11 lecture 23 min)</li>
-</ul>
-</section>
 <section id="data-loading-and-setup" class="level2">
 <h2 class="anchored" data-anchor-id="data-loading-and-setup">Data Loading and Setup</h2>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We load the BTR dataset. It contains breathing test results normal, borderline, and abnormal (which we can consider ordered categories), and considered the effects of the covariates age and smoking status.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>btr_dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>btr_dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data/Example3-2BTR.csv"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 18 Columns: 4
@@ -321,7 +315,7 @@ dbl (1): Freq
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>btr_dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>btr_dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"data/Example3-2BTR.csv"</span>,</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">BTR =</span> <span class="fu">col_factor</span>(),</span>
@@ -331,7 +325,7 @@ dbl (1): Freq
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>btr_dat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>btr_dat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 18 × 4
@@ -361,28 +355,28 @@ dbl (1): Freq
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">is.ordered</span>(btr_dat<span class="sc">$</span>BTR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">is.ordered</span>(btr_dat<span class="sc">$</span>BTR)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] FALSE</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>btr_dat<span class="sc">$</span>BTR <span class="ot">&lt;-</span> <span class="fu">as.ordered</span>(btr_dat<span class="sc">$</span>BTR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>btr_dat<span class="sc">$</span>BTR <span class="ot">&lt;-</span> <span class="fu">as.ordered</span>(btr_dat<span class="sc">$</span>BTR)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We can now confirm the conversion was successful.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(btr_dat<span class="sc">$</span>BTR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(btr_dat<span class="sc">$</span>BTR)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "ordered" "factor" </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>btr_dat<span class="sc">$</span>BTR</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>btr_dat<span class="sc">$</span>BTR</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] 1Normal 2Border 3Abnorm 1Normal 2Border 3Abnorm 1Normal 2Border 3Abnorm
@@ -395,7 +389,7 @@ Levels: 1Normal &lt; 2Border &lt; 3Abnorm</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getOption</span>(<span class="st">"contrasts"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getOption</span>(<span class="st">"contrasts"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>        unordered           ordered 
@@ -406,7 +400,7 @@ Levels: 1Normal &lt; 2Border &lt; 3Abnorm</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Smoking)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Smoking)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>         2Former 3Current
@@ -416,7 +410,7 @@ Levels: 1Normal &lt; 2Border &lt; 3Abnorm</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>       40to59
@@ -424,7 +418,7 @@ Levels: 1Normal &lt; 2Border &lt; 3Abnorm</code></pre>
 40to59      1</code></pre>
 </div>
 </div>
-<p>The default reference categories are <code>never-smoked</code> for <code>Smoking</code>, and the <code>&lt;40</code> for Age, which matches <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, however they use <strong>effect coding</strong> rather than <strong>dummy coding.</strong></p>
+<p>The default reference categories are <code>never-smoked</code> for <code>Smoking</code>, and the <code>&lt;40</code> for Age.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -444,27 +438,27 @@ Note
 </section>
 <section id="model-fitting-proportional-odds-models" class="level2">
 <h2 class="anchored" data-anchor-id="model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</h2>
-<p>The <code>polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html">Looking at the documentation</a> using <code>?polr</code>, the sign of coefficients in <code>polr()</code> is <strong>opposite</strong> to the textbook formula.</p>
+<p>The <code>polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html">Looking at the documentation</a> using <code>?polr</code>, particularly how <span class="math inline">\(\eta\)</span> is defined therein; the signs of beta coefficients in <code>polr()</code> is <strong>opposite</strong> to the corresponding coefficients in the textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>)’s formula.</p>
 <p>We first fit a cumulative logistic/proportional odds model with an intercept, age, smoking. We also include an interaction effect between age and smoking.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">*</span> Smoking,</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<code>polr()</code> Function Syntax
+<span class="screen-reader-only">Tip</span><code>polr()</code> Function Syntax
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -484,7 +478,7 @@ Note
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_inter)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_inter)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -509,19 +503,19 @@ AIC: 1578.968 </code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age 40 to 59
+<span class="screen-reader-only">Important</span>SELF TEST: Provided that a worker is less than 40 years of age, what is his/her (cumulative) odds of having a normal test result if s/he is a current smoker, compared to if s/he has never smoked?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>A former smoker who is Age 40 to 59 then the cumulative odds of having a normal test compared to not having a normal test is <span class="math inline">\(\exp(2.8334)\)</span> times the odds for a person who has never smoked.</p>
-<p>If smoking has no association with the breathing test results, then we would expect this number to be 1.</p>
+<p>Given that a worker is less than 40 years of age, the cumulative odds of having a normal test result for a current smoker is <span class="math inline">\(\exp(-0.6973)= 0.5\)</span> times that for a person who has never smoked.</p>
+<p>If smoking has no association with the breathing test results, then we would expect this cumulative odds ratio to be 1.</p>
 </div>
 </div>
 </div>
@@ -529,7 +523,7 @@ SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter<span class="sc">$</span>lp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter<span class="sc">$</span>lp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>         1          2          3          4          5          6          7 
@@ -540,11 +534,11 @@ SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age
  0.9573393  1.6621466  1.6621466  1.6621466 </code></pre>
 </div>
 </div>
-<p>The <span class="math inline">\(\zeta\)</span>’s are the theshold parameters <span class="math inline">\(\theta\)</span>’s as defined in our textbook and slides.</p>
+<p>The <span class="math inline">\(\zeta\)</span>’s are the theshold parameters <span class="math inline">\(\theta\)</span>’s as defined in our textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>) and slides.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter<span class="sc">$</span>zeta</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter<span class="sc">$</span>zeta</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>1Normal|2Border 2Border|3Abnorm 
@@ -555,7 +549,7 @@ SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>),</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"2Former"</span>),</span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"3Current"</span>),</span>
@@ -566,7 +560,7 @@ SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age
 <span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
 <span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">manual =</span> <span class="fu">c</span>(Z <span class="sc">%*%</span> btr_logit_inter<span class="sc">$</span>coeff),</span>
 <span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">polr =</span> btr_logit_inter<span class="sc">$</span>lp</span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 18 × 2
@@ -599,7 +593,7 @@ SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>btr_logit_main <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>btr_logit_main <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking,</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
@@ -607,7 +601,7 @@ SELF TEST: Interpret Coefficients in <code>polr()</code> for a Former Smoker age
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -632,12 +626,12 @@ AIC: 1599.744 </code></pre>
 <p>Again the signs of the coefficients are the opposite to our model.</p>
 <p>Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.</p>
 <div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-SELF TEST: How Many Degrees of Freedom will the Likelihood Ratio Test have?
+<span class="screen-reader-only">Important</span>SELF TEST: How Many Degrees of Freedom will the Likelihood Ratio Test have?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -651,7 +645,7 @@ SELF TEST: How Many Degrees of Freedom will the Likelihood Ratio Test have?
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(btr_logit_inter, btr_logit_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(btr_logit_inter, btr_logit_main)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Likelihood ratio tests of ordinal regression models
@@ -663,12 +657,12 @@ Response: BTR
 </div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-SELF TEST: Interpret the Likelihood Ratio Test Results
+<span class="screen-reader-only">Important</span>SELF TEST: Interpret the Likelihood Ratio Test Results
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -688,7 +682,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The LR statistic in the <code>anova()</code> output is the difference between the deviances of the two models. Each deviance reported is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for that model.</p>
+<p>The LR statistic in the <code>anova()</code> output is the difference between the deviances of the two models. Each residual deviance reported is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for that model.</p>
 </div>
 </div>
 </section>
@@ -709,7 +703,7 @@ Note
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>btr_ph <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>btr_ph <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
 <span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
@@ -717,7 +711,7 @@ Note
 <span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"cloglog"</span></span>
 <span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_ph)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_ph)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -748,7 +742,7 @@ AIC: 1573.949 </code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>btr_extm <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>btr_extm <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
@@ -756,7 +750,7 @@ AIC: 1573.949 </code></pre>
 <span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"loglog"</span></span>
 <span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_extm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_extm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -784,14 +778,14 @@ AIC: 1580.335 </code></pre>
 </section>
 <section id="matching-our-results-to-fahrmeir_multivariate_2001-example-3.4" class="level2">
 <h2 class="anchored" data-anchor-id="matching-our-results-to-fahrmeir_multivariate_2001-example-3.4">Matching our Results to <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 3.4</h2>
-<p>By default, R uses dummy coding. To match to the textbook, we need to use effect coding. We switch the global contrast option and refit.</p>
+<p>By default, R uses dummy coding. To match to the results in the textbook, we need to use effect coding. We switch the global contrast option and refit.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify the contrast change</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Smoking)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Smoking)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>         [,1] [,2]
@@ -801,7 +795,7 @@ AIC: 1580.335 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(btr_dat<span class="sc">$</span>Age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>       [,1]
@@ -809,11 +803,11 @@ AIC: 1580.335 </code></pre>
 40to59   -1</code></pre>
 </div>
 </div>
-<p>We now have the final categories coded as -1, as required. Therefore we refit both models:</p>
+<p>We now have the final categories coded as -1, as also done in the textbook. Therefore we refit both models:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
 <span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
@@ -829,7 +823,7 @@ AIC: 1580.335 </code></pre>
 <span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
 <span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_inter_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_inter_eff)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -854,7 +848,7 @@ AIC: 1578.968 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main_eff)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -881,7 +875,7 @@ AIC: 1599.744 </code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(btr_logit_inter_eff, btr_logit_main_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(btr_logit_inter_eff, btr_logit_main_eff)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Likelihood ratio tests of ordinal regression models
@@ -900,18 +894,18 @@ Response: BTR
 <section id="saturated-model-and-deviance-calculation" class="level2">
 <h2 class="anchored" data-anchor-id="saturated-model-and-deviance-calculation">Saturated Model and Deviance Calculation</h2>
 <p>In each of the regressed model summaries, there is a value “Residual Deviance” reported. We need to be careful to understand what this exactly means, because as we have previously seen, this can be highly package dependent.</p>
-<p>The deviance reported by <code>polr()</code> is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for the fitted model. We can manually compute the <strong>residual deviance</strong> (difference from saturated model).</p>
-<p>We first compute the log-likelihood of the saturated model. We create a matrix with each row corresponding to a unique covariate combination, and each column counting the frequency of each response per category for that covariate combination.</p>
+<p>The <code>deviance</code> component (reported as “residual deviance” by the <code>summary()</code> function) contained in a <code>polr</code> object is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for the fitted model. We can manually compute the (scaled) deviance as defined in class , i.e.&nbsp;twice the difference between the maximum log-likelihoods of the saturated model and the GLM.</p>
+<p>We first compute the maximum log-likelihood of the saturated model. We create a matrix with each row corresponding to a unique covariate combination, and each column counting the frequency of each response per category for that covariate combination.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>btr_counts <span class="ot">&lt;-</span> btr_dat <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>btr_counts <span class="ot">&lt;-</span> btr_dat <span class="sc">|&gt;</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(</span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">id_cols =</span> <span class="fu">c</span>(Age, Smoking),</span>
 <span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_from =</span> BTR,</span>
 <span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_from =</span> Freq</span>
 <span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>btr_counts</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>btr_counts</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 5
@@ -926,10 +920,10 @@ Response: BTR
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>data_mat <span class="ot">&lt;-</span> btr_counts <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>data_mat <span class="ot">&lt;-</span> btr_counts <span class="sc">|&gt;</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>Age, <span class="sc">-</span>Smoking) <span class="sc">|&gt;</span></span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>data_mat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>data_mat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>     1Normal 2Border 3Abnorm
@@ -945,8 +939,8 @@ Response: BTR
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>probs <span class="ot">&lt;-</span> data_mat <span class="sc">/</span> <span class="fu">rowSums</span>(data_mat)</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>probs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>probs <span class="ot">&lt;-</span> data_mat <span class="sc">/</span> <span class="fu">rowSums</span>(data_mat)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>probs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>       1Normal    2Border    3Abnorm
@@ -958,12 +952,12 @@ Response: BTR
 [6,] 0.7680251 0.14733542 0.08463950</code></pre>
 </div>
 </div>
-<p>This is the also the matrix of maximum likelihood estimates for the saturated model. We can manually calculate the log-likelihood of the saturated model using the multinomial distribution by first calculating the likelihood for each cell, (treating <span class="math inline">\(0 \log(0) := 0\)</span>), and summing over all cells to get the total log-likelihood for the saturated model.</p>
+<p>This is the also the matrix of maximum likelihood estimates for the saturated model. We can manually calculate the maximum log-likelihood of the saturated model using the multinomial distribution by first calculating the log-likelihood for each cell, (treating <span class="math inline">\(0 \log(0) := 0\)</span>, as one of the cells in <code>data_mat</code> is a zero entry), and summing over all cells to get the total log-likelihood for the saturated model.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>loglike_matrix <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data_mat <span class="sc">&gt;</span> <span class="dv">0</span>, data_mat <span class="sc">*</span> <span class="fu">log</span>(probs), <span class="dv">0</span>)</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>loglike_matrix</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>loglike_matrix <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data_mat <span class="sc">&gt;</span> <span class="dv">0</span>, data_mat <span class="sc">*</span> <span class="fu">log</span>(probs), <span class="dv">0</span>)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>loglike_matrix</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>        1Normal    2Border   3Abnorm
@@ -978,47 +972,46 @@ Response: BTR
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>loglike_saturated <span class="ot">&lt;-</span> <span class="fu">sum</span>(loglike_matrix)</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>loglike_saturated</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>loglike_saturated <span class="ot">&lt;-</span> <span class="fu">sum</span>(loglike_matrix)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>loglike_saturated</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -778.4107</code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-SELF TEST: Explain Why We Compute the Saturated Log-Likelihood with this Sum
+<span class="screen-reader-only">Note</span>SELF TEST: Explain Why We Compute the Saturated Log-Likelihood with this Sum
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-7" class="callout-7-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>The above computation is under the ungrouped view of the data. The probability mass function for the multinomial distribution is hence: <span class="math display">\[
-    \Pr(Y_1 = y_1, \ldots, Y_k = y_k)
-    = \prod_{i = 1}^{6} p_1^{y_{i1}} p_2^{y_{i2}} p_3^{y_{i3}},
-\]</span> where <span class="math inline">\(y_i\)</span> are the observed counts and <span class="math inline">\(p_i\)</span> are the probabilities for each category. The log-likelihood is then: <span class="math display">\[\sum_{i,j} y_{ij} \log(p_{ij}),\]</span> where we treat <span class="math inline">\(0 \log(0) = 0\)</span>.</p>
+<p>The above computation is under the ungrouped view of the multinomial data as in <a href="../quarto_scripts/A2-likelihood-multinomial.html">Appendix A2</a>. The log-likelihood is then: <span class="math display">\[
+\sum_{i = 1}^6 \sum_{j = 1}^3 \Big(\log(p_{ij}) \tilde{y}_{ij} \Big),
+\]</span> where <span class="math inline">\(\tilde{y}_{ij}\)</span> (the entries in <code>data_mat</code>) is the count of workers in response category <span class="math inline">\(j\)</span> (one of “Normal”, “Border” or “Abnormal”) within covariate group <span class="math inline">\(i\)</span> (defined by “Age” and “Smoking”), and we treat <span class="math inline">\(0 \log(0) = 0\)</span>.</p>
 </div>
 </div>
 </div>
-<p>We can recover the deviance reported in Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> by computing the residual deviance as the difference between the reported ‘deviance’ of the fitted model and the deviance of the saturated model.</p>
+<p>We can recover the deviance reported in Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> by computing twice the difference between the reported <code>deviance</code> of the fitted model and the log-likelihood of the saturated model just manually computed.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>residual_dev_logit <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_logit_inter_eff<span class="sc">$</span>deviance</span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>residual_dev_logit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>residual_dev_logit <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_logit_inter_eff<span class="sc">$</span>deviance</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>residual_dev_logit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 8.146686</code></pre>
 </div>
 </div>
-<p>This confirms that the so called ‘deviance’ reported by <code>polr()</code> is actually just twice the negative of the log-likelihood of the fitted model. This is very different from what we usually consider the deviance.</p>
+<p>This confirms that the so called <code>deviance</code> component of a <code>polr</code> object is actually just twice the negative of the log-likelihood of the fitted model. This is very different from what we usually consider the deviance.</p>
 <section id="returning-the-deviance-for-alternative-link-functions" class="level3">
 <h3 class="anchored" data-anchor-id="returning-the-deviance-for-alternative-link-functions">Returning the Deviance for Alternative Link Functions</h3>
-<p>We fit models with complementary log-log and loglog link functions using effect coding, then summarize results in a comparison table:</p>
+<p>We also fit the models with complementary log-log and loglog link functions using effect coding, then summarize results in a comparison table similar to Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, p.90:</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1033,7 +1026,7 @@ Tip
 <ol type="1">
 <li>Fit one model per link and extract coefficient estimates with <code>coef(summary(...))[ ,"Value"]</code>.</li>
 <li>Build two small tibbles (one for coefficients, one for residual deviance) and stack them with <code>bind_rows()</code>.</li>
-<li>Use <code>mutate(across(where(is.numeric), ~ round(., 4)))</code> to round all numeric columns for cleaner display.</li>
+<li>Use <code>mutate(across(where(is.numeric), ~ round(., 3)))</code> to round all numeric columns to 3 decimal places for cleaner display.</li>
 </ol>
 <p><code>rownames(coef(...))</code> supplies the parameter labels so each estimate aligns across link functions.</p>
 </div>
@@ -1041,7 +1034,7 @@ Tip
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit complementary log-log (proportional hazards)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit complementary log-log (proportional hazards)</span></span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>btr_ph_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
 <span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
 <span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
@@ -1079,37 +1072,37 @@ Tip
 <span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>    ),</span>
 <span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Residual Deviance</span></span>
 <span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
-<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">Parameter =</span> <span class="st">"Residual Deviance"</span>,</span>
+<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">Parameter =</span> <span class="st">"Deviance"</span>,</span>
 <span id="cb58-40"><a href="#cb58-40" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Cum Log</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_logit_inter_eff<span class="sc">$</span>deviance,</span>
 <span id="cb58-41"><a href="#cb58-41" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Prop Haz</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_ph_eff<span class="sc">$</span>deviance,</span>
 <span id="cb58-42"><a href="#cb58-42" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">Ext Max Val</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_extm_eff<span class="sc">$</span>deviance</span>
 <span id="cb58-43"><a href="#cb58-43" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb58-44"><a href="#cb58-44" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">4</span>)))</span>
+<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">3</span>)))</span>
 <span id="cb58-46"><a href="#cb58-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a>results_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a>results_table</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 4
-  Parameter         `Cum Log` `Prop Haz` `Ext Max Val`
-  &lt;chr&gt;                 &lt;dbl&gt;      &lt;dbl&gt;         &lt;dbl&gt;
-1 Age1                -0.115     -0.0686       -0.0952
-2 Smoking1            -0.906     -0.319        -0.866 
-3 Smoking2             0.364      0.110         0.359 
-4 Age1:Smoking1        0.558      0.212         0.529 
-5 Age1:Smoking2       -0.0152    -0.0048       -0.0214
-6 1Normal|2Border      2.37       0.872         2.43  
-7 2Border|3Abnorm      3.84       1.38          3.84  
-8 Residual Deviance    8.15       3.13          9.51  </code></pre>
+  Parameter       `Cum Log` `Prop Haz` `Ext Max Val`
+  &lt;chr&gt;               &lt;dbl&gt;      &lt;dbl&gt;         &lt;dbl&gt;
+1 Age1               -0.115     -0.069        -0.095
+2 Smoking1           -0.906     -0.319        -0.866
+3 Smoking2            0.364      0.11          0.359
+4 Age1:Smoking1       0.558      0.212         0.529
+5 Age1:Smoking2      -0.015     -0.005        -0.021
+6 1Normal|2Border     2.37       0.872         2.43 
+7 2Border|3Abnorm     3.84       1.38          3.84 
+8 Deviance            8.15       3.13          9.51 </code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Alternative: Nested Data + Functional Mapping Workflow
+<span class="screen-reader-only">Tip</span>Alternative (completely optional!): Nested Data + Functional Mapping Workflow
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -1119,7 +1112,7 @@ Alternative: Nested Data + Functional Mapping Workflow
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>link_specs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>link_specs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"Cum Log"</span>, <span class="st">"Prop Haz"</span>, <span class="st">"Ext Max Val"</span>),</span>
 <span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"logistic"</span>, <span class="st">"cloglog"</span>, <span class="st">"loglog"</span>)</span>
 <span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>)</span>
@@ -1165,7 +1158,7 @@ Alternative: Nested Data + Functional Mapping Workflow
 <span id="cb60-44"><a href="#cb60-44" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
 <span id="cb60-45"><a href="#cb60-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">4</span>)))</span>
 <span id="cb60-46"><a href="#cb60-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-47"><a href="#cb60-47" aria-hidden="true" tabindex="-1"></a>results_table_map</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb60-47"><a href="#cb60-47" aria-hidden="true" tabindex="-1"></a>results_table_map</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 4
@@ -1184,8 +1177,8 @@ Alternative: Nested Data + Functional Mapping Workflow
 </div>
 </div>
 </div>
-<p>We have now matched Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> (with inverse signs for the coefficients).</p>
-<p>It is <strong>highly recommended</strong> that you read through Example 3.4 in the textbook to get an idea of intepreting the results. It is worth considering here that the proportional hazard has the lowest deviance, and gives a much smaller threshold parameter.</p>
+<p>We have now matched Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> (with reverse signs for the non-threshold coefficients).</p>
+<p>It is <strong>highly recommended</strong> that you read through Example 3.4 in the textbook to get an idea of intepreting the results. It is worth considering here that the proportional hazard has the lowest deviance and hence the best fit.</p>
 </section>
 </section>
 <section id="other-tricks-and-commands" class="level2">
@@ -1196,7 +1189,7 @@ Alternative: Nested Data + Functional Mapping Workflow
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">residuals</span>(btr_logit_inter_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">residuals</span>(btr_logit_inter_eff)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>NULL</code></pre>
@@ -1209,7 +1202,7 @@ Alternative: Nested Data + Functional Mapping Workflow
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(btr_logit_inter_eff<span class="sc">$</span>fitted)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(btr_logit_inter_eff<span class="sc">$</span>fitted)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>    1Normal    2Border    3Abnorm
@@ -1222,7 +1215,7 @@ Alternative: Nested Data + Functional Mapping Workflow
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">predict</span>(btr_logit_inter_eff, <span class="at">type =</span> <span class="st">"probs"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">predict</span>(btr_logit_inter_eff, <span class="at">type =</span> <span class="st">"probs"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>    1Normal    2Border    3Abnorm
@@ -1242,7 +1235,7 @@ Alternative: Nested Data + Functional Mapping Workflow
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">step</span>(btr_logit_inter_eff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">step</span>(btr_logit_inter_eff)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Start:  AIC=1578.97
@@ -1272,12 +1265,12 @@ AIC: 1578.968 </code></pre>
 </section>
 <section id="variance-covariance-matrix-and-standard-errors" class="level3">
 <h3 class="anchored" data-anchor-id="variance-covariance-matrix-and-standard-errors">Variance-Covariance Matrix and Standard Errors</h3>
-<p>We can extract the estimated variance-covariance matrix of the parameter estimates using <code>vcov()</code>. This should line up with the inverse of the Fisher information matrix.</p>
+<p>We can extract the estimated variance-covariance matrix of the parameter estimates using <code>vcov()</code>. This should roughly line up with the inverse of the Fisher information matrix.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>logit_vcov <span class="ot">&lt;-</span> <span class="fu">vcov</span>(btr_logit_inter_eff)</span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>logit_vcov</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>logit_vcov <span class="ot">&lt;-</span> <span class="fu">vcov</span>(btr_logit_inter_eff)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>logit_vcov</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        Age1    Smoking1     Smoking2 Age1:Smoking1
@@ -1302,10 +1295,10 @@ Age1:Smoking2     0.020179722    -0.006001108    -0.005918600
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(logit_vcov))</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(logit_vcov))</span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>se_from_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_inter_eff)<span class="sc">$</span>coefficients[, <span class="st">"Std. Error"</span>]</span>
 <span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="sc">==</span> se_from_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="sc">==</span> se_from_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>           Age1        Smoking1        Smoking2   Age1:Smoking1   Age1:Smoking2 
@@ -1315,12 +1308,12 @@ Age1:Smoking2     0.020179722    -0.006001108    -0.005918600
 </div>
 </div>
 <p>We should be able to recover the same confidence intervals by using the variance-covariance matrix and a normal approximation (Wald intervals).</p>
-<p>We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by <code>polr()</code>:</p>
+<p>We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by <code>polr()</code>; note that I can simply refer to it as <code>btr_logit_inter_eff$Hess</code> instead of <code>btr_logit_inter_eff$Hessian</code> because of <a href="https://humdrumr.ccml.gtcmt.gatech.edu/reference/partialMatching.html#:~:text=Partial%20matching%20explained,as%20do%20many%20humdrumR%20functions.">partial matching in R</a>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>hessian_inv <span class="ot">&lt;-</span> <span class="fu">solve</span>(btr_logit_inter_eff<span class="sc">$</span>Hess)</span>
-<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>hessian_inv</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>hessian_inv <span class="ot">&lt;-</span> <span class="fu">solve</span>(btr_logit_inter_eff<span class="sc">$</span>Hess)</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>hessian_inv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>                         Age1     Smoking1      Smoking2 Age1:Smoking1
@@ -1341,14 +1334,14 @@ Age1:Smoking2    2.017972e-02   -0.0060011075    5.596186e-05
 2Border|3Abnorm  5.596186e-05   -0.0003073874    6.746838e-03</code></pre>
 </div>
 </div>
-<p>We can see that the matrices are slightly different.</p>
+<p>We can visually see that the two matrices <code>hessian_inv</code> and <code>logit_vcov</code> show slight differences in certain smaller entries. (The exact reason isn’t known to us yet; mostly numerical.)</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(hessian_inv, logit_vcov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(hessian_inv, logit_vcov)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Mean relative difference: 0.2624136"</code></pre>
+<pre><code>[1] "Mean relative difference: 0.2576063"</code></pre>
 </div>
 </div>
 </section>
@@ -1358,7 +1351,7 @@ Age1:Smoking2    2.017972e-02   -0.0060011075    5.596186e-05
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(btr_logit_inter_eff) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(btr_logit_inter_eff) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Waiting for profiling to be done...</code></pre>
@@ -1376,11 +1369,11 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manual Wald CI (upper limit)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manual Wald CI (upper limit)</span></span>
 <span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>coeff_est <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_inter_eff)<span class="sc">$</span>coefficients[, <span class="dv">1</span>]</span>
 <span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>wald_upper <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
 <span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>wald_lower <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.025</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
-<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(wald_lower, wald_upper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(wald_lower, wald_upper)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 7 × 2
@@ -1395,11 +1388,11 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 7     3.53       4.16  </code></pre>
 </div>
 </div>
-<p>These values are different from the confidence intervals computed by <code>confint()</code>. This is because the <code>confint()</code> function uses the profile likelihood method, which is more suitable for some non-linear regression problems.</p>
-<p>For more details see <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.&nbsp;220, and run <code>profile(btr_logit_inter_eff)</code>.</p>
+<p>These values are different from the confidence intervals computed by <code>confint()</code>; in particular, they don’t give symmetric CIs around the parameter estimates. This is because the <code>confint()</code> function uses the profile likelihood confidence intervals contructed by inverting the likelihood ratio tests, which is more suitable for some non-linear regression problems. See <span class="citation" data-cites="agresti_cda_2013">Agresti (<a href="#ref-agresti_cda_2013" role="doc-biblioref">2013</a>)</span>, sections 1.3.4 for constructing CIs by inverting tests and 3.2.6 for constructing profile likelihood confidence intervals.</p>
+<p>Run <code>profile(btr_logit_inter_eff)</code> and see <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.&nbsp;220 for more details on the <code>profile()</code> function.</p>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"MASS"</span>, <span class="st">"purrr"</span>, <span class="st">"readr"</span>, <span class="st">"tidyr"</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"MASS"</span>, <span class="st">"purrr"</span>, <span class="st">"readr"</span>, <span class="st">"tidyr"</span>)</span>
 <span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
 <span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>    cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
 <span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -1414,7 +1407,7 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 <span id="cb84-13"><a href="#cb84-13" aria-hidden="true" tabindex="-1"></a>        cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
 <span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
@@ -1430,12 +1423,15 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 </section>
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-agresti_cda_2013" class="csl-entry" role="listitem">
+Agresti, Alan. 2013. <em>Categorical Data Analysis</em>. Third. Wiley Series in Probability and Statistics. Wiley-Interscience [John Wiley &amp; Sons], Hoboken, NJ.
+</div>
 <div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
-Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. New York, <span>NY</span>: Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
+Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
 </div>
 <div id="ref-venables_modern_2002" class="csl-entry" role="listitem">
-Venables, W. N., and B. D. Ripley. 2002. <em>Modern Applied Statistics with <span>S</span></em>. Fourth. New York: Springer. <a href="https://www.stats.ox.ac.uk/pub/MASS4/">https://www.stats.ox.ac.uk/pub/MASS4/</a>.
+Venables, W. N., and B. D. Ripley. 2002. <em>Modern Applied Statistics with <span>S</span></em>. Fourth. Springer. <a href="https://www.stats.ox.ac.uk/pub/MASS4/">https://www.stats.ox.ac.uk/pub/MASS4/</a>.
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1489,13 +1485,14 @@ Venables, W. N., and B. D. Ripley. 2002. <em>Modern Applied Statistics with <spa
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
