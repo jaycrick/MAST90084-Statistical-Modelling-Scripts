@@ -57,15 +57,15 @@ and convert it to a factor with labels.
 ```{r}
 #| label: 05-tonsil-reshape-to-wide
 tonsil_wide <- tonsil_tbl |>
-    mutate(
-        Size = factor(
-            Size,
-            levels = c(1, 2, 3),
-            labels = c("present", "enlarged", "great_enlarged")
-        )
-    ) |>
-    dplyr::select(Streptococcus.p, Size, n) |>
-    pivot_wider(names_from = Size, values_from = n)
+  mutate(
+    Size = factor(
+      Size,
+      levels = c(1, 2, 3),
+      labels = c("present", "enlarged", "great_enlarged")
+    )
+  ) |>
+  dplyr::select(Streptococcus.p, Size, n) |>
+  pivot_wider(names_from = Size, values_from = n)
 
 tonsil_wide
 ```
@@ -105,9 +105,9 @@ We first fit a cumulative logit model.
 ```{r}
 #| label: 05-tonsil-fit-cumulative-parallel
 fit_cumulative <- vglm(
-    cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
-    family = cumulative(parallel = TRUE ~ Streptococcus.p - 1),
-    data = tonsil_wide
+  cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
+  family = cumulative(parallel = TRUE ~ Streptococcus.p - 1),
+  data = tonsil_wide
 )
 
 summary(fit_cumulative)
@@ -132,9 +132,9 @@ Here we don't set `parallel = TRUE` and allow category-specific effects.
 ```{r}
 #| label: 05-tonsil-fit-cumulative-nonparallel
 fit_cumulative_extended <- vglm(
-    cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
-    family = cumulative(),
-    data = tonsil_wide
+  cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
+  family = cumulative(),
+  data = tonsil_wide
 )
 
 summary(fit_cumulative_extended)
@@ -158,9 +158,9 @@ Check @fahrmeir_multivariate_2001 page 94 for answer.
 ```{r}
 #| label: 05-tonsil-fit-sequential-parallel
 fit_sequential <- vglm(
-    cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
-    family = sratio(parallel = TRUE ~ Streptococcus.p - 1),
-    data = tonsil_wide
+  cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
+  family = sratio(parallel = TRUE ~ Streptococcus.p - 1),
+  data = tonsil_wide
 )
 
 summary(fit_sequential)
@@ -180,14 +180,14 @@ We convert our data back to long format.
 ```{r}
 #| label: 05-tonsil-prepare-polr-data
 polr_dat <- tonsil_wide |>
-    pivot_longer(
-        cols = c(present, enlarged, great_enlarged),
-        names_to = "size",
-        values_to = "weight"
-    ) |>
-    mutate(
-        size = ordered(size, levels = c("present", "enlarged", "great_enlarged"))
-    )
+  pivot_longer(
+    cols = c(present, enlarged, great_enlarged),
+    names_to = "size",
+    values_to = "weight"
+  ) |>
+  mutate(
+    size = ordered(size, levels = c("present", "enlarged", "great_enlarged"))
+  )
 
 polr_dat
 ```
@@ -206,10 +206,10 @@ polr_dat
 ```{r}
 #| label: 05-tonsil-fit-polr-model
 polr_obj <- polr(
-    formula = size ~ Streptococcus.p,
-    data = polr_dat,
-    weights = weight,
-    Hess = TRUE
+  formula = size ~ Streptococcus.p,
+  data = polr_dat,
+  weights = weight,
+  Hess = TRUE
 )
 
 summary(polr_obj)
@@ -226,19 +226,19 @@ The `polr()` standard errors agree with the cumulative `vglm()` fit.
 #| code-fold: true
 packages <- c("conflicted", "dplyr", "Fahrmeir", "MASS", "tidyr", "VGAM")
 for (pkg in packages) {
-    cit <- citation(pkg)
+  cit <- citation(pkg)
 
-    # Check if multiple citations
-    if (length(cit) > 1) {
-        cat("- **", pkg, "**:\n", sep = "")
-        for (i in seq_along(cit)) {
-            cit_text <- format(cit[i], style = "text")
-            cat("    - ", cit_text, "\n\n", sep = "")
-        }
-    } else {
-        cit_text <- format(cit, style = "text")
-        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
     }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
 }
 ```
 

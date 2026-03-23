@@ -128,10 +128,10 @@ and we can calculate the Pearson chi-squared statistic with
 poisson_deviance <- glm_poisson$deviance
 round(poisson_deviance, 1)
 pearson_chisq_stat <-
-    sum(
-        (glm_poisson$y - glm_poisson$fitted.values)^2 /
-            glm_poisson$fitted.values
-    )
+  sum(
+    (glm_poisson$y - glm_poisson$fitted.values)^2 /
+      glm_poisson$fitted.values
+  )
 round(pearson_chisq_stat, 1)
 ```
 
@@ -229,9 +229,9 @@ showing the comparison between the two models:
 ```{r}
 #| label: 02-celldiff-chunk-10
 glm_quasi_poisson <- glm(
-    formula = y ~ TNF * IFN,
-    family = quasipoisson,
-    data = cells_tbl
+  formula = y ~ TNF * IFN,
+  family = quasipoisson,
+  data = cells_tbl
 )
 
 glm_quasi_poisson_summary <- summary(glm_quasi_poisson)
@@ -265,10 +265,10 @@ and extract the various residuals:
 ```{r}
 #| label: 02-celldiff-chunk-12
 residuals_tbl <- tibble(
-    default = resid(glm_quasi_poisson),
-    deviance = resid(glm_quasi_poisson, type = "deviance"),
-    working = resid(glm_quasi_poisson, type = "working"),
-    pearson = resid(glm_quasi_poisson, type = "pearson")
+  default = resid(glm_quasi_poisson),
+  deviance = resid(glm_quasi_poisson, type = "deviance"),
+  working = resid(glm_quasi_poisson, type = "working"),
+  pearson = resid(glm_quasi_poisson, type = "pearson")
 )
 residuals_tbl
 ```
@@ -340,20 +340,20 @@ we have to use the biased variance estimate.
 ```{r}
 #| label: 02-celldiff-chunk-17
 variance_summary_by_TNF <- cells_tbl |>
-    group_by(TNF) |>
-    summarize(
-        est_var = var(y) * 3 / 4,
-        est_mean = mean(y),
-        .groups = "drop"
-    )
+  group_by(TNF) |>
+  summarize(
+    est_var = var(y) * 3 / 4,
+    est_mean = mean(y),
+    .groups = "drop"
+  )
 ggplot(variance_summary_by_TNF, aes(x = est_mean, y = est_var, color = factor(TNF))) +
-    geom_point(size = 3) +
-    labs(
-        x = "Mean",
-        y = "Biased Variance",
-        color = "TNF Level"
-    ) +
-    theme_minimal()
+  geom_point(size = 3) +
+  labs(
+    x = "Mean",
+    y = "Biased Variance",
+    color = "TNF Level"
+  ) +
+  theme_minimal()
 ```
 
 We can do a similar plot by `IFN` instead of `TNF`:
@@ -361,20 +361,20 @@ We can do a similar plot by `IFN` instead of `TNF`:
 ```{r}
 #| label: 02-celldiff-chunk-18
 variance_summary_by_IFN <- cells_tbl |>
-    group_by(IFN) |>
-    summarize(
-        est_var = var(y) * 3 / 4,
-        est_mean = mean(y),
-        .groups = "drop"
-    )
+  group_by(IFN) |>
+  summarize(
+    est_var = var(y) * 3 / 4,
+    est_mean = mean(y),
+    .groups = "drop"
+  )
 ggplot(variance_summary_by_IFN, aes(x = est_mean, y = est_var, color = factor(IFN))) +
-    geom_point(size = 3) +
-    labs(
-        x = "Mean",
-        y = "Biased Variance",
-        color = "IFN Level"
-    ) +
-    theme_minimal()
+  geom_point(size = 3) +
+  labs(
+    x = "Mean",
+    y = "Biased Variance",
+    color = "IFN Level"
+  ) +
+  theme_minimal()
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -392,10 +392,10 @@ The equivalent base R code to create the same scatter plot would be:
 #| label: 02-celldiff-chunk-19
 #| eval: false
 plot(
-    variance_summary_by_TFN$est_mean,
-    variance_summary_by_TFN$est_var,
-    xlab = "Mean",
-    ylab = "Biased Variance"
+  variance_summary_by_TFN$est_mean,
+  variance_summary_by_TFN$est_var,
+  xlab = "Mean",
+  ylab = "Biased Variance"
 )
 ```
 :::
@@ -433,10 +433,10 @@ We start by considering the linear variance structure $\sigma^2(\mu) = \phi \mu$
 ```{r}
 #| label: 02-celldiff-chunk-20
 gee_mu <- gee(
-    formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells_tbl)),
-    data = cells_tbl,
-    family = quasi(variance = "mu", link = "log")
+  formula = y ~ TNF * IFN,
+  id = seq_len(nrow(cells_tbl)),
+  data = cells_tbl,
+  family = quasi(variance = "mu", link = "log")
 )
 ```
 
@@ -502,9 +502,9 @@ Assuming we have correctly specified the variance structure (naive approach):
 ```{r}
 #| label: 02-celldiff-chunk-23
 naive_z_values <- tibble(
-    coefficient = names(gee_mu$coefficients),
-    z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$naive.variance)),
-    p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
+  coefficient = names(gee_mu$coefficients),
+  z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$naive.variance)),
+  p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
 )
 naive_z_values
 ```
@@ -514,9 +514,9 @@ Without assuming the variance structure is correct (robust approach):
 ```{r}
 #| label: 02-celldiff-chunk-24
 robust_z_values <- tibble(
-    coefficient = names(gee_mu$coefficients),
-    z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$robust.variance)),
-    p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
+  coefficient = names(gee_mu$coefficients),
+  z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$robust.variance)),
+  p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
 )
 robust_z_values
 ```
@@ -540,10 +540,10 @@ Under the hood, there are some small differences in implementation between `gee`
 ```{r}
 #| label: 02-celldiff-chunk-25
 geepack_mu <- geeglm(
-    formula = y ~ TNF * IFN,
-    family = poisson(link = "log"),
-    data = cells_tbl,
-    id = seq_len(nrow(cells_tbl))
+  formula = y ~ TNF * IFN,
+  family = poisson(link = "log"),
+  data = cells_tbl,
+  id = seq_len(nrow(cells_tbl))
 )
 geepack_mu
 geepack_mu_summary <- summary(geepack_mu)
@@ -559,10 +559,10 @@ Finally, we try the quadratic variance structure $\sigma^2(\mu) = \phi \mu^2$.
 ```{r}
 #| label: 02-celldiff-chunk-26
 gee_mu2 <- gee(
-    formula = y ~ TNF * IFN,
-    id = seq_len(nrow(cells_tbl)),
-    family = quasi(variance = "mu^2", link = "log"),
-    data = cells_tbl
+  formula = y ~ TNF * IFN,
+  id = seq_len(nrow(cells_tbl)),
+  family = quasi(variance = "mu^2", link = "log"),
+  data = cells_tbl
 )
 gee_mu2_summary <- summary(gee_mu2)
 gee_mu2_summary
@@ -576,11 +576,11 @@ For a final sanity check, we manually compute both the naive and robust $Z$ and 
 ```{r}
 #| label: 02-celldiff-chunk-27
 gee_mu2_inference <- tibble(
-    coefficient = names(gee_mu2$coefficients),
-    naive_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$naive.variance)),
-    naive_p = round(2 * pnorm(abs(naive_z), lower.tail = FALSE), 3),
-    robust_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$robust.variance)),
-    robust_p = round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
+  coefficient = names(gee_mu2$coefficients),
+  naive_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$naive.variance)),
+  naive_p = round(2 * pnorm(abs(naive_z), lower.tail = FALSE), 3),
+  robust_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$robust.variance)),
+  robust_p = round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
 )
 gee_mu2_inference
 ```
@@ -597,20 +597,20 @@ should have been robust $p$-values.
 #| results: asis
 #| code-fold: true
 
-packages <- c("conflicted", "dplyr", "Fahrmeir",  "gee", "geepack", "ggplot2", "MASS")
+packages <- c("conflicted", "dplyr", "Fahrmeir", "gee", "geepack", "ggplot2", "MASS")
 for (pkg in packages) {
-    cit <- citation(pkg)
+  cit <- citation(pkg)
 
-    # Check if multiple citations
-    if (length(cit) > 1) {
-        cat("- **", pkg, "**:\n", sep = "")
-        for (i in seq_along(cit)) {
-            cit_text <- format(cit[i], style = "text")
-            cat("    - ", cit_text, "\n\n", sep = "")
-        }
-    } else {
-        cit_text <- format(cit, style = "text")
-        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
     }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
 }
 ```
