@@ -1,175 +1,248 @@
 ---
-title: "Tonsil Size and Streptococcus"
-subtitle: "Ordinal Regression Models Comparison"
+title: "Sequential Regression: Tonsil Size and Streptococcus"
+subtitle: "@fahrmeir_multivariate_2001 Examples 3.6 and 3.7"
 date: today
+nocite: |
+    @fahrmeir_multivariate_2001
 ---
 
 ## Overview
 
-This script compares different **ordinal regression models** for analyzing the **tonsil dataset**, which examines the relationship between tonsil size (ordered categorical) and Streptococcus pyogenes carrier status.
+This script reproduces Examples 3.6 and 3.7 from @fahrmeir_multivariate_2001.
+We analyse the relationship between tonsil size of children and their
+*Streptococcus pyogenes* carrier status.
+
+The response has three ordered categories:
+
+1. `present`
+2. `enlarged`
+3. `great_enlarged`.
+
+There is a good physical interpretation of the ordering,
+where a normal tonsil must first become enlarged before it can become greatly enlarged,
+and so we are motivated to try a sequential regression model.
 
 ## Data and Packages
 
 ```{r}
-#| label: 05-tonsil-chunk-1
+#| label: 05-tonsil-load-packages
 library(conflicted)
 library(dplyr)
 library(Fahrmeir)
+library(MASS)
+library(tidyr)
 library(VGAM)
 ```
 
-```{r}
-#| label: 05-tonsil-chunk-2
-?tonsil
-```
+Run `?tonsil` for information about the data.
+This dataset is very simple, since it only contains one predictor.
+We load it and preview the contents to see how it's structured.
 
 ```{r}
-#| label: 05-tonsil-chunk-3
+#| label: 05-tonsil-load-and-preview-data
 data(tonsil)
-head(tonsil)
+tonsil_tbl <- as_tibble(tonsil)
+tonsil_tbl
 ```
 
 ### Data Reshaping
 
-Change the dataset into wide format for the vglm function. The commented-out code below shows an alternative approach using tidyverse:
+The `tonsil` data are in long format: one row per carrier-status and size category.
+For `vglm`, we want one row per carrier-status and one column per size count,
+referred to as wide format.
+We can reshape using `tidyr::pivot_wider()`.
+We also rename the size category to be more descriptive
+and convert it to a factor with labels.
 
 ```{r}
-#| label: 05-tonsil-chunk-4
-# Alternative tidyverse approach (commented out):
-# tonsil_df <- dplyr::tbl_df(tonsil)
-# tonsil_grouped <- dplyr::group_by(tonsil_df, Streptococcus.p)
-# tonsil_summary <- dplyr::summarize(
-#   tonsil_grouped,
-#   present = n[which(Size == 1)],
-#   enlarged = n[which(Size == 2)],
-#   great_enlarged = n[which(Size == 3)]
-# )
-# tonsil <- as.data.frame(tonsil_summary)
+#| label: 05-tonsil-reshape-to-wide
+tonsil_wide <- tonsil_tbl |>
+    mutate(
+        Size = factor(
+            Size,
+            levels = c(1, 2, 3),
+            labels = c("present", "enlarged", "great_enlarged")
+        )
+    ) |>
+    dplyr::select(Streptococcus.p, Size, n) |>
+    pivot_wider(names_from = Size, values_from = n)
+
+tonsil_wide
 ```
 
-Using reshape instead:
+::: {.callout-tip collapse="true"}
+## What each step is doing
+
+- `mutate(...)`:
+creates or updates columns; here it rewrites `Size` as a labelled factor.
+- `factor(...)`: converts numeric codes (`1, 2, 3`)
+into ordered category labels used in output.
+- `dplyr::select(Streptococcus.p, Size, n)`:
+keeps only the columns needed for reshaping.
+- `pivot_wider(names_from = Size, values_from = n)`:
+converts long data into wide data, so each size category becomes its own count column.
+- `|>`:
+passes the result of one step to the next, making the workflow readable top-to-bottom.
+:::
+
+### Understanding Factor Coding
+
+As in the other scripts, we want to ensure effect coding (`contr.sum`)
+is used for factors.
+This gives coefficients that are directly comparable to the textbook output.
 
 ```{r}
-#| label: 05-tonsil-chunk-5
-tonsil <- reshape(
-    tonsil,
-    idvar = "Streptococcus.p",
-    timevar = "Size",
-    direction = "wide"
-)
-
-tonsil
-```
-
-Change the column names:
-
-```{r}
-#| label: 05-tonsil-chunk-6
-colnames(tonsil) <- c(
-    "Streptococcus.p",
-    "present",
-    "enlarged",
-    "great_enlarged"
-)
-```
-
-### Setting Contrasts
-
-Change to effect coding for Streptococcus.p:
-
-```{r}
-#| label: 05-tonsil-chunk-7
+#| label: 05-tonsil-set-factor-contrasts
+contrasts(tonsil_wide$Streptococcus.p)
 options(contrasts = c("contr.sum", "contr.poly"))
-contrasts(tonsil$Streptococcus.p)
+contrasts(tonsil_wide$Streptococcus.p)
 ```
 
 ## Model 1: Cumulative Link Model (Proportional Odds)
 
-Fit with proportional odds assumption (parallel constraint):
+We first fit a cumulative logit model.
 
 ```{r}
-#| label: 05-tonsil-chunk-8
+#| label: 05-tonsil-fit-cumulative-parallel
 fit_cumulative <- vglm(
     cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
     family = cumulative(parallel = TRUE ~ Streptococcus.p - 1),
-    data = tonsil
+    data = tonsil_wide
 )
 
 summary(fit_cumulative)
 ```
 
-These numbers check out with Table 3.6 in Example 3.7 of F & T.
+::: {.callout-caution}
+Here, the `parallel = TRUE ~ Streptococcus.p - 1`
+argument specifies that the effect of `Streptococcus.p` is the same across all levels,
+and the `- 1` removes the intercept from the model,
+which sets the intercept to be different,
+since the intercepts here are exactly the $\theta$s.
+:::
 
-## Model 2: Extended (Partial Proportional Odds)
+Note that the $p$-values do not line up with those
+in Table 3.6 of @fahrmeir_multivariate_2001 for a completely unknown reason.
+If you manage to figure out why, please let me know.
 
-Fit without the parallel constraint to allow category-specific effects:
+## Model 2: Extended Cumulative Model
+
+Here we don't set `parallel = TRUE` and allow category-specific effects.
 
 ```{r}
-#| label: 05-tonsil-chunk-9
+#| label: 05-tonsil-fit-cumulative-nonparallel
 fit_cumulative_extended <- vglm(
     cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
     family = cumulative(),
-    data = tonsil
+    data = tonsil_wide
 )
 
 summary(fit_cumulative_extended)
 ```
 
-## Model 3: Sequential (Continuation Ratio) Model
+## Model 3: Sequential Model
 
-Fit sequential model with proportionality assumption:
+Here we fit a sequential model using `VGAM::sratio()`.
+
+::: {.callout-important collapse="true"}
+## Make sure you can write down the mathematical form of the model. Expand for hint.
+
+HINT: it should have the form:
+\begin{equation*}
+    \Pr(Y = r | Y \geq r, x) = \ldots
+\end{equation*}
+
+Check @fahrmeir_multivariate_2001 page 94 for answer.
+:::
 
 ```{r}
-#| label: 05-tonsil-chunk-10
+#| label: 05-tonsil-fit-sequential-parallel
 fit_sequential <- vglm(
     cbind(present, enlarged, great_enlarged) ~ Streptococcus.p,
     family = sratio(parallel = TRUE ~ Streptococcus.p - 1),
-    data = tonsil
+    data = tonsil_wide
 )
 
 summary(fit_sequential)
 ```
 
-Note: The p-values reported in F&T appear to be incorrect.
+Again, the $p$-values do not line up with those in Table 3.6 for an unknown reason,
+but the deviances do match.
+We can see that the deviance for the sequential model is much smaller
+than that of the cumulative model which suggests a much better fit to the data.
 
-## Alternative: MASS::polr() Function
+::: {.callout-tip collapse="true"}
+## Alternative: MASS::polr() Implementation
 
-Try using `polr()` from MASS package for comparison:
+Here we fit the same cumulative model using `MASS::polr()` to verify our $p$-values.
+We convert our data back to long format.
 
 ```{r}
-#| label: 05-tonsil-chunk-11
-response <- c(
-    "present",
-    "enlarged",
-    "great_enlarged",
-    "present",
-    "enlarged",
-    "great_enlarged"
-)
-
-response <- ordered(
-    response,
-    levels = c("present", "enlarged", "great_enlarged")
-)
-
-x <- c(
-    "carriers",
-    "carriers",
-    "carriers",
-    "noncarriers",
-    "noncarriers",
-    "noncarriers"
-)
-
-polr_obj <- MASS::polr(
-    formula = response ~ x,
-    weights = c(
-        as.numeric(tonsil[1, 2:4]),
-        as.numeric(tonsil[2, 2:4])
+#| label: 05-tonsil-prepare-polr-data
+polr_dat <- tonsil_wide |>
+    pivot_longer(
+        cols = c(present, enlarged, great_enlarged),
+        names_to = "size",
+        values_to = "weight"
+    ) |>
+    mutate(
+        size = ordered(size, levels = c("present", "enlarged", "great_enlarged"))
     )
+
+polr_dat
+```
+
+::: {.callout-tip collapse="true"}
+## What each step is doing
+
+- `pivot_longer(...)`: turns the wide count columns back into long format (one row per category).
+- `cols = c(present, enlarged, great_enlarged)`: chooses which columns to stack into one variable.
+- `names_to = "size"`: stores the former column names as category labels in a new `size` column.
+- `values_to = "weight"`: stores the corresponding counts in a new `weight` column used as case weights.
+- `ordered(...)`: makes `size` an ordered factor so `polr()` respects the category order.
+- `|>`: pipes each intermediate result to the next transformation step.
+:::
+
+```{r}
+#| label: 05-tonsil-fit-polr-model
+polr_obj <- polr(
+    formula = size ~ Streptococcus.p,
+    data = polr_dat,
+    weights = weight,
+    Hess = TRUE
 )
 
 summary(polr_obj)
 ```
 
-The standard errors are the same as vglm. These numbers check out with Table 3.6 in Example 3.7 of F & T.
+The `polr()` standard errors agree with the cumulative `vglm()` fit.
+:::
+
+## Reproducibility
+
+```{r}
+#| label: package-citations
+#| results: asis
+#| code-fold: true
+packages <- c("conflicted", "dplyr", "Fahrmeir", "MASS", "tidyr", "VGAM")
+for (pkg in packages) {
+    cit <- citation(pkg)
+
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
+}
+```
+
+```{r}
+#| label: 05-tonsil-session-info
+sessionInfo()
+```

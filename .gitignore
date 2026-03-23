@@ -382,3 +382,5 @@ TSWLatexianTemp*
 
 # others
 .DS_Store
+* alias
+**/*.quarto_ipynb
