@@ -26,11 +26,13 @@ library(VGAM)
 
 We load the `happy` dataset from the `Fahrmeir` package, which contains data on happiness levels.
 Since it is a small dataset, we print it in full.
+As usual, we will convert it to a tibble first.
 
 ```{r}
 #| label: 06-happiness-chunk-2
 data(happy)
-happy
+happy_tbl <- as_tibble(happy)
+happy_tbl
 ```
 
 ## Part 1: School Education Levels by Sex
@@ -40,8 +42,7 @@ Section 3.5.3 of @fahrmeir_multivariate_2001:
 
 ```{r}
 #| label: 06-happiness-chunk-3
-happy_wide <- happy |>
-    as_tibble() |>
+happy_wide <- happy_tbl |>
     mutate(
         School = factor(
             School,
@@ -62,36 +63,43 @@ happy_wide
 ::: {.callout-tip collapse="true"}
 ## Understanding the tidying
 
-- `as_tibble()` makes the data print-friendly and consistent with tidyverse tools.
 - `mutate()` recodes factor levels so the column names match the model inputs.
 - `summarize(..., .by = ...)` aggregates counts within each group.
 - `pivot_wider()` spreads groups into columns and fills missing combinations with 0.
 :::
 
-### Setting Contrasts for Part 1
+### Setting Effect Coding
 
 Effect coding is needed to reproduce the numbers in the book:
 
 ```{r}
-#| label: 06-happiness-chunk-4
+#| label: 06-happiness-chunk-4a
 options("contrasts")
+```
+
+`contr.treatment` is the default (corresponding to dummy coding),
+but we need `contr.sum` for effect coding:
+
+```{r}
+#| label: 06-happiness-chunk-4b
 contrasts(happy_wide$Sex)
 
 options(contrasts = c("contr.sum", "contr.poly"))
 contrasts(happy_wide$Sex)
-
-contrasts(happy_wide$Sex) <- as.matrix(c(-1, 1))
 ```
 
-Adjust the contrast matrix so females serve as the reference group.
+We now have effect coding, however we need to switch the reference group to female,
+in order to match the book.
+
+```{r}
+#| label: 06-happiness-chunk-4c
+contrasts(happy_wide$Sex) <- as.matrix(c(-1, 1))
+contrasts(happy_wide$Sex)
+```
 
 ### Fit First Model
 
-Regression for the first line of display (3.5.3) in
-@fahrmeir_multivariate_2001:
-To reproduce the first regression in Section 3.5.3 of
-@fahrmeir_multivariate_2001, we cannot use `polr()` since it does not
-allow for category-specific beta coefficients.
+Now we can fit the model with `school1` as the reference level.
 
 ```{r}
 #| label: 06-happiness-chunk-5
@@ -107,41 +115,45 @@ summary(happy_logit1_vglm)
 The coefficient values are the same as those reported in the first six
 rows of Table 3.11 in @fahrmeir_multivariate_2001.
 
-```{r}
-#| label: 06-happiness-chunk-6
-model.matrix(happy_logit1_vglm)
-```
-
-We can also inspect the design matrix.
+::: {.callout-warning}
+The reported standard errors (also reproduced below)
+and p-values presented here should be treated with caution.
 
 ```{r}
 #| label: 06-happiness-chunk-7
-sqrt(diag(vcov(happy_logit1_vglm)))
+happy_logit1_vglm |>
+    vcov() |>
+    diag() |>
+    sqrt()
 ```
+:::
 
-These match the standard errors reported by `summary(happy_logit1_vglm)`.
+We can access the linear predictors
+
+```{r}
+happy_logit1_vglm@predictors
+```
 
 ## Part 2: Happiness Levels by Education
 
+Here we arrange the data into wide form for the second regression.
 Arrange the data into wide form for the second regression part in
 Section 3.5.3 of @fahrmeir_multivariate_2001:
 
 ```{r}
 #| label: 06-happiness-chunk-8
-happy2 <- happy |>
-    as_tibble() |>
+happy2 <- happy_tbl |>
     mutate(
         School = factor(School, levels = c("<12", "12", "13-16", ">16")),
         Rep.happiness = recode(
             Rep.happiness,
-            "Not too happy" = "happy_low",
             "Not to happy" = "happy_low",
             "Pretty happy" = "happy_medium",
             "Very happy" = "happy_high"
         )
     ) |>
     summarize(n = sum(n), .by = c(Sex, School, Rep.happiness)) |>
-    tidyr::pivot_wider(
+    pivot_wider(
         names_from = Rep.happiness,
         values_from = n,
         values_fill = 0
@@ -152,12 +164,17 @@ happy2
 
 ### Setting Contrasts for Part 2
 
-Switch to dummy coding with `<12` as reference level:
+We check the coding scheme for `School`:
 
 ```{r}
-#| label: 06-happiness-chunk-9
+#| label: 06-happiness-chunk-9a
 contrasts(happy2$School)
+```
 
+Here we actually want to switch from effect to dummy coding with `<12` as reference level:
+
+```{r}
+#| label: 06-happiness-chunk-9b
 options(contrasts = c("contr.treatment", "contr.poly"))
 contrasts(happy2$School)
 ```
