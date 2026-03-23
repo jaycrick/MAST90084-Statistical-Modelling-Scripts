@@ -1,14 +1,28 @@
 ---
-title: "Ordinal Regression: Happiness Data"
-subtitle: "Cumulative Link Models for Ordered Outcomes"
+title: "Conditional Models: Happiness Data"
+subtitle: "@fahrmeir_multivariate_2001 Example 3.12"
 date: today
+nocite: |
+  @fahrmeir_multivariate_2001
+editor:
+  markdown:
+    wrap: 72
 ---
 
 ## Overview
 
-This script demonstrates **ordinal (cumulative link) regression** on the **happiness dataset**, analyzing **ordered categorical responses**.
+We will fit a simple asymmetric model to a dataset
+on happiness levels from Table 3.10 of @fahrmeir_multivariate_2001.
+We want to determine the association between gender, level of education, and happiness levels.
+We will do this in two parts, first by setting gender as a predictor for years of schooling,
+and then by setting years of schooling as a predictor for happiness levels.
+
+The model is specified more formally in the equation (3.5.3) in @fahrmeir_multivariate_2001.
 
 ## Data Loading
+
+As always, we start by loading the necessary packages
+(and installing any we don't already have).
 
 ```{r}
 #| label: 06-happiness-chunk-1
@@ -20,22 +34,23 @@ library(VGAM)
 ```
 
 We load the `happy` dataset from the `Fahrmeir` package, which contains data on happiness levels.
-Since it is a small dataset, we can print it in its entirety.
+As usual, we will convert it to a tibble first.
 
 ```{r}
 #| label: 06-happiness-chunk-2
 data(happy)
-happy
+happy_tbl <- as_tibble(happy)
+happy_tbl
 ```
 
-## Part 1: School Education Levels by Sex
+## Part 1: Marginal Distribution of School Education Levels by Sex
 
-Arrange the data into wide form for the first regression part in (3.5.3):
+We want to fit a cumulative logit model to the marginal distribution of schooling,
+predicted by gender. To do this, we first need to arrange the data into wide form.
 
 ```{r}
 #| label: 06-happiness-chunk-3
-happy_wide <- happy |>
-  as_tibble() |>
+happy_wide <- happy_tbl |>
   mutate(
     School = factor(
       School,
@@ -56,33 +71,43 @@ happy_wide
 ::: {.callout-tip collapse="true"}
 ## Understanding the tidying
 
-- `as_tibble()` makes the data print-friendly and consistent with tidyverse tools.
 - `mutate()` recodes factor levels so the column names match the model inputs.
 - `summarize(..., .by = ...)` aggregates counts within each group.
 - `pivot_wider()` spreads groups into columns and fills missing combinations with 0.
 :::
 
-### Setting Contrasts for Part 1
+### Setting Effect Coding
 
 Effect coding is needed to reproduce the numbers in the book:
 
 ```{r}
-#| label: 06-happiness-chunk-4
+#| label: 06-happiness-chunk-4a
 options("contrasts")
+```
+
+`contr.treatment` is the default (corresponding to dummy coding),
+but we need `contr.sum` for effect coding:
+
+```{r}
+#| label: 06-happiness-chunk-4b
 contrasts(happy_wide$Sex)
 
 options(contrasts = c("contr.sum", "contr.poly"))
 contrasts(happy_wide$Sex)
-
-contrasts(happy_wide$Sex) <- as.matrix(c(-1, 1))
 ```
 
-Adjust the contrast matrix so female serves as reference.
+We now have effect coding, however we need to switch the reference group to female,
+in order to match the book.
+
+```{r}
+#| label: 06-happiness-chunk-4c
+contrasts(happy_wide$Sex) <- as.matrix(c(-1, 1))
+contrasts(happy_wide$Sex)
+```
 
 ### Fit First Model
 
-Regression for the first line of display (3.5.3) in F&T:
-To reproduce the first regression in section 3.5.3 of F&T, we cannot use `polr()` since it doesn't allow for category-specific beta coefficients.
+Now we can fit the model with `school1` as the reference level.
 
 ```{r}
 #| label: 06-happiness-chunk-5
@@ -95,31 +120,41 @@ happy_logit1_vglm <- vglm(
 summary(happy_logit1_vglm)
 ```
 
-The coefficient values are the same as those reported in the first six rows of Table 3.11 in F&T.
+The coefficient values are the same as those reported in the first six
+rows of Table 3.11 in @fahrmeir_multivariate_2001.
 
-```{r}
-#| label: 06-happiness-chunk-6
-attributes(happy_logit1_vglm)$predictors
-```
+::: {.callout-warning}
+The reported standard errors (also reproduced below)
+and p-values presented here should be treated with caution.
 
-We can also look at the predictors.
+**I'm not sure why these ones would be wrong.
+Wouldn't it just be the standard errors and p-values for the second part of the table that are wrong? Dennis to clarify**
 
 ```{r}
 #| label: 06-happiness-chunk-7
-sqrt(diag(vcov(happy_logit1_vglm)))
+happy_logit1_vglm |>
+  vcov() |>
+  diag() |>
+  sqrt()
 ```
+:::
 
-Same as the std. error reported by `summary(happy_logit1_vglm)`.
+We can access the linear predictors
+
+```{r}
+happy_logit1_vglm@predictors
+```
 
 ## Part 2: Happiness Levels by Education
 
-Arrange the data into wide form for the second regression part in (3.5.3):
+Now we are interested in predicting happiness levels by years of schooling.
+We again arrange our data into a wide form with the happiness levels as columns.
 
 ```{r}
 #| label: 06-happiness-chunk-8
-happy2 <- happy |>
-  as_tibble() |>
+happy2 <- happy_tbl |>
   mutate(
+    School = factor(School, levels = c("<12", "12", "13-16", ">16")),
     Rep.happiness = recode(
       Rep.happiness,
       "Not to happy" = "happy_low",
@@ -128,7 +163,7 @@ happy2 <- happy |>
     )
   ) |>
   summarize(n = sum(n), .by = c(Sex, School, Rep.happiness)) |>
-  tidyr::pivot_wider(
+  pivot_wider(
     names_from = Rep.happiness,
     values_from = n,
     values_fill = 0
@@ -139,12 +174,17 @@ happy2
 
 ### Setting Contrasts for Part 2
 
-Switch to dummy coding with `<12` as reference level:
+We check the coding scheme for `School`:
 
 ```{r}
-#| label: 06-happiness-chunk-9
+#| label: 06-happiness-chunk-9a
 contrasts(happy2$School)
+```
 
+Here we actually want to switch from effect to dummy coding with `<12` as reference level:
+
+```{r}
+#| label: 06-happiness-chunk-9b
 options(contrasts = c("contr.treatment", "contr.poly"))
 contrasts(happy2$School)
 ```
@@ -153,38 +193,58 @@ contrasts(happy2$School)
 
 ### Fit Second Model
 
-Regression for the second line of display (3.5.3) in F&T:
+We now fit the model.
+
+:::{callout-note}
+This regression ignores the `Sex` column (which is what we want).
+:::
 
 ```{r}
 #| label: 06-happiness-chunk-10
 happy_logit2_vglm <- vglm(
   cbind(happy_low, happy_medium, happy_high) ~ School,
   data = happy2,
-  family = cumulative(link = "logitlink")
+  family = cumulative
 )
 
 summary(happy_logit2_vglm)
 ```
 
-`cumulative()` must be regressed with an intercept.
+When we compare the coefficients here to those in Table 3.11,
+only the two intercept estimates (corresponding to reference level
+`<12` of School) match the numbers in the book.
+This is because under the dummy coding scheme,
+we are picking less than 12 years of school as our reference level.
+In contrast, the book treats each school intercept as it's own absolute level
+(see second line of (3.5.3) in @fahrmeir_multivariate_2001).
 
 ### Recovering Coefficients
 
-Only the two intercept estimates (corresponding to reference level `<12` of School) match the numbers in the book. To recover the original estimates in F&T, we need to add the intercepts to each pair of coefficients for each other Schooling levels:
+Therefore to recover the original estimates, we add the intercepts to each
+pair of coefficients for the other schooling levels:
 
 ```{r}
 #| label: 06-happiness-chunk-11
-happy_logit2_vglm_coeff <- attributes(happy_logit2_vglm)$coeff
+happy_logit2_vglm_coeff <- coef(happy_logit2_vglm)
 happy_logit2_vglm_coeff
 
 rep(happy_logit2_vglm_coeff[1:2], 3) + happy_logit2_vglm_coeff[3:8]
 ```
 
-The numbers in the books are now recovered, as reported in the last 6 rows of F&T Table 3.11.
+These recover the values reported in the last six rows of Table 3.11 in
+@fahrmeir_multivariate_2001.
 
-## Log-Likelihood and Model Fit
+## Reproducing the Deviance
 
-Add the log likelihood resulting from the first and second parts of (3.5.3), to give the likelihood of the full GLM model:
+We now attempt to reproduce the deviance.
+
+To retrieve the likelihood of the full GLM model,
+we sum the log likelihood resulting from the first and second parts of
+the simple regressive cumulative model.
+
+:::{callout-note}
+Make sure you know why this is the case.
+:::
 
 ```{r}
 #| label: 06-happiness-chunk-12
@@ -192,7 +252,7 @@ log_lik_glm <- logLik(happy_logit1_vglm) + logLik(happy_logit2_vglm)
 log_lik_glm
 ```
 
-Alternatively:
+Alternatively we can extract the log-likelihood of each of individual groups separately:
 
 ```{r}
 #| label: 06-happiness-chunk-13
@@ -200,14 +260,22 @@ logLik(happy_logit1_vglm, sum = FALSE)
 logLik(happy_logit2_vglm, sum = FALSE)
 ```
 
-These get the log likelihood of individual groups.
-
 ### Computing Saturated Model Likelihood
+
+Now we just need to compute the log-likelihood of the saturated model.
+We split the dataset into a male group and female group.
+Within each group we have 12 observations
+corresponding to the 12 combinations of schooling and happiness levels
+(meaning we have 11 degrees of freedom for the male and female groups separately).
+The maximum likelihood estimators for each group
+are exactly the observed proportions of each happiness level within each group.
+
+Therefore we can calculate the log-likelihood of the saturated model by summing the log-likelihoods as follows:
 
 ```{r}
 #| label: 06-happiness-chunk-14
-happy_male <- happy[which(happy$Sex == "Males"), ]
-happy_female <- happy[which(happy$Sex == "Females"), ]
+happy_male <- dplyr::filter(happy, Sex == "Males")
+happy_female <- dplyr::filter(happy, Sex == "Females")
 
 log_lik_saturated <- dmultinom(
   happy_male$n,
@@ -225,15 +293,27 @@ log_lik_saturated
 
 ### Deviance
 
-This is the deviance 13.27, as reported in the book:
+Finally, we can compute the deviance as twice the difference between the log-likelihood of the saturated model and the log-likelihood of the fitted model:
 
 ```{r}
 #| label: 06-happiness-chunk-15
 2 * (log_lik_saturated - log_lik_glm)
 ```
 
+## Problems with the Reported Standard Errors and $p$-values
 
-## Package citations and references
+**This bit was slightly unclear to me, Dennis to clarify if I have misunderstood.**
+
+The second part of the the table are treating the model as
+by treating the years at school as fixed, and fitting a GLM to the data.
+The standard errors for are hence derived from the Fisher information matrix
+under the assumption that years at school are fixed.
+If we really want to understand the model as a whole,
+we need to treat both $Y_1$ and $Y_2$ as random.
+In practice this is probably very difficult to do,
+as we need to tease out the explicit form for the main function and so on.
+
+## Package Citations and References
 
 ```{r}
 #| label: package-citations
@@ -241,7 +321,11 @@ This is the deviance 13.27, as reported in the book:
 #| code-fold: true
 
 packages <- c(
-  "conflicted", "dplyr", "Fahrmeir", "tidyr", "VGAM"
+  "conflicted",
+  "dplyr",
+  "Fahrmeir",
+  "tidyr",
+  "VGAM"
 )
 for (pkg in packages) {
   cit <- citation(pkg)
@@ -251,7 +335,7 @@ for (pkg in packages) {
     cat("- **", pkg, "**:\n", sep = "")
     for (i in seq_along(cit)) {
       cit_text <- format(cit[i], style = "text")
-      cat("    - ", cit_text, "\n\n", sep = "")
+      cat("  - ", cit_text, "\n\n", sep = "")
     }
   } else {
     cit_text <- format(cit, style = "text")

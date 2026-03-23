@@ -26,8 +26,8 @@ website:
             file: quarto_scripts/04-Example3-2BTR.qmd
           - text: "Sequential Regression: Tonsil Size"
             file: quarto_scripts/05-tonsil.qmd
-          # - text: "Happiness Data"
-          #   file: quarto_scripts/06-Happiness.qmd
+          - text: "Conditional Models: Happiness Data"
+            file: quarto_scripts/06-Happiness.qmd
           # - text: "Ohio Data"
           #   file: quarto_scripts/07-ohio.qmd
           # - text: "GEE CTSIB"

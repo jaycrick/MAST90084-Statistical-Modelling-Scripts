@@ -89,23 +89,23 @@ to `Inf1`, `Inf2`, and `Noinf` respectively
 ```{r}
 #| label: prepare-caesar-from-package
 caesar_clean <- caesar |>
-    as_tibble() |>
-    select(-patco, -yl) |>
-    dplyr::filter(w > 0) |>
-    pivot_wider(
-        names_from = y,
-        values_from = w,
-        values_fill = 0
-    ) |>
-    rename(Noinf = `3`, Inf1 = `1`, Inf2 = `2`) |>
-    mutate(
-        size = Noinf + Inf1 + Inf2,
-        factor = as.integer(factor == "risk factors"),
-        noplan = as.integer(noplan == "not"),
-        antib = as.integer(antib == "antibiotics")
-    ) |>
-    arrange(noplan, antib, factor) |>
-    relocate(size, Noinf, Inf1, Inf2, noplan, antib, factor)
+  as_tibble() |>
+  select(-patco, -yl) |>
+  dplyr::filter(w > 0) |>
+  pivot_wider(
+    names_from = y,
+    values_from = w,
+    values_fill = 0
+  ) |>
+  rename(Noinf = `3`, Inf1 = `1`, Inf2 = `2`) |>
+  mutate(
+    size = Noinf + Inf1 + Inf2,
+    factor = as.integer(factor == "risk factors"),
+    noplan = as.integer(noplan == "not"),
+    antib = as.integer(antib == "antibiotics")
+  ) |>
+  arrange(noplan, antib, factor) |>
+  relocate(size, Noinf, Inf1, Inf2, noplan, antib, factor)
 
 caesar_clean
 ```
@@ -139,8 +139,8 @@ We extract the response variables as a matrix format for the `multinom` function
 ```{r}
 #| label: extract-response-matrix
 caes_response <- caes_dat |>
-    select(noInf, Inf1, Inf2) |>
-    as.matrix()
+  select(noInf, Inf1, Inf2) |>
+  as.matrix()
 
 caes_response
 ```
@@ -150,8 +150,8 @@ and fit the model.
 ```{r}
 #| label: fit-multinom-caes
 caes_nnet <- multinom(
-    caes_response ~ NoPlan + Antib + RiskF,
-    data = caes_dat
+  caes_response ~ NoPlan + Antib + RiskF,
+  data = caes_dat
 )
 caes_nnet_summary <- summary(caes_nnet)
 caes_nnet_summary
@@ -218,14 +218,14 @@ If you look up `?glmnet`, pay attention to what they said about symmetric multin
 ```{r}
 #| label: glmnet-multinomial-fit
 caes_predictors <- caes_dat |>
-    select(NoPlan, Antib, RiskF) |>
-    as.matrix()
+  select(NoPlan, Antib, RiskF) |>
+  as.matrix()
 
 caes_glmnet <- glmnet(
-    x = caes_predictors,
-    y = caes_response,
-    family = "multinomial",
-    lambda = 0
+  x = caes_predictors,
+  y = caes_response,
+  family = "multinomial",
+  lambda = 0
 )
 
 # Extract and display coefficients
@@ -255,12 +255,12 @@ relative to the reference category intercept
 ```{r}
 #| label: glmnet-to-multinom-coefs
 beta_matrix <- cbind(
-    caes_glmnet$beta[[2]] - caes_glmnet$beta[[1]],
-    caes_glmnet$beta[[3]] - caes_glmnet$beta[[1]]
+  caes_glmnet$beta[[2]] - caes_glmnet$beta[[1]],
+  caes_glmnet$beta[[3]] - caes_glmnet$beta[[1]]
 )
 beta_matrix <- rbind(
-    caes_glmnet$a0[-1] - caes_glmnet$a0[1],
-    beta_matrix
+  caes_glmnet$a0[-1] - caes_glmnet$a0[1],
+  beta_matrix
 )
 round(beta_matrix, 3)
 ```
@@ -278,18 +278,18 @@ setting preferred reference levels before modeling.
 ```{r}
 #| label: fit-multinom-caesar-weighted
 caesar_prepared <- caesar |>
-    as_tibble() |>
-    mutate(
-        y = relevel(y, ref = "3"),
-        noplan = relevel(noplan, ref = "planned"),
-        antib = relevel(antib, ref = "without"),
-        factor = relevel(factor, ref = "without")
-    )
+  as_tibble() |>
+  mutate(
+    y = relevel(y, ref = "3"),
+    noplan = relevel(noplan, ref = "planned"),
+    antib = relevel(antib, ref = "without"),
+    factor = relevel(factor, ref = "without")
+  )
 
 caes_nnet_prepared <- multinom(
-    y ~ noplan + antib + factor,
-    data = caesar_prepared,
-    weights = w
+  y ~ noplan + antib + factor,
+  data = caesar_prepared,
+  weights = w
 )
 
 summary(caes_nnet_prepared)
@@ -333,12 +333,12 @@ and subtracting the fitted probabilities.
 ```{r}
 #| label: manual-residual-check
 caes_nnet_prop <- caes_dat |>
-    mutate(
-        noInf = noInf / size,
-        Inf1 = Inf1 / size,
-        Inf2 = Inf2 / size
-    ) |>
-    select(noInf, Inf1, Inf2)
+  mutate(
+    noInf = noInf / size,
+    Inf1 = Inf1 / size,
+    Inf2 = Inf2 / size
+  ) |>
+  select(noInf, Inf1, Inf2)
 
 caes_nnet_prop - caes_nnet$fitted
 ```
@@ -396,9 +396,9 @@ We use the raw data `caes_dat` extracted from the CSV file.
 ```{r}
 #| label: fit-vgam-caes
 caes_vgam <- vglm(
-    formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
-    family = multinomial(refLevel = "noInf"),
-    data = caes_dat
+  formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
+  family = multinomial(refLevel = "noInf"),
+  data = caes_dat
 )
 ```
 
@@ -479,12 +479,12 @@ We run the regression, and extract the coefficients.
 ```{r}
 #| label: fit-vgam-parallel
 caes_vgam_parallel <- vglm(
-    formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
-    data = caes_dat,
-    family = multinomial(
-        refLevel = "noInf",
-        parallel = TRUE ~ NoPlan + RiskF - 1
-    )
+  formula = cbind(noInf, Inf1, Inf2) ~ NoPlan + Antib + RiskF,
+  data = caes_dat,
+  family = multinomial(
+    refLevel = "noInf",
+    parallel = TRUE ~ NoPlan + RiskF - 1
+  )
 )
 
 coefvlm(caes_vgam_parallel, matrix.out = TRUE)
@@ -504,10 +504,10 @@ We don't fit the parallel model here.
 #| error: true
 
 vglm(
-    formula = y ~ noplan + antib + factor,
-    data = caesar_prepared,
-    weights = w,
-    family = multinomial(refLevel = "3")
+  formula = y ~ noplan + antib + factor,
+  data = caesar_prepared,
+  weights = w,
+  family = multinomial(refLevel = "3")
 )
 ```
 
@@ -524,10 +524,10 @@ levels(caesar_no_zero_w$factor)
 levels(caesar_no_zero_w$antib)
 
 caes_vgam2 <- vglm(
-    formula = y ~ noplan + antib + factor,
-    data = caesar_no_zero_w,
-    weights = w,
-    family = multinomial(refLevel = "3")
+  formula = y ~ noplan + antib + factor,
+  data = caesar_no_zero_w,
+  weights = w,
+  family = multinomial(refLevel = "3")
 )
 
 summary(caes_vgam2)
@@ -583,20 +583,20 @@ so the reference and comparisons are reproducible
 #| label: fit-nnet-long-form
 
 caesar_long <- caes_dat |>
-    select(-size) |>
-    pivot_longer(
-        cols = noInf:Inf2,
-        names_to = "inf_type",
-        values_to = "w"
-    ) |>
-    mutate(inf_type = factor(inf_type, levels = c("noInf", "Inf1", "Inf2")))
+  select(-size) |>
+  pivot_longer(
+    cols = noInf:Inf2,
+    names_to = "inf_type",
+    values_to = "w"
+  ) |>
+  mutate(inf_type = factor(inf_type, levels = c("noInf", "Inf1", "Inf2")))
 
 caesar_long
 
 caes_nnet_long <- multinom(
-    inf_type ~ NoPlan + Antib + RiskF,
-    data = caesar_long,
-    weights = w
+  inf_type ~ NoPlan + Antib + RiskF,
+  data = caesar_long,
+  weights = w
 )
 
 coef(caes_nnet_long)
@@ -613,28 +613,28 @@ coef(caes_nnet_prepared)
 #| code-fold: true
 
 packages <- c(
-    "conflicted",
-    "dplyr",
-    "Fahrmeir",
-    "glmnet",
-    "nnet",
-    "tidyr",
-    "readr",
-    "VGAM"
+  "conflicted",
+  "dplyr",
+  "Fahrmeir",
+  "glmnet",
+  "nnet",
+  "tidyr",
+  "readr",
+  "VGAM"
 )
 for (pkg in packages) {
-    cit <- citation(pkg)
+  cit <- citation(pkg)
 
-    # Check if multiple citations
-    if (length(cit) > 1) {
-        cat("- **", pkg, "**:\n", sep = "")
-        for (i in seq_along(cit)) {
-            cit_text <- format(cit[i], style = "text")
-            cat("    - ", cit_text, "\n\n", sep = "")
-        }
-    } else {
-        cit_text <- format(cit, style = "text")
-        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
     }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
 }
 ```
