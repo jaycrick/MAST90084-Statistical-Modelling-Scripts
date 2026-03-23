@@ -11,9 +11,18 @@ editor:
 
 ## Overview
 
-This script demonstrates **ordinal (cumulative link) regression** on the **happiness dataset**, analyzing **ordered categorical responses**.
+We will fit a simple asymmetric model to a dataset
+on happiness levels from Table 3.10 of @fahrmeir_multivariate_2001.
+We want to determine the association between gender, level of education, and happiness levels.
+We will do this in two parts, first by setting gender as a predictor for years of schooling,
+and then by setting years of schooling as a predictor for happiness levels.
+
+The model is specified more formally in the equation (3.5.3) in @fahrmeir_multivariate_2001.
 
 ## Data Loading
+
+As always, we start by loading the necessary packages
+(and installing any we don't already have).
 
 ```{r}
 #| label: 06-happiness-chunk-1
@@ -25,7 +34,6 @@ library(VGAM)
 ```
 
 We load the `happy` dataset from the `Fahrmeir` package, which contains data on happiness levels.
-Since it is a small dataset, we print it in full.
 As usual, we will convert it to a tibble first.
 
 ```{r}
@@ -35,27 +43,27 @@ happy_tbl <- as_tibble(happy)
 happy_tbl
 ```
 
-## Part 1: School Education Levels by Sex
+## Part 1: Marginal Distribution of School Education Levels by Sex
 
-Arrange the data into wide form for the first regression part in
-Section 3.5.3 of @fahrmeir_multivariate_2001:
+We want to fit a cumulative logit model to the marginal distribution of schooling,
+predicted by gender. To do this, we first need to arrange the data into wide form.
 
 ```{r}
 #| label: 06-happiness-chunk-3
 happy_wide <- happy_tbl |>
-    mutate(
-        School = factor(
-            School,
-            levels = c("<12", "12", "13-16", ">16"),
-            labels = c("school1", "school2", "school3", "school4")
-        )
-    ) |>
-    summarize(n = sum(n), .by = c(Sex, School)) |>
-    pivot_wider(
-        names_from = School,
-        values_from = n,
-        values_fill = 0
+  mutate(
+    School = factor(
+      School,
+      levels = c("<12", "12", "13-16", ">16"),
+      labels = c("school1", "school2", "school3", "school4")
     )
+  ) |>
+  summarize(n = sum(n), .by = c(Sex, School)) |>
+  pivot_wider(
+    names_from = School,
+    values_from = n,
+    values_fill = 0
+  )
 
 happy_wide
 ```
@@ -104,9 +112,9 @@ Now we can fit the model with `school1` as the reference level.
 ```{r}
 #| label: 06-happiness-chunk-5
 happy_logit1_vglm <- vglm(
-    cbind(school1, school2, school3, school4) ~ Sex,
-    data = happy_wide,
-    family = cumulative()
+  cbind(school1, school2, school3, school4) ~ Sex,
+  data = happy_wide,
+  family = cumulative()
 )
 
 summary(happy_logit1_vglm)
@@ -125,9 +133,9 @@ Wouldn't it just be the standard errors and p-values for the second part of the 
 ```{r}
 #| label: 06-happiness-chunk-7
 happy_logit1_vglm |>
-    vcov() |>
-    diag() |>
-    sqrt()
+  vcov() |>
+  diag() |>
+  sqrt()
 ```
 :::
 
@@ -139,28 +147,27 @@ happy_logit1_vglm@predictors
 
 ## Part 2: Happiness Levels by Education
 
-Here we arrange the data into wide form for the second regression.
-Arrange the data into wide form for the second regression part in
-Section 3.5.3 of @fahrmeir_multivariate_2001:
+Now we are interested in predicting happiness levels by years of schooling.
+We again arrange our data into a wide form with the happiness levels as columns.
 
 ```{r}
 #| label: 06-happiness-chunk-8
 happy2 <- happy_tbl |>
-    mutate(
-        School = factor(School, levels = c("<12", "12", "13-16", ">16")),
-        Rep.happiness = recode(
-            Rep.happiness,
-            "Not to happy" = "happy_low",
-            "Pretty happy" = "happy_medium",
-            "Very happy" = "happy_high"
-        )
-    ) |>
-    summarize(n = sum(n), .by = c(Sex, School, Rep.happiness)) |>
-    pivot_wider(
-        names_from = Rep.happiness,
-        values_from = n,
-        values_fill = 0
+  mutate(
+    School = factor(School, levels = c("<12", "12", "13-16", ">16")),
+    Rep.happiness = recode(
+      Rep.happiness,
+      "Not to happy" = "happy_low",
+      "Pretty happy" = "happy_medium",
+      "Very happy" = "happy_high"
     )
+  ) |>
+  summarize(n = sum(n), .by = c(Sex, School, Rep.happiness)) |>
+  pivot_wider(
+    names_from = Rep.happiness,
+    values_from = n,
+    values_fill = 0
+  )
 
 happy2
 ```
@@ -186,15 +193,18 @@ contrasts(happy2$School)
 
 ### Fit Second Model
 
-Regression for the second line of display (3.5.3) in
-@fahrmeir_multivariate_2001:
+We now fit the model.
+
+:::{callout-note}
+This regression ignores the `Sex` column (which is what we want).
+:::
 
 ```{r}
 #| label: 06-happiness-chunk-10
 happy_logit2_vglm <- vglm(
-    cbind(happy_low, happy_medium, happy_high) ~ School,
-    data = happy2,
-    family = cumulative(link = "logitlink")
+  cbind(happy_low, happy_medium, happy_high) ~ School,
+  data = happy2,
+  family = cumulative
 )
 
 summary(happy_logit2_vglm)
@@ -205,12 +215,12 @@ only the two intercept estimates (corresponding to reference level
 `<12` of School) match the numbers in the book.
 This is because under the dummy coding scheme,
 we are picking less than 12 years of school as our reference level.
-Therefore all the school intercepts are to be compared relative to less than 12 years of school.
-In @fahrmeir_multivariate_2001, the numbers are the absolute levels.
+In contrast, the book treats each school intercept as it's own absolute level
+(see second line of (3.5.3) in @fahrmeir_multivariate_2001).
 
 ### Recovering Coefficients
 
-To recover the original estimates, we add the intercepts to each
+Therefore to recover the original estimates, we add the intercepts to each
 pair of coefficients for the other schooling levels:
 
 ```{r}
@@ -226,7 +236,7 @@ These recover the values reported in the last six rows of Table 3.11 in
 
 ## Reproducing the Deviance
 
-We now attempt to reproduce the devaince.
+We now attempt to reproduce the deviance.
 
 To retrieve the likelihood of the full GLM model,
 we sum the log likelihood resulting from the first and second parts of
@@ -268,15 +278,15 @@ happy_male <- dplyr::filter(happy, Sex == "Males")
 happy_female <- dplyr::filter(happy, Sex == "Females")
 
 log_lik_saturated <- dmultinom(
-    happy_male$n,
-    prob = happy_male$n / sum(happy_male$n),
-    log = TRUE
+  happy_male$n,
+  prob = happy_male$n / sum(happy_male$n),
+  log = TRUE
 ) +
-    dmultinom(
-        happy_female$n,
-        prob = happy_female$n / sum(happy_female$n),
-        log = TRUE
-    )
+  dmultinom(
+    happy_female$n,
+    prob = happy_female$n / sum(happy_female$n),
+    log = TRUE
+  )
 
 log_lik_saturated
 ```
@@ -311,25 +321,25 @@ as we need to tease out the explicit form for the main function and so on.
 #| code-fold: true
 
 packages <- c(
-    "conflicted",
-    "dplyr",
-    "Fahrmeir",
-    "tidyr",
-    "VGAM"
+  "conflicted",
+  "dplyr",
+  "Fahrmeir",
+  "tidyr",
+  "VGAM"
 )
 for (pkg in packages) {
-    cit <- citation(pkg)
+  cit <- citation(pkg)
 
-    # Check if multiple citations
-    if (length(cit) > 1) {
-        cat("- **", pkg, "**:\n", sep = "")
-        for (i in seq_along(cit)) {
-            cit_text <- format(cit[i], style = "text")
-            cat("  - ", cit_text, "\n\n", sep = "")
-        }
-    } else {
-        cit_text <- format(cit, style = "text")
-        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("  - ", cit_text, "\n\n", sep = "")
     }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
 }
 ```
