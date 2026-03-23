@@ -4,8 +4,8 @@ subtitle: "@fahrmeir_multivariate_2001 Examples 2.1 and 2.4"
 date: today
 nocite: |
     @fahrmeir_multivariate_2001
-editor: 
-  markdown: 
+editor:
+  markdown:
     wrap: 72
 ---
 
@@ -93,8 +93,8 @@ running the following command in RStudio
 
 ## Data Transformation
 
-The raw `caesar` dataset has one row per birth (251 rows total). For
-binomial regression, we need to aggregate the data: one row per unique
+The raw `caesar` dataset has one row per combination of covariates and response.
+For binomial regression, we need to aggregate the data: one row per unique
 combination of covariates (`noplan`, `factor`, `antib`), with columns
 for total cases and infection counts in each group.
 
@@ -122,11 +122,12 @@ class(caesar_tbl)
 
 ### Grouping and Summarizing
 
-The `caesar_tbl` above is in an ungrouped form where each row represents
-one individual. In what follows, we will first use the `group_by()`
-function to group the observations according to the three covariates,
-and then use the `summarize()` function to sum the total counts (as a
-new variable `size`) and infected count (as a new variable
+The `caesar_tbl` above still has one row per combination of covariates and response.
+In what follows, we will first use the `group_by()`
+function to group the observations according to the three covariates
+(without the response variable),
+and then use the `summarize()` function to sum the total number of women with each combination of covariates
+(as a new variable `size`) and infected count (as a new variable
 `Infect_count`) for each combination of the covariate values. Both
 functions are from the ***dplyr*** package.
 
@@ -285,7 +286,7 @@ deviance(caesar_int_glm)
 ```
 
 It is important to understand how `glm()` reports the summary, and sometimes the term "residual deviance" and deviance are used interchangeably. [The documentation of
-`glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***". So this number is what we call the (unscaled) deviance.  
+`glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***". So this number is what we call the (unscaled) deviance.
 
 ::: callout-note
 The documentation of
@@ -504,7 +505,7 @@ instead say "no".
 :::
 
 If we ignore the problem for the time being, we can continue by testing
-for goodness-of-fit. 
+for goodness-of-fit.
 
 ```{r}
 #| label: 01-anodev-chunk-26
@@ -551,7 +552,7 @@ caesar_glm_noplan_factor_augment <- glm(
 summary(caesar_glm_noplan_factor_augment)
 ```
 
-The coefficient estimates line up with the table on the top of p.53. 
+The coefficient estimates line up with the table on the top of p.53.
 Compare observed and fitted proportions:
 
 ```{r}
