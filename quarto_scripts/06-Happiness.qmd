@@ -1,7 +1,12 @@
 ---
 title: "Ordinal Regression: Happiness Data"
-subtitle: "Cumulative Link Models for Ordered Outcomes"
+subtitle: "@fahrmeir_multivariate_2001 Section 3.5.3"
 date: today
+nocite: |
+  @fahrmeir_multivariate_2001
+editor:
+  markdown:
+    wrap: 72
 ---
 
 ## Overview
@@ -30,25 +35,26 @@ happy
 
 ## Part 1: School Education Levels by Sex
 
-Arrange the data into wide form for the first regression part in (3.5.3):
+Arrange the data into wide form for the first regression part in
+Section 3.5.3 of @fahrmeir_multivariate_2001:
 
 ```{r}
 #| label: 06-happiness-chunk-3
 happy_wide <- happy |>
-  as_tibble() |>
-  mutate(
-    School = factor(
-      School,
-      levels = c("<12", "12", "13-16", ">16"),
-      labels = c("school1", "school2", "school3", "school4")
+    as_tibble() |>
+    mutate(
+        School = factor(
+            School,
+            levels = c("<12", "12", "13-16", ">16"),
+            labels = c("school1", "school2", "school3", "school4")
+        )
+    ) |>
+    summarize(n = sum(n), .by = c(Sex, School)) |>
+    pivot_wider(
+        names_from = School,
+        values_from = n,
+        values_fill = 0
     )
-  ) |>
-  summarize(n = sum(n), .by = c(Sex, School)) |>
-  pivot_wider(
-    names_from = School,
-    values_from = n,
-    values_fill = 0
-  )
 
 happy_wide
 ```
@@ -81,21 +87,25 @@ Adjust the contrast matrix so females serve as the reference group.
 
 ### Fit First Model
 
-Regression for the first line of display (3.5.3) in F&T:
-To reproduce the first regression in section 3.5.3 of F&T, we cannot use `polr()` since it doesn't allow for category-specific beta coefficients.
+Regression for the first line of display (3.5.3) in
+@fahrmeir_multivariate_2001:
+To reproduce the first regression in Section 3.5.3 of
+@fahrmeir_multivariate_2001, we cannot use `polr()` since it does not
+allow for category-specific beta coefficients.
 
 ```{r}
 #| label: 06-happiness-chunk-5
 happy_logit1_vglm <- vglm(
-  cbind(school1, school2, school3, school4) ~ Sex,
-  data = happy_wide,
-  family = cumulative()
+    cbind(school1, school2, school3, school4) ~ Sex,
+    data = happy_wide,
+    family = cumulative()
 )
 
 summary(happy_logit1_vglm)
 ```
 
-The coefficient values are the same as those reported in the first six rows of Table 3.11 in F&T.
+The coefficient values are the same as those reported in the first six
+rows of Table 3.11 in @fahrmeir_multivariate_2001.
 
 ```{r}
 #| label: 06-happiness-chunk-6
@@ -113,28 +123,29 @@ These match the standard errors reported by `summary(happy_logit1_vglm)`.
 
 ## Part 2: Happiness Levels by Education
 
-Arrange the data into wide form for the second regression part in (3.5.3):
+Arrange the data into wide form for the second regression part in
+Section 3.5.3 of @fahrmeir_multivariate_2001:
 
 ```{r}
 #| label: 06-happiness-chunk-8
 happy2 <- happy |>
-  as_tibble() |>
-  mutate(
-    School = factor(School, levels = c("<12", "12", "13-16", ">16")),
-    Rep.happiness = recode(
-      Rep.happiness,
-      "Not too happy" = "happy_low",
-      "Not to happy" = "happy_low",
-      "Pretty happy" = "happy_medium",
-      "Very happy" = "happy_high"
+    as_tibble() |>
+    mutate(
+        School = factor(School, levels = c("<12", "12", "13-16", ">16")),
+        Rep.happiness = recode(
+            Rep.happiness,
+            "Not too happy" = "happy_low",
+            "Not to happy" = "happy_low",
+            "Pretty happy" = "happy_medium",
+            "Very happy" = "happy_high"
+        )
+    ) |>
+    summarize(n = sum(n), .by = c(Sex, School, Rep.happiness)) |>
+    tidyr::pivot_wider(
+        names_from = Rep.happiness,
+        values_from = n,
+        values_fill = 0
     )
-  ) |>
-  summarize(n = sum(n), .by = c(Sex, School, Rep.happiness)) |>
-  tidyr::pivot_wider(
-    names_from = Rep.happiness,
-    values_from = n,
-    values_fill = 0
-  )
 
 happy2
 ```
@@ -155,14 +166,15 @@ contrasts(happy2$School)
 
 ### Fit Second Model
 
-Regression for the second line of display (3.5.3) in F&T:
+Regression for the second line of display (3.5.3) in
+@fahrmeir_multivariate_2001:
 
 ```{r}
 #| label: 06-happiness-chunk-10
 happy_logit2_vglm <- vglm(
-  cbind(happy_low, happy_medium, happy_high) ~ School,
-  data = happy2,
-  family = cumulative(link = "logitlink")
+    cbind(happy_low, happy_medium, happy_high) ~ School,
+    data = happy2,
+    family = cumulative(link = "logitlink")
 )
 
 summary(happy_logit2_vglm)
@@ -172,7 +184,10 @@ summary(happy_logit2_vglm)
 
 ### Recovering Coefficients
 
-Only the two intercept estimates (corresponding to reference level `<12` of School) match the numbers in the book. To recover the original estimates in F&T, add the intercepts to each pair of coefficients for the other schooling levels:
+Only the two intercept estimates (corresponding to reference level
+`<12` of School) match the numbers in the book. To recover the original
+estimates in @fahrmeir_multivariate_2001, add the intercepts to each
+pair of coefficients for the other schooling levels:
 
 ```{r}
 #| label: 06-happiness-chunk-11
@@ -182,7 +197,8 @@ happy_logit2_vglm_coeff
 rep(happy_logit2_vglm_coeff[1:2], 3) + happy_logit2_vglm_coeff[3:8]
 ```
 
-These recover the values reported in the last six rows of F&T Table 3.11.
+These recover the values reported in the last six rows of Table 3.11 in
+@fahrmeir_multivariate_2001.
 
 ## Log-Likelihood and Model Fit
 
@@ -212,15 +228,15 @@ happy_male <- dplyr::filter(happy, Sex == "Males")
 happy_female <- dplyr::filter(happy, Sex == "Females")
 
 log_lik_saturated <- dmultinom(
-  happy_male$n,
-  prob = happy_male$n / sum(happy_male$n),
-  log = TRUE
-) +
-  dmultinom(
-    happy_female$n,
-    prob = happy_female$n / sum(happy_female$n),
+    happy_male$n,
+    prob = happy_male$n / sum(happy_male$n),
     log = TRUE
-  )
+) +
+    dmultinom(
+        happy_female$n,
+        prob = happy_female$n / sum(happy_female$n),
+        log = TRUE
+    )
 
 log_lik_saturated
 ```
@@ -235,7 +251,7 @@ This gives deviance $13.27$, as reported in the book:
 ```
 
 
-## Package citations and references
+## Package Citations and References
 
 ```{r}
 #| label: package-citations
@@ -243,21 +259,25 @@ This gives deviance $13.27$, as reported in the book:
 #| code-fold: true
 
 packages <- c(
-  "conflicted", "dplyr", "Fahrmeir", "tidyr", "VGAM"
+    "conflicted",
+    "dplyr",
+    "Fahrmeir",
+    "tidyr",
+    "VGAM"
 )
 for (pkg in packages) {
-  cit <- citation(pkg)
+    cit <- citation(pkg)
 
-  # Check if multiple citations
-  if (length(cit) > 1) {
-    cat("- **", pkg, "**:\n", sep = "")
-    for (i in seq_along(cit)) {
-      cit_text <- format(cit[i], style = "text")
-      cat("    - ", cit_text, "\n\n", sep = "")
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("  - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
     }
-  } else {
-    cit_text <- format(cit, style = "text")
-    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
-  }
 }
 ```
