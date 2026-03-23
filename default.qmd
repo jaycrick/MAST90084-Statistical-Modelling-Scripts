@@ -20,7 +20,7 @@ Use the **Scripts** menu above, or jump directly to one of the guides below.
 - [Multinomial Logistic Regression: Caesarian Birth](quarto_scripts/03-Example3-1and3-11Caes.qmd)
 - [Ordinal Regression: Breathing Test Results](quarto_scripts/04-Example3-2BTR.qmd)
 - [Sequential Regression: Tonsil Size](quarto_scripts/05-tonsil.qmd)
-- [Happiness Data](quarto_scripts/06-Happiness.qmd)
+- [Conditional Models: Happiness Data](quarto_scripts/06-Happiness.qmd)
 - [Appendix 1: Dispersion with Working Residuals](quarto_scripts/A1-dispersion-working-residuals.qmd)
 - [Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data](quarto_scripts/A2-likelihood-multinomial.qmd)
 

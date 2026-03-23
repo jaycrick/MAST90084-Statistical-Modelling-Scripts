@@ -1,6 +1,6 @@
 ---
-title: "Ordinal Regression: Happiness Data"
-subtitle: "@fahrmeir_multivariate_2001 Section 3.5.3"
+title: "Conditional Models: Happiness Data"
+subtitle: "@fahrmeir_multivariate_2001 Example 3.12"
 date: today
 nocite: |
   @fahrmeir_multivariate_2001
@@ -119,6 +119,9 @@ rows of Table 3.11 in @fahrmeir_multivariate_2001.
 The reported standard errors (also reproduced below)
 and p-values presented here should be treated with caution.
 
+**I'm not sure why these ones would be wrong.
+Wouldn't it just be the standard errors and p-values for the second part of the table that are wrong? Dennis to clarify**
+
 ```{r}
 #| label: 06-happiness-chunk-7
 happy_logit1_vglm |>
@@ -197,13 +200,17 @@ happy_logit2_vglm <- vglm(
 summary(happy_logit2_vglm)
 ```
 
-`cumulative()` must be regressed with an intercept.
+When we compare the coefficients here to those in Table 3.11,
+only the two intercept estimates (corresponding to reference level
+`<12` of School) match the numbers in the book.
+This is because under the dummy coding scheme,
+we are picking less than 12 years of school as our reference level.
+Therefore all the school intercepts are to be compared relative to less than 12 years of school.
+In @fahrmeir_multivariate_2001, the numbers are the absolute levels.
 
 ### Recovering Coefficients
 
-Only the two intercept estimates (corresponding to reference level
-`<12` of School) match the numbers in the book. To recover the original
-estimates in @fahrmeir_multivariate_2001, add the intercepts to each
+To recover the original estimates, we add the intercepts to each
 pair of coefficients for the other schooling levels:
 
 ```{r}
@@ -217,9 +224,17 @@ rep(happy_logit2_vglm_coeff[1:2], 3) + happy_logit2_vglm_coeff[3:8]
 These recover the values reported in the last six rows of Table 3.11 in
 @fahrmeir_multivariate_2001.
 
-## Log-Likelihood and Model Fit
+## Reproducing the Deviance
 
-Add the log likelihood resulting from the first and second parts of (3.5.3), to give the likelihood of the full GLM model:
+We now attempt to reproduce the devaince.
+
+To retrieve the likelihood of the full GLM model,
+we sum the log likelihood resulting from the first and second parts of
+the simple regressive cumulative model.
+
+:::{callout-note}
+Make sure you know why this is the case.
+:::
 
 ```{r}
 #| label: 06-happiness-chunk-12
@@ -227,7 +242,7 @@ log_lik_glm <- logLik(happy_logit1_vglm) + logLik(happy_logit2_vglm)
 log_lik_glm
 ```
 
-Alternatively:
+Alternatively we can extract the log-likelihood of each of individual groups separately:
 
 ```{r}
 #| label: 06-happiness-chunk-13
@@ -235,9 +250,17 @@ logLik(happy_logit1_vglm, sum = FALSE)
 logLik(happy_logit2_vglm, sum = FALSE)
 ```
 
-These get the log likelihood of individual groups.
-
 ### Computing Saturated Model Likelihood
+
+Now we just need to compute the log-likelihood of the saturated model.
+We split the dataset into a male group and female group.
+Within each group we have 12 observations
+corresponding to the 12 combinations of schooling and happiness levels
+(meaning we have 11 degrees of freedom for the male and female groups separately).
+The maximum likelihood estimators for each group
+are exactly the observed proportions of each happiness level within each group.
+
+Therefore we can calculate the log-likelihood of the saturated model by summing the log-likelihoods as follows:
 
 ```{r}
 #| label: 06-happiness-chunk-14
@@ -260,13 +283,25 @@ log_lik_saturated
 
 ### Deviance
 
-This gives deviance $13.27$, as reported in the book:
+Finally, we can compute the deviance as twice the difference between the log-likelihood of the saturated model and the log-likelihood of the fitted model:
 
 ```{r}
 #| label: 06-happiness-chunk-15
 2 * (log_lik_saturated - log_lik_glm)
 ```
 
+## Problems with the Reported Standard Errors and $p$-values
+
+**This bit was slightly unclear to me, Dennis to clarify if I have misunderstood.**
+
+The second part of the the table are treating the model as
+by treating the years at school as fixed, and fitting a GLM to the data.
+The standard errors for are hence derived from the Fisher information matrix
+under the assumption that years at school are fixed.
+If we really want to understand the model as a whole,
+we need to treat both $Y_1$ and $Y_2$ as random.
+In practice this is probably very difficult to do,
+as we need to tease out the explicit form for the main function and so on.
 
 ## Package Citations and References
 
