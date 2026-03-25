@@ -4,9 +4,6 @@ subtitle: "@fahrmeir_multivariate_2001 Example 3.12"
 date: today
 nocite: |
   @fahrmeir_multivariate_2001
-editor:
-  markdown:
-    wrap: 72
 ---
 
 ## Overview

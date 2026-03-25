@@ -54,4 +54,9 @@ format:
     highlight-style: a11y
     page-layout: article
 
+editor:
+  markdown:
+    wrap: sentence
+    canonical: true
+
 bibliography: references.bib
