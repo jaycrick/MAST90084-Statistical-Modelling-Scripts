@@ -1,9 +1,13 @@
 ---
-title: "Ohio Respiratory Data: GEE Analysis"
+title: "Marginal Models: Ohio Respiratory Data"
 subtitle: "@fahrmeir_multivariate_2001 Example 6.4"
 ---
 
 ## Data Loading and Setup
+
+In this example, we reproduce Example 6.4 from @fahrmeir_multivariate_2001.
+The dataset is a study of the effect of maternal smoking status and age on respiratory infection in children.
+The children were examined yearly from ages 7 to 10.
 
 ```{r}
 #| label: libs
@@ -18,10 +22,6 @@ Previously we have mentioned that the `geepack` implements its `geeglm` function
 Here we load it simply to access the `ohio` dataset.
 :::
 
-We reproduce the key GEE results for the Ohio respiratory data in @fahrmeir_multivariate_2001.
-The response variable is binary (whether a respiratory condition is present), repeatedly measured over time within child.
-
-The package `geepack` provides the `ohio` dataset, which we use here.
 As always it is a good practice to inspect the help page for the dataset before proceeding by running `?ohio`.
 
 We convert the dataset to a tibble, and inspect it.
@@ -52,7 +52,7 @@ The age coding in the dataset is:
 -   $\texttt{age} = 0$ corresponds to 9 years old
 -   $\texttt{age} = 1$ corresponds to 10 years old
 
-## Contrast Coding
+### Setting Effect Coding
 
 As in the textbook, we need effect coding for unordered factors.
 
@@ -81,26 +81,27 @@ contrasts(ohio_tbl$smoke) <- matrix(c(-1, 1), 2, 1)
 contrasts(ohio_tbl$smoke)
 ```
 
-## Model Fitting: GEE with Interaction
+## Model Fitting with Interaction Effects
 
-We fit the interaction effect model: $\texttt{resp} \sim \texttt{smoke} * \texttt{age}$ under three working correlation structures.
+We fit a marginal logit model under three working correlation structures: independent, exchangeable, and unspecified.
 
-::: callout-tip
-## What `id` and `corstr` Do in `gee()`
+::: {.callout-important collapse="true"}
+## SELF TEST: Write out each model mathematically
 
--   `id` identifies which rows belong to the same subject/cluster. In this dataset, repeated observations from the same child share the same `id`.
--   `corstr` specifies the working correlation pattern within each `id` cluster.
+Let
 
-Allowed `corstr` values in `gee` include:
+The marginal model is a logit model, and so \begin{equation}
+\begin{split}
+  \log \frac{P(\text{infection})}{P(\text{no infection})} &= \beta_0 + \beta_\text{S} x_\text{S} + \beta_\text{Age7} x_\text{Age7} + \beta_\text{Age8} x_\text{Age8} + \beta_\text{Age9} x_\text{Age9}\\
+  &\quad + \beta_\text{S,Age7} x_\text{S} x_\text{Age7} + \beta_\text{S,Age8} x_\text{S} x_\text{Age8} + \beta_\text{S,Age9} x_\text{S} x_\text{Age9}
+  \end{split}
+\end{equation} where $x_\text{S} = 1$ if the mother smokes, and $-1$ otherwise.
+Likewise, $x_{\text{Age}i} = 1$ if the child is $i$ years old, and $0$ otherwise.
 
--   `"independence"`: assumes within-subject correlation is 0
--   `"fixed"`: user-supplied fixed working correlation
--   `"stat_M_dep"` / `"non_stat_M_dep"`: not covered in this course
--   `"exchangeable"`: one common correlation for all within subject pairs
--   `"AR-M"`: autoregressive structure **Dennis can delete explaination, don't think this is used**
--   `"unstructured"`: each pairwise correlation can differ
-
-For argument details and optional tuning parameters, run `?gee`.
+Let $I_{jm}$ be the indicator random variable for whether child $j$ is infected at age $m$.
+For the independent working correlation, $$\mathrm{corr}(I_{jm}, I_{jn}) = 0$$ for all $m \neq n$.
+For the exchangeable working correlation, $$\mathrm{corr}(I_{jm}, I_{jn}) = \alpha$$ for all $m \neq n$.
+For the unstructured working correlation, $$\mathrm{corr}(I_{jm}, I_{jn}) = \alpha_{mn}$$ for all $m \neq n$.
 :::
 
 ### Independence Structure
@@ -125,16 +126,23 @@ coefs_indep |>
   round(3)
 ```
 
-::: {.callout-note collapse="true"}
-## Reading `coefs_indep` Notation
+::: {.callout-tip collapse = "true"}
 
-`coefs_indep` is a matrix, with model terms in rows and summary statistics in columns.
+## What `id` and `corstr` do in `gee()`
 
--   `coefs_indep["age1", "Estimate"]` gets one cell
--   `coefs_indep[c("age1", "age2", "age3"), "Estimate"]` gets a vector of selected rows from one column
--   `coefs_indep[, "Naive S.E."]` gets the full `Naive S.E.` column
+-   `id` identifies which rows belong to the same subject/cluster. In this dataset, repeated observations from the same child share the same `id`.
+-   `corstr` specifies the working correlation pattern within each `id` cluster.
 
-In matrix indexing, the format is always `[rows, columns]`.
+Allowed `corstr` values in `gee` include:
+
+-   `"independence"`: assumes within-subject correlation is 0
+-   `"fixed"`: user-supplied fixed working correlation
+-   `"stat_M_dep"` / `"non_\text{S}tat_M_dep"`: not covered in this course
+-   `"exchangeable"`: one common correlation for all within subject pairs
+-   `"AR-M"`: autoregressive structure **Dennis can delete explaination, don't think this is used**
+-   `"unstructured"`: each pairwise correlation can differ
+
+For argument details and optional tuning parameters, run `?gee`.
 :::
 
 These values replicate the values in Table 6.8 of @fahrmeir_multivariate_2001 (up to numerical rounding).
@@ -173,16 +181,6 @@ summary(geefit_unstruct) |>
   round(3)
 ```
 
-::: {.callout-important collapse="true"}
-## SELF TEST: Compare Coefficients Across Working Correlations
-
-Fill in:
-
--   Which coefficients look most sensitive to the working correlation?
--   Which are nearly unchanged?
--   Why is this behavior expected under the GEE framework?
-:::
-
 ::: callout-note
 ## Robust (Sandwich) Variance Matrices
 
@@ -219,8 +217,7 @@ geefit_indep$scale
 
 We can see that there is very minimal overdispersion here.
 
-We can derive the scale estimate ourselves.
-Compute the method-of-moments dispersion estimate by hand from Pearson residuals:
+We can derive the scale estimate ourselves by computing the method-of-moments dispersion estimate by hand from Pearson residuals:
 
 ```{r}
 #| label: scale-by-hand
@@ -264,9 +261,7 @@ geefit_indep_scale_fix$scale
 
 We can see that the scale is fixed at 1.
 
-Check relationship:
-
-$$
+We can check our proposed relationship: $$
     \text{Naive SE (scale fixed)} \times \sqrt{\hat\phi}
 =
     \text{Naive SE (reported in original fit)}.
@@ -286,8 +281,9 @@ tibble(
 
 ## Derived Parameter: Coefficient for Age = 10
 
-With effect coding, we can extract the coefficient for for age 10.
-It is the negative sum of the three age coefficients, since the age 10 group is the reference group for the age factor.
+Since we are using effect coding, we can extract the coefficient for for age 10: $$
+\beta_\text{Age10} = - (\beta_\text{Age7} + \beta_\text{Age8} + \beta_\text{Age9}),
+$$ since the age 10 group is the reference group for the age factor.
 
 ```{r}
 #| label: beta-age-10
@@ -303,14 +299,26 @@ beta_age_10
 
 This value matches page 273 of @fahrmeir_multivariate_2001.
 
-::: {.callout-important collapse="true"}
-## SELF TEST: Interpretation of Age-10 Coefficient being Negative
+::: {.callout-note collapse="true"}
+## Reading `coefs_indep` Notation
 
-The probability of infection for a child in the age-10 group is lower than the average probability across all age groups, holding smoking status fixed.
+`coefs_indep` is a matrix, with model terms in rows and summary statistics in columns.
+
+-   `coefs_indep["age1", "Estimate"]` gets one cell
+-   `coefs_indep[c("age1", "age2", "age3"), "Estimate"]` gets a vector of selected rows from one column
+-   `coefs_indep[, "Naive S.E."]` gets the full `Naive S.E.` column
+
+In matrix indexing, the format is always `[rows, columns]`.
+:::
+
+::: {.callout-important collapse="true"}
+## SELF TEST: How should we interpret a negative $\beta_\text{Age10}$
+
+The probability of infection for a child who is age 10 is lower than the average probability across all age groups, when smoking status is fixed.
 :::
 
 @fahrmeir_multivariate_2001 also reports a standard deviation for this coefficient, which we can also reproduce.
-It will simple The robust standard error for this linear combination is:
+The robust standard error for this linear combination is:
 
 ```{r}
 #| label: robust-se-age-10
@@ -353,9 +361,9 @@ summary(geefit_indep_no_interaction) |>
   round(3)
 ```
 
-These values line up with Table 6.9 of @fahrmeir_multivariate_2001.
+The parameter estimates as well as robust and naive standard errors agree with Table 6.9 of @fahrmeir_multivariate_2001.
 
-We can do the same for the exchangeable and unstructured working correlations:
+For the second column in Table 6.9, we do the same for the exchangeable and unstructured working correlations:
 
 ```{r}
 geefit_exch_no_interaction <- gee(
@@ -374,15 +382,21 @@ geefit_unstruct_no_interaction <- gee(
   corstr = "unstructured"
 )
 
-summary(geefit_exch_no_interaction) |>
+geefit_exch_no_interaction |>
   coef() |>
   round(3)
-summary(geefit_unstruct_no_interaction) |>
+geefit_unstruct_no_interaction |>
   coef() |>
   round(3)
 ```
 
-Here we can see that the robust variances differ more across working correlation structures than in the interaction model.:
+The unstructured coefficients agree (up to rounding) with the second column of Table 6.9 in @fahrmeir_multivariate_2001.
+**Dennis I'm unsure why the column in F&T is called Exchangeable/Unspecified**
+
+### Robust Variance Matrix Comparisons
+
+Here we can see that the robust variances differ more across working correlation structures than in the interaction model.
+This supports the suspicion that the earlier agreement was a biproduct of the data.
 
 ```{r}
 #| label: robust-vcov-main
