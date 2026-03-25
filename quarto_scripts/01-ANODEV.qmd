@@ -242,7 +242,7 @@ caesar_glm_fct
 ```
 
 These results line up with the ones on p.30 of the book (yay), but the default covariate names given by `glm()` look kind of weird. Alternatively, we can assign integer values to the factors. This makes
-the dataframe look exactly like it matches the books notation exactly.
+the dataframe look exactly like it is described in  the book.
 
 ```{r}
 #| label: 01-anodev-chunk-12
@@ -285,13 +285,13 @@ We can also extract the deviance using `deviance()`.
 deviance(caesar_int_glm)
 ```
 
-It is important to understand how `glm()` reports the summary, and sometimes the term "residual deviance" and deviance are used interchangeably. [The documentation of
-`glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***". So this number is what we call the (unscaled) deviance.
+It is important to understand how `glm()` reports the summary, and sometimes the terms "residual deviance" and "deviance" are used interchangeably. [The documentation of
+`glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that it is "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***". So this number is what we call the (unscaled) deviance.
 
 ::: callout-note
 The documentation of
-`glm()` about what it is reporting for the deviance
-may be misleading, because it ignores the fact that deviance only
+`glm()` on what it is reporting for the deviance
+may be misleading, because it ignores the fact that the deviance only
 becomes twice the log-likelihood difference ***when rescaled by the
 dispersion***. In the binomial and Poisson cases,
 the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.
@@ -316,17 +316,17 @@ anova(caesar_int_glm, test = "F")
 ## Why is an F test inappropriate here? Expand for answer
 
 For binomial GLMs, because the dispersion parameter $\phi$ is fixed at
-$1$, the natural test for nested models is based on differences in
-deviance, which asymptotically follows a chi-square distribution. The F
+$1$, the natural test for nested models is based on the difference in their
+deviance (or scaled deviance because $\phi =  1$ anyway), which asymptotically follows a chi-square distribution. The F
 test is exact for Gaussian GLMs with identity link (i.e. the classical
 Gaussian linear model) when the dispersion (i.e. the variance) is
 unknown and has to be estimated, and, by heuristic extension,
 appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and
 perhaps certain quasi-likelihood cases), but not for binomial GLMs with
-fixed dispersion.
+fixed dispersion. The documentation of `anova.glm()` also says "***the dispersion estimate will be taken from the largest model, using the value returned by summary.glm***", and  `summary.glm()` reports our typical Pearson residual based  estimator for $\phi$ by default.
 
 See the documentation of `anova.glm()`, as well as
-@venables_modern_2002, p.186-187 and Section 7.5, for more discussion.
+@venables_modern_2002, p.186-187 and Section 7.5, for more discussion. Alternatively, Sections 7.6.4 and 7.6.5 of  @dunn_smyth_2018 also give nice exposition on such approximate F tests.
 :::
 
 ## Model Diagnostics
@@ -357,8 +357,8 @@ sum(resid(caesar_int_glm, type = "deviance")^2)
 
 We can also test the goodness of fit using the deviance and the Pearson
 statistic. Both of these converge to the same asymptotic chi-squared
-distribution with degree 3. If we assume that the number of observations in each group
-is sufficiently large, the degrees of freedom in the chi-squared
+distribution with degree 3, assuming the GLM is true and that the number of observations in each group
+is sufficiently large and the asymptotics apply.  The degrees of freedom in the chi-squared
 distribution is the difference between the number of parameters in the
 saturated model (7, make sure you can explain why), and the degrees of
 freedom in the glm model (4).
@@ -377,9 +377,8 @@ and the Pearson test
 1 - pchisq(sum(resid(caesar_int_glm, type = "pearson")^2), df = 3)
 ```
 
-return values under 0.05, and so under both tests (assuming sufficient
-asymptotics apply), we reject null hypothesis that the data can be
-explained by these models, with significant level of 0.05. We can investigate why this might be by comparing the observed and
+return $p$-values under 0.05, so we reject null hypothesis that the data can be
+explained by the GLM under the significant level of 0.05. We can investigate why by comparing the observed and
 fitted proportions side by side as in Example 2.4 (on the top of p.52 of @fahrmeir_multivariate_2001):
 
 ```{r}
@@ -457,7 +456,7 @@ interaction_deviance
 1 - pchisq(interaction_deviance, df = 1)
 ```
 
-It is very large. We do not reject the null hypothesis that the `noplan:antib` interaction effect is
+It agrees with the number in the anova table and is very large. We do not reject the null hypothesis that the `noplan:antib` interaction effect is
 zero.
 
 ### Adding `noplan:factor` Interaction
@@ -513,8 +512,8 @@ for goodness-of-fit.
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
 ```
 
-Both statistics give a large $p$-value, and so we don't reject the
-interaction. We can also compare fitted and realized proportions as on p.53.
+Both statistics give a large $p$-value, and so we don't reject this 
+interaction model. We can also compare fitted and realized proportions as on p.53.
 
 ```{r}
 #| label: 01-anodev-chunk-27
@@ -528,10 +527,10 @@ We can see that the observed and fitted values are very similar.
 
 ## Handling the issues on Uniqueness and Existence of the MLE
 
-The book recommends that to make the analysis more robust, we should add
-fictitious data to the two zero `Infect_count` cells to avoid existence
-of MLE issue. We do this by adding a 'count' of 0.5 infections and 1
-total case to problematic row.
+The book recommends that to make the analysis more robust, we should augment 
+fictitious data to the two zero `Infect_count` cells to avoid the existence
+-of-MLE issue. We do this by adding a 'count' of 0.5 infections and 1
+total case to the 3rd problematic row.
 
 ```{r}
 #| label: 01-anodev-chunk-28
