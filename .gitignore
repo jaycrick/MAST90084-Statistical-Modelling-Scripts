@@ -384,3 +384,4 @@ TSWLatexianTemp*
 .DS_Store
 * alias
 **/*.quarto_ipynb
+.vscode/

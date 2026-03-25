@@ -6,9 +6,13 @@ date: today
 
 ## Overview
 
-This script demonstrates survival analysis techniques on breast cancer data.
+This script demonstrates survival analysis techniques for **time-to-event data** where some observations may be censored (we don't observe the full time until the event). We'll estimate survival curves non-parametrically (Kaplan-Meier) and then fit parametric survival models (exponential and Weibull).
 
-## Data Loading
+**Key concept**: In survival analysis, we model the time until an event occurs (death, relapse, etc.), accounting for censoring (incomplete observations due to study end or loss to follow-up).
+
+## Data Loading and Setup
+
+Load packages and breast cancer survival data:
 
 ```{r}
 #| label: 11-survival-chunk-1
@@ -22,15 +26,18 @@ head(bcancer)
 tail(bcancer)
 ```
 
-Status is a "non-censored" indicator:
-- 0 if the person is right censored
-- 1 if it is uncensored
+::: {.callout-note}
+**Data structure for survival analysis**:
+- `time`: Time until event (in some unit, here likely days or months)
+- `status`: Censoring indicator (0 = censored, 1 = event observed)
+- `group`: Grouping variable (here: staining status: Positive (P) or Negative (N))
 
-Group is for staining status: positive (P) or negative (N) staining.
+The `Surv()` function combines time and status into a survival object for modeling.
+:::
 
 ## Kaplan-Meier Estimation
 
-Fit KM estimator for the survival function:
+Fit the **Kaplan-Meier** (non-parametric) estimator for the survival function by group:
 
 ```{r}
 #| label: 11-survival-chunk-2
@@ -40,14 +47,28 @@ cancer.km
 summary(cancer.km)
 ```
 
-## Graphical Parameters
+::: {.callout-important collapse="true"}
+## SELF TEST: What does the Kaplan-Meier curve estimate?
 
-Set up graphical parameters:
+The Kaplan-Meier curve estimates $\hat{S}(t)$ = the probability that a randomly selected subject survives beyond time $t$. It's non-parametric (makes no distributional assumptions) and handles censoring by using "risk sets"—the number still at risk at each event time. Events that occur, combined with censored observations, inform the survival probabilities.
+:::
+
+## Graphical Parameters and Visualization
+
+::: {.callout-note}
+**R graphical parameters** (`par()`) control plotting behavior. Key parameters:
+- `mar`: Margins (bottom, left, top, right)
+- `las`: Label axis style (0=default, 1=horizontal for all axes)
+- `mfrow`: Multi-frame layout (rows, columns)
+:::
+
+Set up graphical parameters for customized plots:
 
 ```{r}
 #| label: 11-survival-chunk-3
 par()$las
 
+# Save original parameters, then set new ones
 orig_par <- par(mar = c(3, 3, 1, 1), las = 1)
 par()$las
 orig_par$las
@@ -56,9 +77,11 @@ par()$las
 par()$mar
 ```
 
-`las` = 0 by default. `las` = 1 adjusts to horizontal axis labels, even for the y-axis. This will assign new graphical parameter settings, but also store the original graphical parameters to be retrieved later.
+::: {.callout-note}
+By default, `las = 0`. Setting `las = 1` rotates all axis labels to horizontal orientation, making them more readable. The `par()` call returns a list of old values, which we save for later restoration.
+:::
 
-Plot KM survival curves for the two groups:
+Plot Kaplan-Meier survival curves for the two groups:
 
 ```{r}
 #| label: 11-survival-chunk-4
@@ -68,7 +91,13 @@ par(orig_par)
 
 ## Weibull Suitability Check
 
-Check Weibull suitability:
+Before fitting parametric models, check if the Weibull distribution is suitable. The **log-log transformation** of a Weibull survival curve is linear: $\log(-\log(S(t))) = \alpha \log(\lambda t)$
+
+::: {.callout-tip}
+**Diagnostic plot interpretation**:
+- **Linear relationship**: Suggests Weibull fit is reasonable
+- **Curved pattern**: Suggests Weibull may not fit; consider exponential or other models
+:::
 
 ```{r}
 #| label: 11-survival-chunk-5
@@ -105,12 +134,17 @@ par()$mar
 
 ## Proportional Hazards Assumption
 
-Check PH assumption with cloglog plot:
+Many survival models (e.g., Cox) assume **proportional hazards**: the hazard ratio between groups is constant over time. Check this with the **cloglog transformation**.
+
+::: {.callout-note}
+**Proportional hazards assumption**: If the cloglog curves are parallel, hazards are proportional. If curves cross, the assumption is violated, suggesting the treatment effect changes over time.
+:::
 
 ```{r}
 #| label: 11-survival-chunk-6
 opar <- par(mar = c(2, 2, 0, 0), las = 1)
 
+# cloglog transformation: log(-log(S(t)))
 plot(
     cancer.km,
     fun = "cloglog",
@@ -130,7 +164,17 @@ legend(
 par(opar)
 ```
 
+::: {.callout-important collapse="true"}
+## SELF TEST: What does parallelism of cloglog curves tell us?
+
+Parallel cloglog curves suggest the proportional hazards assumption holds: the hazard of death for positive-stain patients is a constant multiple of that for negative-stain patients, regardless of time. Crossing curves suggest the groups' relative hazards change over time.
+:::
+
 ## Exponential Regression
+
+The **exponential model** is a parametric survival model with constant hazard rate. It assumes failures follow a Poisson process.
+
+Fit exponential survival model:
 
 ```{r}
 #| label: 11-survival-chunk-7
@@ -143,7 +187,13 @@ cancer_exp <- survreg(
 summary(cancer_exp)
 ```
 
-### Wald Test
+::: {.callout-note}
+**Exponential model assumptions**: Constant hazard rate (hazard doesn't change over time). This is restrictive and often violated in practice, but is a useful baseline and computationally simple.
+:::
+
+### Testing the Group Effect
+
+**Wald Test**:
 
 ```{r}
 #| label: 11-survival-chunk-8
@@ -151,9 +201,9 @@ wald_stat <- cancer_exp$coeff[2] / sqrt(cancer_exp$var[2, 2])
 2 * pnorm(-abs(wald_stat))
 ```
 
-p-value
+This gives a p-value for whether group significantly affects survival time.
 
-### Likelihood Ratio Test
+**Likelihood Ratio Test**:
 
 ```{r}
 #| label: 11-survival-chunk-9
@@ -161,20 +211,37 @@ lr_stat <- -2 * (cancer_exp$loglik[1] - cancer_exp$loglik[2])
 pchisq(q = lr_stat, df = 1, lower.tail = FALSE)
 ```
 
-p-value
+An alternative p-value based on the likelihood ratio statistic.
 
-### Rate Parameters
+::: {.callout-important collapse="true"}
+## SELF TEST: When would Wald and LR tests disagree?
+
+Both test the same hypothesis but use different asymptotics. For moderate sample sizes, they usually agree. With small samples or if the coefficient is near a boundary (e.g., near no effect), they can diverge. LR tests are generally more robust in finite samples.
+:::
+
+### Extracting Rate Parameters
+
+For the exponential model, the rate parameter (hazard) is $\lambda = e^{(intercept + \beta \cdot \text{group})}$:
 
 ```{r}
 #| label: 11-survival-chunk-10
-exp(-cancer_exp$coef[1])
+lambda_n <- exp(-cancer_exp$coef[1])
+lambda_p <- exp(-sum(cancer_exp$coef))
 
-exp(-sum(cancer_exp$coef))
+lambda_n
+lambda_p
 ```
 
-### Verification: MLE Formula
+::: {.callout-note}
+Negative stain group: $\lambda_N =$ `r lambda_n` events/time  
+Positive stain group: $\lambda_P =$ `r lambda_p` events/time
 
-For exponential distribution, MLE of lambda is # events / total time at risk:
+Higher $\lambda$ means shorter survival (higher hazard rate).
+:::
+
+### Verification: MLE via Method of Moments
+
+For the exponential distribution, the MLE is: $\hat{\lambda} = \frac{\text{# events}}{\text{total time at risk}}$
 
 ```{r}
 #| label: 11-survival-chunk-11
@@ -185,31 +252,51 @@ sum(bcancer$status[bcancer$group == "P"]) /
     sum(bcancer$time[bcancer$group == "P"])
 ```
 
+::: {.callout-important collapse="true"}
+## SELF TEST: Do these match the model rates above?
+
+These hand-computed values should match (to numerical precision) the rates extracted above. This verifies that `survreg` is fitting via maximum likelihood and our interpretation of the rates is correct.
+:::
+
 ### Delta Method Confidence Interval
+
+Construct a 95% CI for $\lambda_P$ using the **delta method** (linearization):
 
 ```{r}
 #| label: 11-survival-chunk-12
 beta <- cancer_exp$coeff[2]
 var_beta <- (cancer_exp$var)[2, 2]
-var_delta <- (exp(-beta))^2 * var_beta
 
-exp(-beta) + qnorm(0.975) * sqrt(var_delta)
-exp(-beta) - qnorm(0.975) * sqrt(var_delta)
+# Delta method: var(e^X) ≈ (e^X)^2 * var(X)
+var_lambda <- (exp(-beta))^2 * var_beta
+
+# CI
+exp(-beta) + qnorm(0.975) * sqrt(var_lambda)
+exp(-beta) - qnorm(0.975) * sqrt(var_lambda)
 ```
 
-The lower bound doesn't cross to the negative number region, which is lucky.
+::: {.callout-note}
+The lower bound is positive (doesn't cross zero), which is good since $\lambda$ must be positive. However, the delta method doesn't always respect parameter constraints; a safer approach is to transform:
+:::
 
-Alternative using monotone transformation:
+**Better approach**: Transform to enforce positivity:
 
 ```{r}
 #| label: 11-survival-chunk-13
+# Build CI on log scale, then exponentiate
 exp(-(beta - qnorm(0.975) * sqrt(var_beta)))
 exp(-(beta + qnorm(0.975) * sqrt(var_beta)))
 ```
 
-This guarantees that the lower bound doesn't cross to the negative number region.
+::: {.callout-note}
+This guarantees both bounds are positive because exponentiation preserves the ordering and always produces positive values.
+:::
 
 ## Weibull Regression
+
+The **Weibull model** generalizes the exponential by allowing a shape parameter $\alpha > 0$. When $\alpha = 1$, it reduces to exponential; $\alpha > 1$ means hazard increases with time (wear-out); $\alpha < 1$ means hazard decreases (infant mortality).
+
+Fit Weibull survival model:
 
 ```{r}
 #| label: 11-survival-chunk-14
@@ -225,7 +312,13 @@ cancer_wbl$scale
 cancer_wbl$var
 ```
 
+::: {.callout-note}
+Note: `survreg` parameterizes the scale as $\sigma = 1/\alpha$, so the shape parameter is $\alpha = 1/\text{scale}$. A scale close to 1 means $\alpha \approx 1$ (nearly exponential); scale >> 1 means $\alpha << 1$ (rapidly decreasing hazard).
+:::
+
 ### Rate and Shape Parameters
+
+Extract and interpret the Weibull parameters:
 
 ```{r}
 #| label: 11-survival-chunk-15
@@ -244,7 +337,15 @@ s_n_100
 s_p_100
 ```
 
+::: {.callout-important collapse="true"}
+## SELF TEST: What do these survival probabilities mean?
+
+`s_n_100` is the estimated survival probability at time 100 for negative-stain patients. `s_p_100` is the same for positive-stain patients. Compare these to the Kaplan-Meier estimates for similar times to see how well the parametric model fits the data.
+:::
+
 ### Hazard Ratio
+
+Compute the hazard ratio (positive stain vs. negative stain):
 
 ```{r}
 #| label: 11-survival-chunk-16
@@ -252,28 +353,65 @@ hazard_ratio <- (lambda_p / lambda_n)^alpha
 hazard_ratio
 ```
 
-### Wald Test for Shape Parameter
+::: {.callout-note}
+A hazard ratio > 1 means positive-stain patients have higher hazard (die sooner). < 1 means better survival for positive-stain.
+:::
+
+### Testing the Shape Parameter
+
+**Wald test** for whether shape = 1 (exponential):
 
 ```{r}
 #| label: 11-survival-chunk-17
-log(cancer_wbl$scale) / sqrt(cancer_wbl$var[3, 3])
+wald_z <- log(cancer_wbl$scale) / sqrt(cancer_wbl$var[3, 3])
 
-2 * pnorm(-abs(log(cancer_wbl$scale) / sqrt(cancer_wbl$var[3, 3])))
+# p-value for H0: log(scale) = 0, i.e., scale = 1, i.e., alpha = 1
+2 * pnorm(-abs(wald_z))
 ```
 
-p-value
-
-### Likelihood Ratio Test
+**Likelihood ratio test** comparing Weibull to exponential:
 
 ```{r}
 #| label: 11-survival-chunk-18
-2 * (cancer_wbl$loglik[2] - cancer_exp$loglik[2])
+lr_stat <- 2 * (cancer_wbl$loglik[2] - cancer_exp$loglik[2])
 
 qchisq(.95, df = 1)
 
 pchisq(
-    2 * (cancer_wbl$loglik[2] - cancer_exp$loglik[2]),
+    lr_stat,
     df = 1,
     lower.tail = FALSE
 )
 ```
+
+::: {.callout-important collapse="true"}
+## SELF TEST: Does the Weibull model fit better than exponential?
+
+Compare the LR test p-value: if p < 0.05, the shape parameter is significantly different from 1, meaning Weibull provides better fit than exponential. Also compare AIC/BIC or look at the scaled deviances to assess relative model quality.
+:::
+
+## Key Learning Points
+
+1. **Survival data structure**: Time-to-event ($t$) and censoring indicator (0/1). Censoring indicates incomplete observation—we know $T > t$ but not the exact value.
+
+2. **Non-parametric vs. parametric**:
+   - **Kaplan-Meier**: Non-parametric, makes no distributional assumption, handles censoring via risk sets
+   - **Parametric models**: Assume specific distribution (exponential, Weibull), more efficient if assumption holds
+
+3. **Diagnostic plots**:
+   - **Log-log plot**: Linearity suggests Weibull fit is appropriate
+   - **cloglog plot**: Parallelism checks proportional hazards assumption
+
+4. **Model parameters**:
+   - **Exponential**: Single rate parameter $\lambda$ (constant hazard)
+   - **Weibull**: Rate $\lambda$ and shape $\alpha$ (hazard can increase/decrease over time)
+
+5. **Interpretation**:
+   - Hazard ratio: relative risk between groups
+   - Survival probability at time $t$: probability of not having event by time $t$
+   - Rates are on the inverse scale: higher rate = shorter survival time
+
+6. **Inference**:
+   - **Wald tests**: Test individual parameters (less robust in finite samples)
+   - **LR tests**: Compare nested models (more robust)
+   - Always verify with bootstrapping or sensitivity analyses when possible

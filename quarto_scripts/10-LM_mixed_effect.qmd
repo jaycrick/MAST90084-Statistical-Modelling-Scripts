@@ -6,13 +6,17 @@ date: today
 
 ## Overview
 
-This script demonstrates **linear random effect models** using the lme4 package.
+This script demonstrates **linear mixed effects models** using the lme4 package. Linear mixed models extend traditional regression by allowing both fixed effects (population-level) and random effects (subject-level deviations).
+
+**When to use LMM**: Use LMM when you have repeated measurements on subjects or hierarchically-structured data (students within schools), and want to account for within-group correlation while efficiently estimating population parameters.
 
 Paper for lme4 package: <https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf>
 
 ## Pulp Brightness Dataset
 
-This example is from p.200, ch 10 of Faraway (2016) on random effect models. The dataset tests paper brightness depending on a shift operator:
+This example is from p.200, ch 10 of Faraway (2016). The dataset measures paper brightness (continuous response) depending on which shift operator prepared the pulp, with multiple brightness measurements from each operator.
+
+Load packages and data:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-1
@@ -31,7 +35,17 @@ help(pulp)
 pulp
 ```
 
-Use REML estimate for var-cov component by default. Use MLE if you want:
+### Comparing REML vs. MLE Estimation
+
+::: {.callout-note}
+**REML vs. MLE in linear mixed models**:
+- **REML** (Restricted/Residual Maximum Likelihood): The default; better for estimating variance components because it accounts for loss of degrees of freedom from estimating fixed effects
+- **MLE** (Maximum Likelihood): Treats variance components and fixed effects jointly; can underestimate variance components
+
+For inference on fixed effects, both methods yield the same estimates, but their standard errors may differ slightly.
+:::
+
+Fit two models: REML (default) and MLE:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-4
@@ -39,7 +53,7 @@ mmod <- lmer(bright ~ 1 + (1 | operator), pulp)
 smod <- lmer(bright ~ 1 + (1 | operator), pulp, REML = FALSE)
 ```
 
-mmod is an object of class lmerMod:
+The `mmod` object is of class lmerMod. Let's examine both fits:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-5
@@ -51,7 +65,13 @@ summary(mmod)
 summary(smod)
 ```
 
-Note that lmer doesn't report p-values for their estimates. The between subject SD 0.21 of the MLE method is smaller than the between subject SD 0.26 of the REML method because MLE tends to bias the estimates towards zero.
+::: {.callout-important collapse="true"}
+## SELF TEST: Why does the MLE variance estimate differ from REML?
+
+Note that lmer doesn't report p-values for random effects. The between-subject SD is 0.21 for MLE vs. 0.26 for REML because MLE tends to bias variance components downward (underestimation). REML is generally preferred for estimating variance components. However, the fixed effect (mean brightness) is the same: both methods estimate the same fixed intercept.
+:::
+
+Compare fixed effect estimates:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-7
@@ -59,73 +79,98 @@ fixef(mmod)
 fixef(smod)
 ```
 
-The fixed effect estimates of the two methods happen to be the same, but they should generally differ.
+::: {.callout-note}
+The fixed effect estimates are the same between REML and MLE for balanced data like this. However, they should generally differ for unbalanced designs.
+:::
 
-One can also estimate the random effects, which are the posterior means (or modes):
+### Extracting Model Components
+
+Extract the random effects (conditional modes/BLUPs for each operator):
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-8
 ranef(mmod)$operator
 ```
 
+Variance-covariance matrix for the fixed effects:
+
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-9
 summary(mmod)$vcov
 ```
 
-This gives the variance-covariance for the fixed effects, same as 0.1494^2. Section 5.1 in lme4's JSS paper gives more details on how this is computed.
+::: {.callout-note}
+This gives the variance-covariance for the fixed effects; note that $\sqrt{0.1494^2} \approx 0.1494$ matches the standard error reported. Section 5.1 in lme4's JSS paper gives more details on how this is computed.
+:::
+
+Residual standard error (estimated standard deviation for the within-cluster errors):
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-10
 summary(mmod)$sigma
 ```
 
-Residual standard error (estimated standard deviation for the epsilon errors).
+::: {.callout-note}
+This is the estimated standard deviation of the observation-level errors $\epsilon_ij$. The random effects standard deviation is reported separately in the variance-covariance components below.
+:::
+
+Variance-covariance components (random effects SD and residual SD):
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-11
 summary(mmod)$varcor
 ```
 
-This reports the estimated random effect std dev and the error std dev.
+Fixed effect coefficient table:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-12
 summary(mmod)$coeff
 ```
 
-Fixed effect coefficient, etc.
-
 ### Hand-Computed Fixed Effect Estimate
+
+A key insight of linear mixed models is that they are a special case of generalized least squares (GLS). Let's verify the fixed effect estimate by hand-computing the GLS solution from the estimated variance structure:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-13
+# Extract variance components from the model
 components <- as.data.frame(VarCorr(mmod))$vcov
+
+# Build the within-subject variance-covariance matrix for one operator
+# (5 measurements per operator)
 Vi <- components[2] * diag(5) + components[1] * tcrossprod(rep(1, 5))
 
+# Build the full V matrix (block-diagonal, one block per operator)
 V <- Matrix::bdiag(Vi, Vi, Vi, Vi)
+
+# Design matrix (all 1s for the intercept-only model)
 Z <- rep(1, 20)
 ```
 
-Hand-computed fixed effect estimate:
+Hand-computed GLS estimate of the fixed effect (intercept):
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-14
 (1 / (t(Z) %*% solve(V) %*% Z)) * t(Z) %*% solve(V) %*% pulp$bright
 ```
 
-Hand-computed standard error for fixed effect (the usual covariance matrix for the GLS (general least square) estimate):
+Hand-computed standard error (GLS covariance):
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-15
 sqrt(1 / (t(Z) %*% solve(V) %*% Z))
 ```
 
-These numbers check out with ones reported in `summary(mmod)$coeff`.
+::: {.callout-important collapse="true"}
+## SELF TEST: Do the hand-computed values match the model output?
+
+These numbers should check out precisely with those reported in `summary(mmod)$coeff`. This manual verification demonstrates that lmer is doing generalized least squares under the hood, inverting the estimated variance-covariance structure to give more weight to more-precise observations.
+:::
 
 ### Model Diagnostics
 
-One can also plot the residuals as model diagnostics. The default residuals are computed using the estimated random effects. This means these residuals can be regarded as estimates of epsilons which is usually what we want:
+The default residuals are computed using the estimated random effects. These residuals can be regarded as estimates of the observation-level errors $\epsilon_{ij}$, which is usually what we want for diagnostics:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-16
@@ -136,25 +181,33 @@ abline(h = 0)
 dev.off()
 ```
 
-Compute the residual by hand:
+Compute residuals by hand to verify:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-17
+# Residuals = observed - predicted
+#           = observed - (fixed effect + random effect)
 residual_manual <- pulp$bright -
     rep(ranef(mmod)$operator[, 1], each = 5) -
     fixef(mmod)
 ```
 
-They check out with the residual reported:
+Verify they match the model output:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-18
 residual_manual == residuals(mmod)
 ```
 
+::: {.callout-note}
+All TRUE! This confirms that the default residuals condition on the estimated random effects. If we used residuals that ignore random effects (`residuals(mmod, use.u=FALSE)`), we'd get different values that mix operator-level and observation-level variation.
+:::
+
 ## PSID Longitudinal Data
 
-From longitudinal data chapter (Ch 11) of Faraway 2016:
+Now we move to a more complex model with **random slopes**. The PSID (Panel Study of Income Dynamics) dataset tracks income over time for individuals, allowing both random intercepts (baseline income) and random slopes (individual income growth rates).
+
+Load and examine data:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-19
@@ -166,12 +219,20 @@ help(psid)
 head(psid, 20)
 ```
 
+Center time at 1978 to ease interpretation:
+
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-21
 psid$cyear <- psid$year - 78
 ```
 
-As explained by Faraway, the year is centered at the year 1978 so that the intercept will predict the log income in 1978, but not 1900!
+::: {.callout-note}
+**Centering predictors**: By centering year at 1978, the intercept in our model will represent log-income in 1978 (a reasonable reference point), not a meaningless extrapolation to year 0.
+:::
+
+### REML vs. MLE with Random Slopes
+
+Fit a model with both random intercept and random slope (person growth rate varies):
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-22
@@ -184,17 +245,27 @@ smod <- lmer(
 )
 ```
 
+Examine REML fit:
+
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-23
 summary(mmod)
 ```
+
+Variance-covariance matrix of fixed effects:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-24
 summary(mmod)$vcov
 ```
 
-This time REML and MLE give different fixed effect estimates:
+::: {.callout-important collapse="true"}
+## SELF TEST: When do REML and MLE fixed effects differ?
+
+Compare `fixef(mmod)` and `fixef(smod)` below. For unbalanced longitudinal data like PSID (people observed different numbers of times), REML and MLE fixed effects can differ. REML is generally preferable for variance component estimation, but for balanced or near-balanced data, differences are small.
+:::
+
+Compare fixed effect estimates:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-25
@@ -202,14 +273,60 @@ fixef(mmod)
 fixef(smod)
 ```
 
+Standard errors of fixed effects:
+
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-26
 sqrt(diag(summary(mmod)$vcov))
 ```
+
+### Random Effects Structure
+
+Examine the variance-covariance of random effects:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-27
 VarCorr(mmod)
 ```
 
-There is a random effect for both intercept and slope, and hence a correlation between them.
+::: {.callout-important collapse="true"}
+## SELF TEST: What does the random effects correlation tell us?
+
+There are two random effects here:
+1. Random intercept (baseline log-income in 1978)
+2. Random slope (individual's rate of income growth)
+
+The correlation between them is negative (~-0.30). This means: people with lower baseline income tend to have faster income growth (in percentage terms), a common pattern in real data. This correlation is estimated; if we had assumed independence (`(1 | person) + (0 + cyear | person)`), we'd get different (and less accurate) estimates.
+:::
+
+## Key Learning Points
+
+1. **Mixed models decompose variation**:
+   - Fixed effects: population-level patterns
+   - Random effects: subject-level deviations
+   - Residuals: observation-level variation
+
+2. **REML vs. MLE in LMM**:
+   - REML: Better for variance components, default choice
+   - MLE: Useful for likelihood ratio tests comparing fixed effects, slightly biased variance estimates
+   - For balanced data: estimates nearly identical; differences grow with imbalance
+
+3. **Random intercepts vs. slopes**:
+   - Random intercept only: parallel lines (same slope, different intercepts)
+   - Random slopes: lines with different intercepts AND slopes
+   - Correlation between intercept and slope captures important heterogeneity
+
+4. **Residuals in LMM**:
+   - Default: condition on random effects (estimate within-group errors)
+   - Alternative: ignore random effects (mix group and within-group variation)
+   - Manual verification: Residuals = observed - fitted (fixed + random)
+
+5. **LMM as GLS**:
+   - LMM solution = generalized least squares with estimated covariance structure
+   - Hand-computation: build V matrix, compute $(Z^T V^{-1} Z)^{-1} Z^T V^{-1} y$
+   - Upweights precise observations, downweights noisy ones
+
+6. **Centering and scaling**:
+   - Centering predictors improves interpretability (intercept = marginal mean at center)
+   - Scaling can improve numerical stability
+   - Essential for meaningful random slopes

@@ -8,6 +8,8 @@ date: today
 
 This script demonstrates **Generalized Linear Mixed Models (GLMM)** for handling **subject-specific random effects** in longitudinal and ordinal data.
 
+**When to use GLMM**: Use GLMM when you have clustered or repeated measurements and want subject-specific (conditional) estimates accounting for within-subject correlation via random effects. GLMM differs from GEE—it provides subject-specific effects rather than population-average effects.
+
 Methods covered:
 - Laplace approximation via `glmer()` (lme4)
 - Adaptive Gauss-Hermite quadrature (AGHQ) for improved accuracy
@@ -16,6 +18,7 @@ Methods covered:
 
 ### Available GLMM Software Comparison
 
+::: {.callout-tip}
 Many R packages exist for fitting GLMMs, using different estimation methods:
 
 - **MASS::glmmPQL**: Penalized quasi-likelihood
@@ -28,8 +31,11 @@ Many R packages exist for fitting GLMMs, using different estimation methods:
 - **gamlss.mx**, **ASREML-R**, **sabreR**, **mcemGLM**: Other specialized approaches
 
 We'll focus on the most commonly used: `glmer()`, `glmmPQL()`, and `clmm()`.
+:::
 
 ## Ohio Respiratory Data Setup
+
+The Ohio respiratory dataset contains repeated respiratory status measurements (yes/no) for children in a longitudinal study, with covariates including age and smoking status. We'll fit GLMM models to account for within-child correlation using random intercepts.
 
 Load required packages and prepare the Ohio respiratory dataset:
 
@@ -54,7 +60,7 @@ class(ohio$age)
 class(ohio$smoke)
 ```
 
-Convert age and smoke to factors, and set up effect coding to match Fahrmeir & Tutz:
+Convert age and smoke to factors.
 
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-3
@@ -66,7 +72,11 @@ contrasts(ohio$age)
 contrasts(ohio$smoke)
 ```
 
-Set effect coding (Fahrmeir & Tutz use this parameterization):
+::: {.callout-note}
+**Contrast coding matters**: The default treatment contrasts compare each level to a reference category. Fahrmeir & Tutz use effect coding (also called "sum" contrasts), where each level compares to the overall mean. This affects coefficient interpretation but not model fit or predictions—only the parameterization changes.
+:::
+
+Now adjust to effect coding (Fahrmeir & Tutz use this parameterization):
 
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-4
@@ -80,7 +90,15 @@ contrasts(ohio$smoke) <- matrix(c(-1, 1), 2, 1)
 contrasts(ohio$smoke)
 ```
 
+::: {.callout-important collapse="true"}
+## SELF TEST: How does effect coding differ from treatment coding?
+
+With treatment coding (dummy variables), coefficients represent differences from a reference level. With effect coding (sum contrasts), coefficients represent differences from the grand mean. Both are valid parameterizations; changing contrasts doesn't change the model's predictions or likelihood, only the interpretation of individual coefficients.
+:::
+
 ## GLMM via Laplace Approximation
+
+The Laplace approximation is a fast method for numerical integration in GLMM. It approximates the integral in the likelihood using a Taylor expansion around the maximum of the integrand. The `glmer()` function implements both Laplace and more accurate methods (AGHQ).
 
 The default `glmer()` approach uses the **Laplace approximation**, which is fast and reasonably accurate. The Nelder-Mead optimizer is recommended by Faraway (2016):
 
@@ -96,7 +114,15 @@ glmer_fit <- glmer(
 summary(glmer_fit)
 ```
 
+::: {.callout-important collapse="true"}
+## SELF TEST: What does the `(1 | id)` formula mean?
+
+This specifies a random intercept model: `(1 | id)` means each subject (`id`) has its own random intercept drawn from a normal distribution with mean 0 and estimated standard deviation. The `1` represents the intercept term; `| id` conditions on subject ID. This allows each subject to have a different baseline probability of respiratory status while maintaining a common effect of the fixed covariates.
+:::
+
 ## GLMM via Adaptive Gauss-Hermite Quadrature
+
+Adaptive Gauss-Hermite quadrature (AGHQ) provides more accurate numerical integration than the Laplace approximation by using multiple quadrature points. Using more points trades computation time for accuracy.
 
 More accurate numerical integration with `nAGQ`. Using 10 quadrature points closely reproduces the numbers in Table 7.2 of Fahrmeir & Tutz:
 
@@ -113,16 +139,32 @@ glmer_fit_n_agq_10 <- glmer(
 summary(glmer_fit_n_agq_10)
 ```
 
-"Estimate" the random effects, which are conditional modes as indicated by the documentation of `ranef()`:
+::: {.callout-note}
+**Laplace vs. AGHQ**: Laplace (`nAGQ = 1`, the default) is fast. AGHQ with `nAGQ = 10` or higher is slower but more accurate, especially when random effects have large variance relative to fixed effects. Compare the coefficients and standard errors: if they're similar, Laplace is sufficiently accurate.
+:::
+
+::: {.callout-important collapse="true"}
+## SELF TEST: Why do the AGHQ estimates differ from Laplace?
+
+AGHQ uses multiple quadrature points to numerically integrate over random effects, while Laplace uses only one point (the mode of the integrand). AGHQ is more accurate, especially when the random effect distribution is far from normal or has large variance. Comparing the two helps assess whether the Laplace approximation was adequate.
+:::
+
+Extract the random effects (conditional modes/BLUPs):
 
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-7
 head(ranef(glmer_fit))
 ```
 
+::: {.callout-note}
+**Conditional modes vs. random effects**: These are the estimated subject-specific deviations from the fixed effect intercept, representing each subject's baseline relative to the population average. These are conditional on the observed data (hence "conditional modes" or BLUPs—Best Linear Unbiased Predictions).
+:::
+
 ## Alternative: Penalized Quasi-Likelihood
 
-This is an alternative (and faster) method for fitting GLMM that doesn't require numerical integration. See Chapter 13 in Faraway (2016) for more details. This approach is based on penalized quasi-likelihood:
+Penalized quasi-likelihood (PQL) is an alternative (and much faster) method that doesn't require numerical integration. It iteratively fits a linear mixed model to transformed data. While faster, PQL is less accurate than Laplace/AGHQ.
+
+This is an alternative method for fitting GLMM that doesn't require numerical integration. See Chapter 13 in Faraway (2016) for more details. This approach is based on penalized quasi-likelihood:
 
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-8
@@ -136,7 +178,13 @@ glmm_pql_fit <- glmmPQL(
 summary(glmm_pql_fit)
 ```
 
-This should use the version of `ranef()` from the nlme package:
+::: {.callout-important collapse="true"}
+## SELF TEST: How do PQL estimates compare to Laplace?
+
+Compare the coefficients and standard errors from `glmm_pql_fit` to `glmer_fit`. PQL often underestimates standard errors and can bias coefficients, especially when random effect variance is large. If estimates are quite different, Laplace or AGHQ is more reliable. PQL's main advantage is speed for very large datasets.
+:::
+
+Extract random effects (using nlme's `ranef()`):
 
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-9
@@ -145,7 +193,9 @@ head(ranef(glmm_pql_fit))
 
 ## Wine Bitterness: Ordinal Mixed Models
 
-Now we demonstrate **ordinal regression with random effects** on the wine tasting dataset from the ordinal package.
+Now we demonstrate **ordinal regression with random effects**. Ordinal outcomes (like wine quality ratings: poor, acceptable, excellent) have a natural ordering but unequal spacing. Cumulative link models (CLM, proportional odds models) respect this ordering.
+
+The wine tasting dataset from the ordinal package contains tasting ratings of wines across different judges (random effects), temperatures, and contact types.
 
 ### Data Setup and Contrast Coding
 
@@ -185,6 +235,10 @@ contrasts(wine$temp)
 
 ### Fixed Effects Ordinal Model: polr()
 
+::: {.callout-tip}
+**Ordinal models**: The `polr()` function fits proportional odds (cumulative logit) models. It assumes the covariate effects are the same across all thresholds (proportional odds assumption). If this is violated, the sequential or partial proportional odds models may be needed.
+:::
+
 Fit using `MASS::polr()` for comparison with the ordinal package:
 
 ```{r}
@@ -210,6 +264,10 @@ wine_fixed_fit_clm <- clm(rating ~ temp + contact, data = wine)
 summary(wine_fixed_fit_clm)
 wine_fixed_fit_clm$coefficients
 ```
+
+::: {.callout-note}
+**polr() vs. clm()**: Both fit proportional odds models, but they differ in implementation details and output format. `polr()` from MASS is more mature; `clm()` from ordinal allows mixed models via its sister function `clmm()`. The coefficients may differ slightly due to optimization differences.
+:::
 
 ### Comparing with Fahrmeir & Tutz Book Values
 
@@ -251,16 +309,22 @@ wine_mixed_fit <- clmm(
 summary(wine_mixed_fit)
 ```
 
+::: {.callout-important collapse="true"}
+## SELF TEST: How do fixed effect magnitudes change with judge random effects?
+
+The fixed-effect coefficients (for `temp` and `contact`) typically have larger (in absolute value) magnitudes in the mixed model than the fixed effects model. Why? The random effects absorb judge-level heterogeneity, so the fixed effects must work harder to explain remaining variation. This is typical: ignoring random effects can bias fixed effect estimates downward.
+:::
+
 ### Results Interpretation
 
 The mixed model results are consistent in the sense that the fixed-effect coefficients (beta's) have larger magnitudes when accounting for judge-specific random effects.
 
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-17
-# Fitted values
+# Fitted values for first few observations
 head(wine_mixed_fit$fitted.values)
 
-# Contrast structure
+# Contrast structure used in the model
 wine_mixed_fit$contrasts
 ```
 
@@ -273,19 +337,27 @@ ranef(wine_mixed_fit)
 
 ## Key Learning Points
 
-1. **Subject-specific vs. population-average**: GLMM coefficients are conditional (subject-specific), differing from GEE marginal effects
-2. **Estimation methods**:
-   - **Laplace**: Fast, reasonable accuracy
-   - **AGHQ**: Slower, higher accuracy (more quadrature points = better approximation)
-   - **PQL**: Fastest, lower accuracy (avoids integration entirely)
-3. **Random effects**: Represent between-subject heterogeneity; extracted as conditional modes
-4. **Ordinal mixed models**: Use `clmm()` for cumulative link models with random effects
-5. **Contrast coding**: Effect coding vs. dummy coding changes coefficient interpretation but not model fit
+1. **Subject-specific vs. population-average**:
+   - GLMM coefficients are conditional (subject-specific), differing from GEE marginal effects
+   - GLMM: "Controlling for subject effects..."
+   - GEE: "On average across subjects..."
 
-## References
+2. **Estimation methods trade-off accuracy vs. speed**:
+   - **Laplace**: Fast, reasonable accuracy (1st-order Taylor approx.)
+   - **AGHQ with nAGQ=10**: Slower, higher accuracy (multi-point quadrature)
+   - **PQL**: Fastest, lower accuracy (iterative linear approximation)
 
-- Fahrmeir, L. & Tutz, G. (2001). *Multivariate Statistical Modelling Based on Generalized Linear Models* (2nd ed.)
-- Faraway, J. J. (2016). *Extending the Linear Model with R* (2nd ed.), Chapter 13
-- Venables, W. N., & Ripley, B. D. (2002). Modern applied statistics with S (4th ed.)
-- [lme4 documentation](https://cran.r-project.org/package=lme4)
-- [ordinal package documentation](https://cran.r-project.org/package=ordinal)
+3. **Random effects interpretation**:
+   - Represent between-subject heterogeneity (deviations from population average)
+   - Extracted as conditional modes (BLUPs)
+   - Conditional on observed data
+
+4. **Contrast coding effects**:
+   - Treatment contrasts: compare to reference level
+   - Effect contrasts: compare to grand mean
+   - Changes coefficient interpretation, not model fit
+
+5. **Ordinal mixed models**:
+   - Use `clmm()` for cumulative link models with random effects
+   - Proportional odds assumption: effects same across all thresholds
+   - Fixed effect magnitudes increase when random effects included (effect capture)

@@ -6,11 +6,17 @@ date: today
 
 ## Overview
 
-This script reproduces the simulations on p.292 of Faraway, 2nd edition, 2016, or p.225 in the first edition.
+This script demonstrates **Generalized Estimating Equations (GEE)** for analyzing **repeated measures and clustered data** using the CTSIB (Computerized Dynamic Posturography) balance test dataset.
+
+**When to use GEE**: Use GEE when you have repeated measurements on subjects and want population-average (marginal) estimates. GEE differs from GLMM—it provides marginal effects rather than subject-specific effects, and it's more robust to correlation specification.
+
+This script reproduces the analysis on p.292 of Faraway (2nd ed., 2016) or p.225 (1st ed.), fitting both Pearson moment-based scale estimation (`scale.fix = TRUE`) and empirical scale estimation (`scale.fix = FALSE`).
 
 ## Data Setup
 
-Set default contrasts and load the data:
+The CTSIB dataset contains repeated balance test measurements on multiple subjects under different sensory conditions (surface, vision). We'll model the probability of stable balance as a function of demographic and test characteristics.
+
+First, set default contrasts and load the data:
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-1
@@ -41,7 +47,11 @@ str(ctsib)
 
 ### Creating Binary Response
 
-Create binary responses: 1 represents completely stable, otherwise not:
+The raw CTSIB variable contains balance test results. We create a binary response where 1 = completely stable (most favorable outcome), and 0 = any other result (borderline or abnormal).
+
+::: {.callout-note}
+**Binary recoding convention**: We recode the ordinal CTSIB outcome into a binary indicator for "stable" balance. This is a common simplification in practice when the primary interest is in the best outcome vs. all others.
+:::
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-4
@@ -50,7 +60,11 @@ ctsib$stable <- ifelse(ctsib$CTSIB == 1, 1, 0)
 
 ## GEE with Exchangeable Correlation
 
-Fit GEE with scale fixed at 1:
+We fit a GEE model assuming **exchangeable correlation structure** among repeated measurements within each subject. This assumes all pairs of measurements on the same subject have the same correlation, regardless of their temporal distance.
+
+### Fixed Scale Estimation
+
+First, fit GEE with scale fixed at 1 (Pearson moment estimation of scale):
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-5
@@ -67,7 +81,15 @@ gg$coefficients
 summary(gg)
 ```
 
-Faraway didn't fit with scale.fix = FALSE, but we try it:
+::: {.callout-important collapse="true"}
+## SELF TEST: What does `scale.fix = TRUE` mean?
+
+When `scale.fix = TRUE`, the scale parameter (dispersion) is fixed at 1, and standard errors are computed using the standard Pearson moment estimator without adjustment. This is appropriate for binomial models where the theoretical variance is fully specified. When `scale.fix = FALSE`, the scale parameter is estimated from the data, which can better account for overdispersion if the data violates Bernoulli assumptions.
+:::
+
+### Empirical Scale Estimation
+
+Now let's try the alternative: estimating scale from the data. Faraway didn't demonstrate this, but it's instructive to compare:
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-6
@@ -84,9 +106,32 @@ gg_scale$coefficients
 gg_scale$scale
 ```
 
+::: {.callout-tip}
+**Comparing fixed vs. empirical scale**:
+- The fixed scale model (`scale.fix = TRUE`) assumes the Bernoulli variance structure is correct.
+- The empirical scale model (`scale.fix = FALSE`) estimates a scale parameter that can adjust for over- or under-dispersion.
+- Compare the estimated `scale` value to 1: a value > 1 suggests overdispersion (positive correlation within clusters); < 1 suggests underdispersion.
+:::
+
+::: {.callout-important collapse="true"}
+## SELF TEST: When would you prefer empirical scale estimation?
+
+Use empirical scale estimation (`scale.fix = FALSE`) when you suspect the data may exhibit overdispersion beyond the theoretical binomial variance, perhaps due to unmeasured subject-level heterogeneity or strong within-subject correlation. This makes your inference more robust if the exchangeable correlation assumption is violated.
+:::
+
 ## Alternative: geepack Package
 
-Use the geepack package. Note: its estimate of dispersion is NOT based on our typical Pearson residual method of moment estimator. See the original paper by Yan and Fine:
+The **geepack** package provides an alternative implementation of GEE with some methodological differences. Importantly, its estimate of dispersion is **NOT** based on the standard Pearson residual method-of-moments estimator. See the original paper by Yan and Fine (2010) for technical details.
+
+::: {.callout-important collapse="true"}
+## SELF TEST: Why compare different GEE packages?
+
+Different software implementations may use different estimators for the dispersion/scale parameter. Comparing results across implementations helps verify results and understand when methodological choices matter. The `gee` package uses Pearson moment estimation; `geepack` uses an alternative. Both are valid; differences reveal sensitivity to the scale estimation method.
+:::
+
+### Fitting with geepack (Fixed Scale)
+
+Uncomment and run to compare with the primary `gee` package results:
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-7
@@ -102,7 +147,14 @@ Use the geepack package. Note: its estimate of dispersion is NOT based on our ty
 # summary(modgeep)
 # summary(modgeep)$scale.value
 # summary(modgeep)$dispersion
-#
+```
+
+### Fitting with geepack (Empirical Scale)
+
+And the empirical scale version:
+
+```{r}
+#| label: TODO-geepack-empirical
 # modgeep.scale <- geeglm(
 #   stable ~ Sex + Age + Height + Weight + Surface + Vision,
 #   id = Subject,
@@ -115,3 +167,15 @@ Use the geepack package. Note: its estimate of dispersion is NOT based on our ty
 # modgeep.scale$coefficients
 # summary(modgeep.scale)$dispersion
 ```
+
+## Key Learning Points
+
+1. **GEE for repeated measures**: GEE provides population-average estimates for clustered/repeated measurements, differing from GLMM's subject-specific approach.
+
+2. **Exchangeable correlation**: Assumes constant correlation between any two measurements on the same subject.
+
+3. **Scale parameter**: Controls for overdispersion; compare `scale = 1` (fixed) vs. estimated values to assess whether variance assumptions hold.
+
+4. **Software comparisons**: Different implementations (gee vs. geepack) use different scale estimators; comparing them provides robustness checks.
+
+5. **Working correlation vs. true correlation**: GEE is semi-parametric; results are consistent even if the working correlation structure is misspecified, though efficiency may suffer.
