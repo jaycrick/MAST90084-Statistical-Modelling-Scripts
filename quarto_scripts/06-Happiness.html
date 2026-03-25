@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-23">
+<meta name="dcterms.date" content="2026-03-25">
 
-<title>Ordinal Regression: Happiness Data – MAST90084 - Statistical Modelling Scripts</title>
+<title>Conditional Models: Happiness Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -59,7 +59,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -107,6 +126,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -156,6 +204,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
  <span class="dropdown-text">Sequential Regression: Tonsil Size</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -185,9 +237,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
   <li><a href="#data-loading" id="toc-data-loading" class="nav-link" data-scroll-target="#data-loading">Data Loading</a></li>
-  <li><a href="#part-1-school-education-levels-by-sex" id="toc-part-1-school-education-levels-by-sex" class="nav-link" data-scroll-target="#part-1-school-education-levels-by-sex">Part 1: School Education Levels by Sex</a>
+  <li><a href="#part-1-marginal-distribution-of-school-education-levels-by-sex" id="toc-part-1-marginal-distribution-of-school-education-levels-by-sex" class="nav-link" data-scroll-target="#part-1-marginal-distribution-of-school-education-levels-by-sex">Part 1: Marginal Distribution of School Education Levels by Sex</a>
   <ul class="collapse">
-  <li><a href="#setting-contrasts-for-part-1" id="toc-setting-contrasts-for-part-1" class="nav-link" data-scroll-target="#setting-contrasts-for-part-1">Setting Contrasts for Part 1</a></li>
+  <li><a href="#setting-effect-coding" id="toc-setting-effect-coding" class="nav-link" data-scroll-target="#setting-effect-coding">Setting Effect Coding</a></li>
   <li><a href="#fit-first-model" id="toc-fit-first-model" class="nav-link" data-scroll-target="#fit-first-model">Fit First Model</a></li>
   </ul></li>
   <li><a href="#part-2-happiness-levels-by-education" id="toc-part-2-happiness-levels-by-education" class="nav-link" data-scroll-target="#part-2-happiness-levels-by-education">Part 2: Happiness Levels by Education</a>
@@ -196,12 +248,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#fit-second-model" id="toc-fit-second-model" class="nav-link" data-scroll-target="#fit-second-model">Fit Second Model</a></li>
   <li><a href="#recovering-coefficients" id="toc-recovering-coefficients" class="nav-link" data-scroll-target="#recovering-coefficients">Recovering Coefficients</a></li>
   </ul></li>
-  <li><a href="#log-likelihood-and-model-fit" id="toc-log-likelihood-and-model-fit" class="nav-link" data-scroll-target="#log-likelihood-and-model-fit">Log-Likelihood and Model Fit</a>
+  <li><a href="#reproducing-the-deviance" id="toc-reproducing-the-deviance" class="nav-link" data-scroll-target="#reproducing-the-deviance">Reproducing the Deviance</a>
   <ul class="collapse">
   <li><a href="#computing-saturated-model-likelihood" id="toc-computing-saturated-model-likelihood" class="nav-link" data-scroll-target="#computing-saturated-model-likelihood">Computing Saturated Model Likelihood</a></li>
   <li><a href="#deviance" id="toc-deviance" class="nav-link" data-scroll-target="#deviance">Deviance</a></li>
   </ul></li>
-  <li><a href="#package-citations-and-references" id="toc-package-citations-and-references" class="nav-link" data-scroll-target="#package-citations-and-references">Package citations and references</a></li>
+  <li><a href="#problems-with-the-reported-standard-errors-and-p-values" id="toc-problems-with-the-reported-standard-errors-and-p-values" class="nav-link" data-scroll-target="#problems-with-the-reported-standard-errors-and-p-values">Problems with the Reported Standard Errors and <span class="math inline">\(p\)</span>-values</a></li>
+  <li><a href="#package-citations-and-references" id="toc-package-citations-and-references" class="nav-link" data-scroll-target="#package-citations-and-references">Package Citations and References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/06-Happiness.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -210,8 +263,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Ordinal Regression: Happiness Data</h1>
-<p class="subtitle lead">Cumulative Link Models for Ordered Outcomes</p>
+<h1 class="title">Conditional Models: Happiness Data</h1>
+<p class="subtitle lead"><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 3.12</p>
 </div>
 
 
@@ -222,7 +275,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 23, 2026</p>
+      <p class="date">March 25, 2026</p>
     </div>
   </div>
   
@@ -236,10 +289,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>This script demonstrates <strong>ordinal (cumulative link) regression</strong> on the <strong>happiness dataset</strong>, analyzing <strong>ordered categorical responses</strong>.</p>
+<p>We will fit a simple asymmetric model to a dataset on happiness levels from Table 3.10 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. We want to determine the association between gender, level of education, and happiness levels. We will do this in two parts, first by setting gender as a predictor for years of schooling, and then by setting years of schooling as a predictor for happiness levels.</p>
+<p>The model is specified more formally in the equation (3.5.3) in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
 </section>
 <section id="data-loading" class="level2">
 <h2 class="anchored" data-anchor-id="data-loading">Data Loading</h2>
+<p>As always, we start by loading the necessary packages (and installing any we don’t already have).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -256,65 +311,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Loading required package: splines</code></pre>
 </div>
 </div>
-<p>We load the <code>happy</code> dataset from the <code>Fahrmeir</code> package, which contains data on happiness levels. Since it is a small dataset, we can print it in its entirety.</p>
+<p>We load the <code>happy</code> dataset from the <code>Fahrmeir</code> package, which contains data on happiness levels. As usual, we will convert it to a tibble first.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(happy)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>happy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>happy_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(happy)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>happy_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>   Rep.happiness School     Sex   n
-1   Not to happy    &lt;12   Males  40
-2   Not to happy     12   Males  21
-3   Not to happy  13-16   Males  14
-4   Not to happy    &gt;16   Males   3
-5   Pretty happy    &lt;12   Males 131
-6   Pretty happy     12   Males 116
-7   Pretty happy  13-16   Males 112
-8   Pretty happy    &gt;16   Males  27
-9     Very happy    &lt;12   Males  82
-10    Very happy     12   Males  61
-11    Very happy  13-16   Males  55
-12    Very happy    &gt;16   Males  27
-13  Not to happy    &lt;12 Females  62
-14  Not to happy     12 Females  26
-15  Not to happy  13-16 Females  12
-16  Not to happy    &gt;16 Females   3
-17  Pretty happy    &lt;12 Females 155
-18  Pretty happy     12 Females 156
-19  Pretty happy  13-16 Females  95
-20  Pretty happy    &gt;16 Females  15
-21    Very happy    &lt;12 Females  87
-22    Very happy     12 Females 127
-23    Very happy  13-16 Females  76
-24    Very happy    &gt;16 Females  15</code></pre>
+<pre><code># A tibble: 24 × 4
+   Rep.happiness School Sex       n
+   &lt;ord&gt;         &lt;fct&gt;  &lt;fct&gt; &lt;int&gt;
+ 1 Not to happy  &lt;12    Males    40
+ 2 Not to happy  12     Males    21
+ 3 Not to happy  13-16  Males    14
+ 4 Not to happy  &gt;16    Males     3
+ 5 Pretty happy  &lt;12    Males   131
+ 6 Pretty happy  12     Males   116
+ 7 Pretty happy  13-16  Males   112
+ 8 Pretty happy  &gt;16    Males    27
+ 9 Very happy    &lt;12    Males    82
+10 Very happy    12     Males    61
+# ℹ 14 more rows</code></pre>
 </div>
 </div>
 </section>
-<section id="part-1-school-education-levels-by-sex" class="level2">
-<h2 class="anchored" data-anchor-id="part-1-school-education-levels-by-sex">Part 1: School Education Levels by Sex</h2>
-<p>Arrange the data into wide form for the first regression part in (3.5.3):</p>
+<section id="part-1-marginal-distribution-of-school-education-levels-by-sex" class="level2">
+<h2 class="anchored" data-anchor-id="part-1-marginal-distribution-of-school-education-levels-by-sex">Part 1: Marginal Distribution of School Education Levels by Sex</h2>
+<p>We want to fit a cumulative logit model to the marginal distribution of schooling, predicted by gender. To do this, we first need to arrange the data into wide form.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>happy_wide <span class="ot">&lt;-</span> happy <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">School =</span> <span class="fu">factor</span>(</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      School,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt;12"</span>, <span class="st">"12"</span>, <span class="st">"13-16"</span>, <span class="st">"&gt;16"</span>),</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"school1"</span>, <span class="st">"school2"</span>, <span class="st">"school3"</span>, <span class="st">"school4"</span>)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n =</span> <span class="fu">sum</span>(n), <span class="at">.by =</span> <span class="fu">c</span>(Sex, School)) <span class="sc">|&gt;</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> School,</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> n,</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_fill =</span> <span class="dv">0</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>happy_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>happy_wide <span class="ot">&lt;-</span> happy_tbl <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">School =</span> <span class="fu">factor</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>      School,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt;12"</span>, <span class="st">"12"</span>, <span class="st">"13-16"</span>, <span class="st">"&gt;16"</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"school1"</span>, <span class="st">"school2"</span>, <span class="st">"school3"</span>, <span class="st">"school4"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n =</span> <span class="fu">sum</span>(n), <span class="at">.by =</span> <span class="fu">c</span>(Sex, School)) <span class="sc">|&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> School,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> n,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_fill =</span> <span class="dv">0</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>happy_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 5
@@ -337,7 +381,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
-<li><code>as_tibble()</code> makes the data print-friendly and consistent with tidyverse tools.</li>
 <li><code>mutate()</code> recodes factor levels so the column names match the model inputs.</li>
 <li><code>summarize(..., .by = ...)</code> aggregates counts within each group.</li>
 <li><code>pivot_wider()</code> spreads groups into columns and fills missing combinations with 0.</li>
@@ -345,8 +388,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<section id="setting-contrasts-for-part-1" class="level3">
-<h3 class="anchored" data-anchor-id="setting-contrasts-for-part-1">Setting Contrasts for Part 1</h3>
+<section id="setting-effect-coding" class="level3">
+<h3 class="anchored" data-anchor-id="setting-effect-coding">Setting Effect Coding</h3>
 <p>Effect coding is needed to reproduce the numbers in the book:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -358,6 +401,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         unordered           ordered 
 "contr.treatment"      "contr.poly" </code></pre>
 </div>
+</div>
+<p><code>contr.treatment</code> is the default (corresponding to dummy coding), but we need <code>contr.sum</code> for effect coding:</p>
+<div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy_wide<span class="sc">$</span>Sex)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -377,26 +423,34 @@ Males       1</code></pre>
 Females    1
 Males     -1</code></pre>
 </div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy_wide<span class="sc">$</span>Sex) <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 </div>
-<p>Adjust the contrast matrix so female serves as reference.</p>
-</section>
-<section id="fit-first-model" class="level3">
-<h3 class="anchored" data-anchor-id="fit-first-model">Fit First Model</h3>
-<p>Regression for the first line of display (3.5.3) in F&amp;T: To reproduce the first regression in section 3.5.3 of F&amp;T, we cannot use <code>polr()</code> since it doesn’t allow for category-specific beta coefficients.</p>
+<p>We now have effect coding, however we need to switch the reference group to female, in order to match the book.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>happy_logit1_vglm <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(school1, school2, school3, school4) <span class="sc">~</span> Sex,</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> happy_wide,</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">cumulative</span>()</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(happy_logit1_vglm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy_wide<span class="sc">$</span>Sex) <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy_wide<span class="sc">$</span>Sex)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>        [,1]
+Females   -1
+Males      1</code></pre>
+</div>
+</div>
+</section>
+<section id="fit-first-model" class="level3">
+<h3 class="anchored" data-anchor-id="fit-first-model">Fit First Model</h3>
+<p>Now we can fit the model with <code>school1</code> as the reference level.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>happy_logit1_vglm <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(school1, school2, school3, school4) <span class="sc">~</span> Sex,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> happy_wide,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">cumulative</span>()</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(happy_logit1_vglm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -430,23 +484,26 @@ Exponentiated coefficients:
 1.0010595 0.8171399 0.6779873 </code></pre>
 </div>
 </div>
-<p>The coefficient values are the same as those reported in the first six rows of Table 3.11 in F&amp;T.</p>
+<p>The coefficient values are the same as those reported in the first six rows of Table 3.11 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The reported standard errors (also reproduced below) and p-values presented here should be treated with caution.</p>
+<p><strong>I’m not sure why these ones would be wrong. Wouldn’t it just be the standard errors and p-values for the second part of the table that are wrong? Dennis to clarify</strong></p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">attributes</span>(happy_logit1_vglm)<span class="sc">$</span>predictors</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>  logitlink(P[Y&lt;=1]) logitlink(P[Y&lt;=2]) logitlink(P[Y&lt;=3])
-1         -0.5442528          0.6391967           2.405838
-2         -0.5463706          1.0430865           3.183092</code></pre>
-</div>
-</div>
-<p>We can also look at the predictors.</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(happy_logit1_vglm)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>happy_logit1_vglm <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">vcov</span>() <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">diag</span>() <span class="sc">|&gt;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sqrt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept):1 (Intercept):2 (Intercept):3        Sex1:1        Sex1:2 
@@ -455,33 +512,46 @@ Exponentiated coefficients:
    0.11256715 </code></pre>
 </div>
 </div>
-<p>Same as the std. error reported by <code>summary(happy_logit1_vglm)</code>.</p>
+</div>
+</div>
+<p>We can access the linear predictors</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>happy_logit1_vglm<span class="sc">@</span>predictors</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  logitlink(P[Y&lt;=1]) logitlink(P[Y&lt;=2]) logitlink(P[Y&lt;=3])
+1         -0.5442528          0.6391967           2.405838
+2         -0.5463706          1.0430865           3.183092</code></pre>
+</div>
+</div>
 </section>
 </section>
 <section id="part-2-happiness-levels-by-education" class="level2">
 <h2 class="anchored" data-anchor-id="part-2-happiness-levels-by-education">Part 2: Happiness Levels by Education</h2>
-<p>Arrange the data into wide form for the second regression part in (3.5.3):</p>
+<p>Now we are interested in predicting happiness levels by years of schooling. We again arrange our data into a wide form with the happiness levels as columns.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>happy2 <span class="ot">&lt;-</span> happy <span class="sc">|&gt;</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Rep.happiness =</span> <span class="fu">recode</span>(</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>      Rep.happiness,</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Not to happy"</span> <span class="ot">=</span> <span class="st">"happy_low"</span>,</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Pretty happy"</span> <span class="ot">=</span> <span class="st">"happy_medium"</span>,</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Very happy"</span> <span class="ot">=</span> <span class="st">"happy_high"</span></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n =</span> <span class="fu">sum</span>(n), <span class="at">.by =</span> <span class="fu">c</span>(Sex, School, Rep.happiness)) <span class="sc">|&gt;</span></span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> Rep.happiness,</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> n,</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_fill =</span> <span class="dv">0</span></span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>happy2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>happy2 <span class="ot">&lt;-</span> happy_tbl <span class="sc">|&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">School =</span> <span class="fu">factor</span>(School, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"&lt;12"</span>, <span class="st">"12"</span>, <span class="st">"13-16"</span>, <span class="st">"&gt;16"</span>)),</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Rep.happiness =</span> <span class="fu">recode</span>(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>      Rep.happiness,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Not to happy"</span> <span class="ot">=</span> <span class="st">"happy_low"</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Pretty happy"</span> <span class="ot">=</span> <span class="st">"happy_medium"</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Very happy"</span> <span class="ot">=</span> <span class="st">"happy_high"</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n =</span> <span class="fu">sum</span>(n), <span class="at">.by =</span> <span class="fu">c</span>(Sex, School, Rep.happiness)) <span class="sc">|&gt;</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> Rep.happiness,</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> n,</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_fill =</span> <span class="dv">0</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>happy2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 5
@@ -499,64 +569,70 @@ Exponentiated coefficients:
 </div>
 <section id="setting-contrasts-for-part-2" class="level3">
 <h3 class="anchored" data-anchor-id="setting-contrasts-for-part-2">Setting Contrasts for Part 2</h3>
-<p>Switch to dummy coding with <code>&lt;12</code> as reference level:</p>
+<p>We check the coding scheme for <code>School</code>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy2<span class="sc">$</span>School)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy2<span class="sc">$</span>School)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>      [,1] [,2] [,3]
 &lt;12      1    0    0
-&gt;16      0    1    0
-12       0    0    1
-13-16   -1   -1   -1</code></pre>
+12       0    1    0
+13-16    0    0    1
+&gt;16     -1   -1   -1</code></pre>
 </div>
+</div>
+<p>Here we actually want to switch from effect to dummy coding with <code>&lt;12</code> as reference level:</p>
+<div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.treatment"</span>, <span class="st">"contr.poly"</span>))</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy2<span class="sc">$</span>School)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.treatment"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(happy2<span class="sc">$</span>School)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>      &gt;16 12 13-16
-&lt;12     0  0     0
-&gt;16     1  0     0
-12      0  1     0
-13-16   0  0     1</code></pre>
+<pre><code>      12 13-16 &gt;16
+&lt;12    0     0   0
+12     1     0   0
+13-16  0     1   0
+&gt;16    0     0   1</code></pre>
 </div>
 </div>
 <p><code>&lt;12</code> is the reference level.</p>
 </section>
 <section id="fit-second-model" class="level3">
 <h3 class="anchored" data-anchor-id="fit-second-model">Fit Second Model</h3>
-<p>Regression for the second line of display (3.5.3) in F&amp;T:</p>
+<p>We now fit the model.</p>
+<div class="{callout-note}">
+<p>This regression ignores the <code>Sex</code> column (which is what we want).</p>
+</div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>happy_logit2_vglm <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(happy_low, happy_medium, happy_high) <span class="sc">~</span> School,</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> happy2,</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">cumulative</span>(<span class="at">link =</span> <span class="st">"logitlink"</span>)</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(happy_logit2_vglm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>happy_logit2_vglm <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(happy_low, happy_medium, happy_high) <span class="sc">~</span> School,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> happy2,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> cumulative</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(happy_logit2_vglm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
 vglm(formula = cbind(happy_low, happy_medium, happy_high) ~ School, 
-    family = cumulative(link = "logitlink"), data = happy2)
+    family = cumulative, data = happy2)
 
 Coefficients: 
               Estimate Std. Error z value Pr(&gt;|z|)    
 (Intercept):1 -1.49532    0.10955 -13.649  &lt; 2e-16 ***
 (Intercept):2  0.83111    0.09217   9.018  &lt; 2e-16 ***
-School&gt;16:1   -1.14373    0.43655  -2.620  0.00879 ** 
-School&gt;16:2   -0.69758    0.23052  -3.026  0.00248 ** 
 School12:1    -0.78575    0.18829  -4.173  3.0e-05 ***
 School12:2    -0.30236    0.13019  -2.323  0.02021 *  
 School13-16:1 -1.06962    0.23113  -4.628  3.7e-06 ***
 School13-16:2 -0.25527    0.14290  -1.786  0.07404 .  
+School&gt;16:1   -1.14373    0.43655  -2.620  0.00879 ** 
+School&gt;16:2   -0.69758    0.23052  -3.026  0.00248 ** 
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -570,61 +646,65 @@ Number of Fisher scoring iterations: 4
 
 
 Exponentiated coefficients:
-  School&gt;16:1   School&gt;16:2    School12:1    School12:2 School13-16:1 
-    0.3186275     0.4977909     0.4557758     0.7390738     0.3431373 
-School13-16:2 
-    0.7747108 </code></pre>
+   School12:1    School12:2 School13-16:1 School13-16:2   School&gt;16:1 
+    0.4557758     0.7390738     0.3431373     0.7747108     0.3186275 
+  School&gt;16:2 
+    0.4977909 </code></pre>
 </div>
 </div>
-<p><code>cumulative()</code> must be regressed with an intercept.</p>
+<p>When we compare the coefficients here to those in Table 3.11, only the two intercept estimates (corresponding to reference level <code>&lt;12</code> of School) match the numbers in the book. This is because under the dummy coding scheme, we are picking less than 12 years of school as our reference level. In contrast, the book treats each school intercept as it’s own absolute level (see second line of (3.5.3) in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>).</p>
 </section>
 <section id="recovering-coefficients" class="level3">
 <h3 class="anchored" data-anchor-id="recovering-coefficients">Recovering Coefficients</h3>
-<p>Only the two intercept estimates (corresponding to reference level <code>&lt;12</code> of School) match the numbers in the book. To recover the original estimates in F&amp;T, we need to add the intercepts to each pair of coefficients for each other Schooling levels:</p>
+<p>Therefore to recover the original estimates, we add the intercepts to each pair of coefficients for the other schooling levels:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>happy_logit2_vglm_coeff <span class="ot">&lt;-</span> <span class="fu">attributes</span>(happy_logit2_vglm)<span class="sc">$</span>coeff</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>happy_logit2_vglm_coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>happy_logit2_vglm_coeff <span class="ot">&lt;-</span> <span class="fu">coef</span>(happy_logit2_vglm)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>happy_logit2_vglm_coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>(Intercept):1 (Intercept):2   School&gt;16:1   School&gt;16:2    School12:1 
-   -1.4953246     0.8311066    -1.1437327    -0.6975752    -0.7857543 
-   School12:2 School13-16:1 School13-16:2 
-   -0.3023575    -1.0696248    -0.2552655 </code></pre>
+<pre><code>(Intercept):1 (Intercept):2    School12:1    School12:2 School13-16:1 
+   -1.4953246     0.8311066    -0.7857543    -0.3023575    -1.0696248 
+School13-16:2   School&gt;16:1   School&gt;16:2 
+   -0.2552655    -1.1437327    -0.6975752 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rep</span>(happy_logit2_vglm_coeff[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="dv">3</span>) <span class="sc">+</span> happy_logit2_vglm_coeff[<span class="dv">3</span><span class="sc">:</span><span class="dv">8</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rep</span>(happy_logit2_vglm_coeff[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="dv">3</span>) <span class="sc">+</span> happy_logit2_vglm_coeff[<span class="dv">3</span><span class="sc">:</span><span class="dv">8</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept):1 (Intercept):2 (Intercept):1 (Intercept):2 (Intercept):1 
-   -2.6390573     0.1335314    -2.2810789     0.5287491    -2.5649494 
+   -2.2810789     0.5287491    -2.5649494     0.5758411    -2.6390573 
 (Intercept):2 
-    0.5758411 </code></pre>
+    0.1335314 </code></pre>
 </div>
 </div>
-<p>The numbers in the books are now recovered, as reported in the last 6 rows of F&amp;T Table 3.11.</p>
+<p>These recover the values reported in the last six rows of Table 3.11 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
 </section>
 </section>
-<section id="log-likelihood-and-model-fit" class="level2">
-<h2 class="anchored" data-anchor-id="log-likelihood-and-model-fit">Log-Likelihood and Model Fit</h2>
-<p>Add the log likelihood resulting from the first and second parts of (3.5.3), to give the likelihood of the full GLM model:</p>
+<section id="reproducing-the-deviance" class="level2">
+<h2 class="anchored" data-anchor-id="reproducing-the-deviance">Reproducing the Deviance</h2>
+<p>We now attempt to reproduce the deviance.</p>
+<p>To retrieve the likelihood of the full GLM model, we sum the log likelihood resulting from the first and second parts of the simple regressive cumulative model.</p>
+<div class="{callout-note}">
+<p>Make sure you know why this is the case.</p>
+</div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>log_lik_glm <span class="ot">&lt;-</span> <span class="fu">logLik</span>(happy_logit1_vglm) <span class="sc">+</span> <span class="fu">logLik</span>(happy_logit2_vglm)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>log_lik_glm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>log_lik_glm <span class="ot">&lt;-</span> <span class="fu">logLik</span>(happy_logit1_vglm) <span class="sc">+</span> <span class="fu">logLik</span>(happy_logit2_vglm)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>log_lik_glm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -64.63745</code></pre>
 </div>
 </div>
-<p>Alternatively:</p>
+<p>Alternatively we can extract the log-likelihood of each of individual groups separately:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(happy_logit1_vglm, <span class="at">sum =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(happy_logit1_vglm, <span class="at">sum =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>        1         2 
@@ -632,34 +712,35 @@ School13-16:2
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(happy_logit2_vglm, <span class="at">sum =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(happy_logit2_vglm, <span class="at">sum =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>        1         2         3         4         5         6         7         8 
 -6.192923 -6.887815 -6.194003 -3.790702 -6.302572 -6.621565 -6.122023 -3.524187 </code></pre>
 </div>
 </div>
-<p>These get the log likelihood of individual groups.</p>
 <section id="computing-saturated-model-likelihood" class="level3">
 <h3 class="anchored" data-anchor-id="computing-saturated-model-likelihood">Computing Saturated Model Likelihood</h3>
+<p>Now we just need to compute the log-likelihood of the saturated model. We split the dataset into a male group and female group. Within each group we have 12 observations corresponding to the 12 combinations of schooling and happiness levels (meaning we have 11 degrees of freedom for the male and female groups separately). The maximum likelihood estimators for each group are exactly the observed proportions of each happiness level within each group.</p>
+<p>Therefore we can calculate the log-likelihood of the saturated model by summing the log-likelihoods as follows:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>happy_male <span class="ot">&lt;-</span> happy[<span class="fu">which</span>(happy<span class="sc">$</span>Sex <span class="sc">==</span> <span class="st">"Males"</span>), ]</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>happy_female <span class="ot">&lt;-</span> happy[<span class="fu">which</span>(happy<span class="sc">$</span>Sex <span class="sc">==</span> <span class="st">"Females"</span>), ]</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>log_lik_saturated <span class="ot">&lt;-</span> <span class="fu">dmultinom</span>(</span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  happy_male<span class="sc">$</span>n,</span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">prob =</span> happy_male<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_male<span class="sc">$</span>n),</span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">log =</span> <span class="cn">TRUE</span></span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dmultinom</span>(</span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    happy_female<span class="sc">$</span>n,</span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">prob =</span> happy_female<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_female<span class="sc">$</span>n),</span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">log =</span> <span class="cn">TRUE</span></span>
-<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>log_lik_saturated</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>happy_male <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(happy, Sex <span class="sc">==</span> <span class="st">"Males"</span>)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>happy_female <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(happy, Sex <span class="sc">==</span> <span class="st">"Females"</span>)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>log_lik_saturated <span class="ot">&lt;-</span> <span class="fu">dmultinom</span>(</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  happy_male<span class="sc">$</span>n,</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">prob =</span> happy_male<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_male<span class="sc">$</span>n),</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">log =</span> <span class="cn">TRUE</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dmultinom</span>(</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>    happy_female<span class="sc">$</span>n,</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">prob =</span> happy_female<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_female<span class="sc">$</span>n),</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">log =</span> <span class="cn">TRUE</span></span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>log_lik_saturated</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -57.99938</code></pre>
@@ -668,11 +749,11 @@ School13-16:2
 </section>
 <section id="deviance" class="level3">
 <h3 class="anchored" data-anchor-id="deviance">Deviance</h3>
-<p>This is the deviance 13.27, as reported in the book:</p>
+<p>Finally, we can compute the deviance as twice the difference between the log-likelihood of the saturated model and the log-likelihood of the fitted model:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> (log_lik_saturated <span class="sc">-</span> log_lik_glm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> (log_lik_saturated <span class="sc">-</span> log_lik_glm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 13.27614</code></pre>
@@ -680,28 +761,37 @@ School13-16:2
 </div>
 </section>
 </section>
+<section id="problems-with-the-reported-standard-errors-and-p-values" class="level2">
+<h2 class="anchored" data-anchor-id="problems-with-the-reported-standard-errors-and-p-values">Problems with the Reported Standard Errors and <span class="math inline">\(p\)</span>-values</h2>
+<p><strong>This bit was slightly unclear to me, Dennis to clarify if I have misunderstood.</strong></p>
+<p>The second part of the the table are treating the model as by treating the years at school as fixed, and fitting a GLM to the data. The standard errors for are hence derived from the Fisher information matrix under the assumption that years at school are fixed. If we really want to understand the model as a whole, we need to treat both <span class="math inline">\(Y_1\)</span> and <span class="math inline">\(Y_2\)</span> as random. In practice this is probably very difficult to do, as we need to tease out the explicit form for the main function and so on.</p>
+</section>
 <section id="package-citations-and-references" class="level2">
-<h2 class="anchored" data-anchor-id="package-citations-and-references">Package citations and references</h2>
+<h2 class="anchored" data-anchor-id="package-citations-and-references">Package Citations and References</h2>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"Fahrmeir"</span>, <span class="st">"tidyr"</span>, <span class="st">"VGAM"</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"conflicted"</span>,</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Fahrmeir"</span>,</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tidyr"</span>,</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"VGAM"</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"  - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
@@ -725,9 +815,14 @@ School13-16:2
 </ul>
 
 
+
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
+Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

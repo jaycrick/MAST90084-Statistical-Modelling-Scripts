@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-23">
+<meta name="dcterms.date" content="2026-03-25">
 
 <title>Multinomial Logistic Regression: Caesarian Dataset Analysis – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -204,6 +204,10 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
  <span class="dropdown-text">Sequential Regression: Tonsil Size</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -260,7 +264,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 23, 2026</p>
+      <p class="date">March 25, 2026</p>
     </div>
   </div>
   
@@ -413,23 +417,23 @@ dbl (7): size, noInf, Inf1, Inf2, NoPlan, Antib, RiskF
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>caesar_clean <span class="ot">&lt;-</span> caesar <span class="sc">|&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>patco, <span class="sc">-</span>yl) <span class="sc">|&gt;</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(w <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_from =</span> y,</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_from =</span> w,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_fill =</span> <span class="dv">0</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">Noinf =</span> <span class="st">`</span><span class="at">3</span><span class="st">`</span>, <span class="at">Inf1 =</span> <span class="st">`</span><span class="at">1</span><span class="st">`</span>, <span class="at">Inf2 =</span> <span class="st">`</span><span class="at">2</span><span class="st">`</span>) <span class="sc">|&gt;</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> Noinf <span class="sc">+</span> Inf1 <span class="sc">+</span> Inf2,</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">factor =</span> <span class="fu">as.integer</span>(factor <span class="sc">==</span> <span class="st">"risk factors"</span>),</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">noplan =</span> <span class="fu">as.integer</span>(noplan <span class="sc">==</span> <span class="st">"not"</span>),</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">antib =</span> <span class="fu">as.integer</span>(antib <span class="sc">==</span> <span class="st">"antibiotics"</span>)</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(noplan, antib, factor) <span class="sc">|&gt;</span></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">relocate</span>(size, Noinf, Inf1, Inf2, noplan, antib, factor)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>patco, <span class="sc">-</span>yl) <span class="sc">|&gt;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(w <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> y,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> w,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_fill =</span> <span class="dv">0</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Noinf =</span> <span class="st">`</span><span class="at">3</span><span class="st">`</span>, <span class="at">Inf1 =</span> <span class="st">`</span><span class="at">1</span><span class="st">`</span>, <span class="at">Inf2 =</span> <span class="st">`</span><span class="at">2</span><span class="st">`</span>) <span class="sc">|&gt;</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> Noinf <span class="sc">+</span> Inf1 <span class="sc">+</span> Inf2,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">factor =</span> <span class="fu">as.integer</span>(factor <span class="sc">==</span> <span class="st">"risk factors"</span>),</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">noplan =</span> <span class="fu">as.integer</span>(noplan <span class="sc">==</span> <span class="st">"not"</span>),</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">antib =</span> <span class="fu">as.integer</span>(antib <span class="sc">==</span> <span class="st">"antibiotics"</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(noplan, antib, factor) <span class="sc">|&gt;</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(size, Noinf, Inf1, Inf2, noplan, antib, factor)</span>
 <span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>caesar_clean</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -473,8 +477,8 @@ dbl (7): size, noInf, Inf1, Inf2, NoPlan, Antib, RiskF
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>caes_response <span class="ot">&lt;-</span> caes_dat <span class="sc">|&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(noInf, Inf1, Inf2) <span class="sc">|&gt;</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(noInf, Inf1, Inf2) <span class="sc">|&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>()</span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>caes_response</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -494,8 +498,8 @@ dbl (7): size, noInf, Inf1, Inf2, NoPlan, Antib, RiskF
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>caes_nnet <span class="ot">&lt;-</span> <span class="fu">multinom</span>(</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    caes_response <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caes_dat</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  caes_response <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caes_dat</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -618,14 +622,14 @@ $class
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>caes_predictors <span class="ot">&lt;-</span> caes_dat <span class="sc">|&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(NoPlan, Antib, RiskF) <span class="sc">|&gt;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(NoPlan, Antib, RiskF) <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>()</span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>caes_glmnet <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> caes_predictors,</span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> caes_response,</span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="st">"multinomial"</span>,</span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">lambda =</span> <span class="dv">0</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> caes_predictors,</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> caes_response,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"multinomial"</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="dv">0</span></span>
 <span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract and display coefficients</span></span>
@@ -676,12 +680,12 @@ RiskF        0.3663593</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>beta_matrix <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    caes_glmnet<span class="sc">$</span>beta[[<span class="dv">2</span>]] <span class="sc">-</span> caes_glmnet<span class="sc">$</span>beta[[<span class="dv">1</span>]],</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    caes_glmnet<span class="sc">$</span>beta[[<span class="dv">3</span>]] <span class="sc">-</span> caes_glmnet<span class="sc">$</span>beta[[<span class="dv">1</span>]]</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  caes_glmnet<span class="sc">$</span>beta[[<span class="dv">2</span>]] <span class="sc">-</span> caes_glmnet<span class="sc">$</span>beta[[<span class="dv">1</span>]],</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  caes_glmnet<span class="sc">$</span>beta[[<span class="dv">3</span>]] <span class="sc">-</span> caes_glmnet<span class="sc">$</span>beta[[<span class="dv">1</span>]]</span>
 <span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>beta_matrix <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    caes_glmnet<span class="sc">$</span>a0[<span class="sc">-</span><span class="dv">1</span>] <span class="sc">-</span> caes_glmnet<span class="sc">$</span>a0[<span class="dv">1</span>],</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    beta_matrix</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  caes_glmnet<span class="sc">$</span>a0[<span class="sc">-</span><span class="dv">1</span>] <span class="sc">-</span> caes_glmnet<span class="sc">$</span>a0[<span class="dv">1</span>],</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  beta_matrix</span>
 <span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(beta_matrix, <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -715,18 +719,18 @@ RiskF   1.829  2.195</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>caesar_prepared <span class="ot">&lt;-</span> caesar <span class="sc">|&gt;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">relevel</span>(y, <span class="at">ref =</span> <span class="st">"3"</span>),</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">noplan =</span> <span class="fu">relevel</span>(noplan, <span class="at">ref =</span> <span class="st">"planned"</span>),</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">antib =</span> <span class="fu">relevel</span>(antib, <span class="at">ref =</span> <span class="st">"without"</span>),</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">factor =</span> <span class="fu">relevel</span>(factor, <span class="at">ref =</span> <span class="st">"without"</span>)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">relevel</span>(y, <span class="at">ref =</span> <span class="st">"3"</span>),</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">noplan =</span> <span class="fu">relevel</span>(noplan, <span class="at">ref =</span> <span class="st">"planned"</span>),</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">antib =</span> <span class="fu">relevel</span>(antib, <span class="at">ref =</span> <span class="st">"without"</span>),</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">factor =</span> <span class="fu">relevel</span>(factor, <span class="at">ref =</span> <span class="st">"without"</span>)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>caes_nnet_prepared <span class="ot">&lt;-</span> <span class="fu">multinom</span>(</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    y <span class="sc">~</span> noplan <span class="sc">+</span> antib <span class="sc">+</span> factor,</span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_prepared,</span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> w</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> noplan <span class="sc">+</span> antib <span class="sc">+</span> factor,</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_prepared,</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> w</span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -833,12 +837,12 @@ factorrisk factors  1.829  2.195</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>caes_nnet_prop <span class="ot">&lt;-</span> caes_dat <span class="sc">|&gt;</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">noInf =</span> noInf <span class="sc">/</span> size,</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">Inf1 =</span> Inf1 <span class="sc">/</span> size,</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">Inf2 =</span> Inf2 <span class="sc">/</span> size</span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(noInf, Inf1, Inf2)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">noInf =</span> noInf <span class="sc">/</span> size,</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Inf1 =</span> Inf1 <span class="sc">/</span> size,</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Inf2 =</span> Inf2 <span class="sc">/</span> size</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(noInf, Inf1, Inf2)</span>
 <span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>caes_nnet_prop <span class="sc">-</span> caes_nnet<span class="sc">$</span>fitted</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -920,9 +924,9 @@ Caution
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>caes_vgam <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> <span class="fu">cbind</span>(noInf, Inf1, Inf2) <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">multinomial</span>(<span class="at">refLevel =</span> <span class="st">"noInf"</span>),</span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caes_dat</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">cbind</span>(noInf, Inf1, Inf2) <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">multinomial</span>(<span class="at">refLevel =</span> <span class="st">"noInf"</span>),</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caes_dat</span>
 <span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
@@ -1066,12 +1070,12 @@ RiskF                    1.829              2.195</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>caes_vgam_parallel <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> <span class="fu">cbind</span>(noInf, Inf1, Inf2) <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caes_dat,</span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">multinomial</span>(</span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">refLevel =</span> <span class="st">"noInf"</span>,</span>
-<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">parallel =</span> <span class="cn">TRUE</span> <span class="sc">~</span> NoPlan <span class="sc">+</span> RiskF <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">cbind</span>(noInf, Inf1, Inf2) <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caes_dat,</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">multinomial</span>(</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">refLevel =</span> <span class="st">"noInf"</span>,</span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">parallel =</span> <span class="cn">TRUE</span> <span class="sc">~</span> NoPlan <span class="sc">+</span> RiskF <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a><span class="fu">coefvlm</span>(caes_vgam_parallel, <span class="at">matrix.out =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1101,10 +1105,10 @@ RiskF                 2.029896           2.029896</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vglm</span>(</span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> noplan <span class="sc">+</span> antib <span class="sc">+</span> factor,</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_prepared,</span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> w,</span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">multinomial</span>(<span class="at">refLevel =</span> <span class="st">"3"</span>)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> y <span class="sc">~</span> noplan <span class="sc">+</span> antib <span class="sc">+</span> factor,</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_prepared,</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> w,</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">multinomial</span>(<span class="at">refLevel =</span> <span class="st">"3"</span>)</span>
 <span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-error">
@@ -1164,10 +1168,10 @@ RiskF                 2.029896           2.029896</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>caes_vgam2 <span class="ot">&lt;-</span> <span class="fu">vglm</span>(</span>
-<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> noplan <span class="sc">+</span> antib <span class="sc">+</span> factor,</span>
-<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_no_zero_w,</span>
-<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> w,</span>
-<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">multinomial</span>(<span class="at">refLevel =</span> <span class="st">"3"</span>)</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> y <span class="sc">~</span> noplan <span class="sc">+</span> antib <span class="sc">+</span> factor,</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_no_zero_w,</span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> w,</span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">multinomial</span>(<span class="at">refLevel =</span> <span class="st">"3"</span>)</span>
 <span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(caes_vgam2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1296,13 +1300,13 @@ $loglikelihood
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>caesar_long <span class="ot">&lt;-</span> caes_dat <span class="sc">|&gt;</span></span>
-<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>size) <span class="sc">|&gt;</span></span>
-<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(</span>
-<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">cols =</span> noInf<span class="sc">:</span>Inf2,</span>
-<span id="cb85-5"><a href="#cb85-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_to =</span> <span class="st">"inf_type"</span>,</span>
-<span id="cb85-6"><a href="#cb85-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_to =</span> <span class="st">"w"</span></span>
-<span id="cb85-7"><a href="#cb85-7" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb85-8"><a href="#cb85-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">inf_type =</span> <span class="fu">factor</span>(inf_type, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"noInf"</span>, <span class="st">"Inf1"</span>, <span class="st">"Inf2"</span>)))</span>
+<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>size) <span class="sc">|&gt;</span></span>
+<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> noInf<span class="sc">:</span>Inf2,</span>
+<span id="cb85-5"><a href="#cb85-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"inf_type"</span>,</span>
+<span id="cb85-6"><a href="#cb85-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"w"</span></span>
+<span id="cb85-7"><a href="#cb85-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb85-8"><a href="#cb85-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">inf_type =</span> <span class="fu">factor</span>(inf_type, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"noInf"</span>, <span class="st">"Inf1"</span>, <span class="st">"Inf2"</span>)))</span>
 <span id="cb85-9"><a href="#cb85-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb85-10"><a href="#cb85-10" aria-hidden="true" tabindex="-1"></a>caesar_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -1325,9 +1329,9 @@ $loglikelihood
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>caes_nnet_long <span class="ot">&lt;-</span> <span class="fu">multinom</span>(</span>
-<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a>    inf_type <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
-<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_long,</span>
-<span id="cb87-4"><a href="#cb87-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> w</span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a>  inf_type <span class="sc">~</span> NoPlan <span class="sc">+</span> Antib <span class="sc">+</span> RiskF,</span>
+<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_long,</span>
+<span id="cb87-4"><a href="#cb87-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> w</span>
 <span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1365,29 +1369,29 @@ Inf2   -2.559917 0.9959762 -3.087160 2.195458</code></pre>
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"conflicted"</span>,</span>
-<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"dplyr"</span>,</span>
-<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Fahrmeir"</span>,</span>
-<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"glmnet"</span>,</span>
-<span id="cb93-6"><a href="#cb93-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"nnet"</span>,</span>
-<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tidyr"</span>,</span>
-<span id="cb93-8"><a href="#cb93-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"readr"</span>,</span>
-<span id="cb93-9"><a href="#cb93-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"VGAM"</span></span>
+<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"conflicted"</span>,</span>
+<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Fahrmeir"</span>,</span>
+<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"glmnet"</span>,</span>
+<span id="cb93-6"><a href="#cb93-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"nnet"</span>,</span>
+<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tidyr"</span>,</span>
+<span id="cb93-8"><a href="#cb93-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"readr"</span>,</span>
+<span id="cb93-9"><a href="#cb93-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"VGAM"</span></span>
 <span id="cb93-10"><a href="#cb93-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb93-11"><a href="#cb93-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb93-12"><a href="#cb93-12" aria-hidden="true" tabindex="-1"></a>    cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb93-12"><a href="#cb93-12" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
 <span id="cb93-13"><a href="#cb93-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb93-14"><a href="#cb93-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check if multiple citations</span></span>
-<span id="cb93-15"><a href="#cb93-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb93-16"><a href="#cb93-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb93-17"><a href="#cb93-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb93-18"><a href="#cb93-18" aria-hidden="true" tabindex="-1"></a>            cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb93-19"><a href="#cb93-19" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb93-20"><a href="#cb93-20" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb93-21"><a href="#cb93-21" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb93-22"><a href="#cb93-22" aria-hidden="true" tabindex="-1"></a>        cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb93-23"><a href="#cb93-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb93-24"><a href="#cb93-24" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb93-14"><a href="#cb93-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb93-15"><a href="#cb93-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb93-16"><a href="#cb93-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb93-17"><a href="#cb93-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb93-18"><a href="#cb93-18" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb93-19"><a href="#cb93-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb93-20"><a href="#cb93-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb93-21"><a href="#cb93-21" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb93-22"><a href="#cb93-22" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb93-23"><a href="#cb93-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb93-24"><a href="#cb93-24" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb93-25"><a href="#cb93-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>

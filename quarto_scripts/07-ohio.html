@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-23">
 
-<title>Ohio Respiratory Data: GEE Analysis – MAST90084 - Statistical Modelling Scripts</title>
+<title>Marginal Models: Ohio Respiratory Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -59,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -107,6 +125,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -156,6 +203,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
  <span class="dropdown-text">Sequential Regression: Tonsil Size</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -183,36 +234,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#packages-and-setup" id="toc-packages-and-setup" class="nav-link" data-scroll-target="#packages-and-setup">Packages and Setup</a></li>
-  <li><a href="#understanding-the-data" id="toc-understanding-the-data" class="nav-link" data-scroll-target="#understanding-the-data">Understanding the Data</a></li>
-  <li><a href="#contrast-coding" id="toc-contrast-coding" class="nav-link" data-scroll-target="#contrast-coding">Contrast Coding</a></li>
-  <li><a href="#gee-models" id="toc-gee-models" class="nav-link" data-scroll-target="#gee-models">GEE Models</a>
+  <li><a href="#data-loading-and-setup" id="toc-data-loading-and-setup" class="nav-link active" data-scroll-target="#data-loading-and-setup">Data Loading and Setup</a>
+  <ul class="collapse">
+  <li><a href="#setting-effect-coding" id="toc-setting-effect-coding" class="nav-link" data-scroll-target="#setting-effect-coding">Setting Effect Coding</a></li>
+  </ul></li>
+  <li><a href="#model-fitting-with-interaction-effects" id="toc-model-fitting-with-interaction-effects" class="nav-link" data-scroll-target="#model-fitting-with-interaction-effects">Model Fitting with Interaction Effects</a>
   <ul class="collapse">
   <li><a href="#independence-structure" id="toc-independence-structure" class="nav-link" data-scroll-target="#independence-structure">Independence Structure</a></li>
-  <li><a href="#exchangeable-structure" id="toc-exchangeable-structure" class="nav-link" data-scroll-target="#exchangeable-structure">Exchangeable Structure</a></li>
-  <li><a href="#unstructured-correlation" id="toc-unstructured-correlation" class="nav-link" data-scroll-target="#unstructured-correlation">Unstructured Correlation</a></li>
+  <li><a href="#exchangeable-and-unstructured-correlation-structures" id="toc-exchangeable-and-unstructured-correlation-structures" class="nav-link" data-scroll-target="#exchangeable-and-unstructured-correlation-structures">Exchangeable and Unstructured Correlation Structures</a></li>
   </ul></li>
-  <li><a href="#robust-variance-matrices" id="toc-robust-variance-matrices" class="nav-link" data-scroll-target="#robust-variance-matrices">Robust Variance Matrices</a></li>
-  <li><a href="#scale-parameter" id="toc-scale-parameter" class="nav-link" data-scroll-target="#scale-parameter">Scale Parameter</a>
+  <li><a href="#scale-parameter-and-pearson-based-check" id="toc-scale-parameter-and-pearson-based-check" class="nav-link" data-scroll-target="#scale-parameter-and-pearson-based-check">Scale Parameter and Pearson-Based Check</a></li>
+  <li><a href="#naive-standard-errors-with-scale-fixed-at-1" id="toc-naive-standard-errors-with-scale-fixed-at-1" class="nav-link" data-scroll-target="#naive-standard-errors-with-scale-fixed-at-1">Naive Standard Errors with Scale Fixed at 1</a></li>
+  <li><a href="#derived-parameter-coefficient-for-age-10" id="toc-derived-parameter-coefficient-for-age-10" class="nav-link" data-scroll-target="#derived-parameter-coefficient-for-age-10">Derived Parameter: Coefficient for Age = 10</a></li>
+  <li><a href="#table-6.9-main-effects-models-no-interaction" id="toc-table-6.9-main-effects-models-no-interaction" class="nav-link" data-scroll-target="#table-6.9-main-effects-models-no-interaction">Table 6.9: Main-Effects Models (No Interaction)</a>
   <ul class="collapse">
-  <li><a href="#verifying-naive-vs-robust-standard-errors" id="toc-verifying-naive-vs-robust-standard-errors" class="nav-link" data-scroll-target="#verifying-naive-vs-robust-standard-errors">Verifying Naive vs Robust Standard Errors</a></li>
+  <li><a href="#robust-variance-matrix-comparisons" id="toc-robust-variance-matrix-comparisons" class="nav-link" data-scroll-target="#robust-variance-matrix-comparisons">Robust Variance Matrix Comparisons</a></li>
   </ul></li>
-  <li><a href="#beta-estimate-for-age-10" id="toc-beta-estimate-for-age-10" class="nav-link" data-scroll-target="#beta-estimate-for-age-10">Beta Estimate for Age = 10</a>
-  <ul class="collapse">
-  <li><a href="#standard-error-for-combined-effect" id="toc-standard-error-for-combined-effect" class="nav-link" data-scroll-target="#standard-error-for-combined-effect">Standard Error for Combined Effect</a></li>
-  </ul></li>
-  <li><a href="#table-6.9-main-effects-models" id="toc-table-6.9-main-effects-models" class="nav-link" data-scroll-target="#table-6.9-main-effects-models">Table 6.9: Main Effects Models</a></li>
-  <li><a href="#gee-with-unstructured-correlation" id="toc-gee-with-unstructured-correlation" class="nav-link" data-scroll-target="#gee-with-unstructured-correlation">GEE with Unstructured Correlation</a></li>
-  <li><a href="#comparing-coefficient-estimates" id="toc-comparing-coefficient-estimates" class="nav-link" data-scroll-target="#comparing-coefficient-estimates">Comparing Coefficient Estimates</a></li>
-  <li><a href="#robust-variance-matrices-1" id="toc-robust-variance-matrices-1" class="nav-link" data-scroll-target="#robust-variance-matrices-1">Robust Variance Matrices</a></li>
-  <li><a href="#scale-parameter-estimation" id="toc-scale-parameter-estimation" class="nav-link" data-scroll-target="#scale-parameter-estimation">Scale Parameter Estimation</a></li>
-  <li><a href="#naive-vs-robust-standard-errors" id="toc-naive-vs-robust-standard-errors" class="nav-link" data-scroll-target="#naive-vs-robust-standard-errors">Naive vs Robust Standard Errors</a></li>
-  <li><a href="#computing-beta-for-age-10" id="toc-computing-beta-for-age-10" class="nav-link" data-scroll-target="#computing-beta-for-age-10">Computing Beta for Age 10</a></li>
-  <li><a href="#robust-standard-error-for-age-10" id="toc-robust-standard-error-for-age-10" class="nav-link" data-scroll-target="#robust-standard-error-for-age-10">Robust Standard Error for Age 10</a></li>
-  <li><a href="#table-6.9-models-without-interactions" id="toc-table-6.9-models-without-interactions" class="nav-link" data-scroll-target="#table-6.9-models-without-interactions">Table 6.9: Models Without Interactions</a></li>
-  <li><a href="#robust-variances-for-main-effects-models" id="toc-robust-variances-for-main-effects-models" class="nav-link" data-scroll-target="#robust-variances-for-main-effects-models">Robust Variances for Main Effects Models</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  <li><a href="#package-citations" id="toc-package-citations" class="nav-link" data-scroll-target="#package-citations">Package Citations</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/07-ohio.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -221,8 +259,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Ohio Respiratory Data: GEE Analysis</h1>
-<p class="subtitle lead">Generalized Estimating Equations with Repeated Measures</p>
+<h1 class="title">Marginal Models: Ohio Respiratory Data</h1>
+<p class="subtitle lead"><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 6.4</p>
 </div>
 
 
@@ -230,12 +268,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-title-meta">
 
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">March 23, 2026</p>
-    </div>
-  </div>
   
     
   </div>
@@ -245,110 +277,106 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="overview" class="level2">
-<h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>This script aims to reproduce the results in Example 6.4 of Fahrmeir &amp; Tutz using the Ohio respiratory dataset.</p>
-</section>
-<section id="packages-and-setup" class="level2">
-<h2 class="anchored" data-anchor-id="packages-and-setup">Packages and Setup</h2>
+<section id="data-loading-and-setup" class="level2">
+<h2 class="anchored" data-anchor-id="data-loading-and-setup">Data Loading and Setup</h2>
+<p>In this example, we reproduce Example 6.4 from <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. The dataset is a study of the effect of maternal smoking status and age on respiratory infection in children. The children were examined yearly from ages 7 to 10.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gee)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geepack)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geepack)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>We aim to reproduce the results in Example 6.4 of F &amp; T.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Previously we have mentioned that the <code>geepack</code> implements its <code>geeglm</code> function differently to the <code>gee</code> function in the <code>gee</code> package. Here we load it simply to access the <code>ohio</code> dataset.</p>
+</div>
+</div>
+<p>As always it is a good practice to inspect the help page for the dataset before proceeding by running <code>?ohio</code>.</p>
+<p>We convert the dataset to a tibble, and inspect it.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>?ohio</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ohio_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(ohio)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ohio_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2,148 × 4
+    resp    id   age smoke
+   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;
+ 1     0     0    -2     0
+ 2     0     0    -1     0
+ 3     0     0     0     0
+ 4     0     0     1     0
+ 5     0     1    -2     0
+ 6     0     1    -1     0
+ 7     0     1     0     0
+ 8     0     1     1     0
+ 9     0     2    -2     0
+10     0     2    -1     0
+# ℹ 2,138 more rows</code></pre>
 </div>
+</div>
+<p>The <code>age</code> and <code>smoke</code> variables are currently integers, but should instead be factors. We convert them to factors before fitting models.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ohio, <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ohio_tbl <span class="ot">&lt;-</span> ohio_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">age =</span> <span class="fu">as.factor</span>(age),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">smoke =</span> <span class="fu">as.factor</span>(smoke)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ohio_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>   resp id age smoke
-1     0  0  -2     0
-2     0  0  -1     0
-3     0  0   0     0
-4     0  0   1     0
-5     0  1  -2     0
-6     0  1  -1     0
-7     0  1   0     0
-8     0  1   1     0
-9     0  2  -2     0
-10    0  2  -1     0
-11    0  2   0     0
-12    0  2   1     0
-13    0  3  -2     0
-14    0  3  -1     0
-15    0  3   0     0
-16    0  3   1     0
-17    0  4  -2     0
-18    0  4  -1     0
-19    0  4   0     0
-20    0  4   1     0</code></pre>
+<pre><code># A tibble: 2,148 × 4
+    resp    id age   smoke
+   &lt;int&gt; &lt;int&gt; &lt;fct&gt; &lt;fct&gt;
+ 1     0     0 -2    0    
+ 2     0     0 -1    0    
+ 3     0     0 0     0    
+ 4     0     0 1     0    
+ 5     0     1 -2    0    
+ 6     0     1 -1    0    
+ 7     0     1 0     0    
+ 8     0     1 1     0    
+ 9     0     2 -2    0    
+10     0     2 -1    0    
+# ℹ 2,138 more rows</code></pre>
 </div>
 </div>
-</section>
-<section id="understanding-the-data" class="level2">
-<h2 class="anchored" data-anchor-id="understanding-the-data">Understanding the Data</h2>
+<p>The age coding in the dataset is:</p>
+<ul>
+<li><span class="math inline">\(\texttt{age} = -2\)</span> corresponds to 7 years old</li>
+<li><span class="math inline">\(\texttt{age} = -1\)</span> corresponds to 8 years old</li>
+<li><span class="math inline">\(\texttt{age} = 0\)</span> corresponds to 9 years old</li>
+<li><span class="math inline">\(\texttt{age} = 1\)</span> corresponds to 10 years old</li>
+</ul>
+<section id="setting-effect-coding" class="level3">
+<h3 class="anchored" data-anchor-id="setting-effect-coding">Setting Effect Coding</h3>
+<p>As in the textbook, we need effect coding for unordered factors.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(ohio)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getOption</span>(<span class="st">"contrasts"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>'data.frame':   2148 obs. of  4 variables:
- $ resp : int  0 0 0 0 0 0 0 0 0 0 ...
- $ id   : int  0 0 0 0 1 1 1 1 2 2 ...
- $ age  : int  -2 -1 0 1 -2 -1 0 1 -2 -1 ...
- $ smoke: int  0 0 0 0 0 0 0 0 0 0 ...</code></pre>
-</div>
-</div>
-<p>First set the right classes for the variables in the dataset:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ohio<span class="sc">$</span>resp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "integer"</code></pre>
+<pre><code>        unordered           ordered 
+"contr.treatment"      "contr.poly" </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ohio<span class="sc">$</span>age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "integer"</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ohio<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "integer"</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ohio<span class="sc">$</span>age <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(ohio<span class="sc">$</span>age)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>ohio<span class="sc">$</span>smoke <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(ohio<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
-<p>Age coding: - age = -2 is 7 years old - age = -1 is 8 years old - age = 0 is 9 years old - age = 1 is 10 years old</p>
-</section>
-<section id="contrast-coding" class="level2">
-<h2 class="anchored" data-anchor-id="contrast-coding">Contrast Coding</h2>
-<p>Check default contrasts:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>   -1 0 1
@@ -359,7 +387,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  1
@@ -367,13 +395,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 1 1</code></pre>
 </div>
 </div>
-<p>F and T use effect coding in the example so we need to set the contrasts:</p>
+<p>It is currently set to dummy coding, so we change it to effect coding and verify:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>   [,1] [,2] [,3]
@@ -384,7 +412,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  [,1]
@@ -392,12 +420,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 1   -1</code></pre>
 </div>
 </div>
-<p>Contrast for smoke status needs to be further adjusted:</p>
+<p>10 years old is already the reference level for the age factor, but we need to explicitly set the reference level for <code>smoke</code> to match the textbook’s.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke) <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="dv">2</span>, <span class="dv">1</span>)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke) <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  [,1]
@@ -406,19 +434,123 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-<section id="gee-models" class="level2">
-<h2 class="anchored" data-anchor-id="gee-models">GEE Models</h2>
+</section>
+<section id="model-fitting-with-interaction-effects" class="level2">
+<h2 class="anchored" data-anchor-id="model-fitting-with-interaction-effects">Model Fitting with Interaction Effects</h2>
+<p>We fit a marginal logit model under three working correlation structures: independent, exchangeable, and unspecified.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: Write out each model mathematically
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Let</p>
+<p>The marginal model is a logit model, and so <span class="math display">\[\begin{equation}
+\begin{split}
+  \log \frac{P(\text{infection})}{P(\text{no infection})} &amp;= \beta_0 + \beta_\text{S} x_\text{S} + \beta_\text{Age7} x_\text{Age7} + \beta_\text{Age8} x_\text{Age8} + \beta_\text{Age9} x_\text{Age9}\\
+  &amp;\quad + \beta_\text{S,Age7} x_\text{S} x_\text{Age7} + \beta_\text{S,Age8} x_\text{S} x_\text{Age8} + \beta_\text{S,Age9} x_\text{S} x_\text{Age9}
+  \end{split}
+\end{equation}\]</span> where <span class="math inline">\(x_\text{S} = 1\)</span> if the mother smokes, and <span class="math inline">\(-1\)</span> otherwise. Likewise, <span class="math inline">\(x_{\text{Age}i} = 1\)</span> if the child is <span class="math inline">\(i\)</span> years old, and <span class="math inline">\(0\)</span> otherwise.</p>
+<p>Let <span class="math inline">\(I_{jm}\)</span> be the indicator random variable for whether child <span class="math inline">\(j\)</span> is infected at age <span class="math inline">\(m\)</span>. For the independent working correlation, <span class="math display">\[\mathrm{corr}(I_{jm}, I_{jn}) = 0\]</span> for all <span class="math inline">\(m \neq n\)</span>. For the exchangeable working correlation, <span class="math display">\[\mathrm{corr}(I_{jm}, I_{jn}) = \alpha\]</span> for all <span class="math inline">\(m \neq n\)</span>. For the unstructured working correlation, <span class="math display">\[\mathrm{corr}(I_{jm}, I_{jn}) = \alpha_{mn}\]</span> for all <span class="math inline">\(m \neq n\)</span>.</p>
+</div>
+</div>
+</div>
 <section id="independence-structure" class="level3">
 <h3 class="anchored" data-anchor-id="independence-structure">Independence Structure</h3>
+<p>We first fit the model under the independence working correlation.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>geefit_indep <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"independence"</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>geefit_indep <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"independence"</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>running glm to get initial regression estimate</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)      smoke1        age1        age2        age3 smoke1:age1 
+-1.69656029  0.13622036  0.05951185  0.15681009  0.06641432 -0.11504072 
+smoke1:age2 smoke1:age3 
+ 0.06987921  0.02539315 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>summary_indep <span class="ot">&lt;-</span> <span class="fu">summary</span>(geefit_indep)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>coefs_indep <span class="ot">&lt;-</span> <span class="fu">coef</span>(summary_indep)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>coefs_indep <span class="sc">|&gt;</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
+(Intercept)   -1.697      0.062 -27.188       0.090  -18.907
+smoke1         0.136      0.062   2.183       0.090    1.518
+age1           0.060      0.107   0.557       0.088    0.677
+age2           0.157      0.104   1.509       0.081    1.939
+age3           0.066      0.106   0.627       0.082    0.810
+smoke1:age1   -0.115      0.107  -1.077       0.088   -1.308
+smoke1:age2    0.070      0.104   0.673       0.081    0.864
+smoke1:age3    0.025      0.106   0.240       0.082    0.310</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>What <code>id</code> and <code>corstr</code> do in <code>gee()</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><code>id</code> identifies which rows belong to the same subject/cluster. In this dataset, repeated observations from the same child share the same <code>id</code>.</li>
+<li><code>corstr</code> specifies the working correlation pattern within each <code>id</code> cluster.</li>
+</ul>
+<p>Allowed <code>corstr</code> values in <code>gee</code> include:</p>
+<ul>
+<li><code>"independence"</code>: assumes within-subject correlation is 0</li>
+<li><code>"fixed"</code>: user-supplied fixed working correlation</li>
+<li><code>"stat_M_dep"</code> / <code>"non_\text{S}tat_M_dep"</code>: not covered in this course</li>
+<li><code>"exchangeable"</code>: one common correlation for all within subject pairs</li>
+<li><code>"AR-M"</code>: autoregressive structure <strong>Dennis can delete explaination, don’t think this is used</strong></li>
+<li><code>"unstructured"</code>: each pairwise correlation can differ</li>
+</ul>
+<p>For argument details and optional tuning parameters, run <code>?gee</code>.</p>
+</div>
+</div>
+</div>
+<p>These values replicate the values in Table 6.8 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> (up to numerical rounding).</p>
+</section>
+<section id="exchangeable-and-unstructured-correlation-structures" class="level3">
+<h3 class="anchored" data-anchor-id="exchangeable-and-unstructured-correlation-structures">Exchangeable and Unstructured Correlation Structures</h3>
+<p>We also try the exchangeable and unstructured working correlations.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>geefit_exch <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -428,39 +560,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>running glm to get initial regression estimate</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
--1.69656029  0.05951185  0.15681009  0.06641432  0.13622036 -0.11504072 
-age2:smoke1 age3:smoke1 
+<pre><code>(Intercept)      smoke1        age1        age2        age3 smoke1:age1 
+-1.69656029  0.13622036  0.05951185  0.15681009  0.06641432 -0.11504072 
+smoke1:age2 smoke1:age3 
  0.06987921  0.02539315 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch) <span class="sc">|&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.06240212 -27.1875406  0.08973054 -18.9072782
-age1         0.05951185 0.10683109   0.5570649  0.08795644   0.6766059
-age2         0.15681009 0.10388816   1.5094125  0.08087957   1.9388096
-age3         0.06641432 0.10598027   0.6266669  0.08203507   0.8095845
-smoke1       0.13622036 0.06240212   2.1829443  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.10683109  -1.0768469  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.10388816   0.6726388  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.10598027   0.2396026  0.08203507   0.3095401</code></pre>
+<pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
+(Intercept)   -1.697      0.090 -18.947       0.090  -18.907
+smoke1         0.136      0.090   1.521       0.090    1.518
+age1           0.060      0.086   0.693       0.088    0.677
+age2           0.157      0.084   1.877       0.081    1.939
+age3           0.066      0.085   0.780       0.082    0.810
+smoke1:age1   -0.115      0.086  -1.340       0.088   -1.308
+smoke1:age2    0.070      0.084   0.836       0.081    0.864
+smoke1:age3    0.025      0.085   0.298       0.082    0.310</code></pre>
 </div>
 </div>
-</section>
-<section id="exchangeable-structure" class="level3">
-<h3 class="anchored" data-anchor-id="exchangeable-structure">Exchangeable Structure</h3>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>geefit_exch <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
 <span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -470,40 +601,214 @@ age3:smoke1  0.02539315 0.10598027   0.2396026  0.08203507   0.3095401</code></p
 <pre><code>running glm to get initial regression estimate</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
--1.69656029  0.05951185  0.15681009  0.06641432  0.13622036 -0.11504072 
-age2:smoke1 age3:smoke1 
+<pre><code>(Intercept)      smoke1        age1        age2        age3 smoke1:age1 
+-1.69656029  0.13622036  0.05951185  0.15681009  0.06641432 -0.11504072 
+smoke1:age2 smoke1:age3 
  0.06987921  0.02539315 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct) <span class="sc">|&gt;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08954017 -18.9474762  0.08973054 -18.9072782
-age1         0.05951185 0.08585934   0.6931319  0.08795644   0.6766059
-age2         0.15681009 0.08355926   1.8766332  0.08087957   1.9388096
-age3         0.06641432 0.08514725   0.7799937  0.08203507   0.8095845
-smoke1       0.13622036 0.08954017   1.5213323  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08585934  -1.3398742  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08355926   0.8362832  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08514725   0.2982262  0.08203507   0.3095401</code></pre>
+<pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
+(Intercept)   -1.697      0.089 -18.956       0.090  -18.907
+smoke1         0.136      0.089   1.522       0.090    1.518
+age1           0.060      0.089   0.666       0.088    0.677
+age2           0.157      0.081   1.928       0.081    1.939
+age3           0.066      0.082   0.806       0.082    0.810
+smoke1:age1   -0.115      0.089  -1.288       0.088   -1.308
+smoke1:age2    0.070      0.081   0.859       0.081    0.864
+smoke1:age3    0.025      0.082   0.308       0.082    0.310</code></pre>
 </div>
 </div>
-</section>
-<section id="unstructured-correlation" class="level3">
-<h3 class="anchored" data-anchor-id="unstructured-correlation">Unstructured Correlation</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Robust (Sandwich) Variance Matrices
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Dennis: Without looking into this, I find this behaviour very weird</strong></p>
+<p>We can also extract the robust variance matrices under each working correlation structure.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>geefit_indep<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            (Intercept)    smoke1      age1      age2      age3 smoke1:age1
+(Intercept)    0.008052  0.001856 -0.000403 -0.000424 -0.000080    0.000418
+smoke1         0.001856  0.008052  0.000418 -0.000282 -0.000127   -0.000403
+age1          -0.000403  0.000418  0.007736 -0.002043 -0.002831    0.001660
+age2          -0.000424 -0.000282 -0.002043  0.006542 -0.001200   -0.000575
+age3          -0.000080 -0.000127 -0.002831 -0.001200  0.006730   -0.000633
+smoke1:age1    0.000418 -0.000403  0.001660 -0.000575 -0.000633    0.007736
+smoke1:age2   -0.000282 -0.000424 -0.000575  0.001162  0.000008   -0.002043
+smoke1:age3   -0.000127 -0.000080 -0.000633  0.000008  0.001353   -0.002831
+            smoke1:age2 smoke1:age3
+(Intercept)   -0.000282   -0.000127
+smoke1        -0.000424   -0.000080
+age1          -0.000575   -0.000633
+age2           0.001162    0.000008
+age3           0.000008    0.001353
+smoke1:age1   -0.002043   -0.002831
+smoke1:age2    0.006542   -0.001200
+smoke1:age3   -0.001200    0.006730</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>geefit_exch<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            (Intercept)    smoke1      age1      age2      age3 smoke1:age1
+(Intercept)    0.008052  0.001856 -0.000403 -0.000424 -0.000080    0.000418
+smoke1         0.001856  0.008052  0.000418 -0.000282 -0.000127   -0.000403
+age1          -0.000403  0.000418  0.007736 -0.002043 -0.002831    0.001660
+age2          -0.000424 -0.000282 -0.002043  0.006542 -0.001200   -0.000575
+age3          -0.000080 -0.000127 -0.002831 -0.001200  0.006730   -0.000633
+smoke1:age1    0.000418 -0.000403  0.001660 -0.000575 -0.000633    0.007736
+smoke1:age2   -0.000282 -0.000424 -0.000575  0.001162  0.000008   -0.002043
+smoke1:age3   -0.000127 -0.000080 -0.000633  0.000008  0.001353   -0.002831
+            smoke1:age2 smoke1:age3
+(Intercept)   -0.000282   -0.000127
+smoke1        -0.000424   -0.000080
+age1          -0.000575   -0.000633
+age2           0.001162    0.000008
+age3           0.000008    0.001353
+smoke1:age1   -0.002043   -0.002831
+smoke1:age2    0.006542   -0.001200
+smoke1:age3   -0.001200    0.006730</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            (Intercept)    smoke1      age1      age2      age3 smoke1:age1
+(Intercept)    0.008052  0.001856 -0.000403 -0.000424 -0.000080    0.000418
+smoke1         0.001856  0.008052  0.000418 -0.000282 -0.000127   -0.000403
+age1          -0.000403  0.000418  0.007736 -0.002043 -0.002831    0.001660
+age2          -0.000424 -0.000282 -0.002043  0.006542 -0.001200   -0.000575
+age3          -0.000080 -0.000127 -0.002831 -0.001200  0.006730   -0.000633
+smoke1:age1    0.000418 -0.000403  0.001660 -0.000575 -0.000633    0.007736
+smoke1:age2   -0.000282 -0.000424 -0.000575  0.001162  0.000008   -0.002043
+smoke1:age3   -0.000127 -0.000080 -0.000633  0.000008  0.001353   -0.002831
+            smoke1:age2 smoke1:age3
+(Intercept)   -0.000282   -0.000127
+smoke1        -0.000424   -0.000080
+age1          -0.000575   -0.000633
+age2           0.001162    0.000008
+age3           0.000008    0.001353
+smoke1:age1   -0.002043   -0.002831
+smoke1:age2    0.006542   -0.001200
+smoke1:age3   -0.001200    0.006730</code></pre>
+</div>
+</div>
+<p>Eyeballing the three matrices, we can see that they are all almost identical. We can confirm this by computing the difference between the independence and exchangeable robust variance matrices:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>geefit_indep<span class="sc">$</span>robust.variance <span class="sc">-</span> geefit_exch<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              (Intercept)        smoke1          age1          age2
+(Intercept) -2.758210e-16 -2.628106e-16  2.011195e-17  7.453890e-17
+smoke1      -2.625938e-16 -2.775558e-16 -3.198396e-17  9.849977e-17
+age1         1.734723e-17 -2.986977e-17 -1.118897e-16  1.209970e-16
+age2         7.274997e-17  1.014271e-16  1.235990e-16 -2.619432e-16
+age3         2.923280e-17 -4.255494e-18 -1.704366e-16 -8.651933e-17
+smoke1:age1 -2.992398e-17  1.745565e-17 -3.187554e-16  1.431147e-16
+smoke1:age2  1.012645e-16  7.199102e-17  1.427894e-16 -2.803747e-16
+smoke1:age3 -4.038653e-18  2.905662e-17  2.873136e-17  1.344411e-17
+                     age3   smoke1:age1   smoke1:age2   smoke1:age3
+(Intercept)  1.985445e-17 -3.230922e-17  9.855398e-17  4.526544e-18
+smoke1       4.553649e-18  2.049142e-17  7.443048e-17  2.016616e-17
+age1        -1.687019e-16 -3.185386e-16  1.440905e-16  2.764716e-17
+age2        -8.608565e-17  1.430063e-16 -2.818926e-16  1.349832e-17
+age3         1.101549e-16  2.808084e-17  1.342039e-17 -1.788934e-16
+smoke1:age1  2.634611e-17 -1.110223e-16  1.222980e-16 -1.695692e-16
+smoke1:age2  1.309174e-17  1.214306e-16 -2.602085e-16 -8.760354e-17
+smoke1:age3 -1.791102e-16 -1.687019e-16 -8.760354e-17  1.084202e-16</code></pre>
+</div>
+</div>
+<p>In theory all the robust variance matrices should differ, but here, perhaps due to the nature of the data, they are very close to each other.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="scale-parameter-and-pearson-based-check" class="level2">
+<h2 class="anchored" data-anchor-id="scale-parameter-and-pearson-based-check">Scale Parameter and Pearson-Based Check</h2>
+<p>We can also access the scale parameter estimate from the model:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>geefit_indep<span class="sc">$</span>scale</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.003738</code></pre>
+</div>
+</div>
+<p>We can see that there is very minimal overdispersion here.</p>
+<p>We can derive the scale estimate ourselves by computing the method-of-moments dispersion estimate by hand from Pearson residuals:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>pearson_resid <span class="ot">&lt;-</span> (ohio_tbl<span class="sc">$</span>resp <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted) <span class="sc">/</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sqrt</span>(geefit_indep<span class="sc">$</span>fitted.values <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted.values))</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(pearson_resid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2148</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The number of Pearson residuals should match the number of observations used in the model fit, which is the same as the number of rows in <code>ohio_tbl</code>. Each row is an observation of a child, where each child is observed multiple times.</p>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>scale_by_hand <span class="ot">&lt;-</span> <span class="fu">sum</span>(pearson_resid<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  (geefit_indep<span class="sc">$</span>nobs <span class="sc">-</span> <span class="fu">length</span>(<span class="fu">coef</span>(geefit_indep)))</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>scale_by_hand</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.003738</code></pre>
+</div>
+</div>
+<p>The hand-computed value matches the model summary scale.</p>
+</section>
+<section id="naive-standard-errors-with-scale-fixed-at-1" class="level2">
+<h2 class="anchored" data-anchor-id="naive-standard-errors-with-scale-fixed-at-1">Naive Standard Errors with Scale Fixed at 1</h2>
+<p>To verify the naive standard errors reported by <code>gee</code>, we refit with <code>scale.fix = TRUE</code>, which fixes the scale parameter at 1.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_scale_fix <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"independence"</span>,</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale.fix =</span> <span class="cn">TRUE</span></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
@@ -512,324 +817,211 @@ age3:smoke1  0.02539315 0.08514725   0.2982262  0.08203507   0.3095401</code></p
 <pre><code>running glm to get initial regression estimate</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
--1.69656029  0.05951185  0.15681009  0.06641432  0.13622036 -0.11504072 
-age2:smoke1 age3:smoke1 
+<pre><code>(Intercept)      smoke1        age1        age2        age3 smoke1:age1 
+-1.69656029  0.13622036  0.05951185  0.15681009  0.06641432 -0.11504072 
+smoke1:age2 smoke1:age3 
  0.06987921  0.02539315 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_scale_fix<span class="sc">$</span>scale</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08949879 -18.9562374  0.08973054 -18.9072782
-age1         0.05951185 0.08931698   0.6662994  0.08795644   0.6766059
-age2         0.15681009 0.08132411   1.9282117  0.08087957   1.9388096
-age3         0.06641432 0.08238806   0.8061158  0.08203507   0.8095845
-smoke1       0.13622036 0.08949879   1.5220358  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08931698  -1.2880050  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08132411   0.8592681  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08238806   0.3082139  0.08203507   0.3095401</code></pre>
+<pre><code>[1] 1</code></pre>
 </div>
 </div>
-<p>Same numbers as Table 6.8 in F &amp; T:</p>
+<p>We can see that the scale is fixed at 1.</p>
+<p>We can check our proposed relationship: <span class="math display">\[
+    \text{Naive SE (scale fixed)} \times \sqrt{\hat\phi}
+=
+    \text{Naive SE (reported in original fit)}.
+\]</span></p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>naive_se_scale_fix <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(geefit_indep_scale_fix))[, <span class="st">"Naive S.E."</span>]</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">term =</span> <span class="fu">rownames</span>(coefs_indep),</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">se_rescaled =</span> naive_se_scale_fix <span class="sc">*</span></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(geefit_indep<span class="sc">$</span>scale),</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">se_original =</span> coefs_indep[, <span class="st">"Naive S.E."</span>]</span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.06240212 -27.1875406  0.08973054 -18.9072782
-age1         0.05951185 0.10683109   0.5570649  0.08795644   0.6766059
-age2         0.15681009 0.10388816   1.5094125  0.08087957   1.9388096
-age3         0.06641432 0.10598027   0.6266669  0.08203507   0.8095845
-smoke1       0.13622036 0.06240212   2.1829443  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.10683109  -1.0768469  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.10388816   0.6726388  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.10598027   0.2396026  0.08203507   0.3095401</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08954017 -18.9474762  0.08973054 -18.9072782
-age1         0.05951185 0.08585934   0.6931319  0.08795644   0.6766059
-age2         0.15681009 0.08355926   1.8766332  0.08087957   1.9388096
-age3         0.06641432 0.08514725   0.7799937  0.08203507   0.8095845
-smoke1       0.13622036 0.08954017   1.5213323  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08585934  -1.3398742  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08355926   0.8362832  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08514725   0.2982262  0.08203507   0.3095401</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08949879 -18.9562374  0.08973054 -18.9072782
-age1         0.05951185 0.08931698   0.6662994  0.08795644   0.6766059
-age2         0.15681009 0.08132411   1.9282117  0.08087957   1.9388096
-age3         0.06641432 0.08238806   0.8061158  0.08203507   0.8095845
-smoke1       0.13622036 0.08949879   1.5220358  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08931698  -1.2880050  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08132411   0.8592681  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08238806   0.3082139  0.08203507   0.3095401</code></pre>
+<pre><code># A tibble: 8 × 3
+  term        se_rescaled se_original
+  &lt;chr&gt;             &lt;dbl&gt;       &lt;dbl&gt;
+1 (Intercept)      0.0624      0.0624
+2 smoke1           0.0624      0.0624
+3 age1             0.107       0.107 
+4 age2             0.104       0.104 
+5 age3             0.106       0.106 
+6 smoke1:age1      0.107       0.107 
+7 smoke1:age2      0.104       0.104 
+8 smoke1:age3      0.106       0.106 </code></pre>
 </div>
 </div>
 </section>
-</section>
-<section id="robust-variance-matrices" class="level2">
-<h2 class="anchored" data-anchor-id="robust-variance-matrices">Robust Variance Matrices</h2>
+<section id="derived-parameter-coefficient-for-age-10" class="level2">
+<h2 class="anchored" data-anchor-id="derived-parameter-coefficient-for-age-10">Derived Parameter: Coefficient for Age = 10</h2>
+<p>Since we are using effect coding, we can extract the coefficient for for age 10: <span class="math display">\[
+\beta_\text{Age10} = - (\beta_\text{Age7} + \beta_\text{Age8} + \beta_\text{Age9}),
+\]</span> since the age 10 group is the reference group for the age factor.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>geefit_indep<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>coefs_indep <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1        -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2        -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3        -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03
-smoke1       1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1:smoke1  4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2:smoke1 -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3:smoke1 -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept)  1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1         4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2        -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3        -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-smoke1       8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1:smoke1 -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2:smoke1 -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3:smoke1 -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03</code></pre>
+<pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
+(Intercept)   -1.697      0.062 -27.188       0.090  -18.907
+smoke1         0.136      0.062   2.183       0.090    1.518
+age1           0.060      0.107   0.557       0.088    0.677
+age2           0.157      0.104   1.509       0.081    1.939
+age3           0.066      0.106   0.627       0.082    0.810
+smoke1:age1   -0.115      0.107  -1.077       0.088   -1.308
+smoke1:age2    0.070      0.104   0.673       0.081    0.864
+smoke1:age3    0.025      0.106   0.240       0.082    0.310</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>geefit_exch<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1        -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2        -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3        -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03
-smoke1       1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1:smoke1  4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2:smoke1 -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3:smoke1 -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept)  1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1         4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2        -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3        -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-smoke1       8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1:smoke1 -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2:smoke1 -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3:smoke1 -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1        -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2        -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3        -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03
-smoke1       1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1:smoke1  4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2:smoke1 -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3:smoke1 -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept)  1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1         4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2        -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3        -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-smoke1       8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1:smoke1 -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2:smoke1 -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3:smoke1 -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03</code></pre>
-</div>
-</div>
-<p>The three robust variances happen to look exactly the same here, probably just a numerical coincidence. However, if we take a difference, R says they differ by very small numbers:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>geefit_indep<span class="sc">$</span>robust.variance <span class="sc">-</span> geefit_exch<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept) -4.943962e-16 -8.890458e-18  1.121065e-16  6.274820e-17
-age1        -1.246832e-17 -1.769418e-16  5.247539e-17 -1.604619e-17
-age2         1.101007e-16  5.204170e-17 -3.165870e-16 -5.204170e-17
-age3         7.178774e-17 -1.864828e-17 -5.074066e-17 -2.151057e-16
-smoke1      -8.456777e-18 -1.037581e-16  4.119968e-17  5.304459e-17
-age1:smoke1 -1.005598e-16 -1.951564e-18  2.927346e-17 -1.973248e-17
-age2:smoke1  4.325967e-17  2.938188e-17  5.789640e-17 -7.554179e-17
-age3:smoke1  4.428966e-17 -1.897354e-17 -7.556889e-17  8.912142e-17
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept) -6.722053e-18 -1.037039e-16  4.082021e-17  5.320722e-17
-age1        -1.000719e-16 -1.951564e-18  2.797242e-17 -1.821460e-17
-age2         4.331388e-17  2.970714e-17  5.963112e-17 -7.624652e-17
-age3         4.420834e-17 -1.951564e-17 -7.552485e-17  8.912142e-17
-smoke1      -4.961309e-16 -8.782038e-18  1.115644e-16  6.234162e-17
-age1:smoke1 -1.203464e-17 -1.821460e-16  4.900594e-17 -1.301043e-17
-age2:smoke1  1.097213e-16  5.160802e-17 -3.174544e-16 -4.792174e-17
-age3:smoke1  7.128629e-17 -1.604619e-17 -4.705437e-17 -2.229120e-16</code></pre>
-</div>
-</div>
-</section>
-<section id="scale-parameter" class="level2">
-<h2 class="anchored" data-anchor-id="scale-parameter">Scale Parameter</h2>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>scale</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.003738</code></pre>
-</div>
-</div>
-<p>Now we tease out the Pearson residuals and compute the method of moment dispersion estimator by hand:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>pearson_resid <span class="ot">&lt;-</span> (ohio<span class="sc">$</span>resp <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted) <span class="sc">/</span></span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(</span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>        geefit_indep<span class="sc">$</span>fitted.values <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted.values)</span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>scale_by_hand <span class="ot">&lt;-</span> <span class="fu">sum</span>(pearson_resid<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span></span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>    (geefit_indep<span class="sc">$</span>nobs <span class="sc">-</span> <span class="fu">length</span>(geefit_indep<span class="sc">$</span>coeff))</span>
-<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>scale_by_hand</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.003738</code></pre>
-</div>
-</div>
-<p>Same number as the one reported in summary.</p>
-<section id="verifying-naive-vs-robust-standard-errors" class="level3">
-<h3 class="anchored" data-anchor-id="verifying-naive-vs-robust-standard-errors">Verifying Naive vs Robust Standard Errors</h3>
-<p>We first regress by fixing the scale to be 1:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_scale_fix <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
-<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"independence"</span>,</span>
-<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale.fix =</span> <span class="cn">TRUE</span></span>
-<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>running glm to get initial regression estimate</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
--1.69656029  0.05951185  0.15681009  0.06641432  0.13622036 -0.11504072 
-age2:smoke1 age3:smoke1 
- 0.06987921  0.02539315 </code></pre>
-</div>
-</div>
-<p>Verify relationship: Naive SE × sqrt(scale) = Model SE:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep_scale_fix)<span class="sc">$</span>coeff[, <span class="st">"Naive S.E."</span>] <span class="sc">*</span></span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(<span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>scale)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
- 0.06240212  0.10683109  0.10388816  0.10598027  0.06240212  0.10683109 
-age2:smoke1 age3:smoke1 
- 0.10388816  0.10598027 </code></pre>
-</div>
-</div>
-<p>Is same as:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>coeff[, <span class="st">"Naive S.E."</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
- 0.06240212  0.10683109  0.10388816  0.10598027  0.06240212  0.10683109 
-age2:smoke1 age3:smoke1 
- 0.10388816  0.10598027 </code></pre>
-</div>
-</div>
-<p>So it only differs by the dispersion parameter, which makes sense.</p>
-</section>
-</section>
-<section id="beta-estimate-for-age-10" class="level2">
-<h2 class="anchored" data-anchor-id="beta-estimate-for-age-10">Beta Estimate for Age = 10</h2>
-<p>With effect coding, age=10 is minus the sum of the other three age coefficients:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>beta_age_10 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">sum</span>(<span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>coeff[</span>
-<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>),</span>
-<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span></span>
-<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>])</span>
-<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>beta_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>beta_age_10 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">sum</span>(coefs_indep[</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>),</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Estimate"</span></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>beta_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -0.2827363</code></pre>
 </div>
 </div>
-<p>Same as the book.</p>
-<section id="standard-error-for-combined-effect" class="level3">
-<h3 class="anchored" data-anchor-id="standard-error-for-combined-effect">Standard Error for Combined Effect</h3>
-<p>Robust SE for combined age=10 coefficient (using contrast matrix):</p>
+<p>This value matches page 273 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Reading <code>coefs_indep</code> Notation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><code>coefs_indep</code> is a matrix, with model terms in rows and summary statistics in columns.</p>
+<ul>
+<li><code>coefs_indep["age1", "Estimate"]</code> gets one cell</li>
+<li><code>coefs_indep[c("age1", "age2", "age3"), "Estimate"]</code> gets a vector of selected rows from one column</li>
+<li><code>coefs_indep[, "Naive S.E."]</code> gets the full <code>Naive S.E.</code> column</li>
+</ul>
+<p>In matrix indexing, the format is always <code>[rows, columns]</code>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: How should we interpret a negative <span class="math inline">\(\beta_\text{Age10}\)</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The probability of infection for a child who is age 10 is lower than the average probability across all age groups, when smoking status is fixed.</p>
+</div>
+</div>
+</div>
+<p><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> also reports a standard deviation for this coefficient, which we can also reproduce. The robust standard error for this linear combination is:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>robust_se_age_10 <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(</span>
-<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">3</span>) <span class="sc">%*%</span></span>
-<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>        geefit_indep<span class="sc">$</span>robust.variance[</span>
-<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>),</span>
-<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>)</span>
-<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>        ] <span class="sc">%*%</span></span>
-<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">3</span>)</span>
-<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a>robust_se_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>age_coef_names <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>)</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>age_robust_vcov <span class="ot">&lt;-</span> geefit_indep<span class="sc">$</span>robust.variance[</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  age_coef_names,</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  age_coef_names</span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>age_robust_vcov <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>        age1    age2    age3
+age1  0.0077 -0.0020 -0.0028
+age2 -0.0020  0.0065 -0.0012
+age3 -0.0028 -0.0012  0.0067</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>robust_se_age_10 <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">3</span>) <span class="sc">%*%</span></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>    age_robust_vcov <span class="sc">%*%</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">3</span>)</span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>robust_se_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>           [,1]
 [1,] 0.09411951</code></pre>
 </div>
 </div>
-<p>Same as reported on p.273 in the book.</p>
 </section>
-</section>
-<section id="table-6.9-main-effects-models" class="level2">
-<h2 class="anchored" data-anchor-id="table-6.9-main-effects-models">Table 6.9: Main Effects Models</h2>
-<p>Fit without interactions:</p>
+<section id="table-6.9-main-effects-models-no-interaction" class="level2">
+<h2 class="anchored" data-anchor-id="table-6.9-main-effects-models-no-interaction">Table 6.9: Main-Effects Models (No Interaction)</h2>
+<p>The robust z-values (or alternatively the estimates and robust standard errors) reported in the model output tell us that the interaction terms are not statistically significant.</p>
+<p>Therefore we fit models without the interaction terms, and try to recover the main effect coefficients in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Table 6.9.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">+</span> smoke,</span>
-<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"independence"</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"independence"</span></span>
+<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>running glm to get initial regression estimate</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)      smoke1        age1        age2        age3 
+-1.69503955  0.13623130  0.08731839  0.14133045  0.05956087 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep_no_interaction) <span class="sc">|&gt;</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
+(Intercept)   -1.695      0.062 -27.221       0.090  -18.920
+smoke1         0.136      0.062   2.203       0.089    1.529
+age1           0.087      0.103   0.849       0.086    1.015
+age2           0.141      0.102   1.390       0.079    1.779
+age3           0.060      0.104   0.575       0.080    0.742</code></pre>
+</div>
+</div>
+<p>The parameter estimates as well as robust and naive standard errors agree with Table 6.9 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<p>For the second column in Table 6.9, we do the same for the exchangeable and unstructured working correlations:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
 <span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -839,17 +1031,17 @@ age2:smoke1 age3:smoke1
 <pre><code>running glm to get initial regression estimate</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 
--1.69503955  0.08731839  0.14133045  0.05956087  0.13623130 </code></pre>
+<pre><code>(Intercept)      smoke1        age1        age2        age3 
+-1.69503955  0.13623130  0.08731839  0.14133045  0.05956087 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">+</span> smoke,</span>
-<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
 <span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -857,639 +1049,117 @@ age2:smoke1 age3:smoke1
 running glm to get initial regression estimate</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 
--1.69503955  0.08731839  0.14133045  0.05956087  0.13623130 </code></pre>
+<pre><code>(Intercept)      smoke1        age1        age2        age3 
+-1.69503955  0.13623130  0.08731839  0.14133045  0.05956087 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">+</span> smoke,</span>
-<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
-<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="sc">|&gt;</span></span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27
-running glm to get initial regression estimate</code></pre>
-</div>
 <div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 
--1.69503955  0.08731839  0.14133045  0.05956087  0.13623130 </code></pre>
+<pre><code>(Intercept)      smoke1        age1        age2        age3 
+     -1.695       0.136       0.087       0.141       0.060 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="sc">|&gt;</span></span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)      smoke1        age1        age2        age3 
+     -1.696       0.131       0.087       0.141       0.060 </code></pre>
 </div>
 </div>
-<p>Results (same as the numbers given in Table 6.9):</p>
+<p>The unstructured coefficients agree (up to rounding) with the second column of Table 6.9 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. <strong>Dennis I’m unsure why the column in F&amp;T is called Exchangeable/Unspecified</strong></p>
+<section id="robust-variance-matrix-comparisons" class="level3">
+<h3 class="anchored" data-anchor-id="robust-variance-matrix-comparisons">Robust Variance Matrix Comparisons</h3>
+<p>Here we can see that the robust variances differ more across working correlation structures than in the interaction model. This supports the suspicion that the earlier agreement was a biproduct of the data.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep_no_interaction)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69503955 0.06226848 -27.2214693  0.08958878 -18.9202213
-age1         0.08731839 0.10290064   0.8485700  0.08606575   1.0145545
-age2         0.14133045 0.10171224   1.3895127  0.07942232   1.7794801
-age3         0.05956087 0.10353326   0.5752825  0.08029923   0.7417364
-smoke1       0.13623130 0.06184401   2.2028212  0.08910533   1.5288794</code></pre>
+<pre><code>            (Intercept)    smoke1      age1      age2      age3
+(Intercept)    0.008026  0.001856 -0.000653 -0.000287 -0.000005
+smoke1         0.001856  0.007940 -0.000253  0.000224  0.000081
+age1          -0.000653 -0.000253  0.007407 -0.001895 -0.002703
+age2          -0.000287  0.000224 -0.001895  0.006308 -0.001235
+age3          -0.000005  0.000081 -0.002703 -0.001235  0.006448</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch_no_interaction)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.    Naive z Robust S.E.    Robust z
-(Intercept) -1.69515049 0.08930537 -18.981507  0.08960390 -18.9182674
-age1         0.08731682 0.08272754   1.055475  0.08606166   1.0145844
-age2         0.14132779 0.08181868   1.727329  0.07941988   1.7795015
-age3         0.05955984 0.08321946   0.715696  0.08029664   0.7417475
-smoke1       0.13560718 0.08849779   1.532323  0.08904611   1.5228873</code></pre>
+<pre><code>            (Intercept)    smoke1      age1      age2      age3
+(Intercept)    0.008029  0.001863 -0.000658 -0.000284 -0.000001
+smoke1         0.001863  0.007929 -0.000278  0.000236  0.000102
+age1          -0.000658 -0.000278  0.007407 -0.001895 -0.002703
+age2          -0.000284  0.000236 -0.001895  0.006308 -0.001235
+age3          -0.000001  0.000102 -0.002703 -0.001235  0.006448</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct_no_interaction)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.   Robust z
-(Intercept) -1.69626098 0.08931717 -18.9914318  0.08968894 -18.912712
-age1         0.08730567 0.08606292   1.0144400  0.08604663   1.014632
-age2         0.14130879 0.07968543   1.7733328  0.07940572   1.779580
-age3         0.05954514 0.08045425   0.7401118  0.08028209   0.741699
-smoke1       0.13055212 0.08862371   1.4731060  0.08898286   1.467160</code></pre>
-</div>
-</div>
-<p>The robust variances are not the same in general:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.026150e-03 -0.0006532136 -0.0002865124 -4.724460e-06
-age1        -6.532136e-04  0.0074073136 -0.0018946288 -2.702913e-03
-age2        -2.865124e-04 -0.0018946288  0.0063079056 -1.235324e-03
-age3        -4.724460e-06 -0.0027029135 -0.0012353243  6.447967e-03
-smoke1       1.855954e-03 -0.0002526532  0.0002243075  8.085108e-05
-                   smoke1
-(Intercept)  1.855954e-03
-age1        -2.526532e-04
-age2         2.243075e-04
-age3         8.085108e-05
-smoke1       7.939760e-03</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb90"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.028858e-03 -0.0006577292 -0.0002843322 -9.943381e-07
-age1        -6.577292e-04  0.0074066100 -0.0018945547 -2.702685e-03
-age2        -2.843322e-04 -0.0018945547  0.0063075172 -1.235104e-03
-age3        -9.943381e-07 -0.0027026849 -0.0012351038  6.447551e-03
-smoke1       1.862693e-03 -0.0002780363  0.0002360071  1.024294e-04
-                   smoke1
-(Intercept)  0.0018626928
-age1        -0.0002780363
-age2         0.0002360071
-age3         0.0001024294
-smoke1       0.0079292093</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb92"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.044105e-03 -0.0006645561 -0.0002842884 -1.499722e-07
-age1        -6.645561e-04  0.0074040220 -0.0018938052 -2.701592e-03
-age2        -2.842884e-04 -0.0018938052  0.0063052680 -1.234670e-03
-age3        -1.499722e-07 -0.0027015919 -0.0012346695  6.445214e-03
-smoke1       1.899506e-03 -0.0002995857  0.0002298217  1.034279e-04
-                   smoke1
-(Intercept)  0.0018995062
-age1        -0.0002995857
-age2         0.0002298217
-age3         0.0001034279
-smoke1       0.0079179498</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb94"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08954017 -18.9474762  0.08973054 -18.9072782
-age1         0.05951185 0.08585934   0.6931319  0.08795644   0.6766059
-age2         0.15681009 0.08355926   1.8766332  0.08087957   1.9388096
-age3         0.06641432 0.08514725   0.7799937  0.08203507   0.8095845
-smoke1       0.13622036 0.08954017   1.5213323  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08585934  -1.3398742  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08355926   0.8362832  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08514725   0.2982262  0.08203507   0.3095401</code></pre>
+<pre><code>            (Intercept)    smoke1      age1      age2      age3
+(Intercept)    0.008044  0.001900 -0.000665 -0.000284  0.000000
+smoke1         0.001900  0.007918 -0.000300  0.000230  0.000103
+age1          -0.000665 -0.000300  0.007404 -0.001894 -0.002702
+age2          -0.000284  0.000230 -0.001894  0.006305 -0.001235
+age3           0.000000  0.000103 -0.002702 -0.001235  0.006445</code></pre>
 </div>
 </div>
 </section>
-<section id="gee-with-unstructured-correlation" class="level2">
-<h2 class="anchored" data-anchor-id="gee-with-unstructured-correlation">GEE with Unstructured Correlation</h2>
-<p>Fit GEE model with unstructured correlation (unique correlation for each pair of time points):</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb96"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb96-2"><a href="#cb96-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
-<span id="cb96-3"><a href="#cb96-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb96-4"><a href="#cb96-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb96-5"><a href="#cb96-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb96-6"><a href="#cb96-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
-<span id="cb96-7"><a href="#cb96-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>running glm to get initial regression estimate</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
--1.69656029  0.05951185  0.15681009  0.06641432  0.13622036 -0.11504072 
-age2:smoke1 age3:smoke1 
- 0.06987921  0.02539315 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb100"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08949879 -18.9562374  0.08973054 -18.9072782
-age1         0.05951185 0.08931698   0.6662994  0.08795644   0.6766059
-age2         0.15681009 0.08132411   1.9282117  0.08087957   1.9388096
-age3         0.06641432 0.08238806   0.8061158  0.08203507   0.8095845
-smoke1       0.13622036 0.08949879   1.5220358  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08931698  -1.2880050  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08132411   0.8592681  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08238806   0.3082139  0.08203507   0.3095401</code></pre>
-</div>
-</div>
 </section>
-<section id="comparing-coefficient-estimates" class="level2">
-<h2 class="anchored" data-anchor-id="comparing-coefficient-estimates">Comparing Coefficient Estimates</h2>
-<p>Compare coefficients across the three correlation structures - same numbers as Table 6.8 in Fahrmeir &amp; Tutz:</p>
-<div class="cell">
-<details open="" class="code-fold">
+<section id="package-citations" class="level2">
+<h2 class="anchored" data-anchor-id="package-citations">Package Citations</h2>
+<details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb102"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"dplyr"</span>)</span>
+<span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb89-4"><a href="#cb89-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb89-5"><a href="#cb89-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb89-6"><a href="#cb89-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb89-7"><a href="#cb89-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb89-8"><a href="#cb89-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb89-9"><a href="#cb89-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb89-10"><a href="#cb89-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb89-11"><a href="#cb89-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb89-12"><a href="#cb89-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb89-13"><a href="#cb89-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb89-14"><a href="#cb89-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb89-15"><a href="#cb89-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb89-16"><a href="#cb89-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.06240212 -27.1875406  0.08973054 -18.9072782
-age1         0.05951185 0.10683109   0.5570649  0.08795644   0.6766059
-age2         0.15681009 0.10388816   1.5094125  0.08087957   1.9388096
-age3         0.06641432 0.10598027   0.6266669  0.08203507   0.8095845
-smoke1       0.13622036 0.06240212   2.1829443  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.10683109  -1.0768469  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.10388816   0.6726388  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.10598027   0.2396026  0.08203507   0.3095401</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb104"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08954017 -18.9474762  0.08973054 -18.9072782
-age1         0.05951185 0.08585934   0.6931319  0.08795644   0.6766059
-age2         0.15681009 0.08355926   1.8766332  0.08087957   1.9388096
-age3         0.06641432 0.08514725   0.7799937  0.08203507   0.8095845
-smoke1       0.13622036 0.08954017   1.5213323  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08585934  -1.3398742  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08355926   0.8362832  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08514725   0.2982262  0.08203507   0.3095401</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb106"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb106-1"><a href="#cb106-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69656029 0.08949879 -18.9562374  0.08973054 -18.9072782
-age1         0.05951185 0.08931698   0.6662994  0.08795644   0.6766059
-age2         0.15681009 0.08132411   1.9282117  0.08087957   1.9388096
-age3         0.06641432 0.08238806   0.8061158  0.08203507   0.8095845
-smoke1       0.13622036 0.08949879   1.5220358  0.08973054   1.5181047
-age1:smoke1 -0.11504072 0.08931698  -1.2880050  0.08795644  -1.3079283
-age2:smoke1  0.06987921 0.08132411   0.8592681  0.08087957   0.8639909
-age3:smoke1  0.02539315 0.08238806   0.3082139  0.08203507   0.3095401</code></pre>
-</div>
-</div>
-</section>
-<section id="robust-variance-matrices-1" class="level2">
-<h2 class="anchored" data-anchor-id="robust-variance-matrices-1">Robust Variance Matrices</h2>
-<p>Extract robust (sandwich) variance matrices from each model:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb108"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a>geefit_indep<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1        -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2        -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3        -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03
-smoke1       1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1:smoke1  4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2:smoke1 -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3:smoke1 -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept)  1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1         4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2        -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3        -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-smoke1       8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1:smoke1 -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2:smoke1 -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3:smoke1 -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb110"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a>geefit_exch<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1        -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2        -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3        -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03
-smoke1       1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1:smoke1  4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2:smoke1 -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3:smoke1 -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept)  1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1         4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2        -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3        -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-smoke1       8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1:smoke1 -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2:smoke1 -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3:smoke1 -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb112"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb112-1"><a href="#cb112-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1        -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2        -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3        -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03
-smoke1       1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1:smoke1  4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2:smoke1 -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3:smoke1 -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept)  1.855531e-03  0.0004183373 -2.821298e-04 -1.273353e-04
-age1         4.183373e-04  0.0016602483 -5.745432e-04 -6.331897e-04
-age2        -2.821298e-04 -0.0005745432  1.161555e-03  7.588107e-06
-age3        -1.273353e-04 -0.0006331897  7.588107e-06  1.353400e-03
-smoke1       8.051570e-03 -0.0004030998 -4.235055e-04 -8.019757e-05
-age1:smoke1 -4.030998e-04  0.0077363357 -2.043357e-03 -2.830722e-03
-age2:smoke1 -4.235055e-04 -0.0020433565  6.541505e-03 -1.200476e-03
-age3:smoke1 -8.019757e-05 -0.0028307224 -1.200476e-03  6.729753e-03</code></pre>
-</div>
-</div>
-<p>The three robust variances happen to look exactly the same here, probably just a numerical coincidence. However, when computing differences, R shows they differ by very small numbers:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb114"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb114-1"><a href="#cb114-1" aria-hidden="true" tabindex="-1"></a>geefit_indep<span class="sc">$</span>robust.variance <span class="sc">-</span> geefit_exch<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept) -4.943962e-16 -8.890458e-18  1.121065e-16  6.274820e-17
-age1        -1.246832e-17 -1.769418e-16  5.247539e-17 -1.604619e-17
-age2         1.101007e-16  5.204170e-17 -3.165870e-16 -5.204170e-17
-age3         7.178774e-17 -1.864828e-17 -5.074066e-17 -2.151057e-16
-smoke1      -8.456777e-18 -1.037581e-16  4.119968e-17  5.304459e-17
-age1:smoke1 -1.005598e-16 -1.951564e-18  2.927346e-17 -1.973248e-17
-age2:smoke1  4.325967e-17  2.938188e-17  5.789640e-17 -7.554179e-17
-age3:smoke1  4.428966e-17 -1.897354e-17 -7.556889e-17  8.912142e-17
-                   smoke1   age1:smoke1   age2:smoke1   age3:smoke1
-(Intercept) -6.722053e-18 -1.037039e-16  4.082021e-17  5.320722e-17
-age1        -1.000719e-16 -1.951564e-18  2.797242e-17 -1.821460e-17
-age2         4.331388e-17  2.970714e-17  5.963112e-17 -7.624652e-17
-age3         4.420834e-17 -1.951564e-17 -7.552485e-17  8.912142e-17
-smoke1      -4.961309e-16 -8.782038e-18  1.115644e-16  6.234162e-17
-age1:smoke1 -1.203464e-17 -1.821460e-16  4.900594e-17 -1.301043e-17
-age2:smoke1  1.097213e-16  5.160802e-17 -3.174544e-16 -4.792174e-17
-age3:smoke1  7.128629e-17 -1.604619e-17 -4.705437e-17 -2.229120e-16</code></pre>
-</div>
-</div>
-</section>
-<section id="scale-parameter-estimation" class="level2">
-<h2 class="anchored" data-anchor-id="scale-parameter-estimation">Scale Parameter Estimation</h2>
-<p>Extract the scale (dispersion) parameter from the summary:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb116"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb116-1"><a href="#cb116-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>scale</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.003738</code></pre>
-</div>
-</div>
-<p>Now tease out the Pearson residuals and compute the method of moments dispersion estimator by hand:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb118"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb118-1"><a href="#cb118-1" aria-hidden="true" tabindex="-1"></a>pearson_resid <span class="ot">&lt;-</span> (ohio<span class="sc">$</span>resp <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted) <span class="sc">/</span></span>
-<span id="cb118-2"><a href="#cb118-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(</span>
-<span id="cb118-3"><a href="#cb118-3" aria-hidden="true" tabindex="-1"></a>        geefit_indep<span class="sc">$</span>fitted.values <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted.values)</span>
-<span id="cb118-4"><a href="#cb118-4" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb118-5"><a href="#cb118-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb118-6"><a href="#cb118-6" aria-hidden="true" tabindex="-1"></a>scale_by_hand <span class="ot">&lt;-</span> <span class="fu">sum</span>(pearson_resid<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span></span>
-<span id="cb118-7"><a href="#cb118-7" aria-hidden="true" tabindex="-1"></a>    (geefit_indep<span class="sc">$</span>nobs <span class="sc">-</span> <span class="fu">length</span>(geefit_indep<span class="sc">$</span>coeff))</span>
-<span id="cb118-8"><a href="#cb118-8" aria-hidden="true" tabindex="-1"></a>scale_by_hand</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.003738</code></pre>
-</div>
-</div>
-<p>This gives the same number as reported in summary.</p>
-</section>
-<section id="naive-vs-robust-standard-errors" class="level2">
-<h2 class="anchored" data-anchor-id="naive-vs-robust-standard-errors">Naive vs Robust Standard Errors</h2>
-<p>To verify how they compute the naive SE, fit the model with scale fixed to 1:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb120"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_scale_fix <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb120-2"><a href="#cb120-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
-<span id="cb120-3"><a href="#cb120-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb120-4"><a href="#cb120-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb120-5"><a href="#cb120-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb120-6"><a href="#cb120-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"independence"</span>,</span>
-<span id="cb120-7"><a href="#cb120-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale.fix =</span> <span class="cn">TRUE</span></span>
-<span id="cb120-8"><a href="#cb120-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>running glm to get initial regression estimate</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
--1.69656029  0.05951185  0.15681009  0.06641432  0.13622036 -0.11504072 
-age2:smoke1 age3:smoke1 
- 0.06987921  0.02539315 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb124"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep_scale_fix)<span class="sc">$</span>coeff[, <span class="st">"Naive S.E."</span>] <span class="sc">*</span></span>
-<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(<span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>scale)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
- 0.06240212  0.10683109  0.10388816  0.10598027  0.06240212  0.10683109 
-age2:smoke1 age3:smoke1 
- 0.10388816  0.10598027 </code></pre>
-</div>
-</div>
-<p>This is the same as:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb126"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>coeff[, <span class="st">"Naive S.E."</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 age1:smoke1 
- 0.06240212  0.10683109  0.10388816  0.10598027  0.06240212  0.10683109 
-age2:smoke1 age3:smoke1 
- 0.10388816  0.10598027 </code></pre>
-</div>
-</div>
-<p>So it only differs by the dispersion parameter, which makes sense.</p>
-</section>
-<section id="computing-beta-for-age-10" class="level2">
-<h2 class="anchored" data-anchor-id="computing-beta-for-age-10">Computing Beta for Age 10</h2>
-<p>With effect coding, the coefficient for age = 10 (not in the design matrix) is computed as:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb128"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a>beta_age_10 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">sum</span>(<span class="fu">summary</span>(geefit_indep)<span class="sc">$</span>coeff[</span>
-<span id="cb128-2"><a href="#cb128-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>),</span>
-<span id="cb128-3"><a href="#cb128-3" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span></span>
-<span id="cb128-4"><a href="#cb128-4" aria-hidden="true" tabindex="-1"></a>])</span>
-<span id="cb128-5"><a href="#cb128-5" aria-hidden="true" tabindex="-1"></a>beta_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] -0.2827363</code></pre>
-</div>
-</div>
-<p>This is the same as the book.</p>
-</section>
-<section id="robust-standard-error-for-age-10" class="level2">
-<h2 class="anchored" data-anchor-id="robust-standard-error-for-age-10">Robust Standard Error for Age 10</h2>
-<p>Compute the robust SE for the combined age=10 coefficient:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb130"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb130-1"><a href="#cb130-1" aria-hidden="true" tabindex="-1"></a>robust_se_age_10 <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(</span>
-<span id="cb130-2"><a href="#cb130-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">3</span>) <span class="sc">%*%</span></span>
-<span id="cb130-3"><a href="#cb130-3" aria-hidden="true" tabindex="-1"></a>        geefit_indep<span class="sc">$</span>robust.variance[</span>
-<span id="cb130-4"><a href="#cb130-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>),</span>
-<span id="cb130-5"><a href="#cb130-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>)</span>
-<span id="cb130-6"><a href="#cb130-6" aria-hidden="true" tabindex="-1"></a>        ] <span class="sc">%*%</span></span>
-<span id="cb130-7"><a href="#cb130-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">3</span>)</span>
-<span id="cb130-8"><a href="#cb130-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb130-9"><a href="#cb130-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb130-10"><a href="#cb130-10" aria-hidden="true" tabindex="-1"></a>robust_se_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>           [,1]
-[1,] 0.09411951</code></pre>
-</div>
-</div>
-<p>This is the same as reported on p.273 in the book.</p>
-</section>
-<section id="table-6.9-models-without-interactions" class="level2">
-<h2 class="anchored" data-anchor-id="table-6.9-models-without-interactions">Table 6.9: Models Without Interactions</h2>
-<p>Now fit the simpler main effects models (without age:smoke interaction):</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb132"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">+</span> smoke,</span>
-<span id="cb132-3"><a href="#cb132-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb132-4"><a href="#cb132-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb132-5"><a href="#cb132-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb132-6"><a href="#cb132-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"independence"</span></span>
-<span id="cb132-7"><a href="#cb132-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>running glm to get initial regression estimate</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 
--1.69503955  0.08731839  0.14133045  0.05956087  0.13623130 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb136"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb136-2"><a href="#cb136-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">+</span> smoke,</span>
-<span id="cb136-3"><a href="#cb136-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb136-4"><a href="#cb136-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb136-5"><a href="#cb136-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb136-6"><a href="#cb136-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
-<span id="cb136-7"><a href="#cb136-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27
-running glm to get initial regression estimate</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 
--1.69503955  0.08731839  0.14133045  0.05956087  0.13623130 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb139"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> age <span class="sc">+</span> smoke,</span>
-<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio,</span>
-<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb139-5"><a href="#cb139-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb139-6"><a href="#cb139-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
-<span id="cb139-7"><a href="#cb139-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27
-running glm to get initial regression estimate</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)        age1        age2        age3      smoke1 
--1.69503955  0.08731839  0.14133045  0.05956087  0.13623130 </code></pre>
-</div>
-</div>
-<p>Results from Table 6.9:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb142"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep_no_interaction)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.    Robust z
-(Intercept) -1.69503955 0.06226848 -27.2214693  0.08958878 -18.9202213
-age1         0.08731839 0.10290064   0.8485700  0.08606575   1.0145545
-age2         0.14133045 0.10171224   1.3895127  0.07942232   1.7794801
-age3         0.05956087 0.10353326   0.5752825  0.08029923   0.7417364
-smoke1       0.13623130 0.06184401   2.2028212  0.08910533   1.5288794</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb144"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb144-1"><a href="#cb144-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch_no_interaction)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.    Naive z Robust S.E.    Robust z
-(Intercept) -1.69515049 0.08930537 -18.981507  0.08960390 -18.9182674
-age1         0.08731682 0.08272754   1.055475  0.08606166   1.0145844
-age2         0.14132779 0.08181868   1.727329  0.07941988   1.7795015
-age3         0.05955984 0.08321946   0.715696  0.08029664   0.7417475
-smoke1       0.13560718 0.08849779   1.532323  0.08904611   1.5228873</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb146"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb146-1"><a href="#cb146-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct_no_interaction)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               Estimate Naive S.E.     Naive z Robust S.E.   Robust z
-(Intercept) -1.69626098 0.08931717 -18.9914318  0.08968894 -18.912712
-age1         0.08730567 0.08606292   1.0144400  0.08604663   1.014632
-age2         0.14130879 0.07968543   1.7733328  0.07940572   1.779580
-age3         0.05954514 0.08045425   0.7401118  0.08028209   0.741699
-smoke1       0.13055212 0.08862371   1.4731060  0.08898286   1.467160</code></pre>
-</div>
-</div>
-<p>These are the same as the numbers given in Table 6.9.</p>
-</section>
-<section id="robust-variances-for-main-effects-models" class="level2">
-<h2 class="anchored" data-anchor-id="robust-variances-for-main-effects-models">Robust Variances for Main Effects Models</h2>
-<p>Compare robust variances across structures - they are not the same in general:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb148"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb148-1"><a href="#cb148-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.026150e-03 -0.0006532136 -0.0002865124 -4.724460e-06
-age1        -6.532136e-04  0.0074073136 -0.0018946288 -2.702913e-03
-age2        -2.865124e-04 -0.0018946288  0.0063079056 -1.235324e-03
-age3        -4.724460e-06 -0.0027029135 -0.0012353243  6.447967e-03
-smoke1       1.855954e-03 -0.0002526532  0.0002243075  8.085108e-05
-                   smoke1
-(Intercept)  1.855954e-03
-age1        -2.526532e-04
-age2         2.243075e-04
-age3         8.085108e-05
-smoke1       7.939760e-03</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb150"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb150-1"><a href="#cb150-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.028858e-03 -0.0006577292 -0.0002843322 -9.943381e-07
-age1        -6.577292e-04  0.0074066100 -0.0018945547 -2.702685e-03
-age2        -2.843322e-04 -0.0018945547  0.0063075172 -1.235104e-03
-age3        -9.943381e-07 -0.0027026849 -0.0012351038  6.447551e-03
-smoke1       1.862693e-03 -0.0002780363  0.0002360071  1.024294e-04
-                   smoke1
-(Intercept)  0.0018626928
-age1        -0.0002780363
-age2         0.0002360071
-age3         0.0001024294
-smoke1       0.0079292093</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb152"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction<span class="sc">$</span>robust.variance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>              (Intercept)          age1          age2          age3
-(Intercept)  8.044105e-03 -0.0006645561 -0.0002842884 -1.499722e-07
-age1        -6.645561e-04  0.0074040220 -0.0018938052 -2.701592e-03
-age2        -2.842884e-04 -0.0018938052  0.0063052680 -1.234670e-03
-age3        -1.499722e-07 -0.0027015919 -0.0012346695  6.445214e-03
-smoke1       1.899506e-03 -0.0002995857  0.0002298217  1.034279e-04
-                   smoke1
-(Intercept)  0.0018995062
-age1        -0.0002995857
-age2         0.0002298217
-age3         0.0001034279
-smoke1       0.0079179498</code></pre>
-</div>
-</div>
-</section>
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
 <ul>
-<li>Fahrmeir, L. &amp; Tutz, G. (2001). <em>Multivariate Statistical Modelling</em></li>
-<li>Liang, K. Y., &amp; Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. <em>Biometrika</em>.</li>
+<li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
+<li><p><strong>gee</strong>: Carey VJ (2024). <em>gee: Generalized Estimation Equation Solver</em>. R package version 4.13-29.</p></li>
+<li><p><strong>geepack</strong>:</p>
+<ul>
+<li><p>Halekoh U, Højsgaard S, Yan J (2006). “The R Package geepack for Generalized Estimating Equations.” <em>Journal of Statistical Software</em>, <em>15/2</em>, 1-11.</p></li>
+<li><p>Yan J, Fine JP (2004). “Estimating Equations for Association Structures.” <em>Statistics in Medicine</em>, <em>23</em>, 859-880.</p></li>
+<li><p>Yan J (2002). “geepack: Yet Another Package for Generalized Estimating Equations.” <em>R-News</em>, <em>2/3</em>, 12-14.</p></li>
+<li><p>Xu, Z., Fine, P. J, Song, W., Yan, J. (2025). “On GEE for mean-variance-correlation models: Variance estimation and model selection.” <em>Statistics in Medicine</em>, <em>44</em>, 1-2.</p></li>
+</ul></li>
+<li><p><strong>dplyr</strong>: Wickham H, François R, Henry L, Müller K, Vaughan D (2026). <em>dplyr: A Grammar of Data Manipulation</em>. R package version 1.2.0, https://github.com/tidyverse/dplyr, <a href="https://dplyr.tidyverse.org" class="uri">https://dplyr.tidyverse.org</a>.</p></li>
 </ul>
 
 
+
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
+Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

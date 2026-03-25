@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-23">
+<meta name="dcterms.date" content="2026-03-25">
 
 <title>Binomial Generalized Linear Models: Caesarian Birth Study – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -204,6 +204,10 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
  <span class="dropdown-text">Sequential Regression: Tonsil Size</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -272,7 +276,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 23, 2026</p>
+      <p class="date">March 25, 2026</p>
     </div>
   </div>
   
@@ -604,7 +608,7 @@ Null Deviance:      83.49
 Residual Deviance: 11   AIC: 36.18</code></pre>
 </div>
 </div>
-<p>These results line up with the ones on p.30 of the book (yay), but the default covariate names given by <code>glm()</code> look kind of weird. Alternatively, we can assign integer values to the factors. This makes the dataframe look exactly like it matches the books notation exactly.</p>
+<p>These results line up with the ones on p.30 of the book (yay), but the default covariate names given by <code>glm()</code> look kind of weird. Alternatively, we can assign integer values to the factors. This makes the dataframe look exactly like it is described in the book.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -713,7 +717,7 @@ Number of Fisher Scoring iterations: 5</code></pre>
 <pre><code>[1] 10.99674</code></pre>
 </div>
 </div>
-<p>It is important to understand how <code>glm()</code> reports the summary, and sometimes the term “residual deviance” and deviance are used interchangeably. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html" target="_blank">The documentation of <code>glm()</code></a> says that “<strong><em>up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero</em></strong>”. So this number is what we call the (unscaled) deviance.</p>
+<p>It is important to understand how <code>glm()</code> reports the summary, and sometimes the terms “residual deviance” and “deviance” are used interchangeably. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html" target="_blank">The documentation of <code>glm()</code></a> says that it is “<strong><em>up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero</em></strong>”. So this number is what we call the (unscaled) deviance.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -724,7 +728,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The documentation of <code>glm()</code> about what it is reporting for the deviance may be misleading, because it ignores the fact that deviance only becomes twice the log-likelihood difference <strong><em>when rescaled by the dispersion</em></strong>. In the binomial and Poisson cases, the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.</p>
+<p>The documentation of <code>glm()</code> on what it is reporting for the deviance may be misleading, because it ignores the fact that the deviance only becomes twice the log-likelihood difference <strong><em>when rescaled by the dispersion</em></strong>. In the binomial and Poisson cases, the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.</p>
 </div>
 </div>
 <p>We can now consider the significance of each of the variables</p>
@@ -791,8 +795,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>For binomial GLMs, because the dispersion parameter <span class="math inline">\(\phi\)</span> is fixed at <span class="math inline">\(1\)</span>, the natural test for nested models is based on differences in deviance, which asymptotically follows a chi-square distribution. The F test is exact for Gaussian GLMs with identity link (i.e.&nbsp;the classical Gaussian linear model) when the dispersion (i.e.&nbsp;the variance) is unknown and has to be estimated, and, by heuristic extension, appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and perhaps certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.</p>
-<p>See the documentation of <code>anova.glm()</code>, as well as <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.186-187 and Section 7.5, for more discussion.</p>
+<p>For binomial GLMs, because the dispersion parameter <span class="math inline">\(\phi\)</span> is fixed at <span class="math inline">\(1\)</span>, the natural test for nested models is based on the difference in their deviance (or scaled deviance because <span class="math inline">\(\phi =  1\)</span> anyway), which asymptotically follows a chi-square distribution. The F test is exact for Gaussian GLMs with identity link (i.e.&nbsp;the classical Gaussian linear model) when the dispersion (i.e.&nbsp;the variance) is unknown and has to be estimated, and, by heuristic extension, appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and perhaps certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion. The documentation of <code>anova.glm()</code> also says “<strong><em>the dispersion estimate will be taken from the largest model, using the value returned by summary.glm</em></strong>”, and <code>summary.glm()</code> reports our typical Pearson residual based estimator for <span class="math inline">\(\phi\)</span> by default.</p>
+<p>See the documentation of <code>anova.glm()</code>, as well as <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.186-187 and Section 7.5, for more discussion. Alternatively, Sections 7.6.4 and 7.6.5 of <span class="citation" data-cites="dunn_smyth_2018">Dunn and Smyth (<a href="#ref-dunn_smyth_2018" role="doc-biblioref">2018</a>)</span> also give nice exposition on such approximate F tests.</p>
 </div>
 </div>
 </div>
@@ -833,7 +837,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>[1] 10.99674</code></pre>
 </div>
 </div>
-<p>We can also test the goodness of fit using the deviance and the Pearson statistic. Both of these converge to the same asymptotic chi-squared distribution with degree 3. If we assume that the number of observations in each group is sufficiently large, the degrees of freedom in the chi-squared distribution is the difference between the number of parameters in the saturated model (7, make sure you can explain why), and the degrees of freedom in the glm model (4).</p>
+<p>We can also test the goodness of fit using the deviance and the Pearson statistic. Both of these converge to the same asymptotic chi-squared distribution with degree 3, assuming the GLM is true and that the number of observations in each group is sufficiently large and the asymptotics apply. The degrees of freedom in the chi-squared distribution is the difference between the number of parameters in the saturated model (7, make sure you can explain why), and the degrees of freedom in the glm model (4).</p>
 <p>Both the deviance test</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -854,7 +858,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>[1] 0.04069089</code></pre>
 </div>
 </div>
-<p>return values under 0.05, and so under both tests (assuming sufficient asymptotics apply), we reject null hypothesis that the data can be explained by these models, with significant level of 0.05. We can investigate why this might be by comparing the observed and fitted proportions side by side as in Example 2.4 (on the top of p.52 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>):</p>
+<p>return <span class="math inline">\(p\)</span>-values under 0.05, so we reject null hypothesis that the data can be explained by the GLM under the significant level of 0.05. We can investigate why by comparing the observed and fitted proportions side by side as in Example 2.4 (on the top of p.52 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -987,7 +991,7 @@ Tip
 <pre><code>[1] 0.7794938</code></pre>
 </div>
 </div>
-<p>It is very large. We do not reject the null hypothesis that the <code>noplan:antib</code> interaction effect is zero.</p>
+<p>It agrees with the number in the anova table and is very large. We do not reject the null hypothesis that the <code>noplan:antib</code> interaction effect is zero.</p>
 </section>
 <section id="adding-noplanfactor-interaction" class="level3">
 <h3 class="anchored" data-anchor-id="adding-noplanfactor-interaction">Adding <code>noplan:factor</code> Interaction</h3>
@@ -1068,7 +1072,7 @@ Number of Fisher Scoring iterations: 19</code></pre>
 <pre><code>[1] 0.6203355</code></pre>
 </div>
 </div>
-<p>Both statistics give a large <span class="math inline">\(p\)</span>-value, and so we don’t reject the interaction. We can also compare fitted and realized proportions as on p.53.</p>
+<p>Both statistics give a large <span class="math inline">\(p\)</span>-value, and so we don’t reject this interaction model. We can also compare fitted and realized proportions as on p.53.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1095,7 +1099,7 @@ Number of Fisher Scoring iterations: 19</code></pre>
 </section>
 <section id="handling-the-issues-on-uniqueness-and-existence-of-the-mle" class="level2">
 <h2 class="anchored" data-anchor-id="handling-the-issues-on-uniqueness-and-existence-of-the-mle">Handling the issues on Uniqueness and Existence of the MLE</h2>
-<p>The book recommends that to make the analysis more robust, we should add fictitious data to the two zero <code>Infect_count</code> cells to avoid existence of MLE issue. We do this by adding a ‘count’ of 0.5 infections and 1 total case to problematic row.</p>
+<p>The book recommends that to make the analysis more robust, we should augment fictitious data to the two zero <code>Infect_count</code> cells to avoid the existence -of-MLE issue. We do this by adding a ‘count’ of 0.5 infections and 1 total case to the 3rd problematic row.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1302,6 +1306,9 @@ loaded via a namespace (and not attached):
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-dunn_smyth_2018" class="csl-entry" role="listitem">
+Dunn, Peter K., and Gordon K. Smyth. 2018. <em>Generalized Linear Models with Examples in <span>R</span></em>. Springer Texts in Statistics. Springer, New York. <a href="https://doi.org/10.1007/978-1-4419-0118-7">https://doi.org/10.1007/978-1-4419-0118-7</a>.
+</div>
 <div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
 Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
 </div>

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-23">
+<meta name="dcterms.date" content="2026-03-25">
 
 <title>(Quasi-)Poisson GLM: Cell Differentiation Study – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -204,6 +204,10 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
  <span class="dropdown-text">Sequential Regression: Tonsil Size</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -270,7 +274,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 23, 2026</p>
+      <p class="date">March 25, 2026</p>
     </div>
   </div>
   
@@ -446,10 +450,10 @@ TNF:IFN      -0.0001     0.0000 -4.2050        0</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pearson_chisq_stat <span class="ot">&lt;-</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        (glm_poisson<span class="sc">$</span>y <span class="sc">-</span> glm_poisson<span class="sc">$</span>fitted.values)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>            glm_poisson<span class="sc">$</span>fitted.values</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    (glm_poisson<span class="sc">$</span>y <span class="sc">-</span> glm_poisson<span class="sc">$</span>fitted.values)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>      glm_poisson<span class="sc">$</span>fitted.values</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(pearson_chisq_stat, <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -618,9 +622,9 @@ Table&nbsp;1: Log-linear model fits to cellular differentiation data based on Po
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> quasipoisson,</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> quasipoisson,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cells_tbl</span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>glm_quasi_poisson_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(glm_quasi_poisson)</span>
@@ -684,10 +688,10 @@ TNF:IFN     -0.00006    0.00005 -1.22748  0.24318</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>residuals_tbl <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">default =</span> <span class="fu">resid</span>(glm_quasi_poisson),</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">deviance =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"deviance"</span>),</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">working =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"working"</span>),</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">pearson =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"pearson"</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">default =</span> <span class="fu">resid</span>(glm_quasi_poisson),</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">deviance =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"deviance"</span>),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">working =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"working"</span>),</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">pearson =</span> <span class="fu">resid</span>(glm_quasi_poisson, <span class="at">type =</span> <span class="st">"pearson"</span>)</span>
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>residuals_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -819,20 +823,20 @@ Caution
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>variance_summary_by_TNF <span class="ot">&lt;-</span> cells_tbl <span class="sc">|&gt;</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(TNF) <span class="sc">|&gt;</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_var =</span> <span class="fu">var</span>(y) <span class="sc">*</span> <span class="dv">3</span> <span class="sc">/</span> <span class="dv">4</span>,</span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_mean =</span> <span class="fu">mean</span>(y),</span>
-<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(TNF) <span class="sc">|&gt;</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">est_var =</span> <span class="fu">var</span>(y) <span class="sc">*</span> <span class="dv">3</span> <span class="sc">/</span> <span class="dv">4</span>,</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">est_mean =</span> <span class="fu">mean</span>(y),</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(variance_summary_by_TNF, <span class="fu">aes</span>(<span class="at">x =</span> est_mean, <span class="at">y =</span> est_var, <span class="at">color =</span> <span class="fu">factor</span>(TNF))) <span class="sc">+</span></span>
-<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Mean"</span>,</span>
-<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Biased Variance"</span>,</span>
-<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"TNF Level"</span></span>
-<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Biased Variance"</span>,</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"TNF Level"</span></span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -847,20 +851,20 @@ Caution
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>variance_summary_by_IFN <span class="ot">&lt;-</span> cells_tbl <span class="sc">|&gt;</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(IFN) <span class="sc">|&gt;</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_var =</span> <span class="fu">var</span>(y) <span class="sc">*</span> <span class="dv">3</span> <span class="sc">/</span> <span class="dv">4</span>,</span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">est_mean =</span> <span class="fu">mean</span>(y),</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(IFN) <span class="sc">|&gt;</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">est_var =</span> <span class="fu">var</span>(y) <span class="sc">*</span> <span class="dv">3</span> <span class="sc">/</span> <span class="dv">4</span>,</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">est_mean =</span> <span class="fu">mean</span>(y),</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(variance_summary_by_IFN, <span class="fu">aes</span>(<span class="at">x =</span> est_mean, <span class="at">y =</span> est_var, <span class="at">color =</span> <span class="fu">factor</span>(IFN))) <span class="sc">+</span></span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Mean"</span>,</span>
-<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Biased Variance"</span>,</span>
-<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"IFN Level"</span></span>
-<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Biased Variance"</span>,</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"IFN Level"</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -897,10 +901,10 @@ Caution
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    variance_summary_by_TFN<span class="sc">$</span>est_mean,</span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    variance_summary_by_TFN<span class="sc">$</span>est_var,</span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Mean"</span>,</span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">"Biased Variance"</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  variance_summary_by_TFN<span class="sc">$</span>est_mean,</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  variance_summary_by_TFN<span class="sc">$</span>est_var,</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"Mean"</span>,</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Biased Variance"</span></span>
 <span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
@@ -965,10 +969,10 @@ Caution
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>gee_mu <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl)),</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl,</span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">quasi</span>(<span class="at">variance =</span> <span class="st">"mu"</span>, <span class="at">link =</span> <span class="st">"log"</span>)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl)),</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cells_tbl,</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">quasi</span>(<span class="at">variance =</span> <span class="st">"mu"</span>, <span class="at">link =</span> <span class="st">"log"</span>)</span>
 <span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -1109,9 +1113,9 @@ TNF:IFN      -0.0001     0.0000 -1.2275   0.2432</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>naive_z_values <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu<span class="sc">$</span>coefficients),</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">z_value =</span> gee_mu<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>((gee_mu)<span class="sc">$</span>naive.variance)),</span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z_value), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu<span class="sc">$</span>coefficients),</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">z_value =</span> gee_mu<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>((gee_mu)<span class="sc">$</span>naive.variance)),</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">p_value =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z_value), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
 <span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>naive_z_values</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -1130,9 +1134,9 @@ TNF:IFN      -0.0001     0.0000 -1.2275   0.2432</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>robust_z_values <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu<span class="sc">$</span>coefficients),</span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">z_value =</span> gee_mu<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>((gee_mu)<span class="sc">$</span>robust.variance)),</span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z_value), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu<span class="sc">$</span>coefficients),</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">z_value =</span> gee_mu<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>((gee_mu)<span class="sc">$</span>robust.variance)),</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">p_value =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z_value), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
 <span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>robust_z_values</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -1177,10 +1181,10 @@ Warning
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>geepack_mu <span class="ot">&lt;-</span> <span class="fu">geeglm</span>(</span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
-<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">"log"</span>),</span>
-<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl,</span>
-<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl))</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">"log"</span>),</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cells_tbl,</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl))</span>
 <span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>geepack_mu</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -1241,10 +1245,10 @@ Number of clusters:   16  Maximum cluster size: 1 </code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>gee_mu2 <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl)),</span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">quasi</span>(<span class="at">variance =</span> <span class="st">"mu^2"</span>, <span class="at">link =</span> <span class="st">"log"</span>),</span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cells_tbl</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> y <span class="sc">~</span> TNF <span class="sc">*</span> IFN,</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells_tbl)),</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">quasi</span>(<span class="at">variance =</span> <span class="st">"mu^2"</span>, <span class="at">link =</span> <span class="st">"log"</span>),</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cells_tbl</span>
 <span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -1309,11 +1313,11 @@ Working Correlation
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>gee_mu2_inference <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu2<span class="sc">$</span>coefficients),</span>
-<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">naive_z =</span> gee_mu2<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(gee_mu2<span class="sc">$</span>naive.variance)),</span>
-<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">naive_p =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(naive_z), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>),</span>
-<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">robust_z =</span> gee_mu2<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(gee_mu2<span class="sc">$</span>robust.variance)),</span>
-<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">robust_p =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(robust_z), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">coefficient =</span> <span class="fu">names</span>(gee_mu2<span class="sc">$</span>coefficients),</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">naive_z =</span> gee_mu2<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(gee_mu2<span class="sc">$</span>naive.variance)),</span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">naive_p =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(naive_z), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>),</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">robust_z =</span> gee_mu2<span class="sc">$</span>coefficients <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(gee_mu2<span class="sc">$</span>robust.variance)),</span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">robust_p =</span> <span class="fu">round</span>(<span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(robust_z), <span class="at">lower.tail =</span> <span class="cn">FALSE</span>), <span class="dv">3</span>)</span>
 <span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>gee_mu2_inference</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -1330,21 +1334,21 @@ Working Correlation
 <p>Unlike for the linear variance structure, for the quadratic variance structure, the robust <span class="math inline">\(p\)</span>-values match the ones in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. This confirms that all the <span class="math inline">\(p\)</span>-values reported in parentheses of Table 2.7 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> should have been robust <span class="math inline">\(p\)</span>-values.</p>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"Fahrmeir"</span>,  <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"ggplot2"</span>, <span class="st">"MASS"</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"Fahrmeir"</span>, <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"ggplot2"</span>, <span class="st">"MASS"</span>)</span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>    cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
 <span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check if multiple citations</span></span>
-<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb73-9"><a href="#cb73-9" aria-hidden="true" tabindex="-1"></a>            cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb73-12"><a href="#cb73-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb73-13"><a href="#cb73-13" aria-hidden="true" tabindex="-1"></a>        cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb73-14"><a href="#cb73-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb73-15"><a href="#cb73-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb73-9"><a href="#cb73-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb73-12"><a href="#cb73-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb73-13"><a href="#cb73-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb73-14"><a href="#cb73-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb73-15"><a href="#cb73-15" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb73-16"><a href="#cb73-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
