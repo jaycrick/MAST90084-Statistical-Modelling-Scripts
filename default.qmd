@@ -5,25 +5,23 @@ subtitle: "Interactive Quarto Guides"
 
 ## Welcome
 
-This site supports the University of Melbourne subject
-[Statistical Modelling (MAST90084)](https://handbook.unimelb.edu.au/subjects/mast90084).
-It brings together material from the subject in a more readable format by converting
-what were previously standalone R scripts into Quarto documents with narrative
-explanations, code walkthroughs, and reproducible outputs for student use.
+This site supports the University of Melbourne subject [Statistical Modelling (MAST90084)](https://handbook.unimelb.edu.au/subjects/mast90084).
+It brings together material from the subject in a more readable format by converting what were previously standalone R scripts into Quarto documents with narrative explanations, code walkthroughs, and reproducible outputs for student use.
 
 ## Browse the Analyses
 
 Use the **Scripts** menu above, or jump directly to one of the guides below.
 
-- [Binomial GLMs: Caesarian Birth](quarto_scripts/01-ANODEV.qmd)
-- [Quasi-Poisson GLM: Cell Differentiation](quarto_scripts/02-CellDiff.qmd)
-- [Multinomial Logistic Regression: Caesarian Birth](quarto_scripts/03-Example3-1and3-11Caes.qmd)
-- [Ordinal Regression: Breathing Test Results](quarto_scripts/04-Example3-2BTR.qmd)
-- [Sequential Regression: Tonsil Size](quarto_scripts/05-tonsil.qmd)
-- [Conditional Models: Happiness Data](quarto_scripts/06-Happiness.qmd)
-- [Appendix 1: Dispersion with Working Residuals](quarto_scripts/A1-dispersion-working-residuals.qmd)
-- [Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data](quarto_scripts/A2-likelihood-multinomial.qmd)
+-   [Binomial GLMs: Caesarian Birth](quarto_scripts/01-ANODEV.qmd)
+-   [Quasi-Poisson GLM: Cell Differentiation](quarto_scripts/02-CellDiff.qmd)
+-   [Multinomial Logistic Regression: Caesarian Birth](quarto_scripts/03-Example3-1and3-11Caes.qmd)
+-   [Ordinal Regression: Breathing Test Results](quarto_scripts/04-Example3-2BTR.qmd)
+-   [Sequential Regression: Tonsil Size](quarto_scripts/05-tonsil.qmd)
+-   [Conditional Models: Happiness Data](quarto_scripts/06-Happiness.qmd)
+-   [Appendix 1: Dispersion with Working Residuals](quarto_scripts/A1-dispersion-working-residuals.qmd)
+-   [Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data](quarto_scripts/A2-likelihood-multinomial.qmd)
 
+```{=html}
 <!--
 - [Ohio Data](quarto_scripts/07-ohio.qmd)
 - [GEE CTSIB](quarto_scripts/08-gee_ctsib.qmd)
@@ -31,8 +29,8 @@ Use the **Scripts** menu above, or jump directly to one of the guides below.
 - [LM Mixed Effects](quarto_scripts/10-LM_mixed_effect.qmd)
 - [Survival Analysis](quarto_scripts/11-survival.qmd)
 -->
+```
 
 ## Acknowledgements
 
-Original scripts and materials were written by Dennis Leung,
-and adapted from the original course materials by Jacob Cumming.
+Original scripts and materials were written by Dennis Leung, and adapted from the original course materials by Jacob Cumming.
