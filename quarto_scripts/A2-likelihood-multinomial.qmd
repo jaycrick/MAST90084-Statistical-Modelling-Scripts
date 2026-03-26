@@ -1,7 +1,7 @@
 ---
 title: "Likelihood for Grouped and Ungrouped Multinomial Data"
 subtitle: "Differences Between Packages"
-date: today
+date: last-modified
 author:
   - name: Dennis Leung
 ---
