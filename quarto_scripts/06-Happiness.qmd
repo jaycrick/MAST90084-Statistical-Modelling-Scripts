@@ -12,7 +12,7 @@ editor:
 
 ## Overview
 
-We will fit a simple asymmetric model to a dataset on happiness levels from Table 3.10 of @fahrmeir_multivariate_2001.
+We will fit a simple asymmetric model to a dataset on happiness levels from Table 3.10 of p.115 in @fahrmeir_multivariate_2001.
 We want to determine the association between gender, level of education, and happiness levels.
 We will do this in two parts, first by setting gender as a predictor for years of schooling, and then by setting years of schooling as a predictor for happiness levels.
 
@@ -71,7 +71,7 @@ happy_wide
 
 -   `mutate()` recodes factor levels so the column names match the model inputs.
 -   `summarize(..., .by = ...)` aggregates counts within each group.
--   `pivot_wider()` spreads groups into columns and fills missing combinations with 0.
+-   `pivot_wider()` spreads groups into columns and fills missing combinations with 0 (if there is any).
 :::
 
 ### Setting Effect Coding
@@ -116,12 +116,11 @@ happy_logit1_vglm <- vglm(
 summary(happy_logit1_vglm)
 ```
 
-The coefficient values are the same as those reported in the first six rows of Table 3.11 in @fahrmeir_multivariate_2001.
+The coefficient values are the same as those reported in the first six rows of Table 3.11 on p.117 of  @fahrmeir_multivariate_2001.
 
 ::: callout-warning
-The reported standard errors (also reproduced below) and p-values presented here should be treated with caution.
 
-**I'm not sure why these ones would be wrong. Wouldn't it just be the standard errors and p-values for the second part of the table that are wrong? Dennis to clarify**
+We can reproduce the standard errors (and hence the $p$-values) reported in  the first six rows of Table 3.11 by using the code below:
 
 ```{r}
 #| label: 06-happiness-chunk-7
@@ -130,6 +129,9 @@ happy_logit1_vglm |>
   diag() |>
   sqrt()
 ```
+
+However, we probably should  treat these standard errors and $p$-values in Table 3.11 with a grain of salt. See the end for more explanation.
+
 :::
 
 We can access the linear predictors
@@ -188,7 +190,7 @@ contrasts(happy2$School)
 
 We now fit the model.
 
-::: {callout-note}
+::: callout-note
 This regression ignores the `Sex` column (which is what we want).
 :::
 
@@ -219,16 +221,16 @@ happy_logit2_vglm_coeff
 rep(happy_logit2_vglm_coeff[1:2], 3) + happy_logit2_vglm_coeff[3:8]
 ```
 
-These recover the values reported in the last six rows of Table 3.11 in @fahrmeir_multivariate_2001.
+These recover the values reported in the last six rows of Table 3.11 in @fahrmeir_multivariate_2001 for the other three schooling levels, i.e. 12 years, 13-16 years, and $\geq$ 17 years.
 
 ## Reproducing the Deviance
 
 We now attempt to reproduce the deviance.
 
-To retrieve the likelihood of the full GLM model, we sum the log likelihood resulting from the first and second parts of the simple regressive cumulative model.
+To retrieve the likelihood of the full GLM model, we sum the log likelihoods resulting from the two cumulative models in the first and second parts of display $(3.5.3)$ in @fahrmeir_multivariate_2001.
 
-::: {callout-note}
-Make sure you know why this is the case.
+::: callout-note
+Make sure you know why the log likelihood of the full GLM can be computed by simply summing the log likelihoods of the two components.
 :::
 
 ```{r}
@@ -237,7 +239,7 @@ log_lik_glm <- logLik(happy_logit1_vglm) + logLik(happy_logit2_vglm)
 log_lik_glm
 ```
 
-Alternatively we can extract the log-likelihood of each of individual groups separately:
+Alternatively we can extract the log-likelihood of each of the individual groups separately:
 
 ```{r}
 #| label: 06-happiness-chunk-13
@@ -250,7 +252,7 @@ logLik(happy_logit2_vglm, sum = FALSE)
 Now we just need to compute the log-likelihood of the saturated model.
 We split the dataset into a male group and female group.
 Within each group we have 12 observations corresponding to the 12 combinations of schooling and happiness levels (meaning we have 11 degrees of freedom for the male and female groups separately).
-The maximum likelihood estimators for each group are exactly the observed proportions of each happiness level within each group.
+The maximum likelihood estimators for each group are exactly the observed proportions for the different combinations of schooling and happiness levels within that group.
 
 Therefore we can calculate the log-likelihood of the saturated model by summing the log-likelihoods as follows:
 
@@ -258,6 +260,9 @@ Therefore we can calculate the log-likelihood of the saturated model by summing 
 #| label: 06-happiness-chunk-14
 happy_male <- dplyr::filter(happy, Sex == "Males")
 happy_female <- dplyr::filter(happy, Sex == "Females")
+
+happy_male
+happy_female
 
 log_lik_saturated <- dmultinom(
   happy_male$n,
@@ -282,14 +287,13 @@ Finally, we can compute the deviance as twice the difference between the log-lik
 2 * (log_lik_saturated - log_lik_glm)
 ```
 
-## Problems with the Reported Standard Errors and $p$-values
+This is same as the deviance reported on p.116 in @fahrmeir_multivariate_2001.
 
-**This bit was slightly unclear to me, Dennis to clarify if I have misunderstood.**
+## Potential problems with the reported Standard Errors and $p$-values in Table 3.11 of @fahrmeir_multivariate_2001
 
-The second part of the the table are treating the model as by treating the years at school as fixed, and fitting a GLM to the data.
-The standard errors for are hence derived from the Fisher information matrix under the assumption that years at school are fixed.
-If we really want to understand the model as a whole, we need to treat both $Y_1$ and $Y_2$ as random.
-In practice this is probably very difficult to do, as we need to tease out the explicit form for the main function and so on.
+The model prescribed by display $(3.5.3)$ on p.116 of @fahrmeir_multivariate_2001 is by nature one single GLM with $(Y_1, Y_2)$ (years of school and happiness levels) as response (precisely, a multinomial response with 1 trial and 12 categories) and $x$ (sex) as the covariate. To properly get the standard errors for all the 14 parameter estimates in Table 3.11, strictly speaking, one should first get an estimate of  the $14 \times 14$ Fisher information of this GLM (e.g. use the observed information matrix), and take the 14 diagonal entries of the inverse of it as the estimated variance for these  parameter estimates. 
+
+Apparently, the standard errors presented in Table 3.11 are not obtained this way: From  `summary(happy_logit1_vglm)` (which reproduces all the standard deviations for $\theta_1, \theta_2, \theta_3, \beta_1^{(1)}, \beta_2^{(1)}, \beta_3^{(1)}$ in Table 3.11) and  `summary(happy_logit2_vglm)`(which also reproduces the same standard deviations $0.109$ and $0.092$ for $\theta_{11}$ and $\theta_{12}$ in Table 3.11), we can see that these standard errors are only computed based on treating the two conditional models in $(3.5.3)$ as two separate GLMs. These may not  be the same standard errors we could derive by using the (proper) "one single GLM" approach described in the prior paragraph; I leave it to the interested student to check if the two approaches actually coincide.
 
 ## Package Citations and References
 
