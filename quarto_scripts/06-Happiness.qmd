@@ -8,18 +8,15 @@ nocite: |
 
 ## Overview
 
-We will fit a simple asymmetric model to a dataset
-on happiness levels from Table 3.10 of @fahrmeir_multivariate_2001.
+We will fit a simple asymmetric model to a dataset on happiness levels from Table 3.10 of p.115 in @fahrmeir_multivariate_2001.
 We want to determine the association between gender, level of education, and happiness levels.
-We will do this in two parts, first by setting gender as a predictor for years of schooling,
-and then by setting years of schooling as a predictor for happiness levels.
+We will do this in two parts, first by setting gender as a predictor for years of schooling, and then by setting years of schooling as a predictor for happiness levels.
 
 The model is specified more formally in the equation (3.5.3) in @fahrmeir_multivariate_2001.
 
 ## Data Loading
 
-As always, we start by loading the necessary packages
-(and installing any we don't already have).
+As always, we start by loading the necessary packages (and installing any we don't already have).
 
 ```{r}
 #| label: 06-happiness-chunk-1
@@ -42,8 +39,8 @@ happy_tbl
 
 ## Part 1: Marginal Distribution of School Education Levels by Sex
 
-We want to fit a cumulative logit model to the marginal distribution of schooling,
-predicted by gender. To do this, we first need to arrange the data into wide form.
+We want to fit a cumulative logit model to the marginal distribution of schooling, predicted by gender.
+To do this, we first need to arrange the data into wide form.
 
 ```{r}
 #| label: 06-happiness-chunk-3
@@ -68,9 +65,9 @@ happy_wide
 ::: {.callout-tip collapse="true"}
 ## Understanding the tidying
 
-- `mutate()` recodes factor levels so the column names match the model inputs.
-- `summarize(..., .by = ...)` aggregates counts within each group.
-- `pivot_wider()` spreads groups into columns and fills missing combinations with 0.
+-   `mutate()` recodes factor levels so the column names match the model inputs.
+-   `summarize(..., .by = ...)` aggregates counts within each group.
+-   `pivot_wider()` spreads groups into columns and fills missing combinations with 0 (if there is any).
 :::
 
 ### Setting Effect Coding
@@ -82,8 +79,7 @@ Effect coding is needed to reproduce the numbers in the book:
 options("contrasts")
 ```
 
-`contr.treatment` is the default (corresponding to dummy coding),
-but we need `contr.sum` for effect coding:
+`contr.treatment` is the default (corresponding to dummy coding), but we need `contr.sum` for effect coding:
 
 ```{r}
 #| label: 06-happiness-chunk-4b
@@ -93,8 +89,7 @@ options(contrasts = c("contr.sum", "contr.poly"))
 contrasts(happy_wide$Sex)
 ```
 
-We now have effect coding, however we need to switch the reference group to female,
-in order to match the book.
+We now have effect coding, however we need to switch the reference group to female, in order to match the book.
 
 ```{r}
 #| label: 06-happiness-chunk-4c
@@ -117,15 +112,12 @@ happy_logit1_vglm <- vglm(
 summary(happy_logit1_vglm)
 ```
 
-The coefficient values are the same as those reported in the first six
-rows of Table 3.11 in @fahrmeir_multivariate_2001.
+The coefficient values are the same as those reported in the first six rows of Table 3.11 in @fahrmeir_multivariate_2001.
 
-::: {.callout-warning}
-The reported standard errors (also reproduced below)
-and p-values presented here should be treated with caution.
+::: callout-warning
+The reported standard errors (also reproduced below) and p-values presented here should be treated with caution.
 
-**I'm not sure why these ones would be wrong.
-Wouldn't it just be the standard errors and p-values for the second part of the table that are wrong? Dennis to clarify**
+**I'm not sure why these ones would be wrong. Wouldn't it just be the standard errors and p-values for the second part of the table that are wrong? Dennis to clarify**
 
 ```{r}
 #| label: 06-happiness-chunk-7
@@ -192,7 +184,7 @@ contrasts(happy2$School)
 
 We now fit the model.
 
-:::{callout-note}
+::: callout-note
 This regression ignores the `Sex` column (which is what we want).
 :::
 
@@ -207,18 +199,13 @@ happy_logit2_vglm <- vglm(
 summary(happy_logit2_vglm)
 ```
 
-When we compare the coefficients here to those in Table 3.11,
-only the two intercept estimates (corresponding to reference level
-`<12` of School) match the numbers in the book.
-This is because under the dummy coding scheme,
-we are picking less than 12 years of school as our reference level.
-In contrast, the book treats each school intercept as it's own absolute level
-(see second line of (3.5.3) in @fahrmeir_multivariate_2001).
+When we compare the coefficients here to those in Table 3.11, only the two intercept estimates (corresponding to reference level `<12` of School) match the numbers in the book.
+This is because under the dummy coding scheme, we are picking less than 12 years of school as our reference level.
+In contrast, the book treats each school intercept as it's own absolute level (see second line of (3.5.3) in @fahrmeir_multivariate_2001).
 
 ### Recovering Coefficients
 
-Therefore to recover the original estimates, we add the intercepts to each
-pair of coefficients for the other schooling levels:
+Therefore to recover the original estimates, we add the intercepts to each pair of coefficients for the other schooling levels:
 
 ```{r}
 #| label: 06-happiness-chunk-11
@@ -228,19 +215,16 @@ happy_logit2_vglm_coeff
 rep(happy_logit2_vglm_coeff[1:2], 3) + happy_logit2_vglm_coeff[3:8]
 ```
 
-These recover the values reported in the last six rows of Table 3.11 in
-@fahrmeir_multivariate_2001.
+These recover the values reported in the last six rows of Table 3.11 in @fahrmeir_multivariate_2001 for the other three schooling levels, i.e. 12 years, 13-16 years, and $\geq$ 17 years.
 
 ## Reproducing the Deviance
 
 We now attempt to reproduce the deviance.
 
-To retrieve the likelihood of the full GLM model,
-we sum the log likelihood resulting from the first and second parts of
-the simple regressive cumulative model.
+To retrieve the likelihood of the full GLM model, we sum the log likelihoods resulting from the two cumulative models in the first and second parts of display $(3.5.3)$ in @fahrmeir_multivariate_2001.
 
-:::{callout-note}
-Make sure you know why this is the case.
+::: callout-note
+Make sure you know why the log likelihood of the full GLM can be computed by simply summing the log likelihoods of the two components.
 :::
 
 ```{r}
@@ -249,7 +233,7 @@ log_lik_glm <- logLik(happy_logit1_vglm) + logLik(happy_logit2_vglm)
 log_lik_glm
 ```
 
-Alternatively we can extract the log-likelihood of each of individual groups separately:
+Alternatively we can extract the log-likelihood of each of the individual groups separately:
 
 ```{r}
 #| label: 06-happiness-chunk-13
@@ -261,11 +245,8 @@ logLik(happy_logit2_vglm, sum = FALSE)
 
 Now we just need to compute the log-likelihood of the saturated model.
 We split the dataset into a male group and female group.
-Within each group we have 12 observations
-corresponding to the 12 combinations of schooling and happiness levels
-(meaning we have 11 degrees of freedom for the male and female groups separately).
-The maximum likelihood estimators for each group
-are exactly the observed proportions of each happiness level within each group.
+Within each group we have 12 observations corresponding to the 12 combinations of schooling and happiness levels (meaning we have 11 degrees of freedom for the male and female groups separately).
+The maximum likelihood estimators for each group are exactly the observed proportions for the different combinations of schooling and happiness levels within that group.
 
 Therefore we can calculate the log-likelihood of the saturated model by summing the log-likelihoods as follows:
 
@@ -273,6 +254,9 @@ Therefore we can calculate the log-likelihood of the saturated model by summing 
 #| label: 06-happiness-chunk-14
 happy_male <- dplyr::filter(happy, Sex == "Males")
 happy_female <- dplyr::filter(happy, Sex == "Females")
+
+happy_male
+happy_female
 
 log_lik_saturated <- dmultinom(
   happy_male$n,
@@ -297,18 +281,16 @@ Finally, we can compute the deviance as twice the difference between the log-lik
 2 * (log_lik_saturated - log_lik_glm)
 ```
 
+This is same as the deviance reported on p.116 in @fahrmeir_multivariate_2001.
+
 ## Problems with the Reported Standard Errors and $p$-values
 
 **This bit was slightly unclear to me, Dennis to clarify if I have misunderstood.**
 
-The second part of the the table are treating the model as
-by treating the years at school as fixed, and fitting a GLM to the data.
-The standard errors for are hence derived from the Fisher information matrix
-under the assumption that years at school are fixed.
-If we really want to understand the model as a whole,
-we need to treat both $Y_1$ and $Y_2$ as random.
-In practice this is probably very difficult to do,
-as we need to tease out the explicit form for the main function and so on.
+The second part of the the table are treating the model as by treating the years at school as fixed, and fitting a GLM to the data.
+The standard errors for are hence derived from the Fisher information matrix under the assumption that years at school are fixed.
+If we really want to understand the model as a whole, we need to treat both $Y_1$ and $Y_2$ as random.
+In practice this is probably very difficult to do, as we need to tease out the explicit form for the main function and so on.
 
 ## Package Citations and References
 

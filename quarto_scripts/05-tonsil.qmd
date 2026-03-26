@@ -78,9 +78,9 @@ creates or updates columns; here it rewrites `Size` as a labelled factor.
 - `factor(...)`: converts numeric codes (`1, 2, 3`)
 into ordered category labels used in output.
 - `dplyr::select(Streptococcus.p, Size, n)`:
-keeps only the columns needed for reshaping.
+keeps only the columns needed for reshaping; in this case we want all three.
 - `pivot_wider(names_from = Size, values_from = n)`:
-converts long data into wide data, so each size category becomes its own count column.
+converts long data into wide data, so each size category becomes its own count column. The `name_from` argument says we want the content of the `Size` column to become our column names, and the `values_from` argument says we want the content of the `n` column to become the cell values. 
 - `|>`:
 passes the result of one step to the next, making the workflow readable top-to-bottom.
 :::
@@ -89,7 +89,7 @@ passes the result of one step to the next, making the workflow readable top-to-b
 
 As in the other scripts, we want to ensure effect coding (`contr.sum`)
 is used for factors.
-This gives coefficients that are directly comparable to the textbook output.
+This gives coefficients that are directly comparable to the textbook output on p.97.
 
 ```{r}
 #| label: 05-tonsil-set-factor-contrasts
@@ -170,6 +170,8 @@ Again, the $p$-values do not line up with those in Table 3.6 for an unknown reas
 but the deviances do match.
 We can see that the deviance for the sequential model is much smaller
 than that of the cumulative model which suggests a much better fit to the data.
+
+
 
 ::: {.callout-tip collapse="true"}
 ## Alternative: MASS::polr() Implementation
