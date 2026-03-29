@@ -1,6 +1,11 @@
 ---
 title: "Ordinal Regression: Breathing Test Results."
 subtitle: "@fahrmeir_multivariate_2001 Examples 3.2 & 3.4"
+date: last-modified
+editor:
+  markdown:
+    wrap: sentence
+    canonical: true
 ---
 
 ## Data Loading and Setup

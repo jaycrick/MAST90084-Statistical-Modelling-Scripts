@@ -1,7 +1,7 @@
 ---
 title: "Binomial Generalized Linear Models: Caesarian Birth Study"
 subtitle: "@fahrmeir_multivariate_2001 Examples 2.1 and 2.4"
-date: today
+date: last-modified
 nocite: |
     @fahrmeir_multivariate_2001
 editor:
@@ -512,7 +512,7 @@ for goodness-of-fit.
 1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
 ```
 
-Both statistics give a large $p$-value, and so we don't reject this 
+Both statistics give a large $p$-value, and so we don't reject this
 interaction model. We can also compare fitted and realized proportions as on p.53.
 
 ```{r}
@@ -527,7 +527,7 @@ We can see that the observed and fitted values are very similar.
 
 ## Handling the issues on Uniqueness and Existence of the MLE
 
-The book recommends that to make the analysis more robust, we should augment 
+The book recommends that to make the analysis more robust, we should augment
 fictitious data to the two zero `Infect_count` cells to avoid the existence
 -of-MLE issue. We do this by adding a 'count' of 0.5 infections and 1
 total case to the 3rd problematic row.

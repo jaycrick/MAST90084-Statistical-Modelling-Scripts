@@ -1,9 +1,13 @@
 ---
 title: "Sequential Regression: Tonsil Size and Streptococcus"
 subtitle: "@fahrmeir_multivariate_2001 Examples 3.6 and 3.7"
-date: today
+date: last-modified
 nocite: |
     @fahrmeir_multivariate_2001
+editor:
+  markdown:
+    wrap: sentence
+    canonical: true
 ---
 
 ## Overview
