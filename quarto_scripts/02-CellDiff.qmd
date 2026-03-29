@@ -33,7 +33,10 @@ library(ggplot2)
 library(MASS)
 ```
 
-Thorough MASS documentation is available in the book [Modern Applied Statistics with S (MASS)](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2) @venables_modern_2002 which is available to you for free.
+Thorough MASS documentation is available in the book
+[Modern Applied Statistics with S (MASS)](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2){target="_blank"}
+ @venables_modern_2002
+which is available to you for free.
 
 ## Example 2.3 (p. 37): Cell Differentiation Data
 
@@ -50,8 +53,10 @@ cells_tbl <- as_tibble(cells)
 cells_tbl
 ```
 
-All the variables are encoded as integers and so we do not need to manipulate the data types.
-It is also good practice in RStudio to run `?cells` to inspect [the documentation for the dataset](https://search.r-project.org/CRAN/refmans/Fahrmeir/html/cells.html).
+All the variables are encoded as integers
+and so we do not need to manipulate the data types.
+It is also good practice in RStudio to run `?cells` to inspect
+[the documentation for the dataset](https://search.r-project.org/CRAN/refmans/Fahrmeir/html/cells.html){target="_blank"}.
 
 ### Fit Poisson GLM Model
 
@@ -60,7 +65,8 @@ We initially just fit the Poisson GLM as in Ex 2.3.
 ::: {.callout-note collapse="true"}
 ## What is the canonical link function for Poisson regression? Expand for answer.
 
-The default link is the log link, meaning that we assume $\log(\texttt{y})$ depends linearly on the covariates.
+The default link is the log link,
+meaning that we assume $\log(\mu)$ depends linearly on the covariates.
 :::
 
 ```{r}
@@ -169,28 +175,39 @@ Both the deviance test and the Pearson $\chi^2$ tests reject the null hypothesis
 ::: callout-warning
 There is an important caveat to this result.
 The sample size of the data is $16$, since the data isn't actually grouped.
-Since this is equal to the degrees of freedom in the saturated model, the dimensionality of the model grows with more samples (which must necessarily be new unique combinations of the covariates).
+Since this is equal to the degrees of freedom in the saturated model,
+the dimensionality of the model grows with more samples.
 Therefore the asymptotics are not fully valid, since we don't have a stabilising null distribution.
-For more information see what the biostatistician Jonathan Bartlett says in [his blog post](https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/).
+For more information see what the biostatistician Jonathan Bartlett says in
+[his blog post](https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/){target="_blank"}.
 
-There is a case to redeem the tests when the mean of the Poisson random variables are large (given by @fahrmeir_multivariate_2001 p. 54 in this example).
-Heuristically, this is because the Poisson distribution looks normal (see the [Wikipedia page on the Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) for a visual demonstration), and for the normal distribution, the chi-squared distribution is exact.
+There is a case to redeem the tests when the mean of the Poisson random variables are large
+(given by @fahrmeir_multivariate_2001 p. 54 in this example).
+Heuristically, this is because the Poisson distribution looks normal
+(see the [Wikipedia page on the Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution){target="_blank"}
+for a visual demonstration), and for the normal distribution, the chi-squared distribution is exact.
 For more information see also @venables_modern_2002 page 187.
 :::
 
 ### Fit a Quasi-Poisson GLM Model
 
-Having rejected the Poisson model, we move to a quasi "model-based" (also known as "naive") approach by loosening the variance structure, but still assuming we can correctly specify it.
-We start with a linear and overdispersed quasi-Poisson variance structure $\sigma^2(\mu) = \phi\mu$, and we will try to replicate the results copied below, of Table 2.6 on page 54 of @fahrmeir_multivariate_2001, showing the comparison between the two models:
+Having rejected the Poisson model, we move to a quasi "model-based"
+(also known as "naive") approach
+by loosening the variance structure, but still assuming we can correctly specify it.
+We start with a linear and overdispersed quasi-Poisson variance structure
+$\sigma^2(\mu) = \phi\mu$,
+and we will try to replicate the results of Table 2.6 on page 54 of @fahrmeir_multivariate_2001 copied below (we have corrected the coefficient estimate -0.001 reported for `TNF*IFN`in the book to -0.0001 according to our own fits),
+showing the comparison between the two models:
 
-| Parameter | Poisson, $\phi = 1$ | Poisson, $\hat{\phi} = 11.734$ |
-|:---------:|--------------------:|-------------------------------:|
-|    `1`    |          3.436 (.0) |                     3.436 (.0) |
-|   `TNF`   |           .016 (.0) |                      .016 (.0) |
-|   `IFN`   |           .009 (.0) |                      .009 (.0) |
-| `TNF*IFN` |          -.001 (.0) |                    -.001 (.22) |
+| Parameter | Poisson, $\phi = 1$ | Poisson, $\hat{\phi} = 11.734$  |
+|:---------:|--------------------:|--------------------------------:|
+| `1`       | 3.436 (.0)          | 3.436 (.0)                      |
+| `TNF`     | .016 (.0)           | .016 (.0)                       |
+| `IFN`     | .009 (.0)           | .009 (.0)                       |
+| `TNF*IFN` | -.0001 (.0)          | -.0001 (.22)                     |
 
-: Log-linear model fits to cellular differentiation data based on Poisson-likelihoods [Adapted from @fahrmeir_multivariate_2001, Table 2.6, p. 54] {#tbl-poisson-compare}
+: Log-linear model fits to cellular differentiation data based on Poisson-likelihoods
+[Adapted from @fahrmeir_multivariate_2001, Table 2.6, p. 54] {#tbl-poisson-compare}
 
 ```{r}
 #| label: 02-celldiff-chunk-10
@@ -219,7 +236,11 @@ round(glm_quasi_poisson_summary$coefficients, 5)
 We see that the coefficients are the exact same and match @tbl-poisson-compare, but the standard errors between the two models are significantly different.
 This is because the estimating equations in both the standard and quasi-Poisson models are identical, giving us identical coefficient estimates, but the dispersion parameter effects our standard errors.
 
-As with the typical `glm()` and `lm()` analysis, we can still use the standard `anova()` function, and extract the various residuals:
+Moreover, the $p$-values reported for the coefficients in `glm_quasi_poisson_summary` are calibrated based on the $t_{n-p}= t_{16-4}$ distribution, which are a bit different from those in @tbl-poisson-compare calibrated only based on a standard normal distribution. For example, taking the rescaled coefficient estimate $-1.22748$ for `TNF:IFN`, calibrating based on the standard normal gives `2*(pnorm(1.22748, lower.tail = F)) = 0.2196422`, while calibrating based on $t_{12}$ gives `2*(pt(1.22748, df = 12,  lower.tail = F)) = 0.2431777`.
+
+As with the typical `glm()` and `lm()` analysis,
+we can still use the standard `anova()` function,
+and extract the various residuals:
 
 ```{r}
 #| label: 02-celldiff-chunk-12
@@ -240,7 +261,7 @@ glm_quasi_poisson_summary$cov.unscaled
 glm_quasi_poisson_summary$cov.scaled
 ```
 
-We can do a sanity check in order to determine if we can recover the scaled deviance.
+We can do a sanity check in order to determine if we can recover the scaled covariance matrix
 
 ```{r}
 #| label: 02-celldiff-chunk-14
