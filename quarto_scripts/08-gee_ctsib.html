@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-25">
+<meta name="dcterms.date" content="2026-03-29">
 
 <title>GEE Analysis: CTSIB Balance Test Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -192,8 +192,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#creating-binary-response" id="toc-creating-binary-response" class="nav-link" data-scroll-target="#creating-binary-response">Creating Binary Response</a></li>
   </ul></li>
-  <li><a href="#gee-with-exchangeable-correlation" id="toc-gee-with-exchangeable-correlation" class="nav-link" data-scroll-target="#gee-with-exchangeable-correlation">GEE with Exchangeable Correlation</a></li>
-  <li><a href="#alternative-geepack-package" id="toc-alternative-geepack-package" class="nav-link" data-scroll-target="#alternative-geepack-package">Alternative: geepack Package</a></li>
+  <li><a href="#gee-with-exchangeable-correlation" id="toc-gee-with-exchangeable-correlation" class="nav-link" data-scroll-target="#gee-with-exchangeable-correlation">GEE with Exchangeable Correlation</a>
+  <ul class="collapse">
+  <li><a href="#fixed-scale-estimation" id="toc-fixed-scale-estimation" class="nav-link" data-scroll-target="#fixed-scale-estimation">Fixed Scale Estimation</a></li>
+  <li><a href="#empirical-scale-estimation" id="toc-empirical-scale-estimation" class="nav-link" data-scroll-target="#empirical-scale-estimation">Empirical Scale Estimation</a></li>
+  </ul></li>
+  <li><a href="#alternative-geepack-package" id="toc-alternative-geepack-package" class="nav-link" data-scroll-target="#alternative-geepack-package">Alternative: geepack Package</a>
+  <ul class="collapse">
+  <li><a href="#fitting-with-geepack-fixed-scale" id="toc-fitting-with-geepack-fixed-scale" class="nav-link" data-scroll-target="#fitting-with-geepack-fixed-scale">Fitting with geepack (Fixed Scale)</a></li>
+  <li><a href="#fitting-with-geepack-empirical-scale" id="toc-fitting-with-geepack-empirical-scale" class="nav-link" data-scroll-target="#fitting-with-geepack-empirical-scale">Fitting with geepack (Empirical Scale)</a></li>
+  </ul></li>
+  <li><a href="#key-learning-points" id="toc-key-learning-points" class="nav-link" data-scroll-target="#key-learning-points">Key Learning Points</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/08-gee_ctsib.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -214,7 +223,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 25, 2026</p>
+      <p class="date">March 29, 2026</p>
     </div>
   </div>
   
@@ -228,11 +237,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>This script reproduces the simulations on p.292 of Faraway, 2nd edition, 2016, or p.225 in the first edition.</p>
+<p>This script demonstrates <strong>Generalized Estimating Equations (GEE)</strong> for analyzing <strong>repeated measures and clustered data</strong> using the CTSIB (Computerized Dynamic Posturography) balance test dataset.</p>
+<p><strong>When to use GEE</strong>: Use GEE when you have repeated measurements on subjects and want population-average (marginal) estimates. GEE differs from GLMM—it provides marginal effects rather than subject-specific effects, and it’s more robust to correlation specification.</p>
+<p>This script reproduces the analysis on p.292 of Faraway (2nd ed., 2016) or p.225 (1st ed.), fitting both Pearson moment-based scale estimation (<code>scale.fix = TRUE</code>) and empirical scale estimation (<code>scale.fix = FALSE</code>).</p>
 </section>
 <section id="data-setup" class="level2">
 <h2 class="anchored" data-anchor-id="data-setup">Data Setup</h2>
-<p>Set default contrasts and load the data:</p>
+<p>The CTSIB dataset contains repeated balance test measurements on multiple subjects under different sensory conditions (surface, vision). We’ll model the probability of stable balance as a function of demographic and test characteristics.</p>
+<p>First, set default contrasts and load the data:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -300,7 +312,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="creating-binary-response" class="level3">
 <h3 class="anchored" data-anchor-id="creating-binary-response">Creating Binary Response</h3>
-<p>Create binary responses: 1 represents completely stable, otherwise not:</p>
+<p>The raw CTSIB variable contains balance test results. We create a binary response where 1 = completely stable (most favorable outcome), and 0 = any other result (borderline or abnormal).</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Binary recoding convention</strong>: We recode the ordinal CTSIB outcome into a binary indicator for “stable” balance. This is a common simplification in practice when the primary interest is in the best outcome vs.&nbsp;all others.</p>
+</div>
+</div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -311,7 +336,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="gee-with-exchangeable-correlation" class="level2">
 <h2 class="anchored" data-anchor-id="gee-with-exchangeable-correlation">GEE with Exchangeable Correlation</h2>
-<p>Fit GEE with scale fixed at 1:</p>
+<p>We fit a GEE model assuming <strong>exchangeable correlation structure</strong> among repeated measurements within each subject. This assumes all pairs of measurements on the same subject have the same correlation, regardless of their temporal distance.</p>
+<section id="fixed-scale-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-scale-estimation">Fixed Scale Estimation</h3>
+<p>First, fit GEE with scale fixed at 1 (Pearson moment estimation of scale):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -413,7 +441,26 @@ Working Correlation
 [12,] 0.2138948 0.2138948 0.2138948 0.2138948 1.0000000</code></pre>
 </div>
 </div>
-<p>Faraway didn’t fit with scale.fix = FALSE, but we try it:</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: What does <code>scale.fix = TRUE</code> mean?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>When <code>scale.fix = TRUE</code>, the scale parameter (dispersion) is fixed at 1, and standard errors are computed using the standard Pearson moment estimator without adjustment. This is appropriate for binomial models where the theoretical variance is fully specified. When <code>scale.fix = FALSE</code>, the scale parameter is estimated from the data, which can better account for overdispersion if the data violates Bernoulli assumptions.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="empirical-scale-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="empirical-scale-estimation">Empirical Scale Estimation</h3>
+<p>Now let’s try the alternative: estimating scale from the data. Faraway didn’t demonstrate this, but it’s instructive to compare:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -456,10 +503,59 @@ Working Correlation
 <pre><code>[1] 0.7438231</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Comparing fixed vs.&nbsp;empirical scale</strong>: - The fixed scale model (<code>scale.fix = TRUE</code>) assumes the Bernoulli variance structure is correct. - The empirical scale model (<code>scale.fix = FALSE</code>) estimates a scale parameter that can adjust for over- or under-dispersion. - Compare the estimated <code>scale</code> value to 1: a value &gt; 1 suggests overdispersion (positive correlation within clusters); &lt; 1 suggests underdispersion.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: When would you prefer empirical scale estimation?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Use empirical scale estimation (<code>scale.fix = FALSE</code>) when you suspect the data may exhibit overdispersion beyond the theoretical binomial variance, perhaps due to unmeasured subject-level heterogeneity or strong within-subject correlation. This makes your inference more robust if the exchangeable correlation assumption is violated.</p>
+</div>
+</div>
+</div>
+</section>
 </section>
 <section id="alternative-geepack-package" class="level2">
 <h2 class="anchored" data-anchor-id="alternative-geepack-package">Alternative: geepack Package</h2>
-<p>Use the geepack package. Note: its estimate of dispersion is NOT based on our typical Pearson residual method of moment estimator. See the original paper by Yan and Fine:</p>
+<p>The <strong>geepack</strong> package provides an alternative implementation of GEE with some methodological differences. Importantly, its estimate of dispersion is <strong>NOT</strong> based on the standard Pearson residual method-of-moments estimator. See the original paper by Yan and Fine (2010) for technical details.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: Why compare different GEE packages?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Different software implementations may use different estimators for the dispersion/scale parameter. Comparing results across implementations helps verify results and understand when methodological choices matter. The <code>gee</code> package uses Pearson moment estimation; <code>geepack</code> uses an alternative. Both are valid; differences reveal sensitivity to the scale estimation method.</p>
+</div>
+</div>
+</div>
+<section id="fitting-with-geepack-fixed-scale" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-with-geepack-fixed-scale">Fitting with geepack (Fixed Scale)</h3>
+<p>Uncomment and run to compare with the primary <code>gee</code> package results:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -474,21 +570,40 @@ Working Correlation
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep$coefficients</span></span>
 <span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep)</span></span>
 <span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep)$scale.value</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep)$dispersion</span></span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep.scale &lt;- geeglm(</span></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   stable ~ Sex + Age + Height + Weight + Surface + Vision,</span></span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   id = Subject,</span></span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="co">#   corstr = "exchangeable",</span></span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale.fix = FALSE,</span></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="co">#   data = ctsib,</span></span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a><span class="co">#   family = binomial</span></span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep.scale$coefficients</span></span>
-<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep.scale)$dispersion</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep)$dispersion</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+</section>
+<section id="fitting-with-geepack-empirical-scale" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-with-geepack-empirical-scale">Fitting with geepack (Empirical Scale)</h3>
+<p>And the empirical scale version:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep.scale &lt;- geeglm(</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   stable ~ Sex + Age + Height + Weight + Surface + Vision,</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   id = Subject,</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   corstr = "exchangeable",</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale.fix = FALSE,</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   data = ctsib,</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   family = binomial</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep.scale$coefficients</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep.scale)$dispersion</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+</section>
+<section id="key-learning-points" class="level2">
+<h2 class="anchored" data-anchor-id="key-learning-points">Key Learning Points</h2>
+<ol type="1">
+<li><p><strong>GEE for repeated measures</strong>: GEE provides population-average estimates for clustered/repeated measurements, differing from GLMM’s subject-specific approach.</p></li>
+<li><p><strong>Exchangeable correlation</strong>: Assumes constant correlation between any two measurements on the same subject.</p></li>
+<li><p><strong>Scale parameter</strong>: Controls for overdispersion; compare <code>scale = 1</code> (fixed) vs.&nbsp;estimated values to assess whether variance assumptions hold.</p></li>
+<li><p><strong>Software comparisons</strong>: Different implementations (gee vs.&nbsp;geepack) use different scale estimators; comparing them provides robustness checks.</p></li>
+<li><p><strong>Working correlation vs.&nbsp;true correlation</strong>: GEE is semi-parametric; results are consistent even if the working correlation structure is misspecified, though efficiency may suffer.</p></li>
+</ol>
 
 
 </section>

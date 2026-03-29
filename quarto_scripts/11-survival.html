@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-25">
+<meta name="dcterms.date" content="2026-03-29">
 
 <title>Survival Analysis – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -107,6 +107,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -188,26 +217,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#data-loading" id="toc-data-loading" class="nav-link" data-scroll-target="#data-loading">Data Loading</a></li>
+  <li><a href="#data-loading-and-setup" id="toc-data-loading-and-setup" class="nav-link" data-scroll-target="#data-loading-and-setup">Data Loading and Setup</a></li>
   <li><a href="#kaplan-meier-estimation" id="toc-kaplan-meier-estimation" class="nav-link" data-scroll-target="#kaplan-meier-estimation">Kaplan-Meier Estimation</a></li>
-  <li><a href="#graphical-parameters" id="toc-graphical-parameters" class="nav-link" data-scroll-target="#graphical-parameters">Graphical Parameters</a></li>
+  <li><a href="#graphical-parameters-and-visualization" id="toc-graphical-parameters-and-visualization" class="nav-link" data-scroll-target="#graphical-parameters-and-visualization">Graphical Parameters and Visualization</a></li>
   <li><a href="#weibull-suitability-check" id="toc-weibull-suitability-check" class="nav-link" data-scroll-target="#weibull-suitability-check">Weibull Suitability Check</a></li>
   <li><a href="#proportional-hazards-assumption" id="toc-proportional-hazards-assumption" class="nav-link" data-scroll-target="#proportional-hazards-assumption">Proportional Hazards Assumption</a></li>
   <li><a href="#exponential-regression" id="toc-exponential-regression" class="nav-link" data-scroll-target="#exponential-regression">Exponential Regression</a>
   <ul class="collapse">
-  <li><a href="#wald-test" id="toc-wald-test" class="nav-link" data-scroll-target="#wald-test">Wald Test</a></li>
-  <li><a href="#likelihood-ratio-test" id="toc-likelihood-ratio-test" class="nav-link" data-scroll-target="#likelihood-ratio-test">Likelihood Ratio Test</a></li>
-  <li><a href="#rate-parameters" id="toc-rate-parameters" class="nav-link" data-scroll-target="#rate-parameters">Rate Parameters</a></li>
-  <li><a href="#verification-mle-formula" id="toc-verification-mle-formula" class="nav-link" data-scroll-target="#verification-mle-formula">Verification: MLE Formula</a></li>
+  <li><a href="#testing-the-group-effect" id="toc-testing-the-group-effect" class="nav-link" data-scroll-target="#testing-the-group-effect">Testing the Group Effect</a></li>
+  <li><a href="#extracting-rate-parameters" id="toc-extracting-rate-parameters" class="nav-link" data-scroll-target="#extracting-rate-parameters">Extracting Rate Parameters</a></li>
+  <li><a href="#verification-mle-via-method-of-moments" id="toc-verification-mle-via-method-of-moments" class="nav-link" data-scroll-target="#verification-mle-via-method-of-moments">Verification: MLE via Method of Moments</a></li>
   <li><a href="#delta-method-confidence-interval" id="toc-delta-method-confidence-interval" class="nav-link" data-scroll-target="#delta-method-confidence-interval">Delta Method Confidence Interval</a></li>
   </ul></li>
   <li><a href="#weibull-regression" id="toc-weibull-regression" class="nav-link" data-scroll-target="#weibull-regression">Weibull Regression</a>
   <ul class="collapse">
   <li><a href="#rate-and-shape-parameters" id="toc-rate-and-shape-parameters" class="nav-link" data-scroll-target="#rate-and-shape-parameters">Rate and Shape Parameters</a></li>
   <li><a href="#hazard-ratio" id="toc-hazard-ratio" class="nav-link" data-scroll-target="#hazard-ratio">Hazard Ratio</a></li>
-  <li><a href="#wald-test-for-shape-parameter" id="toc-wald-test-for-shape-parameter" class="nav-link" data-scroll-target="#wald-test-for-shape-parameter">Wald Test for Shape Parameter</a></li>
-  <li><a href="#likelihood-ratio-test-1" id="toc-likelihood-ratio-test-1" class="nav-link" data-scroll-target="#likelihood-ratio-test-1">Likelihood Ratio Test</a></li>
+  <li><a href="#testing-the-shape-parameter" id="toc-testing-the-shape-parameter" class="nav-link" data-scroll-target="#testing-the-shape-parameter">Testing the Shape Parameter</a></li>
   </ul></li>
+  <li><a href="#key-learning-points" id="toc-key-learning-points" class="nav-link" data-scroll-target="#key-learning-points">Key Learning Points</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/11-survival.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -228,7 +256,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 25, 2026</p>
+      <p class="date">March 29, 2026</p>
     </div>
   </div>
   
@@ -242,10 +270,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>This script demonstrates survival analysis techniques on breast cancer data.</p>
+<p>This script demonstrates survival analysis techniques for <strong>time-to-event data</strong> where some observations may be censored (we don’t observe the full time until the event). We’ll estimate survival curves non-parametrically (Kaplan-Meier) and then fit parametric survival models (exponential and Weibull).</p>
+<p><strong>Key concept</strong>: In survival analysis, we model the time until an event occurs (death, relapse, etc.), accounting for censoring (incomplete observations due to study end or loss to follow-up).</p>
 </section>
-<section id="data-loading" class="level2">
-<h2 class="anchored" data-anchor-id="data-loading">Data Loading</h2>
+<section id="data-loading-and-setup" class="level2">
+<h2 class="anchored" data-anchor-id="data-loading-and-setup">Data Loading and Setup</h2>
+<p>Load packages and breast cancer survival data:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -296,12 +326,24 @@ dbl (2): time, status
 6   225      0 P    </code></pre>
 </div>
 </div>
-<p>Status is a “non-censored” indicator: - 0 if the person is right censored - 1 if it is uncensored</p>
-<p>Group is for staining status: positive (P) or negative (N) staining.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Data structure for survival analysis</strong>: - <code>time</code>: Time until event (in some unit, here likely days or months) - <code>status</code>: Censoring indicator (0 = censored, 1 = event observed) - <code>group</code>: Grouping variable (here: staining status: Positive (P) or Negative (N))</p>
+<p>The <code>Surv()</code> function combines time and status into a survival object for modeling.</p>
+</div>
+</div>
 </section>
 <section id="kaplan-meier-estimation" class="level2">
 <h2 class="anchored" data-anchor-id="kaplan-meier-estimation">Kaplan-Meier Estimation</h2>
-<p>Fit KM estimator for the survival function:</p>
+<p>Fit the <strong>Kaplan-Meier</strong> (non-parametric) estimator for the survival function by group:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -355,10 +397,39 @@ group=P 32     21   64.5      41      NA</code></pre>
   143      7       1    0.295  0.0900        0.162        0.537</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: What does the Kaplan-Meier curve estimate?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The Kaplan-Meier curve estimates <span class="math inline">\(\hat{S}(t)\)</span> = the probability that a randomly selected subject survives beyond time <span class="math inline">\(t\)</span>. It’s non-parametric (makes no distributional assumptions) and handles censoring by using “risk sets”—the number still at risk at each event time. Events that occur, combined with censored observations, inform the survival probabilities.</p>
+</div>
+</div>
+</div>
 </section>
-<section id="graphical-parameters" class="level2">
-<h2 class="anchored" data-anchor-id="graphical-parameters">Graphical Parameters</h2>
-<p>Set up graphical parameters:</p>
+<section id="graphical-parameters-and-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="graphical-parameters-and-visualization">Graphical Parameters and Visualization</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>R graphical parameters</strong> (<code>par()</code>) control plotting behavior. Key parameters: - <code>mar</code>: Margins (bottom, left, top, right) - <code>las</code>: Label axis style (0=default, 1=horizontal for all axes) - <code>mfrow</code>: Multi-frame layout (rows, columns)</p>
+</div>
+</div>
+<p>Set up graphical parameters for customized plots:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -369,8 +440,9 @@ group=P 32     21   64.5      41      NA</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>orig_par <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">las =</span> <span class="dv">1</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>()<span class="sc">$</span>las</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save original parameters, then set new ones</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>orig_par <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">las =</span> <span class="dv">1</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>()<span class="sc">$</span>las</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1</code></pre>
@@ -404,8 +476,20 @@ group=P 32     21   64.5      41      NA</code></pre>
 <pre><code>[1] 3 3 1 1</code></pre>
 </div>
 </div>
-<p><code>las</code> = 0 by default. <code>las</code> = 1 adjusts to horizontal axis labels, even for the y-axis. This will assign new graphical parameter settings, but also store the original graphical parameters to be retrieved later.</p>
-<p>Plot KM survival curves for the two groups:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>By default, <code>las = 0</code>. Setting <code>las = 1</code> rotates all axis labels to horizontal orientation, making them more readable. The <code>par()</code> call returns a list of old values, which we save for later restoration.</p>
+</div>
+</div>
+<p>Plot Kaplan-Meier survival curves for the two groups:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -426,7 +510,20 @@ group=P 32     21   64.5      41      NA</code></pre>
 </section>
 <section id="weibull-suitability-check" class="level2">
 <h2 class="anchored" data-anchor-id="weibull-suitability-check">Weibull Suitability Check</h2>
-<p>Check Weibull suitability:</p>
+<p>Before fitting parametric models, check if the Weibull distribution is suitable. The <strong>log-log transformation</strong> of a Weibull survival curve is linear: <span class="math inline">\(\log(-\log(S(t))) = \alpha \log(\lambda t)\)</span></p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Diagnostic plot interpretation</strong>: - <strong>Linear relationship</strong>: Suggests Weibull fit is reasonable - <strong>Curved pattern</strong>: Suggests Weibull may not fit; consider exponential or other models</p>
+</div>
+</div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -482,27 +579,41 @@ group=P 32     21   64.5      41      NA</code></pre>
 </section>
 <section id="proportional-hazards-assumption" class="level2">
 <h2 class="anchored" data-anchor-id="proportional-hazards-assumption">Proportional Hazards Assumption</h2>
-<p>Check PH assumption with cloglog plot:</p>
+<p>Many survival models (e.g., Cox) assume <strong>proportional hazards</strong>: the hazard ratio between groups is constant over time. Check this with the <strong>cloglog transformation</strong>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Proportional hazards assumption</strong>: If the cloglog curves are parallel, hazards are proportional. If curves cross, the assumption is violated, suggesting the treatment effect changes over time.</p>
+</div>
+</div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>opar <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>), <span class="at">las =</span> <span class="dv">1</span>)</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    cancer.km,</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">fun =</span> <span class="st">"cloglog"</span>,</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>,</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"Red"</span>, <span class="st">"Blue"</span>),</span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">300</span>)</span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(</span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"topleft"</span>,</span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Negative Stain"</span>, <span class="st">"Positive Stain"</span>),</span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>,</span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"Red"</span>, <span class="st">"Blue"</span>),</span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">bty =</span> <span class="st">"n"</span></span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"># cloglog transformation: log(-log(S(t)))</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    cancer.km,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">fun =</span> <span class="st">"cloglog"</span>,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>,</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"Red"</span>, <span class="st">"Blue"</span>),</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">300</span>)</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"topleft"</span>,</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Negative Stain"</span>, <span class="st">"Positive Stain"</span>),</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>,</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"Red"</span>, <span class="st">"Blue"</span>),</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">bty =</span> <span class="st">"n"</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -516,9 +627,27 @@ group=P 32     21   64.5      41      NA</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(opar)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: What does parallelism of cloglog curves tell us?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Parallel cloglog curves suggest the proportional hazards assumption holds: the hazard of death for positive-stain patients is a constant multiple of that for negative-stain patients, regardless of time. Crossing curves suggest the groups’ relative hazards change over time.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="exponential-regression" class="level2">
 <h2 class="anchored" data-anchor-id="exponential-regression">Exponential Regression</h2>
+<p>The <strong>exponential model</strong> is a parametric survival model with constant hazard rate. It assumes failures follow a Poisson process.</p>
+<p>Fit exponential survival model:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -548,8 +677,22 @@ Number of Newton-Raphson Iterations: 4
 n= 45 </code></pre>
 </div>
 </div>
-<section id="wald-test" class="level3">
-<h3 class="anchored" data-anchor-id="wald-test">Wald Test</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Exponential model assumptions</strong>: Constant hazard rate (hazard doesn’t change over time). This is restrictive and often violated in practice, but is a useful baseline and computationally simple.</p>
+</div>
+</div>
+<section id="testing-the-group-effect" class="level3">
+<h3 class="anchored" data-anchor-id="testing-the-group-effect">Testing the Group Effect</h3>
+<p><strong>Wald Test</strong>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -561,10 +704,8 @@ n= 45 </code></pre>
 0.05582701 </code></pre>
 </div>
 </div>
-<p>p-value</p>
-</section>
-<section id="likelihood-ratio-test" class="level3">
-<h3 class="anchored" data-anchor-id="likelihood-ratio-test">Likelihood Ratio Test</h3>
+<p>This gives a p-value for whether group significantly affects survival time.</p>
+<p><strong>Likelihood Ratio Test</strong>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -575,14 +716,34 @@ n= 45 </code></pre>
 <pre><code>[1] 0.03687179</code></pre>
 </div>
 </div>
-<p>p-value</p>
+<p>An alternative p-value based on the likelihood ratio statistic.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: When would Wald and LR tests disagree?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Both test the same hypothesis but use different asymptotics. For moderate sample sizes, they usually agree. With small samples or if the coefficient is near a boundary (e.g., near no effect), they can diverge. LR tests are generally more robust in finite samples.</p>
+</div>
+</div>
+</div>
 </section>
-<section id="rate-parameters" class="level3">
-<h3 class="anchored" data-anchor-id="rate-parameters">Rate Parameters</h3>
+<section id="extracting-rate-parameters" class="level3">
+<h3 class="anchored" data-anchor-id="extracting-rate-parameters">Extracting Rate Parameters</h3>
+<p>For the exponential model, the rate parameter (hazard) is <span class="math inline">\(\lambda = e^{(intercept + \beta \cdot \text{group})}\)</span>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span>cancer_exp<span class="sc">$</span>coef[<span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>lambda_n <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span>cancer_exp<span class="sc">$</span>coef[<span class="dv">1</span>])</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>lambda_p <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fu">sum</span>(cancer_exp<span class="sc">$</span>coef))</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>lambda_n</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept) 
@@ -590,16 +751,31 @@ n= 45 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span><span class="fu">sum</span>(cancer_exp<span class="sc">$</span>coef))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>lambda_p</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.007838746</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Negative stain group: <span class="math inline">\(\lambda_N =\)</span> 0.0030266 events/time<br>
+Positive stain group: <span class="math inline">\(\lambda_P =\)</span> 0.0078387 events/time</p>
+<p>Higher <span class="math inline">\(\lambda\)</span> means shorter survival (higher hazard rate).</p>
+</div>
+</div>
 </section>
-<section id="verification-mle-formula" class="level3">
-<h3 class="anchored" data-anchor-id="verification-mle-formula">Verification: MLE Formula</h3>
-<p>For exponential distribution, MLE of lambda is # events / total time at risk:</p>
+<section id="verification-mle-via-method-of-moments" class="level3">
+<h3 class="anchored" data-anchor-id="verification-mle-via-method-of-moments">Verification: MLE via Method of Moments</h3>
+<p>For the exponential distribution, the MLE is: <span class="math inline">\(\hat{\lambda} = \frac{\text{# events}}{\text{total time at risk}}\)</span></p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -618,17 +794,37 @@ n= 45 </code></pre>
 <pre><code>[1] 0.007838746</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: Do these match the model rates above?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>These hand-computed values should match (to numerical precision) the rates extracted above. This verifies that <code>survreg</code> is fitting via maximum likelihood and our interpretation of the rates is correct.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="delta-method-confidence-interval" class="level3">
 <h3 class="anchored" data-anchor-id="delta-method-confidence-interval">Delta Method Confidence Interval</h3>
+<p>Construct a 95% CI for <span class="math inline">\(\lambda_P\)</span> using the <strong>delta method</strong> (linearization):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> cancer_exp<span class="sc">$</span>coeff[<span class="dv">2</span>]</span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>var_beta <span class="ot">&lt;-</span> (cancer_exp<span class="sc">$</span>var)[<span class="dv">2</span>, <span class="dv">2</span>]</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>var_delta <span class="ot">&lt;-</span> (<span class="fu">exp</span>(<span class="sc">-</span>beta))<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> var_beta</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span>beta) <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_delta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Delta method: var(e^X) ≈ (e^X)^2 * var(X)</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>var_lambda <span class="ot">&lt;-</span> (<span class="fu">exp</span>(<span class="sc">-</span>beta))<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> var_beta</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="co"># CI</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span>beta) <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_lambda)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  groupP 
@@ -636,19 +832,32 @@ n= 45 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span>beta) <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_delta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span>beta) <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_lambda)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>    groupP 
 0.06396006 </code></pre>
 </div>
 </div>
-<p>The lower bound doesn’t cross to the negative number region, which is lucky.</p>
-<p>Alternative using monotone transformation:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The lower bound is positive (doesn’t cross zero), which is good since <span class="math inline">\(\lambda\)</span> must be positive. However, the delta method doesn’t always respect parameter constraints; a safer approach is to transform:</p>
+</div>
+</div>
+<p><strong>Better approach</strong>: Transform to enforce positivity:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span>(beta <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_beta)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Build CI on log scale, then exponentiate</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span>(beta <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_beta)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  groupP 
@@ -663,11 +872,25 @@ n= 45 </code></pre>
 0.9766015 </code></pre>
 </div>
 </div>
-<p>This guarantees that the lower bound doesn’t cross to the negative number region.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This guarantees both bounds are positive because exponentiation preserves the ordering and always produces positive values.</p>
+</div>
+</div>
 </section>
 </section>
 <section id="weibull-regression" class="level2">
 <h2 class="anchored" data-anchor-id="weibull-regression">Weibull Regression</h2>
+<p>The <strong>Weibull model</strong> generalizes the exponential by allowing a shape parameter <span class="math inline">\(\alpha &gt; 0\)</span>. When <span class="math inline">\(\alpha = 1\)</span>, it reduces to exponential; <span class="math inline">\(\alpha &gt; 1\)</span> means hazard increases with time (wear-out); <span class="math inline">\(\alpha &lt; 1\)</span> means hazard decreases (infant mortality).</p>
+<p>Fit Weibull survival model:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -723,8 +946,22 @@ groupP      -0.24501139  0.29603784 -0.01997602
 Log(scale)   0.02441408 -0.01997602  0.02801424</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note: <code>survreg</code> parameterizes the scale as <span class="math inline">\(\sigma = 1/\alpha\)</span>, so the shape parameter is <span class="math inline">\(\alpha = 1/\text{scale}\)</span>. A scale close to 1 means <span class="math inline">\(\alpha \approx 1\)</span> (nearly exponential); scale &gt;&gt; 1 means <span class="math inline">\(\alpha &lt;&lt; 1\)</span> (rapidly decreasing hazard).</p>
+</div>
+</div>
 <section id="rate-and-shape-parameters" class="level3">
 <h3 class="anchored" data-anchor-id="rate-and-shape-parameters">Rate and Shape Parameters</h3>
+<p>Extract and interpret the Weibull parameters:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -772,9 +1009,26 @@ Log(scale)   0.02441408 -0.01997602  0.02801424</code></pre>
 <pre><code>[1] 0.454203</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: What do these survival probabilities mean?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-15" class="callout-15-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><code>s_n_100</code> is the estimated survival probability at time 100 for negative-stain patients. <code>s_p_100</code> is the same for positive-stain patients. Compare these to the Kaplan-Meier estimates for similar times to see how well the parametric model fits the data.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="hazard-ratio" class="level3">
 <h3 class="anchored" data-anchor-id="hazard-ratio">Hazard Ratio</h3>
+<p>Compute the hazard ratio (positive stain vs.&nbsp;negative stain):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -786,59 +1040,110 @@ Log(scale)   0.02441408 -0.01997602  0.02801424</code></pre>
    2.545372 </code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A hazard ratio &gt; 1 means positive-stain patients have higher hazard (die sooner). &lt; 1 means better survival for positive-stain.</p>
+</div>
+</div>
 </section>
-<section id="wald-test-for-shape-parameter" class="level3">
-<h3 class="anchored" data-anchor-id="wald-test-for-shape-parameter">Wald Test for Shape Parameter</h3>
+<section id="testing-the-shape-parameter" class="level3">
+<h3 class="anchored" data-anchor-id="testing-the-shape-parameter">Testing the Shape Parameter</h3>
+<p><strong>Wald test</strong> for whether shape = 1 (exponential):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(cancer_wbl<span class="sc">$</span>scale) <span class="sc">/</span> <span class="fu">sqrt</span>(cancer_wbl<span class="sc">$</span>var[<span class="dv">3</span>, <span class="dv">3</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.38621</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="sc">-</span><span class="fu">abs</span>(<span class="fu">log</span>(cancer_wbl<span class="sc">$</span>scale) <span class="sc">/</span> <span class="fu">sqrt</span>(cancer_wbl<span class="sc">$</span>var[<span class="dv">3</span>, <span class="dv">3</span>])))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>wald_z <span class="ot">&lt;-</span> <span class="fu">log</span>(cancer_wbl<span class="sc">$</span>scale) <span class="sc">/</span> <span class="fu">sqrt</span>(cancer_wbl<span class="sc">$</span>var[<span class="dv">3</span>, <span class="dv">3</span>])</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a><span class="co"># p-value for H0: log(scale) = 0, i.e., scale = 1, i.e., alpha = 1</span></span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> <span class="fu">pnorm</span>(<span class="sc">-</span><span class="fu">abs</span>(wald_z))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6993412</code></pre>
 </div>
 </div>
-<p>p-value</p>
-</section>
-<section id="likelihood-ratio-test-1" class="level3">
-<h3 class="anchored" data-anchor-id="likelihood-ratio-test-1">Likelihood Ratio Test</h3>
+<p><strong>Likelihood ratio test</strong> comparing Weibull to exponential:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> (cancer_wbl<span class="sc">$</span>loglik[<span class="dv">2</span>] <span class="sc">-</span> cancer_exp<span class="sc">$</span>loglik[<span class="dv">2</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.1534936</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qchisq</span>(.<span class="dv">95</span>, <span class="at">df =</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>lr_stat <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (cancer_wbl<span class="sc">$</span>loglik[<span class="dv">2</span>] <span class="sc">-</span> cancer_exp<span class="sc">$</span>loglik[<span class="dv">2</span>])</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a><span class="fu">qchisq</span>(.<span class="dv">95</span>, <span class="at">df =</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 3.841459</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pchisq</span>(</span>
-<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>    <span class="dv">2</span> <span class="sc">*</span> (cancer_wbl<span class="sc">$</span>loglik[<span class="dv">2</span>] <span class="sc">-</span> cancer_exp<span class="sc">$</span>loglik[<span class="dv">2</span>]),</span>
-<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">df =</span> <span class="dv">1</span>,</span>
-<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower.tail =</span> <span class="cn">FALSE</span></span>
-<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pchisq</span>(</span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>    lr_stat,</span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">df =</span> <span class="dv">1</span>,</span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower.tail =</span> <span class="cn">FALSE</span></span>
+<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6952189</code></pre>
 </div>
 </div>
-
-
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: Does the Weibull model fit better than exponential?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-17" class="callout-17-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Compare the LR test p-value: if p &lt; 0.05, the shape parameter is significantly different from 1, meaning Weibull provides better fit than exponential. Also compare AIC/BIC or look at the scaled deviances to assess relative model quality.</p>
+</div>
+</div>
+</div>
 </section>
+</section>
+<section id="key-learning-points" class="level2">
+<h2 class="anchored" data-anchor-id="key-learning-points">Key Learning Points</h2>
+<ol type="1">
+<li><p><strong>Survival data structure</strong>: Time-to-event (<span class="math inline">\(t\)</span>) and censoring indicator (0/1). Censoring indicates incomplete observation—we know <span class="math inline">\(T &gt; t\)</span> but not the exact value.</p></li>
+<li><p><strong>Non-parametric vs.&nbsp;parametric</strong>:</p>
+<ul>
+<li><strong>Kaplan-Meier</strong>: Non-parametric, makes no distributional assumption, handles censoring via risk sets</li>
+<li><strong>Parametric models</strong>: Assume specific distribution (exponential, Weibull), more efficient if assumption holds</li>
+</ul></li>
+<li><p><strong>Diagnostic plots</strong>:</p>
+<ul>
+<li><strong>Log-log plot</strong>: Linearity suggests Weibull fit is appropriate</li>
+<li><strong>cloglog plot</strong>: Parallelism checks proportional hazards assumption</li>
+</ul></li>
+<li><p><strong>Model parameters</strong>:</p>
+<ul>
+<li><strong>Exponential</strong>: Single rate parameter <span class="math inline">\(\lambda\)</span> (constant hazard)</li>
+<li><strong>Weibull</strong>: Rate <span class="math inline">\(\lambda\)</span> and shape <span class="math inline">\(\alpha\)</span> (hazard can increase/decrease over time)</li>
+</ul></li>
+<li><p><strong>Interpretation</strong>:</p>
+<ul>
+<li>Hazard ratio: relative risk between groups</li>
+<li>Survival probability at time <span class="math inline">\(t\)</span>: probability of not having event by time <span class="math inline">\(t\)</span></li>
+<li>Rates are on the inverse scale: higher rate = shorter survival time</li>
+</ul></li>
+<li><p><strong>Inference</strong>:</p>
+<ul>
+<li><strong>Wald tests</strong>: Test individual parameters (less robust in finite samples)</li>
+<li><strong>LR tests</strong>: Compare nested models (more robust)</li>
+<li>Always verify with bootstrapping or sensitivity analyses when possible</li>
+</ul></li>
+</ol>
+
+
 </section>
 
 </main> <!-- /main -->

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-25">
+<meta name="dcterms.date" content="2026-03-29">
 
 <title>Conditional Models: Happiness Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -253,7 +253,7 @@ window.Quarto = {
   <li><a href="#computing-saturated-model-likelihood" id="toc-computing-saturated-model-likelihood" class="nav-link" data-scroll-target="#computing-saturated-model-likelihood">Computing Saturated Model Likelihood</a></li>
   <li><a href="#deviance" id="toc-deviance" class="nav-link" data-scroll-target="#deviance">Deviance</a></li>
   </ul></li>
-  <li><a href="#problems-with-the-reported-standard-errors-and-p-values" id="toc-problems-with-the-reported-standard-errors-and-p-values" class="nav-link" data-scroll-target="#problems-with-the-reported-standard-errors-and-p-values">Problems with the Reported Standard Errors and <span class="math inline">\(p\)</span>-values</a></li>
+  <li><a href="#potential-problems-with-the-reported-standard-errors-and-p-values-in-table-3.11-of-fahrmeir_multivariate_2001" id="toc-potential-problems-with-the-reported-standard-errors-and-p-values-in-table-3.11-of-fahrmeir_multivariate_2001" class="nav-link" data-scroll-target="#potential-problems-with-the-reported-standard-errors-and-p-values-in-table-3.11-of-fahrmeir_multivariate_2001">Potential problems with the reported Standard Errors and <span class="math inline">\(p\)</span>-values in Table 3.11 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (2001)</span></a></li>
   <li><a href="#package-citations-and-references" id="toc-package-citations-and-references" class="nav-link" data-scroll-target="#package-citations-and-references">Package Citations and References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/06-Happiness.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -275,7 +275,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 25, 2026</p>
+      <p class="date">March 29, 2026</p>
     </div>
   </div>
   
@@ -289,7 +289,7 @@ window.Quarto = {
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>We will fit a simple asymmetric model to a dataset on happiness levels from Table 3.10 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. We want to determine the association between gender, level of education, and happiness levels. We will do this in two parts, first by setting gender as a predictor for years of schooling, and then by setting years of schooling as a predictor for happiness levels.</p>
+<p>We will fit a simple asymmetric model to a dataset on happiness levels from Table 3.10 of p.115 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. We want to determine the association between gender, level of education, and happiness levels. We will do this in two parts, first by setting gender as a predictor for years of schooling, and then by setting years of schooling as a predictor for happiness levels.</p>
 <p>The model is specified more formally in the equation (3.5.3) in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
 </section>
 <section id="data-loading" class="level2">
@@ -383,7 +383,7 @@ window.Quarto = {
 <ul>
 <li><code>mutate()</code> recodes factor levels so the column names match the model inputs.</li>
 <li><code>summarize(..., .by = ...)</code> aggregates counts within each group.</li>
-<li><code>pivot_wider()</code> spreads groups into columns and fills missing combinations with 0.</li>
+<li><code>pivot_wider()</code> spreads groups into columns and fills missing combinations with 0 (if there is any).</li>
 </ul>
 </div>
 </div>
@@ -484,7 +484,7 @@ Exponentiated coefficients:
 1.0010595 0.8171399 0.6779873 </code></pre>
 </div>
 </div>
-<p>The coefficient values are the same as those reported in the first six rows of Table 3.11 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<p>The coefficient values are the same as those reported in the first six rows of Table 3.11 on p.117 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -495,8 +495,7 @@ Warning
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The reported standard errors (also reproduced below) and p-values presented here should be treated with caution.</p>
-<p><strong>I’m not sure why these ones would be wrong. Wouldn’t it just be the standard errors and p-values for the second part of the table that are wrong? Dennis to clarify</strong></p>
+<p>We can reproduce the standard errors (and hence the <span class="math inline">\(p\)</span>-values) reported in the first six rows of Table 3.11 by using the code below:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -512,6 +511,7 @@ Warning
    0.11256715 </code></pre>
 </div>
 </div>
+<p>However, we probably should treat these standard errors and <span class="math inline">\(p\)</span>-values in Table 3.11 with a grain of salt. See the end for more explanation.</p>
 </div>
 </div>
 <p>We can access the linear predictors</p>
@@ -603,8 +603,18 @@ Warning
 <section id="fit-second-model" class="level3">
 <h3 class="anchored" data-anchor-id="fit-second-model">Fit Second Model</h3>
 <p>We now fit the model.</p>
-<div class="{callout-note}">
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>This regression ignores the <code>Sex</code> column (which is what we want).</p>
+</div>
 </div>
 <div class="cell">
 <details open="" class="code-fold">
@@ -680,15 +690,25 @@ School13-16:2   School&gt;16:1   School&gt;16:2
     0.1335314 </code></pre>
 </div>
 </div>
-<p>These recover the values reported in the last six rows of Table 3.11 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<p>These recover the values reported in the last six rows of Table 3.11 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> for the other three schooling levels, i.e.&nbsp;12 years, 13-16 years, and <span class="math inline">\(\geq\)</span> 17 years.</p>
 </section>
 </section>
 <section id="reproducing-the-deviance" class="level2">
 <h2 class="anchored" data-anchor-id="reproducing-the-deviance">Reproducing the Deviance</h2>
 <p>We now attempt to reproduce the deviance.</p>
-<p>To retrieve the likelihood of the full GLM model, we sum the log likelihood resulting from the first and second parts of the simple regressive cumulative model.</p>
-<div class="{callout-note}">
-<p>Make sure you know why this is the case.</p>
+<p>To retrieve the likelihood of the full GLM model, we sum the log likelihoods resulting from the two cumulative models in the first and second parts of display <span class="math inline">\((3.5.3)\)</span> in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Make sure you know why the log likelihood of the full GLM can be computed by simply summing the log likelihoods of the two components.</p>
+</div>
 </div>
 <div class="cell">
 <details open="" class="code-fold">
@@ -700,7 +720,7 @@ School13-16:2   School&gt;16:1   School&gt;16:2
 <pre><code>[1] -64.63745</code></pre>
 </div>
 </div>
-<p>Alternatively we can extract the log-likelihood of each of individual groups separately:</p>
+<p>Alternatively we can extract the log-likelihood of each of the individual groups separately:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -721,7 +741,7 @@ School13-16:2   School&gt;16:1   School&gt;16:2
 </div>
 <section id="computing-saturated-model-likelihood" class="level3">
 <h3 class="anchored" data-anchor-id="computing-saturated-model-likelihood">Computing Saturated Model Likelihood</h3>
-<p>Now we just need to compute the log-likelihood of the saturated model. We split the dataset into a male group and female group. Within each group we have 12 observations corresponding to the 12 combinations of schooling and happiness levels (meaning we have 11 degrees of freedom for the male and female groups separately). The maximum likelihood estimators for each group are exactly the observed proportions of each happiness level within each group.</p>
+<p>Now we just need to compute the log-likelihood of the saturated model. We split the dataset into a male group and female group. Within each group we have 12 observations corresponding to the 12 combinations of schooling and happiness levels (meaning we have 11 degrees of freedom for the male and female groups separately). The maximum likelihood estimators for each group are exactly the observed proportions for the different combinations of schooling and happiness levels within that group.</p>
 <p>Therefore we can calculate the log-likelihood of the saturated model by summing the log-likelihoods as follows:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -729,18 +749,56 @@ School13-16:2   School&gt;16:1   School&gt;16:2
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>happy_male <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(happy, Sex <span class="sc">==</span> <span class="st">"Males"</span>)</span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>happy_female <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(happy, Sex <span class="sc">==</span> <span class="st">"Females"</span>)</span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>log_lik_saturated <span class="ot">&lt;-</span> <span class="fu">dmultinom</span>(</span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  happy_male<span class="sc">$</span>n,</span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">prob =</span> happy_male<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_male<span class="sc">$</span>n),</span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">log =</span> <span class="cn">TRUE</span></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dmultinom</span>(</span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>    happy_female<span class="sc">$</span>n,</span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">prob =</span> happy_female<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_female<span class="sc">$</span>n),</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">log =</span> <span class="cn">TRUE</span></span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>log_lik_saturated</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>happy_male</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Rep.happiness School   Sex   n
+1   Not to happy    &lt;12 Males  40
+2   Not to happy     12 Males  21
+3   Not to happy  13-16 Males  14
+4   Not to happy    &gt;16 Males   3
+5   Pretty happy    &lt;12 Males 131
+6   Pretty happy     12 Males 116
+7   Pretty happy  13-16 Males 112
+8   Pretty happy    &gt;16 Males  27
+9     Very happy    &lt;12 Males  82
+10    Very happy     12 Males  61
+11    Very happy  13-16 Males  55
+12    Very happy    &gt;16 Males  27</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>happy_female</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Rep.happiness School     Sex   n
+13  Not to happy    &lt;12 Females  62
+14  Not to happy     12 Females  26
+15  Not to happy  13-16 Females  12
+16  Not to happy    &gt;16 Females   3
+17  Pretty happy    &lt;12 Females 155
+18  Pretty happy     12 Females 156
+19  Pretty happy  13-16 Females  95
+20  Pretty happy    &gt;16 Females  15
+21    Very happy    &lt;12 Females  87
+22    Very happy     12 Females 127
+23    Very happy  13-16 Females  76
+24    Very happy    &gt;16 Females  15</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>log_lik_saturated <span class="ot">&lt;-</span> <span class="fu">dmultinom</span>(</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  happy_male<span class="sc">$</span>n,</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">prob =</span> happy_male<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_male<span class="sc">$</span>n),</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">log =</span> <span class="cn">TRUE</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dmultinom</span>(</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>    happy_female<span class="sc">$</span>n,</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">prob =</span> happy_female<span class="sc">$</span>n <span class="sc">/</span> <span class="fu">sum</span>(happy_female<span class="sc">$</span>n),</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">log =</span> <span class="cn">TRUE</span></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>log_lik_saturated</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -57.99938</code></pre>
@@ -753,45 +811,46 @@ School13-16:2   School&gt;16:1   School&gt;16:2
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> (log_lik_saturated <span class="sc">-</span> log_lik_glm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">*</span> (log_lik_saturated <span class="sc">-</span> log_lik_glm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 13.27614</code></pre>
 </div>
 </div>
+<p>This is same as the deviance reported on p.116 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
 </section>
 </section>
-<section id="problems-with-the-reported-standard-errors-and-p-values" class="level2">
-<h2 class="anchored" data-anchor-id="problems-with-the-reported-standard-errors-and-p-values">Problems with the Reported Standard Errors and <span class="math inline">\(p\)</span>-values</h2>
-<p><strong>This bit was slightly unclear to me, Dennis to clarify if I have misunderstood.</strong></p>
-<p>The second part of the the table are treating the model as by treating the years at school as fixed, and fitting a GLM to the data. The standard errors for are hence derived from the Fisher information matrix under the assumption that years at school are fixed. If we really want to understand the model as a whole, we need to treat both <span class="math inline">\(Y_1\)</span> and <span class="math inline">\(Y_2\)</span> as random. In practice this is probably very difficult to do, as we need to tease out the explicit form for the main function and so on.</p>
+<section id="potential-problems-with-the-reported-standard-errors-and-p-values-in-table-3.11-of-fahrmeir_multivariate_2001" class="level2">
+<h2 class="anchored" data-anchor-id="potential-problems-with-the-reported-standard-errors-and-p-values-in-table-3.11-of-fahrmeir_multivariate_2001">Potential problems with the reported Standard Errors and <span class="math inline">\(p\)</span>-values in Table 3.11 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span></h2>
+<p>The model prescribed by display <span class="math inline">\((3.5.3)\)</span> on p.116 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> is by nature one single GLM with <span class="math inline">\((Y_1, Y_2)\)</span> (years of school and happiness levels) as response (precisely, a multinomial response with 1 trial and 12 categories) and <span class="math inline">\(x\)</span> (sex) as the covariate. To properly get the standard errors for all the 14 parameter estimates in Table 3.11, strictly speaking, one should first get an estimate of the <span class="math inline">\(14 \times 14\)</span> Fisher information of this GLM (e.g.&nbsp;use the observed information matrix), and take the 14 diagonal entries of the inverse of it as the estimated variance for these parameter estimates.</p>
+<p>Apparently, the standard errors presented in Table 3.11 are not obtained this way: From <code>summary(happy_logit1_vglm)</code> (which reproduces all the standard deviations for <span class="math inline">\(\theta_1, \theta_2, \theta_3, \beta_1^{(1)}, \beta_2^{(1)}, \beta_3^{(1)}\)</span> in Table 3.11) and <code>summary(happy_logit2_vglm)</code>(which also reproduces the same standard deviations <span class="math inline">\(0.109\)</span> and <span class="math inline">\(0.092\)</span> for <span class="math inline">\(\theta_{11}\)</span> and <span class="math inline">\(\theta_{12}\)</span> in Table 3.11), we can see that these standard errors are only computed based on treating the two conditional models in <span class="math inline">\((3.5.3)\)</span> as two separate GLMs. These may not be the same standard errors we could derive by using the (proper) “one single GLM” approach described in the prior paragraph; I leave it to the interested student to check if the two approaches actually coincide.</p>
 </section>
 <section id="package-citations-and-references" class="level2">
 <h2 class="anchored" data-anchor-id="package-citations-and-references">Package Citations and References</h2>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"conflicted"</span>,</span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Fahrmeir"</span>,</span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tidyr"</span>,</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"VGAM"</span></span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
-<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
-<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"  - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"conflicted"</span>,</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Fahrmeir"</span>,</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tidyr"</span>,</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"VGAM"</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"  - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>

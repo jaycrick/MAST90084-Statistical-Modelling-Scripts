@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-25">
+<meta name="dcterms.date" content="2026-03-29">
 
 <title>Linear Mixed Effects Models – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -107,6 +107,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -190,10 +219,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
   <li><a href="#pulp-brightness-dataset" id="toc-pulp-brightness-dataset" class="nav-link" data-scroll-target="#pulp-brightness-dataset">Pulp Brightness Dataset</a>
   <ul class="collapse">
+  <li><a href="#comparing-reml-vs.-mle-estimation" id="toc-comparing-reml-vs.-mle-estimation" class="nav-link" data-scroll-target="#comparing-reml-vs.-mle-estimation">Comparing REML vs.&nbsp;MLE Estimation</a></li>
+  <li><a href="#extracting-model-components" id="toc-extracting-model-components" class="nav-link" data-scroll-target="#extracting-model-components">Extracting Model Components</a></li>
   <li><a href="#hand-computed-fixed-effect-estimate" id="toc-hand-computed-fixed-effect-estimate" class="nav-link" data-scroll-target="#hand-computed-fixed-effect-estimate">Hand-Computed Fixed Effect Estimate</a></li>
   <li><a href="#model-diagnostics" id="toc-model-diagnostics" class="nav-link" data-scroll-target="#model-diagnostics">Model Diagnostics</a></li>
   </ul></li>
-  <li><a href="#psid-longitudinal-data" id="toc-psid-longitudinal-data" class="nav-link" data-scroll-target="#psid-longitudinal-data">PSID Longitudinal Data</a></li>
+  <li><a href="#psid-longitudinal-data" id="toc-psid-longitudinal-data" class="nav-link" data-scroll-target="#psid-longitudinal-data">PSID Longitudinal Data</a>
+  <ul class="collapse">
+  <li><a href="#reml-vs.-mle-with-random-slopes" id="toc-reml-vs.-mle-with-random-slopes" class="nav-link" data-scroll-target="#reml-vs.-mle-with-random-slopes">REML vs.&nbsp;MLE with Random Slopes</a></li>
+  <li><a href="#random-effects-structure" id="toc-random-effects-structure" class="nav-link" data-scroll-target="#random-effects-structure">Random Effects Structure</a></li>
+  </ul></li>
+  <li><a href="#key-learning-points" id="toc-key-learning-points" class="nav-link" data-scroll-target="#key-learning-points">Key Learning Points</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/10-LM_mixed_effect.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -214,7 +250,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 25, 2026</p>
+      <p class="date">March 29, 2026</p>
     </div>
   </div>
   
@@ -228,12 +264,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>This script demonstrates <strong>linear random effect models</strong> using the lme4 package.</p>
+<p>This script demonstrates <strong>linear mixed effects models</strong> using the lme4 package. Linear mixed models extend traditional regression by allowing both fixed effects (population-level) and random effects (subject-level deviations).</p>
+<p><strong>When to use LMM</strong>: Use LMM when you have repeated measurements on subjects or hierarchically-structured data (students within schools), and want to account for within-group correlation while efficiently estimating population parameters.</p>
 <p>Paper for lme4 package: <a href="https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf" class="uri">https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf</a></p>
 </section>
 <section id="pulp-brightness-dataset" class="level2">
 <h2 class="anchored" data-anchor-id="pulp-brightness-dataset">Pulp Brightness Dataset</h2>
-<p>This example is from p.200, ch 10 of Faraway (2016) on random effect models. The dataset tests paper brightness depending on a shift operator:</p>
+<p>This example is from p.200, ch 10 of Faraway (2016). The dataset measures paper brightness (continuous response) depending on which shift operator prepared the pulp, with multiple brightness measurements from each operator.</p>
+<p>Load packages and data:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -283,7 +321,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 20   60.5        d</code></pre>
 </div>
 </div>
-<p>Use REML estimate for var-cov component by default. Use MLE if you want:</p>
+<section id="comparing-reml-vs.-mle-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="comparing-reml-vs.-mle-estimation">Comparing REML vs.&nbsp;MLE Estimation</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>REML vs.&nbsp;MLE in linear mixed models</strong>: - <strong>REML</strong> (Restricted/Residual Maximum Likelihood): The default; better for estimating variance components because it accounts for loss of degrees of freedom from estimating fixed effects - <strong>MLE</strong> (Maximum Likelihood): Treats variance components and fixed effects jointly; can underestimate variance components</p>
+<p>For inference on fixed effects, both methods yield the same estimates, but their standard errors may differ slightly.</p>
+</div>
+</div>
+<p>Fit two models: REML (default) and MLE:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -291,7 +345,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>smod <span class="ot">&lt;-</span> <span class="fu">lmer</span>(bright <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> operator), pulp, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>mmod is an object of class lmerMod:</p>
+<p>The <code>mmod</code> object is of class lmerMod. Let’s examine both fits:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -347,7 +401,23 @@ Fixed effects:
 (Intercept)  60.4000     0.1294   466.7</code></pre>
 </div>
 </div>
-<p>Note that lmer doesn’t report p-values for their estimates. The between subject SD 0.21 of the MLE method is smaller than the between subject SD 0.26 of the REML method because MLE tends to bias the estimates towards zero.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: Why does the MLE variance estimate differ from REML?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Note that lmer doesn’t report p-values for random effects. The between-subject SD is 0.21 for MLE vs.&nbsp;0.26 for REML because MLE tends to bias variance components downward (underestimation). REML is generally preferred for estimating variance components. However, the fixed effect (mean brightness) is the same: both methods estimate the same fixed intercept.</p>
+</div>
+</div>
+</div>
+<p>Compare fixed effect estimates:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -366,8 +436,23 @@ Fixed effects:
        60.4 </code></pre>
 </div>
 </div>
-<p>The fixed effect estimates of the two methods happen to be the same, but they should generally differ.</p>
-<p>One can also estimate the random effects, which are the posterior means (or modes):</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The fixed effect estimates are the same between REML and MLE for balanced data like this. However, they should generally differ for unbalanced designs.</p>
+</div>
+</div>
+</section>
+<section id="extracting-model-components" class="level3">
+<h3 class="anchored" data-anchor-id="extracting-model-components">Extracting Model Components</h3>
+<p>Extract the random effects (conditional modes/BLUPs for each operator):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -381,6 +466,7 @@ c   0.1676679
 d   0.2133955</code></pre>
 </div>
 </div>
+<p>Variance-covariance matrix for the fixed effects:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -392,7 +478,20 @@ d   0.2133955</code></pre>
 (Intercept)  0.02233333</code></pre>
 </div>
 </div>
-<p>This gives the variance-covariance for the fixed effects, same as 0.1494^2. Section 5.1 in lme4’s JSS paper gives more details on how this is computed.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This gives the variance-covariance for the fixed effects; note that <span class="math inline">\(\sqrt{0.1494^2} \approx 0.1494\)</span> matches the standard error reported. Section 5.1 in lme4’s JSS paper gives more details on how this is computed.</p>
+</div>
+</div>
+<p>Residual standard error (estimated standard deviation for the within-cluster errors):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -402,7 +501,20 @@ d   0.2133955</code></pre>
 <pre><code>[1] 0.3259601</code></pre>
 </div>
 </div>
-<p>Residual standard error (estimated standard deviation for the epsilon errors).</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This is the estimated standard deviation of the observation-level errors <span class="math inline">\(\epsilon_ij\)</span>. The random effects standard deviation is reported separately in the variance-covariance components below.</p>
+</div>
+</div>
+<p>Variance-covariance components (random effects SD and residual SD):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -414,7 +526,7 @@ d   0.2133955</code></pre>
  Residual             0.32596 </code></pre>
 </div>
 </div>
-<p>This reports the estimated random effect std dev and the error std dev.</p>
+<p>Fixed effect coefficient table:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -425,20 +537,28 @@ d   0.2133955</code></pre>
 (Intercept)     60.4  0.1494434 404.1664</code></pre>
 </div>
 </div>
-<p>Fixed effect coefficient, etc.</p>
+</section>
 <section id="hand-computed-fixed-effect-estimate" class="level3">
 <h3 class="anchored" data-anchor-id="hand-computed-fixed-effect-estimate">Hand-Computed Fixed Effect Estimate</h3>
+<p>A key insight of linear mixed models is that they are a special case of generalized least squares (GLS). Let’s verify the fixed effect estimate by hand-computing the GLS solution from the estimated variance structure:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>components <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">VarCorr</span>(mmod))<span class="sc">$</span>vcov</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>Vi <span class="ot">&lt;-</span> components[<span class="dv">2</span>] <span class="sc">*</span> <span class="fu">diag</span>(<span class="dv">5</span>) <span class="sc">+</span> components[<span class="dv">1</span>] <span class="sc">*</span> <span class="fu">tcrossprod</span>(<span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">5</span>))</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract variance components from the model</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>components <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">VarCorr</span>(mmod))<span class="sc">$</span>vcov</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>V <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">bdiag</span>(Vi, Vi, Vi, Vi)</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Build the within-subject variance-covariance matrix for one operator</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (5 measurements per operator)</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>Vi <span class="ot">&lt;-</span> components[<span class="dv">2</span>] <span class="sc">*</span> <span class="fu">diag</span>(<span class="dv">5</span>) <span class="sc">+</span> components[<span class="dv">1</span>] <span class="sc">*</span> <span class="fu">tcrossprod</span>(<span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">5</span>))</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Build the full V matrix (block-diagonal, one block per operator)</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>V <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">bdiag</span>(Vi, Vi, Vi, Vi)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Design matrix (all 1s for the intercept-only model)</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Hand-computed fixed effect estimate:</p>
+<p>Hand-computed GLS estimate of the fixed effect (intercept):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -450,7 +570,7 @@ d   0.2133955</code></pre>
 [1,] 60.4</code></pre>
 </div>
 </div>
-<p>Hand-computed standard error for fixed effect (the usual covariance matrix for the GLS (general least square) estimate):</p>
+<p>Hand-computed standard error (GLS covariance):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -462,11 +582,26 @@ d   0.2133955</code></pre>
 [1,] 0.1494434</code></pre>
 </div>
 </div>
-<p>These numbers check out with ones reported in <code>summary(mmod)$coeff</code>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: Do the hand-computed values match the model output?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>These numbers should check out precisely with those reported in <code>summary(mmod)$coeff</code>. This manual verification demonstrates that lmer is doing generalized least squares under the hood, inverting the estimated variance-covariance structure to give more weight to more-precise observations.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="model-diagnostics" class="level3">
 <h3 class="anchored" data-anchor-id="model-diagnostics">Model Diagnostics</h3>
-<p>One can also plot the residuals as model diagnostics. The default residuals are computed using the estimated random effects. This means these residuals can be regarded as estimates of epsilons which is usually what we want:</p>
+<p>The default residuals are computed using the estimated random effects. These residuals can be regarded as estimates of the observation-level errors <span class="math inline">\(\epsilon_{ij}\)</span>, which is usually what we want for diagnostics:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -491,16 +626,18 @@ d   0.2133955</code></pre>
           1 </code></pre>
 </div>
 </div>
-<p>Compute the residual by hand:</p>
+<p>Compute residuals by hand to verify:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>residual_manual <span class="ot">&lt;-</span> pulp<span class="sc">$</span>bright <span class="sc">-</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="fu">ranef</span>(mmod)<span class="sc">$</span>operator[, <span class="dv">1</span>], <span class="at">each =</span> <span class="dv">5</span>) <span class="sc">-</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fixef</span>(mmod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals = observed - predicted</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co">#           = observed - (fixed effect + random effect)</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>residual_manual <span class="ot">&lt;-</span> pulp<span class="sc">$</span>bright <span class="sc">-</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="fu">ranef</span>(mmod)<span class="sc">$</span>operator[, <span class="dv">1</span>], <span class="at">each =</span> <span class="dv">5</span>) <span class="sc">-</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fixef</span>(mmod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>They check out with the residual reported:</p>
+<p>Verify they match the model output:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -513,11 +650,25 @@ TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
 TRUE TRUE TRUE TRUE </code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>All TRUE! This confirms that the default residuals condition on the estimated random effects. If we used residuals that ignore random effects (<code>residuals(mmod, use.u=FALSE)</code>), we’d get different values that mix operator-level and observation-level variation.</p>
+</div>
+</div>
 </section>
 </section>
 <section id="psid-longitudinal-data" class="level2">
 <h2 class="anchored" data-anchor-id="psid-longitudinal-data">PSID Longitudinal Data</h2>
-<p>From longitudinal data chapter (Ch 11) of Faraway 2016:</p>
+<p>Now we move to a more complex model with <strong>random slopes</strong>. The PSID (Panel Study of Income Dynamics) dataset tracks income over time for individuals, allowing both random intercepts (baseline income) and random slopes (individual income growth rates).</p>
+<p>Load and examine data:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -553,13 +704,29 @@ TRUE TRUE TRUE TRUE </code></pre>
 27  29   16   M  10300   71      2</code></pre>
 </div>
 </div>
+<p>Center time at 1978 to ease interpretation:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>psid<span class="sc">$</span>cyear <span class="ot">&lt;-</span> psid<span class="sc">$</span>year <span class="sc">-</span> <span class="dv">78</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>As explained by Faraway, the year is centered at the year 1978 so that the intercept will predict the log income in 1978, but not 1900!</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Centering predictors</strong>: By centering year at 1978, the intercept in our model will represent log-income in 1978 (a reasonable reference point), not a meaningless extrapolation to year 0.</p>
+</div>
+</div>
+<section id="reml-vs.-mle-with-random-slopes" class="level3">
+<h3 class="anchored" data-anchor-id="reml-vs.-mle-with-random-slopes">REML vs.&nbsp;MLE with Random Slopes</h3>
+<p>Fit a model with both random intercept and random slope (person growth rate varies):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -572,6 +739,7 @@ TRUE TRUE TRUE TRUE </code></pre>
 <span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+<p>Examine REML fit:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -613,6 +781,7 @@ educ       -0.597  0.000  0.008  0.167
 cyear:sexM -0.003 -0.735  0.156 -0.010 -0.011</code></pre>
 </div>
 </div>
+<p>Variance-covariance matrix of fixed effects:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -636,7 +805,23 @@ educ         4.595265e-04 -2.838170e-06
 cyear:sexM  -2.838170e-06  1.497587e-04</code></pre>
 </div>
 </div>
-<p>This time REML and MLE give different fixed effect estimates:</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: When do REML and MLE fixed effects differ?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Compare <code>fixef(mmod)</code> and <code>fixef(smod)</code> below. For unbalanced longitudinal data like PSID (people observed different numbers of times), REML and MLE fixed effects can differ. REML is generally preferable for variance component estimation, but for balanced or near-balanced data, differences are small.</p>
+</div>
+</div>
+</div>
+<p>Compare fixed effect estimates:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -655,6 +840,7 @@ cyear:sexM  -2.838170e-06  1.497587e-04</code></pre>
  6.67595021  0.08522662  1.14996968  0.01092534  0.10412700 -0.02617360 </code></pre>
 </div>
 </div>
+<p>Standard errors of fixed effects:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -665,6 +851,10 @@ cyear:sexM  -2.838170e-06  1.497587e-04</code></pre>
 0.543323402 0.008999455 0.121292411 0.013523710 0.021436569 0.012237594 </code></pre>
 </div>
 </div>
+</section>
+<section id="random-effects-structure" class="level3">
+<h3 class="anchored" data-anchor-id="random-effects-structure">Random Effects Structure</h3>
+<p>Examine the variance-covariance of random effects:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -677,7 +867,65 @@ cyear:sexM  -2.838170e-06  1.497587e-04</code></pre>
  Residual             0.683574      </code></pre>
 </div>
 </div>
-<p>There is a random effect for both intercept and slope, and hence a correlation between them.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: What does the random effects correlation tell us?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>There are two random effects here: 1. Random intercept (baseline log-income in 1978) 2. Random slope (individual’s rate of income growth)</p>
+<p>The correlation between them is negative (~-0.30). This means: people with lower baseline income tend to have faster income growth (in percentage terms), a common pattern in real data. This correlation is estimated; if we had assumed independence (<code>(1 | person) + (0 + cyear | person)</code>), we’d get different (and less accurate) estimates.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="key-learning-points" class="level2">
+<h2 class="anchored" data-anchor-id="key-learning-points">Key Learning Points</h2>
+<ol type="1">
+<li><strong>Mixed models decompose variation</strong>:
+<ul>
+<li>Fixed effects: population-level patterns</li>
+<li>Random effects: subject-level deviations</li>
+<li>Residuals: observation-level variation</li>
+</ul></li>
+<li><strong>REML vs.&nbsp;MLE in LMM</strong>:
+<ul>
+<li>REML: Better for variance components, default choice</li>
+<li>MLE: Useful for likelihood ratio tests comparing fixed effects, slightly biased variance estimates</li>
+<li>For balanced data: estimates nearly identical; differences grow with imbalance</li>
+</ul></li>
+<li><strong>Random intercepts vs.&nbsp;slopes</strong>:
+<ul>
+<li>Random intercept only: parallel lines (same slope, different intercepts)</li>
+<li>Random slopes: lines with different intercepts AND slopes</li>
+<li>Correlation between intercept and slope captures important heterogeneity</li>
+</ul></li>
+<li><strong>Residuals in LMM</strong>:
+<ul>
+<li>Default: condition on random effects (estimate within-group errors)</li>
+<li>Alternative: ignore random effects (mix group and within-group variation)</li>
+<li>Manual verification: Residuals = observed - fitted (fixed + random)</li>
+</ul></li>
+<li><strong>LMM as GLS</strong>:
+<ul>
+<li>LMM solution = generalized least squares with estimated covariance structure</li>
+<li>Hand-computation: build V matrix, compute <span class="math inline">\((Z^T V^{-1} Z)^{-1} Z^T V^{-1} y\)</span></li>
+<li>Upweights precise observations, downweights noisy ones</li>
+</ul></li>
+<li><strong>Centering and scaling</strong>:
+<ul>
+<li>Centering predictors improves interpretability (intercept = marginal mean at center)</li>
+<li>Scaling can improve numerical stability</li>
+<li>Essential for meaningful random slopes</li>
+</ul></li>
+</ol>
 
 
 </section>

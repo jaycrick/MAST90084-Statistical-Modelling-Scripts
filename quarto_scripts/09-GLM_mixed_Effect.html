@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-25">
+<meta name="dcterms.date" content="2026-03-29">
 
 <title>GLM with Mixed Effects – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -205,7 +205,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#results-interpretation" id="toc-results-interpretation" class="nav-link" data-scroll-target="#results-interpretation">Results Interpretation</a></li>
   </ul></li>
   <li><a href="#key-learning-points" id="toc-key-learning-points" class="nav-link" data-scroll-target="#key-learning-points">Key Learning Points</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/09-GLM_mixed_Effect.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -226,7 +225,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 25, 2026</p>
+      <p class="date">March 29, 2026</p>
     </div>
   </div>
   
@@ -241,9 +240,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
 <p>This script demonstrates <strong>Generalized Linear Mixed Models (GLMM)</strong> for handling <strong>subject-specific random effects</strong> in longitudinal and ordinal data.</p>
+<p><strong>When to use GLMM</strong>: Use GLMM when you have clustered or repeated measurements and want subject-specific (conditional) estimates accounting for within-subject correlation via random effects. GLMM differs from GEE—it provides subject-specific effects rather than population-average effects.</p>
 <p>Methods covered: - Laplace approximation via <code>glmer()</code> (lme4) - Adaptive Gauss-Hermite quadrature (AGHQ) for improved accuracy - Penalized Quasi-Likelihood (PQL) via <code>glmmPQL()</code> (MASS) - Ordinal mixed models via <code>clmm()</code> (ordinal)</p>
 <section id="available-glmm-software-comparison" class="level3">
 <h3 class="anchored" data-anchor-id="available-glmm-software-comparison">Available GLMM Software Comparison</h3>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>Many R packages exist for fitting GLMMs, using different estimation methods:</p>
 <ul>
 <li><strong>MASS::glmmPQL</strong>: Penalized quasi-likelihood</li>
@@ -256,10 +266,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>gamlss.mx</strong>, <strong>ASREML-R</strong>, <strong>sabreR</strong>, <strong>mcemGLM</strong>: Other specialized approaches</li>
 </ul>
 <p>We’ll focus on the most commonly used: <code>glmer()</code>, <code>glmmPQL()</code>, and <code>clmm()</code>.</p>
+</div>
+</div>
 </section>
 </section>
 <section id="ohio-respiratory-data-setup" class="level2">
 <h2 class="anchored" data-anchor-id="ohio-respiratory-data-setup">Ohio Respiratory Data Setup</h2>
+<p>The Ohio respiratory dataset contains repeated respiratory status measurements (yes/no) for children in a longitudinal study, with covariates including age and smoking status. We’ll fit GLMM models to account for within-child correlation using random intercepts.</p>
 <p>Load required packages and prepare the Ohio respiratory dataset:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -315,7 +328,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>[1] "integer"</code></pre>
 </div>
 </div>
-<p>Convert age and smoke to factors, and set up effect coding to match Fahrmeir &amp; Tutz:</p>
+<p>Convert age and smoke to factors.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -342,7 +355,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 1 1</code></pre>
 </div>
 </div>
-<p>Set effect coding (Fahrmeir &amp; Tutz use this parameterization):</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Contrast coding matters</strong>: The default treatment contrasts compare each level to a reference category. Fahrmeir &amp; Tutz use effect coding (also called “sum” contrasts), where each level compares to the overall mean. This affects coefficient interpretation but not model fit or predictions—only the parameterization changes.</p>
+</div>
+</div>
+<p>Now adjust to effect coding (Fahrmeir &amp; Tutz use this parameterization):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -378,9 +404,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 1    1</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: How does effect coding differ from treatment coding?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>With treatment coding (dummy variables), coefficients represent differences from a reference level. With effect coding (sum contrasts), coefficients represent differences from the grand mean. Both are valid parameterizations; changing contrasts doesn’t change the model’s predictions or likelihood, only the interpretation of individual coefficients.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="glmm-via-laplace-approximation" class="level2">
 <h2 class="anchored" data-anchor-id="glmm-via-laplace-approximation">GLMM via Laplace Approximation</h2>
+<p>The Laplace approximation is a fast method for numerical integration in GLMM. It approximates the integral in the likelihood using a Taylor expansion around the maximum of the integrand. The <code>glmer()</code> function implements both Laplace and more accurate methods (AGHQ).</p>
 <p>The default <code>glmer()</code> approach uses the <strong>Laplace approximation</strong>, which is fast and reasonably accurate. The Nelder-Mead optimizer is recommended by Faraway (2016):</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -447,9 +490,26 @@ Model failed to converge with max|grad| = 0.0589875 (tol = 0.002, component 1)
   See ?lme4::convergence and ?lme4::troubleshooting.</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: What does the <code>(1 | id)</code> formula mean?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This specifies a random intercept model: <code>(1 | id)</code> means each subject (<code>id</code>) has its own random intercept drawn from a normal distribution with mean 0 and estimated standard deviation. The <code>1</code> represents the intercept term; <code>| id</code> conditions on subject ID. This allows each subject to have a different baseline probability of respiratory status while maintaining a common effect of the fixed covariates.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="glmm-via-adaptive-gauss-hermite-quadrature" class="level2">
 <h2 class="anchored" data-anchor-id="glmm-via-adaptive-gauss-hermite-quadrature">GLMM via Adaptive Gauss-Hermite Quadrature</h2>
+<p>Adaptive Gauss-Hermite quadrature (AGHQ) provides more accurate numerical integration than the Laplace approximation by using multiple quadrature points. Using more points trades computation time for accuracy.</p>
 <p>More accurate numerical integration with <code>nAGQ</code>. Using 10 quadrature points closely reproduces the numbers in Table 7.2 of Fahrmeir &amp; Tutz:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -517,7 +577,36 @@ Model failed to converge with max|grad| = 0.00324444 (tol = 0.002, component 1)
   See ?lme4::convergence and ?lme4::troubleshooting.</code></pre>
 </div>
 </div>
-<p>“Estimate” the random effects, which are conditional modes as indicated by the documentation of <code>ranef()</code>:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Laplace vs.&nbsp;AGHQ</strong>: Laplace (<code>nAGQ = 1</code>, the default) is fast. AGHQ with <code>nAGQ = 10</code> or higher is slower but more accurate, especially when random effects have large variance relative to fixed effects. Compare the coefficients and standard errors: if they’re similar, Laplace is sufficiently accurate.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: Why do the AGHQ estimates differ from Laplace?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>AGHQ uses multiple quadrature points to numerically integrate over random effects, while Laplace uses only one point (the mode of the integrand). AGHQ is more accurate, especially when the random effect distribution is far from normal or has large variance. Comparing the two helps assess whether the Laplace approximation was adequate.</p>
+</div>
+</div>
+</div>
+<p>Extract the random effects (conditional modes/BLUPs):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1065,10 +1154,24 @@ Model failed to converge with max|grad| = 0.00324444 (tol = 0.002, component 1)
 536   4.3731743</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Conditional modes vs.&nbsp;random effects</strong>: These are the estimated subject-specific deviations from the fixed effect intercept, representing each subject’s baseline relative to the population average. These are conditional on the observed data (hence “conditional modes” or BLUPs—Best Linear Unbiased Predictions).</p>
+</div>
+</div>
 </section>
 <section id="alternative-penalized-quasi-likelihood" class="level2">
 <h2 class="anchored" data-anchor-id="alternative-penalized-quasi-likelihood">Alternative: Penalized Quasi-Likelihood</h2>
-<p>This is an alternative (and faster) method for fitting GLMM that doesn’t require numerical integration. See Chapter 13 in Faraway (2016) for more details. This approach is based on penalized quasi-likelihood:</p>
+<p>Penalized quasi-likelihood (PQL) is an alternative (and much faster) method that doesn’t require numerical integration. It iteratively fits a linear mixed model to transformed data. While faster, PQL is less accurate than Laplace/AGHQ.</p>
+<p>This is an alternative method for fitting GLMM that doesn’t require numerical integration. See Chapter 13 in Faraway (2016) for more details. This approach is based on penalized quasi-likelihood:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1149,7 +1252,23 @@ Number of Observations: 2148
 Number of Groups: 537 </code></pre>
 </div>
 </div>
-<p>This should use the version of <code>ranef()</code> from the nlme package:</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: How do PQL estimates compare to Laplace?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Compare the coefficients and standard errors from <code>glmm_pql_fit</code> to <code>glmer_fit</code>. PQL often underestimates standard errors and can bias coefficients, especially when random effect variance is large. If estimates are quite different, Laplace or AGHQ is more reliable. PQL’s main advantage is speed for very large datasets.</p>
+</div>
+</div>
+</div>
+<p>Extract random effects (using nlme’s <code>ranef()</code>):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1168,7 +1287,8 @@ Number of Groups: 537 </code></pre>
 </section>
 <section id="wine-bitterness-ordinal-mixed-models" class="level2">
 <h2 class="anchored" data-anchor-id="wine-bitterness-ordinal-mixed-models">Wine Bitterness: Ordinal Mixed Models</h2>
-<p>Now we demonstrate <strong>ordinal regression with random effects</strong> on the wine tasting dataset from the ordinal package.</p>
+<p>Now we demonstrate <strong>ordinal regression with random effects</strong>. Ordinal outcomes (like wine quality ratings: poor, acceptable, excellent) have a natural ordering but unequal spacing. Cumulative link models (CLM, proportional odds models) respect this ordering.</p>
+<p>The wine tasting dataset from the ordinal package contains tasting ratings of wines across different judges (random effects), temperatures, and contact types.</p>
 <section id="data-setup-and-contrast-coding" class="level3">
 <h3 class="anchored" data-anchor-id="data-setup-and-contrast-coding">Data Setup and Contrast Coding</h3>
 <div class="cell">
@@ -1273,6 +1393,19 @@ warm    0</code></pre>
 </section>
 <section id="fixed-effects-ordinal-model-polr" class="level3">
 <h3 class="anchored" data-anchor-id="fixed-effects-ordinal-model-polr">Fixed Effects Ordinal Model: polr()</h3>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Ordinal models</strong>: The <code>polr()</code> function fits proportional odds (cumulative logit) models. It assumes the covariate effects are the same across all thresholds (proportional odds assumption). If this is violated, the sequential or partial proportional odds models may be needed.</p>
+</div>
+</div>
 <p>Fit using <code>MASS::polr()</code> for comparison with the ordinal package:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -1346,6 +1479,19 @@ Threshold coefficients:
 <div class="cell-output cell-output-stdout">
 <pre><code>       1|2        2|3        3|4        4|5      temp1   contact1 
 -3.8474854 -1.2522932  0.9637849  2.5033022 -2.5031020  1.5277977 </code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>polr() vs.&nbsp;clm()</strong>: Both fit proportional odds models, but they differ in implementation details and output format. <code>polr()</code> from MASS is more mature; <code>clm()</code> from ordinal allows mixed models via its sister function <code>clmm()</code>. The coefficients may differ slightly due to optimization differences.</p>
 </div>
 </div>
 </section>
@@ -1431,6 +1577,22 @@ Threshold coefficients:
 4|5   3.0243     0.7177   4.214</code></pre>
 </div>
 </div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: How do fixed effect magnitudes change with judge random effects?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The fixed-effect coefficients (for <code>temp</code> and <code>contact</code>) typically have larger (in absolute value) magnitudes in the mixed model than the fixed effects model. Why? The random effects absorb judge-level heterogeneity, so the fixed effects must work harder to explain remaining variation. This is typical: ignoring random effects can bias fixed effect estimates downward.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="results-interpretation" class="level3">
 <h3 class="anchored" data-anchor-id="results-interpretation">Results Interpretation</h3>
@@ -1438,7 +1600,7 @@ Threshold coefficients:
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitted values</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitted values for first few observations</span></span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(wine_mixed_fit<span class="sc">$</span>fitted.values)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1446,7 +1608,7 @@ Threshold coefficients:
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Contrast structure</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Contrast structure used in the model</span></span>
 <span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>wine_mixed_fit<span class="sc">$</span>contrasts</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1486,27 +1648,37 @@ yes    1</code></pre>
 <section id="key-learning-points" class="level2">
 <h2 class="anchored" data-anchor-id="key-learning-points">Key Learning Points</h2>
 <ol type="1">
-<li><strong>Subject-specific vs.&nbsp;population-average</strong>: GLMM coefficients are conditional (subject-specific), differing from GEE marginal effects</li>
-<li><strong>Estimation methods</strong>:
+<li><strong>Subject-specific vs.&nbsp;population-average</strong>:
 <ul>
-<li><strong>Laplace</strong>: Fast, reasonable accuracy</li>
-<li><strong>AGHQ</strong>: Slower, higher accuracy (more quadrature points = better approximation)</li>
-<li><strong>PQL</strong>: Fastest, lower accuracy (avoids integration entirely)</li>
+<li>GLMM coefficients are conditional (subject-specific), differing from GEE marginal effects</li>
+<li>GLMM: “Controlling for subject effects…”</li>
+<li>GEE: “On average across subjects…”</li>
 </ul></li>
-<li><strong>Random effects</strong>: Represent between-subject heterogeneity; extracted as conditional modes</li>
-<li><strong>Ordinal mixed models</strong>: Use <code>clmm()</code> for cumulative link models with random effects</li>
-<li><strong>Contrast coding</strong>: Effect coding vs.&nbsp;dummy coding changes coefficient interpretation but not model fit</li>
-</ol>
-</section>
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
+<li><strong>Estimation methods trade-off accuracy vs.&nbsp;speed</strong>:
 <ul>
-<li>Fahrmeir, L. &amp; Tutz, G. (2001). <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em> (2nd ed.)</li>
-<li>Faraway, J. J. (2016). <em>Extending the Linear Model with R</em> (2nd ed.), Chapter 13</li>
-<li>Venables, W. N., &amp; Ripley, B. D. (2002). Modern applied statistics with S (4th ed.)</li>
-<li><a href="https://cran.r-project.org/package=lme4">lme4 documentation</a></li>
-<li><a href="https://cran.r-project.org/package=ordinal">ordinal package documentation</a></li>
-</ul>
+<li><strong>Laplace</strong>: Fast, reasonable accuracy (1st-order Taylor approx.)</li>
+<li><strong>AGHQ with nAGQ=10</strong>: Slower, higher accuracy (multi-point quadrature)</li>
+<li><strong>PQL</strong>: Fastest, lower accuracy (iterative linear approximation)</li>
+</ul></li>
+<li><strong>Random effects interpretation</strong>:
+<ul>
+<li>Represent between-subject heterogeneity (deviations from population average)</li>
+<li>Extracted as conditional modes (BLUPs)</li>
+<li>Conditional on observed data</li>
+</ul></li>
+<li><strong>Contrast coding effects</strong>:
+<ul>
+<li>Treatment contrasts: compare to reference level</li>
+<li>Effect contrasts: compare to grand mean</li>
+<li>Changes coefficient interpretation, not model fit</li>
+</ul></li>
+<li><strong>Ordinal mixed models</strong>:
+<ul>
+<li>Use <code>clmm()</code> for cumulative link models with random effects</li>
+<li>Proportional odds assumption: effects same across all thresholds</li>
+<li>Fixed effect magnitudes increase when random effects included (effect capture)</li>
+</ul></li>
+</ol>
 
 
 </section>

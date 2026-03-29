@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-25">
+<meta name="dcterms.date" content="2026-03-29">
 
 <title>(Quasi-)Poisson GLM: Cell Differentiation Study – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -274,7 +274,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 25, 2026</p>
+      <p class="date">March 29, 2026</p>
     </div>
   </div>
   
@@ -307,7 +307,7 @@ window.Quarto = {
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Thorough MASS documentation is available in the book <a href="https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2">Modern Applied Statistics with S (MASS)</a> <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span> which is available to you for free.</p>
+<p>Thorough MASS documentation is available in the book <a href="https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-0-387-21706-2" target="_blank">Modern Applied Statistics with S (MASS)</a> <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span> which is available to you for free.</p>
 </section>
 <section id="example-2.3-p.-37-cell-differentiation-data" class="level2">
 <h2 class="anchored" data-anchor-id="example-2.3-p.-37-cell-differentiation-data">Example 2.3 (p.&nbsp;37): Cell Differentiation Data</h2>
@@ -343,7 +343,7 @@ window.Quarto = {
 16   193   100   100</code></pre>
 </div>
 </div>
-<p>All the variables are encoded as integers and so we do not need to manipulate the data types. It is also good practice in RStudio to run <code>?cells</code> to inspect <a href="https://search.r-project.org/CRAN/refmans/Fahrmeir/html/cells.html">the documentation for the dataset</a>.</p>
+<p>All the variables are encoded as integers and so we do not need to manipulate the data types. It is also good practice in RStudio to run <code>?cells</code> to inspect <a href="https://search.r-project.org/CRAN/refmans/Fahrmeir/html/cells.html" target="_blank">the documentation for the dataset</a>.</p>
 </section>
 <section id="fit-poisson-glm-model" class="level3">
 <h3 class="anchored" data-anchor-id="fit-poisson-glm-model">Fit Poisson GLM Model</h3>
@@ -360,7 +360,7 @@ window.Quarto = {
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>The default link is the log link, meaning that we assume <span class="math inline">\(\log(\texttt{y})\)</span> depends linearly on the covariates.</p>
+<p>The default link is the log link, meaning that we assume <span class="math inline">\(\log(\mu)\)</span> depends linearly on the covariates.</p>
 </div>
 </div>
 </div>
@@ -570,14 +570,14 @@ Warning
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>There is an important caveat to this result. The sample size of the data is <span class="math inline">\(16\)</span>, since the data isn’t actually grouped. Since this is equal to the degrees of freedom in the saturated model, the dimensionality of the model grows with more samples (which must necessarily be new unique combinations of the covariates). Therefore the asymptotics are not fully valid, since we don’t have a stabilising null distribution. For more information see what the biostatistician Jonathan Bartlett says in <a href="https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/">his blog post</a>.</p>
-<p>There is a case to redeem the tests when the mean of the Poisson random variables are large (given by <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> p.&nbsp;54 in this example). Heuristically, this is because the Poisson distribution looks normal (see the <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Wikipedia page on the Poisson distribution</a> for a visual demonstration), and for the normal distribution, the chi-squared distribution is exact. For more information see also <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span> page 187.</p>
+<p>There is an important caveat to this result. The sample size of the data is <span class="math inline">\(16\)</span>, since the data isn’t actually grouped. Since this is equal to the degrees of freedom in the saturated model, the dimensionality of the model grows with more samples. Therefore the asymptotics are not fully valid, since we don’t have a stabilising null distribution. For more information see what the biostatistician Jonathan Bartlett says in <a href="https://thestatsgeek.com/2014/04/26/deviance-goodness-of-fit-test-for-poisson-regression/" target="_blank">his blog post</a>.</p>
+<p>There is a case to redeem the tests when the mean of the Poisson random variables are large (given by <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> p.&nbsp;54 in this example). Heuristically, this is because the Poisson distribution looks normal (see the <a href="https://en.wikipedia.org/wiki/Poisson_distribution" target="_blank">Wikipedia page on the Poisson distribution</a> for a visual demonstration), and for the normal distribution, the chi-squared distribution is exact. For more information see also <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span> page 187.</p>
 </div>
 </div>
 </section>
 <section id="fit-a-quasi-poisson-glm-model" class="level3">
 <h3 class="anchored" data-anchor-id="fit-a-quasi-poisson-glm-model">Fit a Quasi-Poisson GLM Model</h3>
-<p>Having rejected the Poisson model, we move to a quasi “model-based” (also known as “naive”) approach by loosening the variance structure, but still assuming we can correctly specify it. We start with a linear and overdispersed quasi-Poisson variance structure <span class="math inline">\(\sigma^2(\mu) = \phi\mu\)</span>, and we will try to replicate the results copied below, of Table 2.6 on page 54 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, showing the comparison between the two models:</p>
+<p>Having rejected the Poisson model, we move to a quasi “model-based” (also known as “naive”) approach by loosening the variance structure, but still assuming we can correctly specify it. We start with a linear and overdispersed quasi-Poisson variance structure <span class="math inline">\(\sigma^2(\mu) = \phi\mu\)</span>, and we will try to replicate the results of Table 2.6 on page 54 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> copied below (we have corrected the coefficient estimate -0.001 reported for <code>TNF*IFN</code>in the book to -0.0001 according to our own fits), showing the comparison between the two models:</p>
 <div id="tbl-poisson-compare" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-poisson-compare-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -610,8 +610,8 @@ Table&nbsp;1: Log-linear model fits to cellular differentiation data based on Po
 </tr>
 <tr class="even">
 <td style="text-align: center;"><code>TNF*IFN</code></td>
-<td style="text-align: right;">-.001 (.0)</td>
-<td style="text-align: right;">-.001 (.22)</td>
+<td style="text-align: right;">-.0001 (.0)</td>
+<td style="text-align: right;">-.0001 (.22)</td>
 </tr>
 </tbody>
 </table>
@@ -683,6 +683,7 @@ TNF:IFN     -0.00006    0.00005 -1.22748  0.24318</code></pre>
 </div>
 </div>
 <p>We see that the coefficients are the exact same and match <a href="#tbl-poisson-compare" class="quarto-xref">Table&nbsp;1</a>, but the standard errors between the two models are significantly different. This is because the estimating equations in both the standard and quasi-Poisson models are identical, giving us identical coefficient estimates, but the dispersion parameter effects our standard errors.</p>
+<p>Moreover, the <span class="math inline">\(p\)</span>-values reported for the coefficients in <code>glm_quasi_poisson_summary</code> are calibrated based on the <span class="math inline">\(t_{n-p}= t_{16-4}\)</span> distribution, which are a bit different from those in <a href="#tbl-poisson-compare" class="quarto-xref">Table&nbsp;1</a> calibrated only based on a standard normal distribution. For example, taking the rescaled coefficient estimate <span class="math inline">\(-1.22748\)</span> for <code>TNF:IFN</code>, calibrating based on the standard normal gives <code>2*(pnorm(1.22748, lower.tail = F)) = 0.2196422</code>, while calibrating based on <span class="math inline">\(t_{12}\)</span> gives <code>2*(pt(1.22748, df = 12,  lower.tail = F)) = 0.2431777</code>.</p>
 <p>As with the typical <code>glm()</code> and <code>lm()</code> analysis, we can still use the standard <code>anova()</code> function, and extract the various residuals:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -742,7 +743,7 @@ IFN         -5.221287e-04  5.359056e-06  1.097018e-05 -1.133891e-07
 TNF:IFN      5.359050e-06 -9.036512e-08 -1.133891e-07  2.133699e-09</code></pre>
 </div>
 </div>
-<p>We can do a sanity check in order to determine if we can recover the scaled deviance.</p>
+<p>We can do a sanity check in order to determine if we can recover the scaled covariance matrix</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -926,8 +927,8 @@ Caution
 <caption>Log-linear model fits to cellular differentiation data based on quasi-likelihoods (Table 2.7, p.&nbsp;60)</caption>
 <colgroup>
 <col style="width: 20%">
-<col style="width: 36%">
-<col style="width: 42%">
+<col style="width: 38%">
+<col style="width: 41%">
 </colgroup>
 <thead>
 <tr class="header">

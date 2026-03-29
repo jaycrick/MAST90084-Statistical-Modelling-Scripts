@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-25">
+<meta name="dcterms.date" content="2026-03-29">
 
 <title>Sequential Regression: Tonsil Size and Streptococcus – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -265,7 +265,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 25, 2026</p>
+      <p class="date">March 29, 2026</p>
     </div>
   </div>
   
@@ -369,8 +369,8 @@ window.Quarto = {
 <ul>
 <li><code>mutate(...)</code>: creates or updates columns; here it rewrites <code>Size</code> as a labelled factor.</li>
 <li><code>factor(...)</code>: converts numeric codes (<code>1, 2, 3</code>) into ordered category labels used in output.</li>
-<li><code>dplyr::select(Streptococcus.p, Size, n)</code>: keeps only the columns needed for reshaping.</li>
-<li><code>pivot_wider(names_from = Size, values_from = n)</code>: converts long data into wide data, so each size category becomes its own count column.</li>
+<li><code>dplyr::select(Streptococcus.p, Size, n)</code>: keeps only the columns needed for reshaping; in this case we want all three.</li>
+<li><code>pivot_wider(names_from = Size, values_from = n)</code>: converts long data into wide data, so each size category becomes its own count column. The <code>name_from</code> argument says we want the content of the <code>Size</code> column to become our column names, and the <code>values_from</code> argument says we want the content of the <code>n</code> column to become the cell values.</li>
 <li><code>|&gt;</code>: passes the result of one step to the next, making the workflow readable top-to-bottom.</li>
 </ul>
 </div>
@@ -379,7 +379,7 @@ window.Quarto = {
 </section>
 <section id="understanding-factor-coding" class="level3">
 <h3 class="anchored" data-anchor-id="understanding-factor-coding">Understanding Factor Coding</h3>
-<p>As in the other scripts, we want to ensure effect coding (<code>contr.sum</code>) is used for factors. This gives coefficients that are directly comparable to the textbook output.</p>
+<p>As in the other scripts, we want to ensure effect coding (<code>contr.sum</code>) is used for factors. This gives coefficients that are directly comparable to the textbook output on p.97.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
