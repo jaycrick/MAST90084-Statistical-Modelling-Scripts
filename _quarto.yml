@@ -28,10 +28,10 @@ website:
             file: quarto_scripts/05-tonsil.qmd
           - text: "Conditional Models: Happiness Data"
             file: quarto_scripts/06-Happiness.qmd
-          # - text: "Ohio Data"
-          #   file: quarto_scripts/07-ohio.qmd
-          # - text: "GEE CTSIB"
-          #   file: quarto_scripts/08-gee_ctsib.qmd
+          - text: "Marginal Models: Ohio Respiratory Data"
+            file: quarto_scripts/07-ohio.qmd
+          - text: "Generalized Estimating Equations: CTSIB Balance Test Data"
+            file: quarto_scripts/08-gee_ctsib.qmd
           # - text: "GLM Mixed Effects"
           #   file: quarto_scripts/09-GLM_mixed_Effect.qmd
           # - text: "LM Mixed Effects"

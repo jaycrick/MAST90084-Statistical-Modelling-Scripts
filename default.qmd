@@ -19,12 +19,14 @@ Use the **Scripts** menu above, or jump directly to one of the guides below.
 -   [Sequential Regression: Tonsil Size](quarto_scripts/05-tonsil.qmd)
 -   [Conditional Models: Happiness Data](quarto_scripts/06-Happiness.qmd)
 -   [Marginal Models: Ohio Data](quarto_scripts/07-ohio.qmd)
+-   [Generalized Estimating Equations: CTSIB Balance Test Data](quarto_scripts/08-gee_ctsib.qmd)
+
+### Appendices
 -   [Appendix 1: Dispersion with Working Residuals](quarto_scripts/A1-dispersion-working-residuals.qmd)
 -   [Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data](quarto_scripts/A2-likelihood-multinomial.qmd)
 
 ```{=html}
 <!--
-- [GEE CTSIB](quarto_scripts/08-gee_ctsib.qmd)
 - [GLM Mixed Effects](quarto_scripts/09-GLM_mixed_Effect.qmd)
 - [LM Mixed Effects](quarto_scripts/10-LM_mixed_effect.qmd)
 - [Survival Analysis](quarto_scripts/11-survival.qmd)
