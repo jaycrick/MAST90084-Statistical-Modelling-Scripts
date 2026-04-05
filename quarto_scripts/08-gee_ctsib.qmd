@@ -1,6 +1,6 @@
 ---
-title: "GEE Analysis: CTSIB Balance Test Data"
-subtitle: "Generalized Estimating Equations for Repeated Measures"
+title: "Generalized Estimating Equations: CTSIB Balance Test Data"
+subtitle: "@faraway_extending_2016 Section 13.5"
 date: last-modified
 editor:
   markdown:
@@ -10,8 +10,8 @@ editor:
 
 ## Overview
 
-We now look at the CTSIB balance test dataset from the very applied book by @faraway_extending_2016, which can be [accessed online](https://research.ebsco.com/linkprocessor/plink?id=5afd4aeb-02b7-35f6-8bbc-37c1e32f74dc).
-We are looking at page 292 of the 2nd edition (2016).
+We now look at the CTSIB balance test dataset from the very applied book by @faraway_extending_2016, which can be [accessed online](https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53).
+In the second edition of this book, it is in section 13.5, page 292.
 
 ## Data Setup
 
@@ -45,11 +45,9 @@ ctsib_tbl <- as_tibble(ctsib)
 head(ctsib_tbl, 20)
 ```
 
-The data types for each variable are appropriate.
-
 ### Creating Binary Response
 
-We convert the ordinal CTSIB outcome into a binary variable indicating "stable" vs. "not stable" balance.
+We convert the ordinal CTSIB outcome into a binary variable indicating "stable" (when `CTSIB == 1`) vs. "not stable" balance.
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-4
@@ -60,10 +58,15 @@ ctsib_tbl <- ctsib_tbl |>
 ctsib_tbl
 ```
 
-## GEE with Exchangeable Correlation
+## Fitting the Model with `gee::gee()`
 
-We fit a GEE model assuming **exchangeable correlation structure** among repeated measurements within each subject.
-This assumes all pairs of measurements on the same subject have the same correlation, regardless of their temporal distance.
+We fit a model using the generalised estimating equations assuming **exchangeable correlation structure** among repeated measurements within each subject.
+
+::: {.callout-important collapse="true"}
+## SELF TEST: What is the Exchangeable Correlation Structure?
+
+The exchangeable correlation structure assumes that any pair of observations within the same cluster (subject) has the same correlation.
+:::
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-5
