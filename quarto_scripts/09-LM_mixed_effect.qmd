@@ -1,6 +1,6 @@
 ---
-title: "Linear Mixed Effects Models"
-subtitle: "Random Intercept and Random Slope Models"
+title: "Linear Mixed Effects Models: Pulp Brightness and PSID Longitudinal Data"
+subtitle: "@faraway_extending_2016 Sections 10.1 and 11.1"
 date: last-modified
 editor:
   markdown:
@@ -8,21 +8,12 @@ editor:
     canonical: true
 ---
 
-## Overview
+## Data Loading
 
-This script demonstrates **linear mixed effects models** using the lme4 package.
-Linear mixed models extend traditional regression by allowing both fixed effects (population-level) and random effects (subject-level deviations).
+This script demonstrates **linear mixed effects models** using the `lme4` package, by @bates_fitting_2015, using the example in @faraway_extending_2016 section 10.1, page 200.
+This package is the standard package for fitting mixed effects models.
 
-**When to use LMM**: Use LMM when you have repeated measurements on subjects or hierarchically-structured data (students within schools), and want to account for within-group correlation while efficiently estimating population parameters.
-
-Paper for lme4 package: <https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf>
-
-## Pulp Brightness Dataset
-
-This example is from p.200, ch 10 of Faraway (2016).
-The dataset measures paper brightness (continuous response) depending on which shift operator prepared the pulp, with multiple brightness measurements from each operator.
-
-Load packages and data:
+The first dataset we use measures paper brightness (continuous response) depending on which shift operator prepared the pulp.
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-1
@@ -32,15 +23,21 @@ library(lme4)
 library(tibble)
 ```
 
+As always we can run `?pulp` to get information about the dataset:
+
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-2
-help(pulp)
+#| eval: false
+?pulp
 ```
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-3
-pulp
+pulp_tbl <- as_tibble(pulp)
+pulp_tbl
 ```
+
+We can see that there are 20 observations of brightness, with 5 measurements for each of 4 operators.
 
 ### Comparing REML vs. MLE Estimation
 
@@ -54,8 +51,8 @@ Fit two models: REML (default) and MLE:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-4
-mmod <- lmer(bright ~ 1 + (1 | operator), pulp)
-smod <- lmer(bright ~ 1 + (1 | operator), pulp, REML = FALSE)
+mmod <- lmer(bright ~ 1 + (1 | operator), pulp_tbl)
+smod <- lmer(bright ~ 1 + (1 | operator), pulp_tbl, REML = FALSE)
 ```
 
 The `mmod` object is of class lmerMod.
@@ -203,8 +200,8 @@ Compute residuals by hand to verify:
 # Residuals = observed - predicted
 #           = observed - (fixed effect + random effect)
 residual_manual <- pulp$bright -
-  rep(ranef(mmod)$operator[, 1], each = 5) -
-  fixef(mmod)
+    rep(ranef(mmod)$operator[, 1], each = 5) -
+    fixef(mmod)
 ```
 
 Verify they match the model output:
@@ -222,14 +219,16 @@ If we used residuals that ignore random effects (`residuals(mmod, use.u=FALSE)`)
 
 ## PSID Longitudinal Data
 
-Now we move to a more complex model with **random slopes**.
-The PSID (Panel Study of Income Dynamics) dataset tracks income over time for individuals, allowing both random intercepts (baseline income) and random slopes (individual income growth rates).
+Now we fit a model with **random slopes**.
+The Panel Study of Income Dynamics (PSID) dataset tracks income over time for individuals.
+We use `log(income)` as the response.
 
 Load and examine data:
 
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-19
-help(psid)
+#| eval: false
+?psid
 ```
 
 ```{r}
@@ -257,9 +256,9 @@ Fit a model with both random intercept and random slope (person growth rate vari
 mmod <- lmer(log(income) ~ cyear * sex + age + educ + (cyear | person), psid)
 
 smod <- lmer(
-  log(income) ~ cyear * sex + age + educ + (cyear | person),
-  psid,
-  REML = FALSE
+    log(income) ~ cyear * sex + age + educ + (cyear | person),
+    psid,
+    REML = FALSE
 )
 ```
 
