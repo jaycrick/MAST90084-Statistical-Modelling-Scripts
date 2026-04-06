@@ -8,16 +8,7 @@ editor:
     canonical: true
 ---
 
-## Overview
-
-This script demonstrates **Generalized Linear Mixed Models (GLMM)** for handling **subject-specific random effects** in longitudinal and ordinal data.
-
-**When to use GLMM**: Use GLMM when you have clustered or repeated measurements and want subject-specific (conditional) estimates accounting for within-subject correlation via random effects.
-GLMM differs from GEE—it provides subject-specific effects rather than population-average effects.
-
-Methods covered: - Laplace approximation via `glmer()` (lme4) - Adaptive Gauss-Hermite quadrature (AGHQ) for improved accuracy - Penalized Quasi-Likelihood (PQL) via `glmmPQL()` (MASS) - Ordinal mixed models via `clmm()` (ordinal)
-
-### Available GLMM Software Comparison
+## Available GLMM Software Comparison
 
 ::: callout-tip
 Many R packages exist for fitting GLMMs, using different estimation methods:
@@ -39,68 +30,34 @@ We'll focus on the most commonly used: `glmer()`, `glmmPQL()`, and `clmm()`.
 The Ohio respiratory dataset contains repeated respiratory status measurements (yes/no) for children in a longitudinal study, with covariates including age and smoking status.
 We'll fit GLMM models to account for within-child correlation using random intercepts.
 
-Load required packages and prepare the Ohio respiratory dataset:
+Load required packages and do the standard preparation of the Ohio respiratory dataset:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-1
 library(conflicted)
+library(dplyr)
 library(lme4)
 library(geepack)
 library(ordinal)
 library(MASS)
-```
 
-Load and examine the data structure:
+ohio_tbl <- as_tibble(ohio)
+ohio_tbl
 
-```{r}
-#| label: 10-glm-mixed-effect-chunk-2
-head(ohio)
-
-# Check current variable classes
-class(ohio$resp)
-class(ohio$age)
-class(ohio$smoke)
-```
-
-Convert age and smoke to factors.
-
-```{r}
-#| label: 10-glm-mixed-effect-chunk-3
-ohio$age <- as.factor(ohio$age)
-ohio$smoke <- as.factor(ohio$smoke)
+ohio_tbl <- mutate(ohio_tbl, across(c(age, smoke), factor))
 
 # Check default contrasts
-contrasts(ohio$age)
-contrasts(ohio$smoke)
-```
+contrasts(ohio_tbl$age)
+contrasts(ohio_tbl$smoke)
 
-::: callout-note
-**Contrast coding matters**: The default treatment contrasts compare each level to a reference category.
-Fahrmeir & Tutz use effect coding (also called "sum" contrasts), where each level compares to the overall mean.
-This affects coefficient interpretation but not model fit or predictions—only the parameterization changes.
-:::
-
-Now adjust to effect coding (Fahrmeir & Tutz use this parameterization):
-
-```{r}
-#| label: 10-glm-mixed-effect-chunk-4
 options(contrasts = c("contr.sum", "contr.poly"))
 
-contrasts(ohio$age)
-contrasts(ohio$smoke)
+contrasts(ohio_tbl$age)
+contrasts(ohio_tbl$smoke)
 
-# Adjust smoke contrast to match book
-contrasts(ohio$smoke) <- matrix(c(-1, 1), 2, 1)
-contrasts(ohio$smoke)
+contrasts(ohio_tbl$smoke) <- matrix(c(-1, 1), 2, 1)
+contrasts(ohio_tbl$smoke)
 ```
-
-::: {.callout-important collapse="true"}
-## SELF TEST: How does effect coding differ from treatment coding?
-
-With treatment coding (dummy variables), coefficients represent differences from a reference level.
-With effect coding (sum contrasts), coefficients represent differences from the grand mean.
-Both are valid parameterizations; changing contrasts doesn't change the model's predictions or likelihood, only the interpretation of individual coefficients.
-:::
 
 ## GLMM via Laplace Approximation
 
@@ -115,7 +72,7 @@ The Nelder-Mead optimizer is recommended by Faraway (2016):
 #| label: 10-glm-mixed-effect-chunk-5
 glmer_fit <- glmer(
     resp ~ age * smoke + (1 | id),
-    data = ohio,
+    data = ohio_tbl,
     family = binomial,
     control = glmerControl(optimizer = "Nelder_Mead")
 )
@@ -143,7 +100,7 @@ Using 10 quadrature points closely reproduces the numbers in Table 7.2 of Fahrme
 #| label: 10-glm-mixed-effect-chunk-6
 glmer_fit_n_agq_10 <- glmer(
     resp ~ age * smoke + (1 | id),
-    data = ohio,
+    data = ohio_tbl,
     family = binomial,
     control = glmerControl(optimizer = "Nelder_Mead"),
     nAGQ = 10
@@ -194,7 +151,7 @@ glmm_pql_fit <- glmmPQL(
     resp ~ age * smoke,
     random = ~ 1 | id,
     family = binomial,
-    data = ohio
+    data = ohio_tbl
 )
 
 summary(glmm_pql_fit)
