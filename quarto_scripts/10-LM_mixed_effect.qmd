@@ -27,8 +27,9 @@ Load packages and data:
 ```{r}
 #| label: 10-lm-mixed-effect-chunk-1
 library(conflicted)
-library(lme4)
 library(faraway)
+library(lme4)
+library(tibble)
 ```
 
 ```{r}
@@ -202,8 +203,8 @@ Compute residuals by hand to verify:
 # Residuals = observed - predicted
 #           = observed - (fixed effect + random effect)
 residual_manual <- pulp$bright -
-    rep(ranef(mmod)$operator[, 1], each = 5) -
-    fixef(mmod)
+  rep(ranef(mmod)$operator[, 1], each = 5) -
+  fixef(mmod)
 ```
 
 Verify they match the model output:
@@ -256,9 +257,9 @@ Fit a model with both random intercept and random slope (person growth rate vari
 mmod <- lmer(log(income) ~ cyear * sex + age + educ + (cyear | person), psid)
 
 smod <- lmer(
-    log(income) ~ cyear * sex + age + educ + (cyear | person),
-    psid,
-    REML = FALSE
+  log(income) ~ cyear * sex + age + educ + (cyear | person),
+  psid,
+  REML = FALSE
 )
 ```
 
@@ -320,30 +321,27 @@ This means: people with lower baseline income tend to have faster income growth 
 This correlation is estimated; if we had assumed independence (`(1 | person) + (0 + cyear | person)`), we'd get different (and less accurate) estimates.
 :::
 
-## Key Learning Points
+## Package Citations
 
-1.  **Mixed models decompose variation**:
-    -   Fixed effects: population-level patterns
-    -   Random effects: subject-level deviations
-    -   Residuals: observation-level variation
-2.  **REML vs. MLE in LMM**:
-    -   REML: Better for variance components, default choice
-    -   MLE: Useful for likelihood ratio tests comparing fixed effects, slightly biased variance estimates
-    -   For balanced data: estimates nearly identical; differences grow with imbalance
-3.  **Random intercepts vs. slopes**:
-    -   Random intercept only: parallel lines (same slope, different intercepts)
-    -   Random slopes: lines with different intercepts AND slopes
-    -   Correlation between intercept and slope captures important heterogeneity
-4.  **Residuals in LMM**:
-    -   Default: condition on random effects (estimate within-group errors)
-    -   Alternative: ignore random effects (mix group and within-group variation)
-    -   Manual verification: Residuals = observed - fitted (fixed + random)
-5.  **LMM as GLS**:
-    -   LMM solution = generalized least squares with estimated covariance structure
-    -   Hand-computation: build V matrix, compute $(Z^T V^{-1} Z)^{-1} Z^T V^{-1} y$
-    -   Upweights precise observations, downweights noisy ones
-6.  **Centering and scaling**:
-    -   Centering predictors improves interpretability (intercept = marginal mean at center)
-    -   Scaling can improve numerical stability
-    -   Essential for meaningful random slopes
+```{r}
+#| label: package-citations
+#| results: asis
+#| code-fold: true
 
+packages <- c("conflicted", "faraway", "lme4", "tibble")
+for (pkg in packages) {
+  cit <- citation(pkg)
+
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
+    }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
+}
+```

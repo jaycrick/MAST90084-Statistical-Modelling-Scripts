@@ -114,10 +114,10 @@ The Nelder-Mead optimizer is recommended by Faraway (2016):
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-5
 glmer_fit <- glmer(
-    resp ~ age * smoke + (1 | id),
-    data = ohio,
-    family = binomial,
-    control = glmerControl(optimizer = "Nelder_Mead")
+  resp ~ age * smoke + (1 | id),
+  data = ohio,
+  family = binomial,
+  control = glmerControl(optimizer = "Nelder_Mead")
 )
 
 summary(glmer_fit)
@@ -142,11 +142,11 @@ Using 10 quadrature points closely reproduces the numbers in Table 7.2 of Fahrme
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-6
 glmer_fit_n_agq_10 <- glmer(
-    resp ~ age * smoke + (1 | id),
-    data = ohio,
-    family = binomial,
-    control = glmerControl(optimizer = "Nelder_Mead"),
-    nAGQ = 10
+  resp ~ age * smoke + (1 | id),
+  data = ohio,
+  family = binomial,
+  control = glmerControl(optimizer = "Nelder_Mead"),
+  nAGQ = 10
 )
 
 summary(glmer_fit_n_agq_10)
@@ -191,10 +191,10 @@ This approach is based on penalized quasi-likelihood:
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-8
 glmm_pql_fit <- glmmPQL(
-    resp ~ age * smoke,
-    random = ~ 1 | id,
-    family = binomial,
-    data = ohio
+  resp ~ age * smoke,
+  random = ~ 1 | id,
+  family = binomial,
+  data = ohio
 )
 
 summary(glmm_pql_fit)
@@ -273,10 +273,10 @@ Fit using `MASS::polr()` for comparison with the ordinal package:
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-13
 wine_fixed_fit_polr <- polr(
-    rating ~ temp + contact,
-    data = wine,
-    Hess = TRUE,
-    method = "logistic"
+  rating ~ temp + contact,
+  data = wine,
+  Hess = TRUE,
+  method = "logistic"
 )
 
 summary(wine_fixed_fit_polr)
@@ -308,10 +308,10 @@ Let's check:
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-15
 book_coeff <- c(
-    -5.289,
-    -5.289 + exp(0.974),
-    -5.289 + exp(0.974) + exp(0.739),
-    -5.289 + exp(0.974) + exp(0.739) + exp(0.426)
+  -5.289,
+  -5.289 + exp(0.974),
+  -5.289 + exp(0.974) + exp(0.739),
+  -5.289 + exp(0.974) + exp(0.739) + exp(0.426)
 )
 book_coeff
 ```
@@ -334,9 +334,9 @@ Fit ordinal mixed model with judge random effects using 10 AGHQ quadrature point
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-16
 wine_mixed_fit <- clmm(
-    rating ~ temp + contact + (1 | judge),
-    data = wine,
-    nAGQ = 10
+  rating ~ temp + contact + (1 | judge),
+  data = wine,
+  nAGQ = 10
 )
 
 summary(wine_mixed_fit)
@@ -358,7 +358,7 @@ The mixed model results are consistent in the sense that the fixed-effect coeffi
 ```{r}
 #| label: 09-glm-mixed-effect-chunk-17
 # Fitted values for first few observations
-head(wine_mixed_fit$fitted.values)
+wine_mixed_fit$fitted.values
 
 # Contrast structure used in the model
 wine_mixed_fit$contrasts
@@ -393,3 +393,28 @@ ranef(wine_mixed_fit)
     -   Use `clmm()` for cumulative link models with random effects
     -   Proportional odds assumption: effects same across all thresholds
     -   Fixed effect magnitudes increase when random effects included (effect capture)
+
+## Package Citations
+
+```{r}
+#| label: package-citations
+#| results: asis
+#| code-fold: true
+
+packages <- c("conflicted", "geepack", "lme4", "MASS", "ordinal")
+for (pkg in packages) {
+  cit <- citation(pkg)
+
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
+    }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
+}
+```
