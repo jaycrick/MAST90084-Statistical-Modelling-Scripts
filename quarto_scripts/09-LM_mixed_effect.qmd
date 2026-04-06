@@ -18,7 +18,7 @@ This package is the standard package for fitting mixed effects models.
 The first dataset we use measures paper brightness (continuous response) depending on which shift operator prepared the pulp.
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-1
+#| label: 09-lm-mixed-effect-chunk-1
 library(conflicted)
 library(dplyr)
 library(faraway)
@@ -29,13 +29,13 @@ library(lme4)
 As always we can run `?pulp` to get information about the dataset:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-2
+#| label: 09-lm-mixed-effect-chunk-2
 #| eval: false
 ?pulp
 ```
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-3
+#| label: 09-lm-mixed-effect-chunk-3
 pulp_tbl <- as_tibble(pulp)
 pulp_tbl
 ```
@@ -69,7 +69,7 @@ REML corrects for this bias.
 Fit two models: REML (default) and MLE:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-4
+#| label: 09-lm-mixed-effect-chunk-4
 m_pulp_reml <- lmer(bright ~ 1 + (1 | operator), pulp_tbl)
 m_pulp_mle <- lmer(bright ~ 1 + (1 | operator), pulp_tbl, REML = FALSE)
 ```
@@ -89,7 +89,7 @@ The `m_pulp_reml` object is of class lmerMod.
 Let's examine both fits:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-5
+#| label: 09-lm-mixed-effect-chunk-5
 sum_pulp_reml <- summary(m_pulp_reml)
 sum_pulp_reml
 ```
@@ -107,7 +107,7 @@ Here the value reported by `Std.Dev.` is just the square root of the variance (n
 We can also see the estimates for the MLE fit:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-6
+#| label: 09-lm-mixed-effect-chunk-6
 summary(m_pulp_mle)
 ```
 
@@ -116,7 +116,7 @@ We can see that (as expected) the MLE variance estimates are smaller than the RE
 We can directly extract the fixed effect estimates:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-7
+#| label: 09-lm-mixed-effect-chunk-7
 tibble(
     REML = fixef(m_pulp_reml),
     MLE = fixef(m_pulp_mle)
@@ -135,7 +135,7 @@ Generally they will differ for unbalanced designs.
 Usually we don't extract the random effects estimates directly (since there is only a posterior distribution), but we can extract the conditional modes if we want to:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-8
+#| label: 09-lm-mixed-effect-chunk-8
 ranef(m_pulp_reml)$operator
 ```
 
@@ -144,7 +144,7 @@ Since the conditional distribution is normal, the conditional modes are also the
 Variance-covariance matrix for the fixed effects:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-9
+#| label: 09-lm-mixed-effect-chunk-9
 sum_pulp_reml$vcov
 ```
 
@@ -153,21 +153,21 @@ This is a constant in this case since we are only estimating one fixed effect (t
 We can directly access the estimated residual standard deviation $\sigma_{\varepsilon}$:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-10
+#| label: 09-lm-mixed-effect-chunk-10
 sum_pulp_reml$sigma
 ```
 
 We can access both variance-covariance components ($\sigma_b^2$ and $\sigma_{\varepsilon}^2$):
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-11
+#| label: 09-lm-mixed-effect-chunk-11
 sum_pulp_reml$varcor
 ```
 
 And the usual `coef()` function gives us the fixed effect coefficient table:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-12
+#| label: 09-lm-mixed-effect-chunk-12
 sum_pulp_reml$coeff
 coef(sum_pulp_reml)
 ```
@@ -178,7 +178,7 @@ A key insight of linear mixed models is that they are a special case of generali
 We can verify the fixed effect estimate by hand-computing the GLS solution from the estimated variance structure:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-13
+#| label: 09-lm-mixed-effect-chunk-13
 
 components <- as_tibble(VarCorr(m_pulp_reml))$vcov
 components
@@ -202,14 +202,14 @@ Z <- rep(1, 20)
 Hand-computed GLS estimate of the fixed effect (intercept):
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-14
+#| label: 09-lm-mixed-effect-chunk-14
 (1 / (t(Z) %*% solve(V) %*% Z)) * t(Z) %*% solve(V) %*% pulp$bright
 ```
 
 Hand-computed standard error (GLS covariance):
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-15
+#| label: 09-lm-mixed-effect-chunk-15
 sqrt(1 / (t(Z) %*% solve(V) %*% Z))
 ```
 
@@ -220,7 +220,7 @@ The default `residuals` function accounts for the estimated random effects.
 These residuals can be regarded as estimates of the observation-level errors $\epsilon_{ij}$, which is usually what we want for diagnostics:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-16
+#| label: 09-lm-mixed-effect-chunk-16
 resid_m_pulp_reml <- residuals(m_pulp_reml)
 fitted_m_pulp_reml <- fitted(m_pulp_reml)
 diagnostics_tbl <- tibble(residual = resid_m_pulp_reml, fitted = fitted_m_pulp_reml)
@@ -244,7 +244,7 @@ These plots show that it is a reasonable assumption that the residuals are appro
 We compute residuals by hand to verify:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-17
+#| label: 09-lm-mixed-effect-chunk-17
 operator_intercept <- ranef(m_pulp_reml)[["operator"]][["(Intercept)"]]
 residual_manual <- pulp$bright - rep(operator_intercept, each = 5) - fixef(m_pulp_reml)[["(Intercept)"]]
 ```
@@ -252,7 +252,7 @@ residual_manual <- pulp$bright - rep(operator_intercept, each = 5) - fixef(m_pul
 Verify they match the model output:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-18
+#| label: 09-lm-mixed-effect-chunk-18
 all(residual_manual == residuals(m_pulp_reml))
 ```
 
@@ -267,7 +267,7 @@ We use `log(income)` as the response.
 Load and examine data:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-19
+#| label: 09-lm-mixed-effect-chunk-19
 #| eval: false
 ?psid
 ```
@@ -282,7 +282,7 @@ So this dataset has 1,661 observations on the following 6 variables:
 - `person`: ID number for individual
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-20
+#| label: 09-lm-mixed-effect-chunk-20
 
 psid_tbl <- as_tibble(psid)
 psid_tbl
@@ -290,7 +290,7 @@ psid_tbl
 
 We create a new variable by centering time at 1978
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-21
+#| label: 09-lm-mixed-effect-chunk-21
 psid_tbl <- mutate(psid_tbl, cyear = year - 78)
 ```
 
@@ -304,7 +304,7 @@ Fit models with both random intercept and random slope (person growth rate varie
 One model uses REML (default) and the other uses MLE (REML = FALSE) to compare results:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-22
+#| label: 09-lm-mixed-effect-chunk-22
 m_psid_reml <- lmer(
     log(income) ~ cyear * sex + age + educ + (cyear | person),
     data = psid_tbl
@@ -351,7 +351,7 @@ $$
 Examine REML fit:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-23
+#| label: 09-lm-mixed-effect-chunk-23
 s_psid_reml <- summary(m_psid_reml)
 s_psid_reml
 ```
@@ -365,14 +365,14 @@ The `Random effects` table shows the variance components $\sigma_{b_0}^2$ and $\
 We can directly access the variance-covariance matrix of fixed effects:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-24
+#| label: 09-lm-mixed-effect-chunk-24
 s_psid_reml$vcov
 ```
 
 We can compare the fixed effect estimates from the REML and MLE fits:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-25
+#| label: 09-lm-mixed-effect-chunk-25
 
 tibble(
     names = names(fixef(m_psid_reml)),
@@ -386,14 +386,14 @@ Note that here the fixed effect estimates differ between REML and MLE, which is 
 Standard errors of fixed effects:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-26
+#| label: 09-lm-mixed-effect-chunk-26
 sqrt(diag(s_psid_reml$vcov))
 ```
 
 As above, we can examine the variance-covariance of random effects:
 
 ```{r}
-#| label: 10-lm-mixed-effect-chunk-27
+#| label: 09-lm-mixed-effect-chunk-27
 VarCorr(m_psid_reml)
 ```
 
