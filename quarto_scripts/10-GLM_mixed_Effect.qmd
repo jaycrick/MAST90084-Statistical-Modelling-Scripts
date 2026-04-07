@@ -1,0 +1,344 @@
+---
+title: "Random Effects in Generalized Linear Models: Ohio Respiratory Data"
+subtitle: "@fahrmeir_multivariate_2001 Examples 7.1, 7.3"
+date: last-modified
+editor:
+  markdown:
+    wrap: sentence
+    canonical: true
+---
+
+## Available GLMM Software Comparison
+
+::: {.callout-tip collapse="true"}
+## GLMM Software Options
+Many R packages exist for fitting generalised linear mixed models, using different estimation methods:
+
+-   **MASS::glmmPQL**: Penalized quasi-likelihood
+-   **lme4::glmer**: Laplace approximation and adaptive Gauss-Hermite quadrature (AGHQ)
+-   **MCMCglmm**: Markov chain Monte Carlo
+-   **glmmML**: AGHQ
+-   **glmmADMB**: Laplace
+-   **glmm** (from Jim Lindsey's repeated package): AGHQ
+-   **ordinal::clmm**: For ordinal outcomes with random effects
+-   **gamlss.mx**, **ASREML-R**, **sabreR**, **mcemGLM**: Other specialized approaches
+:::
+
+## Ohio Respiratory Data @fahrmeir_multivariate_2001 Example 7.1 and 7.3
+
+### Setup
+
+The Ohio respiratory dataset contains repeated respiratory status measurements (yes/no) for children in a longitudinal study, with covariates including age and smoking status.
+We'll fit GLMM models to account for within-child correlation using random intercepts.
+Our goal is to reproduce at least some of table 7.2 from @fahrmeir_multivariate_2001.
+
+Load required packages and do the standard preparation of the Ohio respiratory dataset:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-1
+library(conflicted)
+library(dplyr)
+library(lme4)
+library(geepack)
+library(ordinal)
+library(MASS)
+
+ohio_tbl <- as_tibble(ohio)
+ohio_tbl
+
+ohio_tbl <- mutate(ohio_tbl, across(c(age, smoke), factor))
+
+# Check default contrasts
+contrasts(ohio_tbl$age)
+contrasts(ohio_tbl$smoke)
+
+options(contrasts = c("contr.sum", "contr.poly"))
+
+contrasts(ohio_tbl$age)
+contrasts(ohio_tbl$smoke)
+
+contrasts(ohio_tbl$smoke) <- matrix(c(-1, 1), 2, 1)
+contrasts(ohio_tbl$smoke)
+```
+
+### `lme4::glmer()` Fitting with Laplace Approximation
+
+When fitting a generalised linear mixed model (GLMM), the likelihood involves integrating over the random effects, which typically has no closed-form solution.
+Therefore we need to choose a numerical integration method to approximate the likelihood.
+The `lme4::glmer()` function provides two main methods for this: the Laplace approximation and adaptive Gauss-Hermite quadrature (AGHQ).
+The default `glmer()` approach uses the **Laplace approximation**.
+Once we have chosen the integration method, we also need to specify the optimization algorithm; the Nelder-Mead optimizer is recommended by @faraway_extending_2016.
+
+```{r}
+glmer_fit_nelder_mead <- glmer(
+    resp ~ age * smoke + (1 | id),
+    data = ohio_tbl,
+    family = binomial,
+    control = glmerControl(
+        optimizer = "Nelder_Mead"
+    )
+)
+```
+
+::: {.callout-important collapse="true"}
+## SELF TEST: What does the `(1 | id)` formula mean?
+
+This specifies a random intercept model: `(1 | id)` means each subject (`id`) has its own random intercept drawn from a normal distribution with mean 0 and estimated standard deviation.
+The `1` represents the intercept term; `| id` conditions on subject ID.
+This allows each subject to have a different baseline probability of respiratory status while maintaining a common effect of the fixed covariates.
+:::
+
+We can see that there is an error message about convergence.
+Checking `?lme4::troubleshooting` suggests that this type of error may be fixed by trying a different optimiser. The other optimiser available is Bound Optimization BY Quadratic Approximation (BOBYQA).
+Let's try that:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-5
+glmer_fit <- glmer(
+    resp ~ age * smoke + (1 | id),
+    data = ohio_tbl,
+    family = binomial,
+    control = glmerControl(
+        optimizer = "bobyqa"
+    )
+)
+
+logLik(glmer_fit) - logLik(glmer_fit_nelder_mead)
+as_tibble(coef(summary(glmer_fit)) - coef(summary(glmer_fit_nelder_mead)))
+```
+
+We can see that the log-likelihood is slightly higher with the BOBYQA optimizer, and we get slightly different coefficient estimates, but the overall pattern of results is the same.
+
+```{r}
+summary(glmer_fit)
+```
+
+The output is very similar to that in the linear mixed model fit,
+with fixed effects estimates, as well as a correlation matrix for the fixed effects, and an estimate of the random effect variance.
+
+The coefficient estimates are in the right ballpark, but ultimately don't match very closely with those in the book.
+In addition, although strictly speaking the mixed effects model is not in the exponential family, it is still a likelihood-based model, as so we can use an estimated Fisher information matrix to compute standard errors.
+Unfortunately the `lme4::glmer()` function is not well documented enough for us to reproduce the standard errors in the book.
+
+### `lme4::glmer()` Fitting with Adaptive Gauss-Hermite Quadrature
+
+In order to get more accurate estimates, we can improve the numerical integration by using adaptive Gauss-Hermite quadrature (AGHQ) instead of the Laplace approximation.
+The `nAGQ` argument in `glmer()` controls the number of quadrature points used for the integration.
+The default `nAGQ = 1` corresponds to the Laplace approximation, while `nAGQ > 1` uses multiple quadrature points for a more accurate approximation of the likelihood.
+
+Here we try `nAGQ = 10`, which is what @fahrmeir_multivariate_2001 claim to use in their analysis.
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-6
+glmer_fit_n_agq_10 <- glmer(
+    resp ~ age * smoke + (1 | id),
+    data = ohio_tbl,
+    family = binomial,
+    control = glmerControl(
+        optimizer = "bobyqa"
+    ),
+    nAGQ = 10
+)
+
+summary(glmer_fit_n_agq_10)
+```
+
+Here we are significantly closer to the book's reported estimates, although still not exact.
+
+We can use the `ranef()` function to extract the random effects (conditional modes) for each subject:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-7
+as_tibble(ranef(glmer_fit))
+```
+
+Note that now we are no longer dealing with normally distributed errors, and so the modes are not necessarily the same as the means of the random effects distribution.
+
+::: {.callout-tip collapse="true"}
+## Alternative: Penalized Quasi-Likelihood (not examinable)
+
+Penalized quasi-likelihood (PQL) is an alternative (and much faster) method that doesn't require numerical integration.
+See Chapter 13 in @faraway_extending_2016 for more details.
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-8
+glmm_pql_fit <- glmmPQL(
+    resp ~ age * smoke,
+    random = ~ 1 | id,
+    family = binomial,
+    data = ohio_tbl
+)
+
+summary(glmm_pql_fit)
+```
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-9
+as_tibble(ranef(glmm_pql_fit))
+```
+
+:::
+
+## Wine Bitterness: @fahrmeir_multivariate_2001 Example 7.2 and 7.4
+
+Now we demonstrate **ordinal regression with random effects**.
+For this we consider the `ordinal::wine` dataset, described in Example 7.2 of @fahrmeir_multivariate_2001, which contains ratings of wine bitterness by different judges under different conditions.
+
+As always, we should inspect the data help page
+```{r}
+#| label: 10-glm-mixed-effect-chunk-9.5
+?wine
+```
+
+The covariates are
+-   `response`: a continuous measure of bitterness
+-   `rating`: an ordered factor rating of bitterness (1-5)
+-   `temp`: temperature (cold/warm)
+-   `contact`: contact with skin (yes/no)
+-   `judge`: judge ID
+
+We will regress the ordinal `rating` on the covariates `temp` and `contact`, while including a random intercept for `judge` to account for judge-specific differences in rating tendencies, in order to reproduce some of the results in Table 7.4 of @fahrmeir_multivariate_2001.
+
+### Data Setup and Contrast Coding
+
+Even though the book says that no contact is the reference level, the analysis appears to be done with contact as the reference level.
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-10
+wine_tbl <- as_tibble(wine)
+wine_tbl
+
+wine_tbl <- wine_tbl |>
+    mutate(
+        temp = factor(temp, levels = c("warm", "cold")),
+        contact = factor(contact, levels = c("yes", "no"))
+    )
+contrasts(wine_tbl$contact)
+contrasts(wine_tbl$temp)
+```
+
+Reset contrasts to dummy coding:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-11
+options(contrasts = c("contr.treatment", "contr.poly"))
+
+# Check default contrasts
+contrasts(wine_tbl$contact)
+contrasts(wine_tbl$temp)
+```
+
+### Fixed Effects Ordinal Model: `MASS::polr()`
+
+To replicate the first column of Table 7.4, we fit using `MASS::polr()`:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-13
+wine_fixed_fit_polr <- polr(
+    rating ~ temp + contact,
+    data = wine_tbl,
+    Hess = TRUE,
+    method = "logistic"
+)
+
+summary(wine_fixed_fit_polr)
+```
+
+Our coefficient estimates for the non-threshold coefficients match up to the signs, (as we we expect, explained in [the first ordinal regression script](04-Example3-2BTR.qmd#model-fitting-proportional-odds-models)).
+
+The book reports thresholds differently to how we do, but we can easily convert them (see the equation (7.5.1) to see why this is the case).
+Let's check:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-15
+
+thresholds <- wine_fixed_fit_polr$zeta
+alphas <- c(thresholds[1], log(diff(thresholds)))
+alphas
+```
+
+Finally we can check our log-likelihood is similar:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-12
+logLik(wine_fixed_fit_polr)
+```
+
+::: {.callout-tip collapse="true"}
+## Alternative Fit with `ordinal::clm()`
+
+We can try a different function `ordinal::clm()`:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-14
+wine_fixed_fit_clm <- clm(rating ~ temp + contact, data = wine_tbl)
+
+summary(wine_fixed_fit_clm)
+coef(wine_fixed_fit_clm)
+logLik(wine_fixed_fit_clm)
+
+thresholds_clm <- wine_fixed_fit_clm$alpha
+alphas_clm <- c(thresholds_clm[1], log(diff(thresholds_clm)))
+alphas_clm
+```
+
+The values retrieved are almost the same as those obtained with `polr()`.
+:::
+
+### Random Effects: clmm()
+
+Now we fit a random effects model using `ordinal::clmm()`, which is designed for cumulative link mixed models (CLMMs).
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-16
+wine_mixed_fit <- clmm(
+    rating ~ temp + contact + (1 | judge),
+    data = wine_tbl,
+    nAGQ = 10
+)
+
+summary(wine_mixed_fit)
+```
+
+### Results Interpretation
+
+We can extract fitted values and contrast structure from the fitted model.
+Note that the fitted values are evaluated at the conditional modes of the random effects distribution (see `?clmm`).
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-17
+# Fitted values for first few observations
+wine_mixed_fit$fitted.values
+```
+
+To get the estimated conditional modes of the random effects, we use the `ranef()` function.
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-18
+ranef(wine_mixed_fit)
+```
+
+## Package Citations
+
+```{r}
+#| label: package-citations
+#| results: asis
+#| code-fold: true
+
+packages <- c("conflicted", "dplyr", "geepack", "lme4", "MASS", "ordinal")
+for (pkg in packages) {
+    cit <- citation(pkg)
+
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
+}
+```

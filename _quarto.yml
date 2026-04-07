@@ -32,10 +32,10 @@ website:
             file: quarto_scripts/07-ohio.qmd
           - text: "Generalized Estimating Equations: CTSIB Balance Test Data"
             file: quarto_scripts/08-gee_ctsib.qmd
-          # - text: "GLM Mixed Effects"
-          #   file: quarto_scripts/09-GLM_mixed_Effect.qmd
           # - text: "LM Mixed Effects"
-          #   file: quarto_scripts/10-LM_mixed_effect.qmd
+          #   file: quarto_scripts/09-LM_mixed_effect.qmd
+          # - text: "GLM Mixed Effects"
+          #   file: quarto_scripts/10-GLM_mixed_Effect.qmd
           # - text: "Survival Analysis"
           #   file: quarto_scripts/11-survival.qmd
           - text: "APPENDICES"
