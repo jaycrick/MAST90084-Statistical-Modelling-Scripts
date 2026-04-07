@@ -47,11 +47,9 @@ We want to model brightness using an intercept only model with random operator e
 ::: {.callout-important collapse="true"}
 ## SELF TEST: What is the mathematical formulation of this model?
 
-The model is:
-$$
+The model is: $$
 y_{ij} = \beta_0 + b_i + \varepsilon_{ij}
-$$
-where $y_{ij}$ is the brightness for the $j$-th measurement of the $i$-th operator, $\beta_0$ is the overall mean brightness (fixed effect), $b_i \sim N(0, \sigma_b^2)$ is the random effect for operator $i$, and $\varepsilon_{ij} \sim N(0, \sigma_{\varepsilon}^2)$ is the observation-level error.
+$$ where $y_{ij}$ is the brightness for the $j$-th measurement of the $i$-th operator, $\beta_0$ is the overall mean brightness (fixed effect), $b_i \sim N(0, \sigma_b^2)$ is the random effect for operator $i$, and $\varepsilon_{ij} \sim N(0, \sigma_{\varepsilon}^2)$ is the observation-level error.
 
 We estimate $\beta_0$ as the fixed effect, and $\sigma_b^2$ and $\sigma_{\varepsilon}^2$ as the variance components for the random effects and residuals, respectively.
 :::
@@ -74,7 +72,6 @@ m_pulp_reml <- lmer(bright ~ 1 + (1 | operator), pulp_tbl)
 m_pulp_mle <- lmer(bright ~ 1 + (1 | operator), pulp_tbl, REML = FALSE)
 ```
 
-
 ::: {.callout-tip collapse="true"}
 ## `lme4::lmer()` Syntax
 
@@ -93,8 +90,6 @@ Let's examine both fits:
 sum_pulp_reml <- summary(m_pulp_reml)
 sum_pulp_reml
 ```
-
-
 
 We get one fixed effect (the overall mean brightness) and one random effect (the operator-level variation).
 
@@ -118,8 +113,8 @@ We can directly extract the fixed effect estimates:
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-7
 tibble(
-    REML = fixef(m_pulp_reml),
-    MLE = fixef(m_pulp_mle)
+  REML = fixef(m_pulp_reml),
+  MLE = fixef(m_pulp_mle)
 )
 ```
 
@@ -190,13 +185,10 @@ Z <- rep(1, 20)
 ::: {.callout-tip collapse="true"}
 ## What This Code Does and Syntax Notes
 
-1. `components <- as_tibble(VarCorr(m_pulp_reml))$vcov` extracts estimated variance components from the fitted model.
-`VarCorr(...)` returns random-effect and residual variance information, `as_tibble(...)` turns it into a tidy table, and `$vcov` selects the variance column.
-2. `Vi <- components[2] * ...` builds the $5 \times 5$ covariance matrix for one operator.
-`diag(5)` creates an identity matrix, and `matrix(1, nrow = 5, ncol = 5)` creates a $5 \times 5$ matrix of ones.
-3. `V <- bdiag(Vi, Vi, Vi, Vi)` creates a block-diagonal covariance matrix for all 4 operators.
-`bdiag(...)` stacks the operator-level covariance blocks on the diagonal.
-4. `Z <- rep(1, 20)` creates the intercept-only fixed-effect design vector for all 20 observations.
+1.  `components <- as_tibble(VarCorr(m_pulp_reml))$vcov` extracts estimated variance components from the fitted model. `VarCorr(...)` returns random-effect and residual variance information, `as_tibble(...)` turns it into a tidy table, and `$vcov` selects the variance column.
+2.  `Vi <- components[2] * ...` builds the $5 \times 5$ covariance matrix for one operator. `diag(5)` creates an identity matrix, and `matrix(1, nrow = 5, ncol = 5)` creates a $5 \times 5$ matrix of ones.
+3.  `V <- bdiag(Vi, Vi, Vi, Vi)` creates a block-diagonal covariance matrix for all 4 operators. `bdiag(...)` stacks the operator-level covariance blocks on the diagonal.
+4.  `Z <- rep(1, 20)` creates the intercept-only fixed-effect design vector for all 20 observations.
 :::
 
 Hand-computed GLS estimate of the fixed effect (intercept):
@@ -226,16 +218,16 @@ fitted_m_pulp_reml <- fitted(m_pulp_reml)
 diagnostics_tbl <- tibble(residual = resid_m_pulp_reml, fitted = fitted_m_pulp_reml)
 
 ggplot(diagnostics_tbl, aes(sample = residual)) +
-    stat_qq() +
-    stat_qq_line() +
-    labs(x = "Theoretical Quantiles", y = "Residuals") +
-    theme_minimal()
+  stat_qq() +
+  stat_qq_line() +
+  labs(x = "Theoretical Quantiles", y = "Residuals") +
+  theme_minimal()
 
 ggplot(diagnostics_tbl, aes(x = fitted, y = residual)) +
-    geom_point() +
-    geom_hline(yintercept = 0, linewidth = 0.5) +
-    labs(x = "Fitted", y = "Residuals") +
-    theme_minimal()
+  geom_point() +
+  geom_hline(yintercept = 0, linewidth = 0.5) +
+  labs(x = "Fitted", y = "Residuals") +
+  theme_minimal()
 ```
 
 These plots show that it is a reasonable assumption that the residuals are approximately normally distributed and have constant variance across fitted values.
@@ -255,7 +247,6 @@ Verify they match the model output:
 #| label: 09-lm-mixed-effect-chunk-18
 all(residual_manual == residuals(m_pulp_reml))
 ```
-
 :::
 
 ## @faraway_extending_2016 Section 11.1: PSID Longitudinal Data
@@ -274,12 +265,12 @@ Load and examine data:
 
 So this dataset has 1,661 observations on the following 6 variables:
 
-- `age`: age in 1968
-- `educ`: years of education
-- `sex`: sex of individual (`F` or `M`)
-- `income`: annual income in dollars
-- `year`: calendar year
-- `person`: ID number for individual
+-   `age`: age in 1968
+-   `educ`: years of education
+-   `sex`: sex of individual (`F` or `M`)
+-   `income`: annual income in dollars
+-   `year`: calendar year
+-   `person`: ID number for individual
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-20
@@ -289,6 +280,7 @@ psid_tbl
 ```
 
 We create a new variable by centering time at 1978
+
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-21
 psid_tbl <- mutate(psid_tbl, cyear = year - 78)
@@ -306,14 +298,14 @@ One model uses REML (default) and the other uses MLE (REML = FALSE) to compare r
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-22
 m_psid_reml <- lmer(
-    log(income) ~ cyear * sex + age + educ + (cyear | person),
-    data = psid_tbl
+  log(income) ~ cyear * sex + age + educ + (cyear | person),
+  data = psid_tbl
 )
 
 m_psid_mle <- lmer(
-    log(income) ~ cyear * sex + age + educ + (cyear | person),
-    data = psid_tbl,
-    REML = FALSE
+  log(income) ~ cyear * sex + age + educ + (cyear | person),
+  data = psid_tbl,
+  REML = FALSE
 )
 ```
 
@@ -324,16 +316,13 @@ m_psid_mle <- lmer(
 ::: {.callout-important collapse="true"}
 ## SELF TEST: What is the mathematical formulation of this model?
 
-The model is:
-$$
+The model is: $$
 \begin{split}
 y_{ij} &= \beta_0 + \beta_1 \texttt{cyear}_{ij} + \beta_2 \mathbb{1}(\texttt{sex}_{ij}=\texttt{M}) + \beta_3 \texttt{age}_{ij} + \beta_4 \texttt{educ}_{ij}\\
 &\quad + \beta_5 \texttt{cyear}_{ij}\mathbb{1}(\texttt{sex}_{ij}=\texttt{M}) + b_{0i} + b_{1i}\texttt{cyear}_{ij} + \varepsilon_{ij}
 \end{split}
-$$
-where $y_{ij}=\log(\texttt{income}_{ij})$ for person $i$ at time $j$, and $\mathbb{1}(\texttt{sex}_{ij}=\texttt{M})$ corresponds to the `sexM` coefficient in the output.
-The random effects are correlated:
-$$
+$$ where $y_{ij}=\log(\texttt{income}_{ij})$ for person $i$ at time $j$, and $\mathbb{1}(\texttt{sex}_{ij}=\texttt{M})$ corresponds to the `sexM` coefficient in the output.
+The random effects are correlated: $$
 \begin{pmatrix} b_{0i} \\ b_{1i} \end{pmatrix}
 \sim N\Biggl(
 \begin{pmatrix}0\\0\end{pmatrix},
@@ -345,7 +334,6 @@ $$
 \quad
 \varepsilon_{ij}\sim N(0,\sigma_\varepsilon^2).
 $$
-
 :::
 
 Examine REML fit:
@@ -375,9 +363,9 @@ We can compare the fixed effect estimates from the REML and MLE fits:
 #| label: 09-lm-mixed-effect-chunk-25
 
 tibble(
-    names = names(fixef(m_psid_reml)),
-    REML = fixef(m_psid_reml),
-    MLE = fixef(m_psid_mle)
+  names = names(fixef(m_psid_reml)),
+  REML = fixef(m_psid_reml),
+  MLE = fixef(m_psid_mle)
 )
 ```
 
@@ -406,18 +394,18 @@ VarCorr(m_psid_reml)
 
 packages <- c("conflicted", "dplyr", "faraway", "ggplot2", "lme4")
 for (pkg in packages) {
-    cit <- citation(pkg)
+  cit <- citation(pkg)
 
-    # Check if multiple citations
-    if (length(cit) > 1) {
-        cat("- **", pkg, "**:\n", sep = "")
-        for (i in seq_along(cit)) {
-            cit_text <- format(cit[i], style = "text")
-            cat("    - ", cit_text, "\n\n", sep = "")
-        }
-    } else {
-        cit_text <- format(cit, style = "text")
-        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
     }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
 }
 ```

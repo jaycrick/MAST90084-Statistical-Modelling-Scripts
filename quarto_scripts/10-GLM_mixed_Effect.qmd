@@ -12,6 +12,7 @@ editor:
 
 ::: {.callout-tip collapse="true"}
 ## GLMM Software Options
+
 Many R packages exist for fitting generalised linear mixed models, using different estimation methods:
 
 -   **MASS::glmmPQL**: Penalized quasi-likelihood
@@ -40,8 +41,8 @@ library(conflicted)
 library(dplyr)
 library(lme4)
 library(geepack)
-library(ordinal)
 library(MASS)
+library(ordinal)
 
 ohio_tbl <- as_tibble(ohio)
 ohio_tbl
@@ -71,12 +72,12 @@ Once we have chosen the integration method, we also need to specify the optimiza
 
 ```{r}
 glmer_fit_nelder_mead <- glmer(
-    resp ~ age * smoke + (1 | id),
-    data = ohio_tbl,
-    family = binomial,
-    control = glmerControl(
-        optimizer = "Nelder_Mead"
-    )
+  resp ~ age * smoke + (1 | id),
+  data = ohio_tbl,
+  family = binomial,
+  control = glmerControl(
+    optimizer = "Nelder_Mead"
+  )
 )
 ```
 
@@ -89,18 +90,19 @@ This allows each subject to have a different baseline probability of respiratory
 :::
 
 We can see that there is an error message about convergence.
-Checking `?lme4::troubleshooting` suggests that this type of error may be fixed by trying a different optimiser. The other optimiser available is Bound Optimization BY Quadratic Approximation (BOBYQA).
+Checking `?lme4::troubleshooting` suggests that this type of error may be fixed by trying a different optimiser.
+The other optimiser available is Bound Optimization BY Quadratic Approximation (BOBYQA).
 Let's try that:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-5
 glmer_fit <- glmer(
-    resp ~ age * smoke + (1 | id),
-    data = ohio_tbl,
-    family = binomial,
-    control = glmerControl(
-        optimizer = "bobyqa"
-    )
+  resp ~ age * smoke + (1 | id),
+  data = ohio_tbl,
+  family = binomial,
+  control = glmerControl(
+    optimizer = "bobyqa"
+  )
 )
 
 logLik(glmer_fit) - logLik(glmer_fit_nelder_mead)
@@ -113,8 +115,7 @@ We can see that the log-likelihood is slightly higher with the BOBYQA optimizer,
 summary(glmer_fit)
 ```
 
-The output is very similar to that in the linear mixed model fit,
-with fixed effects estimates, as well as a correlation matrix for the fixed effects, and an estimate of the random effect variance.
+The output is very similar to that in the linear mixed model fit, with fixed effects estimates, as well as a correlation matrix for the fixed effects, and an estimate of the random effect variance.
 
 The coefficient estimates are in the right ballpark, but ultimately don't match very closely with those in the book.
 In addition, although strictly speaking the mixed effects model is not in the exponential family, it is still a likelihood-based model, as so we can use an estimated Fisher information matrix to compute standard errors.
@@ -131,13 +132,13 @@ Here we try `nAGQ = 10`, which is what @fahrmeir_multivariate_2001 claim to use 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-6
 glmer_fit_n_agq_10 <- glmer(
-    resp ~ age * smoke + (1 | id),
-    data = ohio_tbl,
-    family = binomial,
-    control = glmerControl(
-        optimizer = "bobyqa"
-    ),
-    nAGQ = 10
+  resp ~ age * smoke + (1 | id),
+  data = ohio_tbl,
+  family = binomial,
+  control = glmerControl(
+    optimizer = "bobyqa"
+  ),
+  nAGQ = 10
 )
 
 summary(glmer_fit_n_agq_10)
@@ -163,10 +164,10 @@ See Chapter 13 in @faraway_extending_2016 for more details.
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-8
 glmm_pql_fit <- glmmPQL(
-    resp ~ age * smoke,
-    random = ~ 1 | id,
-    family = binomial,
-    data = ohio_tbl
+  resp ~ age * smoke,
+  random = ~ 1 | id,
+  family = binomial,
+  data = ohio_tbl
 )
 
 summary(glmm_pql_fit)
@@ -176,7 +177,6 @@ summary(glmm_pql_fit)
 #| label: 10-glm-mixed-effect-chunk-9
 as_tibble(ranef(glmm_pql_fit))
 ```
-
 :::
 
 ## Wine Bitterness: @fahrmeir_multivariate_2001 Example 7.2 and 7.4
@@ -185,17 +185,13 @@ Now we demonstrate **ordinal regression with random effects**.
 For this we consider the `ordinal::wine` dataset, described in Example 7.2 of @fahrmeir_multivariate_2001, which contains ratings of wine bitterness by different judges under different conditions.
 
 As always, we should inspect the data help page
+
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-9.5
 ?wine
 ```
 
-The covariates are
--   `response`: a continuous measure of bitterness
--   `rating`: an ordered factor rating of bitterness (1-5)
--   `temp`: temperature (cold/warm)
--   `contact`: contact with skin (yes/no)
--   `judge`: judge ID
+The covariates are - `response`: a continuous measure of bitterness - `rating`: an ordered factor rating of bitterness (1-5) - `temp`: temperature (cold/warm) - `contact`: contact with skin (yes/no) - `judge`: judge ID
 
 We will regress the ordinal `rating` on the covariates `temp` and `contact`, while including a random intercept for `judge` to account for judge-specific differences in rating tendencies, in order to reproduce some of the results in Table 7.4 of @fahrmeir_multivariate_2001.
 
@@ -209,10 +205,10 @@ wine_tbl <- as_tibble(wine)
 wine_tbl
 
 wine_tbl <- wine_tbl |>
-    mutate(
-        temp = factor(temp, levels = c("warm", "cold")),
-        contact = factor(contact, levels = c("yes", "no"))
-    )
+  mutate(
+    temp = factor(temp, levels = c("warm", "cold")),
+    contact = factor(contact, levels = c("yes", "no"))
+  )
 contrasts(wine_tbl$contact)
 contrasts(wine_tbl$temp)
 ```
@@ -235,10 +231,10 @@ To replicate the first column of Table 7.4, we fit using `MASS::polr()`:
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-13
 wine_fixed_fit_polr <- polr(
-    rating ~ temp + contact,
-    data = wine_tbl,
-    Hess = TRUE,
-    method = "logistic"
+  rating ~ temp + contact,
+  data = wine_tbl,
+  Hess = TRUE,
+  method = "logistic"
 )
 
 summary(wine_fixed_fit_polr)
@@ -292,9 +288,9 @@ Now we fit a random effects model using `ordinal::clmm()`, which is designed for
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-16
 wine_mixed_fit <- clmm(
-    rating ~ temp + contact + (1 | judge),
-    data = wine_tbl,
-    nAGQ = 10
+  rating ~ temp + contact + (1 | judge),
+  data = wine_tbl,
+  nAGQ = 10
 )
 
 summary(wine_mixed_fit)
@@ -327,18 +323,18 @@ ranef(wine_mixed_fit)
 
 packages <- c("conflicted", "dplyr", "geepack", "lme4", "MASS", "ordinal")
 for (pkg in packages) {
-    cit <- citation(pkg)
+  cit <- citation(pkg)
 
-    # Check if multiple citations
-    if (length(cit) > 1) {
-        cat("- **", pkg, "**:\n", sep = "")
-        for (i in seq_along(cit)) {
-            cit_text <- format(cit[i], style = "text")
-            cat("    - ", cit_text, "\n\n", sep = "")
-        }
-    } else {
-        cit_text <- format(cit, style = "text")
-        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
     }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
 }
 ```
