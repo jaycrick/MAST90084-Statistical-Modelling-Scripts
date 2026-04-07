@@ -22,12 +22,14 @@ Load packages and breast cancer survival data:
 ```{r}
 #| label: 11-survival-chunk-1
 library(conflicted)
+library(ggplot2)
 library(readr)
 library(survival)
 
 bcancer <- read_csv("data/survival.csv")
 
-head(bcancer)
+bcancer
+
 tail(bcancer)
 ```
 
@@ -57,40 +59,47 @@ It's non-parametric (makes no distributional assumptions) and handles censoring 
 Events that occur, combined with censored observations, inform the survival probabilities.
 :::
 
-## Graphical Parameters and Visualization
+## Plotting Setup
 
-::: callout-note
-**R graphical parameters** (`par()`) control plotting behavior.
-Key parameters: - `mar`: Margins (bottom, left, top, right) - `las`: Label axis style (0=default, 1=horizontal for all axes) - `mfrow`: Multi-frame layout (rows, columns)
-:::
-
-Set up graphical parameters for customized plots:
+Build a tidy data frame from the Kaplan-Meier fit so we can reuse it across the plots below:
 
 ```{r}
 #| label: 11-survival-chunk-3
-par()$las
+km_summary <- summary(cancer.km)
 
-# Save original parameters, then set new ones
-orig_par <- par(mar = c(3, 3, 1, 1), las = 1)
-par()$las
-orig_par$las
-orig_par$mar
-par()$las
-par()$mar
+km_plot_data <- data.frame(
+    time = km_summary$time,
+    surv = km_summary$surv,
+    group = factor(
+        as.character(km_summary$strata),
+        levels = c("group=N", "group=P"),
+        labels = c("Negative Stain", "Positive Stain")
+    )
+)
+
+km_plot_data <- km_plot_data[order(km_plot_data$group, km_plot_data$time), ]
 ```
 
 ::: callout-note
-By default, `las = 0`.
-Setting `las = 1` rotates all axis labels to horizontal orientation, making them more readable.
-The `par()` call returns a list of old values, which we save for later restoration.
+The same data can drive the survival curve, the Weibull diagnostic plot, and the proportional hazards check without recomputing the survival fit.
 :::
 
 Plot Kaplan-Meier survival curves for the two groups:
 
 ```{r}
 #| label: 11-survival-chunk-4
-plot(cancer.km, lwd = 2, cex.axis = 1.5)
-par(orig_par)
+ggplot(km_plot_data, aes(x = time, y = surv, colour = group)) +
+    geom_step(linewidth = 1.1) +
+    scale_colour_manual(values = c("Negative Stain" = "red", "Positive Stain" = "blue")) +
+    scale_y_continuous(labels = scales::label_percent(accuracy = 1), limits = c(0, 1)) +
+    labs(
+        title = "Kaplan-Meier survival curves",
+        x = "Time",
+        y = "Survival probability",
+        colour = NULL
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
 ```
 
 ## Weibull Suitability Check
@@ -104,35 +113,22 @@ The **log-log transformation** of a Weibull survival curve is linear: $\log(-\lo
 
 ```{r}
 #| label: 11-survival-chunk-5
-opar <- par(mar = c(4, 4, 0, 0), las = 1)
-negative <- bcancer$group == "N"
-positive <- bcancer$group == "P"
+weibull_plot_data <- subset(km_plot_data, time > 0 & surv > 0)
+weibull_plot_data$log_time <- log(weibull_plot_data$time)
+weibull_plot_data$log_log_surv <- log(-log(weibull_plot_data$surv))
 
-plot(
-    log(cancer.km$time),
-    log(-log(cancer.km$surv)),
-    type = "n",
-    xlab = "Log(time)",
-    ylab = "Log(-Log(S(time)))"
-)
-
-lines(
-    log(cancer.km$time[negative]),
-    log(-log(cancer.km$surv[negative])),
-    col = "darkgreen",
-    type = "b"
-)
-
-lines(
-    log(cancer.km$time[positive]),
-    log(-log(cancer.km$surv[positive])),
-    col = "purple",
-    type = "b"
-)
-
-par(opar)
-par()$las
-par()$mar
+ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 1.8) +
+    scale_colour_manual(values = c("Negative Stain" = "red", "Positive Stain" = "blue")) +
+    labs(
+        title = "Weibull diagnostic plot",
+        x = "log(Time)",
+        y = "log(-log(Survival))",
+        colour = NULL
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
 ```
 
 ## Proportional Hazards Assumption
@@ -147,26 +143,22 @@ If curves cross, the assumption is violated, suggesting the treatment effect cha
 
 ```{r}
 #| label: 11-survival-chunk-6
-opar <- par(mar = c(2, 2, 0, 0), las = 1)
+cloglog_plot_data <- subset(km_plot_data, time > 0 & surv > 0)
+cloglog_plot_data$cloglog <- log(-log(cloglog_plot_data$surv))
 
-# cloglog transformation: log(-log(S(t)))
-plot(
-    cancer.km,
-    fun = "cloglog",
-    lty = 1:2,
-    col = c("Red", "Blue"),
-    xlim = c(5, 300)
-)
-
-legend(
-    "topleft",
-    legend = c("Negative Stain", "Positive Stain"),
-    lty = 1:2,
-    col = c("Red", "Blue"),
-    bty = "n"
-)
-
-par(opar)
+ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 1.8) +
+    scale_colour_manual(values = c("Negative Stain" = "red", "Positive Stain" = "blue")) +
+    coord_cartesian(xlim = c(5, 300)) +
+    labs(
+        title = "Proportional hazards check via cloglog plot",
+        x = "Time",
+        y = "log(-log(Survival))",
+        colour = NULL
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
 ```
 
 ::: {.callout-important collapse="true"}
