@@ -1,6 +1,6 @@
 ---
-title: "GLM with Mixed Effects"
-subtitle: "Binomial GLMM on Ohio Respiratory Data and Ordinal Mixed Models"
+title: "Random Effects in Generalized Linear Models: Ohio Respiratory Data"
+subtitle: "@fahrmeir_multivariate_2001 Examples 7.1, 7.3"
 date: last-modified
 editor:
   markdown:
@@ -10,8 +10,9 @@ editor:
 
 ## Available GLMM Software Comparison
 
-::: callout-tip
-Many R packages exist for fitting GLMMs, using different estimation methods:
+::: {.callout-tip collapse="true"}
+## GLMM Software Options
+Many R packages exist for fitting generalised linear mixed models, using different estimation methods:
 
 -   **MASS::glmmPQL**: Penalized quasi-likelihood
 -   **lme4::glmer**: Laplace approximation and adaptive Gauss-Hermite quadrature (AGHQ)
@@ -21,14 +22,15 @@ Many R packages exist for fitting GLMMs, using different estimation methods:
 -   **glmm** (from Jim Lindsey's repeated package): AGHQ
 -   **ordinal::clmm**: For ordinal outcomes with random effects
 -   **gamlss.mx**, **ASREML-R**, **sabreR**, **mcemGLM**: Other specialized approaches
-
-We'll focus on the most commonly used: `glmer()`, `glmmPQL()`, and `clmm()`.
 :::
 
-## Ohio Respiratory Data Setup
+## Ohio Respiratory Data @fahrmeir_multivariate_2001 Example 7.1 and 7.3
+
+### Setup
 
 The Ohio respiratory dataset contains repeated respiratory status measurements (yes/no) for children in a longitudinal study, with covariates including age and smoking status.
 We'll fit GLMM models to account for within-child correlation using random intercepts.
+Our goal is to reproduce at least some of table 7.2 from @fahrmeir_multivariate_2001.
 
 Load required packages and do the standard preparation of the Ohio respiratory dataset:
 
@@ -59,25 +61,23 @@ contrasts(ohio_tbl$smoke) <- matrix(c(-1, 1), 2, 1)
 contrasts(ohio_tbl$smoke)
 ```
 
-## GLMM via Laplace Approximation
+### `lme4::glmer()` Fitting with Laplace Approximation
 
-The Laplace approximation is a fast method for numerical integration in GLMM.
-It approximates the integral in the likelihood using a Taylor expansion around the maximum of the integrand.
-The `glmer()` function implements both Laplace and more accurate methods (AGHQ).
-
-The default `glmer()` approach uses the **Laplace approximation**, which is fast and reasonably accurate.
-The Nelder-Mead optimizer is recommended by Faraway (2016):
+When fitting a generalised linear mixed model (GLMM), the likelihood involves integrating over the random effects, which typically has no closed-form solution.
+Therefore we need to choose a numerical integration method to approximate the likelihood.
+The `lme4::glmer()` function provides two main methods for this: the Laplace approximation and adaptive Gauss-Hermite quadrature (AGHQ).
+The default `glmer()` approach uses the **Laplace approximation**.
+Once we have chosen the integration method, we also need to specify the optimization algorithm; the Nelder-Mead optimizer is recommended by @faraway_extending_2016.
 
 ```{r}
-#| label: 10-glm-mixed-effect-chunk-5
-glmer_fit <- glmer(
+glmer_fit_nelder_mead <- glmer(
     resp ~ age * smoke + (1 | id),
     data = ohio_tbl,
     family = binomial,
-    control = glmerControl(optimizer = "Nelder_Mead")
+    control = glmerControl(
+        optimizer = "Nelder_Mead"
+    )
 )
-
-summary(glmer_fit)
 ```
 
 ::: {.callout-important collapse="true"}
@@ -88,13 +88,45 @@ The `1` represents the intercept term; `| id` conditions on subject ID.
 This allows each subject to have a different baseline probability of respiratory status while maintaining a common effect of the fixed covariates.
 :::
 
-## GLMM via Adaptive Gauss-Hermite Quadrature
+We can see that there is an error message about convergence.
+Checking `?lme4::troubleshooting` suggests that this type of error may be fixed by trying a different optimiser. The other optimiser available is Bound Optimization BY Quadratic Approximation (BOBYQA).
+Let's try that:
 
-Adaptive Gauss-Hermite quadrature (AGHQ) provides more accurate numerical integration than the Laplace approximation by using multiple quadrature points.
-Using more points trades computation time for accuracy.
+```{r}
+#| label: 10-glm-mixed-effect-chunk-5
+glmer_fit <- glmer(
+    resp ~ age * smoke + (1 | id),
+    data = ohio_tbl,
+    family = binomial,
+    control = glmerControl(
+        optimizer = "bobyqa"
+    )
+)
 
-More accurate numerical integration with `nAGQ`.
-Using 10 quadrature points closely reproduces the numbers in Table 7.2 of Fahrmeir & Tutz:
+logLik(glmer_fit) - logLik(glmer_fit_nelder_mead)
+as_tibble(coef(summary(glmer_fit)) - coef(summary(glmer_fit_nelder_mead)))
+```
+
+We can see that the log-likelihood is slightly higher with the BOBYQA optimizer, and we get slightly different coefficient estimates, but the overall pattern of results is the same.
+
+```{r}
+summary(glmer_fit)
+```
+
+The output is very similar to that in the linear mixed model fit,
+with fixed effects estimates, as well as a correlation matrix for the fixed effects, and an estimate of the random effect variance.
+
+The coefficient estimates are in the right ballpark, but ultimately don't match very closely with those in the book.
+In addition, although strictly speaking the mixed effects model is not in the exponential family, it is still a likelihood-based model, as so we can use an estimated Fisher information matrix to compute standard errors.
+Unfortunately the `lme4::glmer()` function is not well documented enough for us to reproduce the standard errors in the book.
+
+### `lme4::glmer()` Fitting with Adaptive Gauss-Hermite Quadrature
+
+In order to get more accurate estimates, we can improve the numerical integration by using adaptive Gauss-Hermite quadrature (AGHQ) instead of the Laplace approximation.
+The `nAGQ` argument in `glmer()` controls the number of quadrature points used for the integration.
+The default `nAGQ = 1` corresponds to the Laplace approximation, while `nAGQ > 1` uses multiple quadrature points for a more accurate approximation of the likelihood.
+
+Here we try `nAGQ = 10`, which is what @fahrmeir_multivariate_2001 claim to use in their analysis.
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-6
@@ -102,48 +134,31 @@ glmer_fit_n_agq_10 <- glmer(
     resp ~ age * smoke + (1 | id),
     data = ohio_tbl,
     family = binomial,
-    control = glmerControl(optimizer = "Nelder_Mead"),
+    control = glmerControl(
+        optimizer = "bobyqa"
+    ),
     nAGQ = 10
 )
 
 summary(glmer_fit_n_agq_10)
 ```
 
-::: callout-note
-**Laplace vs. AGHQ**: Laplace (`nAGQ = 1`, the default) is fast.
-AGHQ with `nAGQ = 10` or higher is slower but more accurate, especially when random effects have large variance relative to fixed effects.
-Compare the coefficients and standard errors: if they're similar, Laplace is sufficiently accurate.
-:::
+Here we are significantly closer to the book's reported estimates, although still not exact.
 
-::: {.callout-important collapse="true"}
-## SELF TEST: Why do the AGHQ estimates differ from Laplace?
-
-AGHQ uses multiple quadrature points to numerically integrate over random effects, while Laplace uses only one point (the mode of the integrand).
-AGHQ is more accurate, especially when the random effect distribution is far from normal or has large variance.
-Comparing the two helps assess whether the Laplace approximation was adequate.
-:::
-
-Extract the random effects (conditional modes/BLUPs):
+We can use the `ranef()` function to extract the random effects (conditional modes) for each subject:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-7
-head(ranef(glmer_fit))
+as_tibble(ranef(glmer_fit))
 ```
 
-::: callout-note
-**Conditional modes vs. random effects**: These are the estimated subject-specific deviations from the fixed effect intercept, representing each subject's baseline relative to the population average.
-These are conditional on the observed data (hence "conditional modes" or BLUPs—Best Linear Unbiased Predictions).
-:::
+Note that now we are no longer dealing with normally distributed errors, and so the modes are not necessarily the same as the means of the random effects distribution.
 
-## Alternative: Penalized Quasi-Likelihood
+::: {.callout-tip collapse="true"}
+## Alternative: Penalized Quasi-Likelihood (not examinable)
 
 Penalized quasi-likelihood (PQL) is an alternative (and much faster) method that doesn't require numerical integration.
-It iteratively fits a linear mixed model to transformed data.
-While faster, PQL is less accurate than Laplace/AGHQ.
-
-This is an alternative method for fitting GLMM that doesn't require numerical integration.
-See Chapter 13 in Faraway (2016) for more details.
-This approach is based on penalized quasi-likelihood:
+See Chapter 13 in @faraway_extending_2016 for more details.
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-8
@@ -157,81 +172,71 @@ glmm_pql_fit <- glmmPQL(
 summary(glmm_pql_fit)
 ```
 
-::: {.callout-important collapse="true"}
-## SELF TEST: How do PQL estimates compare to Laplace?
-
-Compare the coefficients and standard errors from `glmm_pql_fit` to `glmer_fit`.
-PQL often underestimates standard errors and can bias coefficients, especially when random effect variance is large.
-If estimates are quite different, Laplace or AGHQ is more reliable.
-PQL's main advantage is speed for very large datasets.
-:::
-
-Extract random effects (using nlme's `ranef()`):
-
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-9
-head(ranef(glmm_pql_fit))
+as_tibble(ranef(glmm_pql_fit))
 ```
 
-## Wine Bitterness: Ordinal Mixed Models
+:::
+
+## Wine Bitterness: @fahrmeir_multivariate_2001 Example 7.2 and 7.4
 
 Now we demonstrate **ordinal regression with random effects**.
-Ordinal outcomes (like wine quality ratings: poor, acceptable, excellent) have a natural ordering but unequal spacing.
-Cumulative link models (CLM, proportional odds models) respect this ordering.
+For this we consider the `ordinal::wine` dataset, described in Example 7.2 of @fahrmeir_multivariate_2001, which contains ratings of wine bitterness by different judges under different conditions.
 
-The wine tasting dataset from the ordinal package contains tasting ratings of wines across different judges (random effects), temperatures, and contact types.
+As always, we should inspect the data help page
+```{r}
+#| label: 10-glm-mixed-effect-chunk-9.5
+?wine
+```
+
+The covariates are
+-   `response`: a continuous measure of bitterness
+-   `rating`: an ordered factor rating of bitterness (1-5)
+-   `temp`: temperature (cold/warm)
+-   `contact`: contact with skin (yes/no)
+-   `judge`: judge ID
+
+We will regress the ordinal `rating` on the covariates `temp` and `contact`, while including a random intercept for `judge` to account for judge-specific differences in rating tendencies, in order to reproduce some of the results in Table 7.4 of @fahrmeir_multivariate_2001.
 
 ### Data Setup and Contrast Coding
 
+Even though the book says that no contact is the reference level, the analysis appears to be done with contact as the reference level.
+
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-10
-head(wine)
+wine_tbl <- as_tibble(wine)
+wine_tbl
 
-# Check variable classes
-class(wine$bottle)
-class(wine$rating)
-class(wine$judge)
-class(wine$temp)
-class(wine$contact)
+wine_tbl <- wine_tbl |>
+    mutate(
+        temp = factor(temp, levels = c("warm", "cold")),
+        contact = factor(contact, levels = c("yes", "no"))
+    )
+contrasts(wine_tbl$contact)
+contrasts(wine_tbl$temp)
 ```
 
-Reset contrasts to treatment coding:
+Reset contrasts to dummy coding:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-11
 options(contrasts = c("contr.treatment", "contr.poly"))
 
 # Check default contrasts
-contrasts(wine$contact)
-contrasts(wine$temp)
+contrasts(wine_tbl$contact)
+contrasts(wine_tbl$temp)
 ```
 
-Adjust contrasts to specific coding scheme:
+### Fixed Effects Ordinal Model: `MASS::polr()`
 
-```{r}
-#| label: 10-glm-mixed-effect-chunk-12
-contrasts(wine$contact) <- c(0, 1)
-contrasts(wine$temp) <- c(1, 0)
-
-contrasts(wine$contact)
-contrasts(wine$temp)
-```
-
-### Fixed Effects Ordinal Model: polr()
-
-::: callout-tip
-**Ordinal models**: The `polr()` function fits proportional odds (cumulative logit) models.
-It assumes the covariate effects are the same across all thresholds (proportional odds assumption).
-If this is violated, the sequential or partial proportional odds models may be needed.
-:::
-
-Fit using `MASS::polr()` for comparison with the ordinal package:
+To replicate the first column of Table 7.4, we fit using `MASS::polr()`:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-13
 wine_fixed_fit_polr <- polr(
     rating ~ temp + contact,
-    data = wine,
+    data = wine_tbl,
     Hess = TRUE,
     method = "logistic"
 )
@@ -239,117 +244,79 @@ wine_fixed_fit_polr <- polr(
 summary(wine_fixed_fit_polr)
 ```
 
-### Fixed Effects Ordinal Model: clm()
+Our coefficient estimates for the non-threshold coefficients match up to the signs, (as we we expect, explained in [the first ordinal regression script](04-Example3-2BTR.qmd#model-fitting-proportional-odds-models)).
 
-Alternative fixed-effects fit using the ordinal package:
-
-```{r}
-#| label: 10-glm-mixed-effect-chunk-14
-wine_fixed_fit_clm <- clm(rating ~ temp + contact, data = wine)
-
-summary(wine_fixed_fit_clm)
-wine_fixed_fit_clm$coefficients
-```
-
-::: callout-note
-**polr() vs. clm()**: Both fit proportional odds models, but they differ in implementation details and output format.
-`polr()` from MASS is more mature; `clm()` from ordinal allows mixed models via its sister function `clmm()`.
-The coefficients may differ slightly due to optimization differences.
-:::
-
-### Comparing with Fahrmeir & Tutz Book Values
-
-The book reports thresholds computed via specific spacing.
+The book reports thresholds differently to how we do, but we can easily convert them (see the equation (7.5.1) to see why this is the case).
 Let's check:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-15
-book_coeff <- c(
-    -5.289,
-    -5.289 + exp(0.974),
-    -5.289 + exp(0.974) + exp(0.739),
-    -5.289 + exp(0.974) + exp(0.739) + exp(0.426)
-)
-book_coeff
+
+thresholds <- wine_fixed_fit_polr$zeta
+alphas <- c(thresholds[1], log(diff(thresholds)))
+alphas
 ```
 
-::: callout-note
-The reported log-likelihood is close to Table 7.4 in Fahrmeir & Tutz, but the estimated coefficients are not exactly the same.
-This may be due to:
+Finally we can check our log-likelihood is similar:
 
--   Different parameterizations or contrast coding
--   Software implementation differences
--   Rounding or convergence tolerances
+```{r}
+#| label: 10-glm-mixed-effect-chunk-12
+logLik(wine_fixed_fit_polr)
+```
 
-Using the Fahrmeir package dataset directly doesn't fully resolve the discrepancy either.
+::: {.callout-tip collapse="true"}
+## Alternative Fit with `ordinal::clm()`
+
+We can try a different function `ordinal::clm()`:
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-14
+wine_fixed_fit_clm <- clm(rating ~ temp + contact, data = wine_tbl)
+
+summary(wine_fixed_fit_clm)
+coef(wine_fixed_fit_clm)
+logLik(wine_fixed_fit_clm)
+
+thresholds_clm <- wine_fixed_fit_clm$alpha
+alphas_clm <- c(thresholds_clm[1], log(diff(thresholds_clm)))
+alphas_clm
+```
+
+The values retrieved are almost the same as those obtained with `polr()`.
 :::
 
 ### Random Effects: clmm()
 
-Fit ordinal mixed model with judge random effects using 10 AGHQ quadrature points:
+Now we fit a random effects model using `ordinal::clmm()`, which is designed for cumulative link mixed models (CLMMs).
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-16
 wine_mixed_fit <- clmm(
     rating ~ temp + contact + (1 | judge),
-    data = wine,
+    data = wine_tbl,
     nAGQ = 10
 )
 
 summary(wine_mixed_fit)
 ```
 
-::: {.callout-important collapse="true"}
-## SELF TEST: How do fixed effect magnitudes change with judge random effects?
-
-The fixed-effect coefficients (for `temp` and `contact`) typically have larger (in absolute value) magnitudes in the mixed model than the fixed effects model.
-Why?
-The random effects absorb judge-level heterogeneity, so the fixed effects must work harder to explain remaining variation.
-This is typical: ignoring random effects can bias fixed effect estimates downward.
-:::
-
 ### Results Interpretation
 
-The mixed model results are consistent in the sense that the fixed-effect coefficients (beta's) have larger magnitudes when accounting for judge-specific random effects.
+We can extract fitted values and contrast structure from the fitted model.
+Note that the fitted values are evaluated at the conditional modes of the random effects distribution (see `?clmm`).
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-17
 # Fitted values for first few observations
 wine_mixed_fit$fitted.values
-
-# Contrast structure used in the model
-wine_mixed_fit$contrasts
 ```
 
-Extract judge random effects (note: `ranef()` here comes from the ordinal package):
+To get the estimated conditional modes of the random effects, we use the `ranef()` function.
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-18
 ranef(wine_mixed_fit)
 ```
-
-## Key Learning Points
-
-1.  **Subject-specific vs. population-average**:
-    -   GLMM coefficients are conditional (subject-specific), differing from GEE marginal effects
-    -   GLMM: "Controlling for subject effects..."
-    -   GEE: "On average across subjects..."
-2.  **Estimation methods trade-off accuracy vs. speed**:
-    -   **Laplace**: Fast, reasonable accuracy (1st-order Taylor approx.)
-    -   **AGHQ with nAGQ=10**: Slower, higher accuracy (multi-point quadrature)
-    -   **PQL**: Fastest, lower accuracy (iterative linear approximation)
-3.  **Random effects interpretation**:
-    -   Represent between-subject heterogeneity (deviations from population average)
-    -   Extracted as conditional modes (BLUPs)
-    -   Conditional on observed data
-4.  **Contrast coding effects**:
-    -   Treatment contrasts: compare to reference level
-    -   Effect contrasts: compare to grand mean
-    -   Changes coefficient interpretation, not model fit
-5.  **Ordinal mixed models**:
-    -   Use `clmm()` for cumulative link models with random effects
-    -   Proportional odds assumption: effects same across all thresholds
-    -   Fixed effect magnitudes increase when random effects included (effect capture)
 
 ## Package Citations
 
@@ -358,7 +325,7 @@ ranef(wine_mixed_fit)
 #| results: asis
 #| code-fold: true
 
-packages <- c("conflicted", "geepack", "lme4", "MASS", "ordinal")
+packages <- c("conflicted", "dplyr", "geepack", "lme4", "MASS", "ordinal")
 for (pkg in packages) {
     cit <- citation(pkg)
 
