@@ -64,8 +64,6 @@ The standard MLE estimate has a strong downward bias for variance components (it
 REML corrects for this bias.
 :::
 
-Fit two models: REML (default) and MLE:
-
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-4
 m_pulp_reml <- lmer(bright ~ 1 + (1 | operator), pulp_tbl)
@@ -95,8 +93,8 @@ We get one fixed effect (the overall mean brightness) and one random effect (the
 
 **DENNIS TO ADD SOME EXPOSITION ON THE STANDARD ERROR OF FIXED EFFECTS HERE**
 
-For the random effects we get two variance parameters.
-The `Residual` variance is the estimated variance $\sigma_{\varepsilon}^2$ of the obervation-level errors $\epsilon_{ij}$, while the `operator` variance is the estimated variance $\sigma_b^2$ of the operator-level random effects $b_i$.
+For the random effect we get two variance parameters.
+The `Residual` variance is the estimated variance $\sigma_{\varepsilon}^2$ of the obervation-level errors $\varepsilon_{ij}$, while the `operator` variance is the estimated variance $\sigma_b^2$ of the operator-level random effects $b_i$.
 Here the value reported by `Std.Dev.` is just the square root of the variance (not a standard error of the variance estimate).
 
 We can also see the estimates for the MLE fit:
@@ -127,11 +125,11 @@ Generally they will differ for unbalanced designs.
 
 #### Extracting Model Components
 
-Usually we don't extract the random effects estimates directly (since there is only a posterior distribution), but we can extract the conditional modes if we want to:
+Usually we don't extract the random effects estimates directly (since there is only a posterior distribution), but we can extract the conditional modes using the generic method `ranef()`:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-8
-ranef(m_pulp_reml)$operator
+as_tibble(ranef(m_pulp_reml))
 ```
 
 Since the conditional distribution is normal, the conditional modes are also the conditional means.
@@ -159,18 +157,16 @@ We can access both variance-covariance components ($\sigma_b^2$ and $\sigma_{\va
 sum_pulp_reml$varcor
 ```
 
-And the usual `coef()` function gives us the fixed effect coefficient table:
+And the usual generic method `coef()` function gives us the fixed effect coefficient table:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-12
-sum_pulp_reml$coeff
 coef(sum_pulp_reml)
 ```
 
 ### Hand-Computed Fixed Effect Estimate
 
-A key insight of linear mixed models is that they are a special case of generalized least squares (GLS).
-We can verify the fixed effect estimate by hand-computing the GLS solution from the estimated variance structure:
+Since fixed effect estimates for linear mixed models are a special case of solving a generalised least squares (GLS) estimator, we can verify the fixed effect estimate by hand-computing the GLS solution from the estimated variance structure:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-13
@@ -209,7 +205,7 @@ sqrt(1 / (t(Z) %*% solve(V) %*% Z))
 
 This course does not focus on model diagnostics, but the general idea behind these plots is to evaluate whether our model assumptions are met.
 The default `residuals` function accounts for the estimated random effects.
-These residuals can be regarded as estimates of the observation-level errors $\epsilon_{ij}$, which is usually what we want for diagnostics:
+These residuals can be regarded as estimates of the observation-level errors $\varepsilon_{ij}$, which is usually what we want for diagnostics:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-16
@@ -233,7 +229,7 @@ ggplot(diagnostics_tbl, aes(x = fitted, y = residual)) +
 These plots show that it is a reasonable assumption that the residuals are approximately normally distributed and have constant variance across fitted values.
 
 ::: callout-note
-We compute residuals by hand to verify:
+We can compute residuals by hand to verify:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-17
@@ -279,7 +275,7 @@ psid_tbl <- as_tibble(psid)
 psid_tbl
 ```
 
-We create a new variable by centering time at 1978
+We create a new variable `cyear`, the time relative to 1978
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-21
@@ -292,8 +288,7 @@ psid_tbl <- mutate(psid_tbl, cyear = year - 78)
 
 ### REML vs. MLE with Random Slopes
 
-Fit models with both random intercept and random slope (person growth rate varies).
-One model uses REML (default) and the other uses MLE (REML = FALSE) to compare results:
+We fit models with both random intercept and random slope (person growth rate varies) using both the REML (default) and the biased MLE (`REML = FALSE`) estimation methods:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-22
