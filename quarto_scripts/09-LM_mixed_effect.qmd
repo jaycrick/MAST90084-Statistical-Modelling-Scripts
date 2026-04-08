@@ -1,5 +1,5 @@
 ---
-title: "Linear Mixed Effects Models: Pulp Brightness and PSID Longitudinal Data"
+title: "Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data"
 subtitle: "@faraway_extending_2016 Sections 10.1 and 11.1"
 date: last-modified
 editor:
@@ -313,10 +313,10 @@ m_psid_mle <- lmer(
 
 The model is: $$
 \begin{split}
-y_{ij} &= \beta_0 + \beta_1 \texttt{cyear}_{ij} + \beta_2 \mathbb{1}(\texttt{sex}_{ij}=\texttt{M}) + \beta_3 \texttt{age}_{ij} + \beta_4 \texttt{educ}_{ij}\\
-&\quad + \beta_5 \texttt{cyear}_{ij}\mathbb{1}(\texttt{sex}_{ij}=\texttt{M}) + b_{0i} + b_{1i}\texttt{cyear}_{ij} + \varepsilon_{ij}
+\log(\texttt{income})_{ij} &= \beta_0 + \beta_1 \texttt{cyear}_{j} + \beta_2 \mathbb{1}(\texttt{sex}_{i}=\texttt{M}) + \beta_3 \texttt{age}_{i} + \beta_4 \texttt{educ}_{i}\\
+&\quad + \beta_5 \texttt{cyear}_{j}\mathbb{1}(\texttt{sex}_{i}=\texttt{M}) + b_{0i} + b_{1i}\texttt{cyear}_{j} + \varepsilon_{ij}
 \end{split}
-$$ where $y_{ij}=\log(\texttt{income}_{ij})$ for person $i$ at time $j$, and $\mathbb{1}(\texttt{sex}_{ij}=\texttt{M})$ corresponds to the `sexM` coefficient in the output.
+$$ where $\log(\texttt{income}_{ij})$ corresponds to person $i$ at time $j$, and $\mathbb{1}(\texttt{sex}_{i}=\texttt{M})$ corresponds to the `sexM` coefficient in the output.
 The random effects are correlated: $$
 \begin{pmatrix} b_{0i} \\ b_{1i} \end{pmatrix}
 \sim N\Biggl(
@@ -364,9 +364,9 @@ tibble(
 )
 ```
 
-Note that here the fixed effect estimates differ between REML and MLE, which is expected!
+Note that here the fixed effect estimates differ slightly between REML and MLE, which is to be expected.
 
-Standard errors of fixed effects:
+Finally we can access at the standard errors of the fixed effects:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-26
@@ -379,6 +379,17 @@ As above, we can examine the variance-covariance of random effects:
 #| label: 09-lm-mixed-effect-chunk-27
 VarCorr(m_psid_reml)
 ```
+
+::: callout-note
+## Interpreting the Random Effects Output
+
+The standard deviation of the random intercept tells us how much variability there is in initial log-income across individuals.
+Since income is on a log-scale, this values is multiplicative---95% of incomes are between $\exp(-2\sigma_{b_0})$= `r {round(exp(-2*as_tibble(s_psid_reml$varcor)$sdcor[1]), 2)}` and $\exp(2\sigma_{b_0})$= `r {round(exp(2*as_tibble(s_psid_reml$varcor)$sdcor[1]), 2)}` times the overall mean income in 1978.
+
+The standard deviation of the random slope tells us how much variability there is in income growth rates across individuals.
+
+A low correlation value tells us that the slope of income growth over time, is minimally effected by the initial salary (intercept).
+:::
 
 ## Package Citations
 

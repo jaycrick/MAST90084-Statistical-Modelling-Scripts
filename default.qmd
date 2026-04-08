@@ -20,6 +20,7 @@ Use the **Scripts** menu above, or jump directly to one of the guides below.
 -   [Conditional Models: Happiness Data](quarto_scripts/06-Happiness.qmd)
 -   [Marginal Models: Ohio Data](quarto_scripts/07-ohio.qmd)
 -   [Generalized Estimating Equations: CTSIB Balance Test Data](quarto_scripts/08-gee_ctsib.qmd)
+-   [Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data](quarto_scripts/09-LM_mixed_effect.qmd)
 
 ### Appendices
 
@@ -28,7 +29,6 @@ Use the **Scripts** menu above, or jump directly to one of the guides below.
 
 ```{=html}
 <!--
-- [LM Mixed Effects](quarto_scripts/09-LM_mixed_effect.qmd)
 - [GLM Mixed Effects](quarto_scripts/10-GLM_mixed_Effect.qmd)
 - [Survival Analysis](quarto_scripts/11-survival.qmd)
 -->
