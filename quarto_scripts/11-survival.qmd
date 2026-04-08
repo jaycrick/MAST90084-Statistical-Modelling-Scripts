@@ -8,22 +8,17 @@ editor:
     canonical: true
 ---
 
-## Overview
-
-This script demonstrates survival analysis techniques for **time-to-event data** where some observations may be censored (we don't observe the full time until the event).
-We'll estimate survival curves non-parametrically (Kaplan-Meier) and then fit parametric survival models (exponential and Weibull).
-
-**Key concept**: In survival analysis, we model the time until an event occurs (death, relapse, etc.), accounting for censoring (incomplete observations due to study end or loss to follow-up).
-
 ## Data Loading and Setup
 
-Load packages and breast cancer survival data:
+We load packages and breast cancer survival data, and inspect the stucture:
 
 ```{r}
 #| label: 11-survival-chunk-1
 library(conflicted)
+library(dplyr)
 library(ggplot2)
 library(readr)
+library(scales)
 library(survival)
 
 bcancer <- read_csv("data/survival.csv")
@@ -34,54 +29,94 @@ tail(bcancer)
 ```
 
 ::: callout-note
-**Data structure for survival analysis**: - `time`: Time until event (in some unit, here likely days or months) - `status`: Censoring indicator (0 = censored, 1 = event observed) - `group`: Grouping variable (here: staining status: Positive (P) or Negative (N))
+**Data structure for survival analysis**:
+
+- `time`: Time until event (in some unit, here likely days or months)
+- `status`: Censoring indicator (0 = censored, 1 = event observed)
+- `group`: Grouping variable (here: staining status: Positive (P) or Negative (N)) this indicates whether metastasis was observed in the lymph nodes, which is a prognostic factor for breast cancer survival.
 
 The `Surv()` function combines time and status into a survival object for modeling.
 :::
 
-## Kaplan-Meier Estimation
+## Diagnostics
 
-Fit the **Kaplan-Meier** (non-parametric) estimator for the survival function by group:
+### Kaplan-Meier Estimation
+
+We fit the **Kaplan-Meier** (non-parametric) estimator for the survival function by group:
 
 ```{r}
 #| label: 11-survival-chunk-2
-cancer.km <- survfit(Surv(time, status) ~ group, data = bcancer)
+cancer_km <- survfit(Surv(time, status) ~ group, data = bcancer)
 
-cancer.km
-summary(cancer.km)
+cancer_km
+
+summary(cancer_km)
 ```
 
-::: {.callout-important collapse="true"}
-## SELF TEST: What does the Kaplan-Meier curve estimate?
+Here the `survfit` object contains the estimated survival probabilities at each event time, along with confidence intervals and the number at risk.
+So for `group=N` at time 23, the estimated survival probability is 0.923.
 
-The Kaplan-Meier curve estimates $\hat{S}(t)$ = the probability that a randomly selected subject survives beyond time $t$.
-It's non-parametric (makes no distributional assumptions) and handles censoring by using "risk sets"—the number still at risk at each event time.
-Events that occur, combined with censored observations, inform the survival probabilities.
-:::
+`n.risk` is the number of patients still at risk just before that time, and `n.event` is the number of events (deaths) that occur at that time. `n.risk` can decrease due to events or censoring, which is why it doesn't always decrease by the number of events.
 
-## Plotting Setup
+The generic `summary()` method for `survfit` objects also has a `data.frame = TRUE` option which we can use and convert to a tibble for easier manipulation:
+
+```{r}
+km_summary_tbl <- summary(cancer_km, data.frame = TRUE) |> as_tibble()
+str(km_summary_tbl)
+```
+
+We use `str()` to inspect the structure of the summary data frame, because our tibble has many columns, and doesn't display neatly.
+
+### Plotting Setup
 
 Build a tidy data frame from the Kaplan-Meier fit so we can reuse it across the plots below:
 
 ```{r}
 #| label: 11-survival-chunk-3
-km_summary <- summary(cancer.km)
 
-km_plot_data <- data.frame(
-    time = km_summary$time,
-    surv = km_summary$surv,
-    group = factor(
-        as.character(km_summary$strata),
-        levels = c("group=N", "group=P"),
-        labels = c("Negative Stain", "Positive Stain")
-    )
-)
+km_plot_data <- km_summary_tbl |>
+    mutate(
+        group = factor(
+            strata,
+            levels = c("group=N", "group=P"),
+            labels = c("Negative Stain", "Positive Stain")
+        )
+    ) |>
+    select(group, time, surv, lower, upper) |>
+    arrange(group, time)
 
-km_plot_data <- km_plot_data[order(km_plot_data$group, km_plot_data$time), ]
+km_plot_data
 ```
 
-::: callout-note
-The same data can drive the survival curve, the Weibull diagnostic plot, and the proportional hazards check without recomputing the survival fit.
+Since we'll be making multiple survival plots, we can define a common theme and colour palette.
+We use colourblind-friendly colours [as suggested by Paul Tol](https://sronpersonalpages.nl/~pault/):
+
+```{r}
+#| label: 11-survival-chunk-3b
+
+stain_colours <- c(
+    "Negative Stain" = "#EE6677",
+    "Positive Stain" = "#4477AA"
+)
+
+survival_theme <- theme_minimal(base_size = 14) +
+    theme(
+        legend.position = "top",
+        legend.title = element_text(face = "bold"),
+        plot.title = element_text(face = "bold"),
+        panel.grid.minor = element_blank()
+    )
+```
+
+::: {.callout-tip collapse="true"}
+## Syntax walkthrough (shared plot settings):
+
+- `stain_colours <- c(...)` creates a **named vector**: the names (`"Negative Stain"`, `"Positive Stain"`) must match the group labels in the data, and the values are the colours used in the legend and lines.
+- `theme_minimal(base_size = 14)` sets a clean base style and readable default text size.
+- `+ theme(...)` modifies specific theme elements on top of `theme_minimal()`.
+- `legend.position = "top"` moves the legend above the plot, which is usually easier to scan for two-group comparisons.
+- `legend.title = element_text(face = "bold")` and `plot.title = element_text(face = "bold")` make key text elements stand out.
+- `panel.grid.minor = element_blank()` removes minor gridlines to reduce visual clutter.
 :::
 
 Plot Kaplan-Meier survival curves for the two groups:
@@ -89,84 +124,115 @@ Plot Kaplan-Meier survival curves for the two groups:
 ```{r}
 #| label: 11-survival-chunk-4
 ggplot(km_plot_data, aes(x = time, y = surv, colour = group)) +
-    geom_step(linewidth = 1.1) +
-    scale_colour_manual(values = c("Negative Stain" = "red", "Positive Stain" = "blue")) +
-    scale_y_continuous(labels = scales::label_percent(accuracy = 1), limits = c(0, 1)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper, fill = group), alpha = 0.18, colour = NA) +
+    geom_step(linewidth = 0.9) +
+    scale_colour_manual(values = stain_colours, name = "Group") +
+    scale_fill_manual(values = stain_colours, name = "Group") +
+    scale_y_continuous(
+        limits = c(0, 1),
+        breaks = seq(0, 1, 0.2)
+    ) +
     labs(
         title = "Kaplan-Meier survival curves",
+        subtitle = "Step drops show the estimated survival probability over time;\nshaded bands show 95% confidence intervals",
         x = "Time",
         y = "Survival probability",
         colour = NULL
     ) +
-    theme_minimal(base_size = 12) +
-    theme(legend.position = "top")
+    survival_theme
 ```
 
-## Weibull Suitability Check
+::: {.callout-tip collapse="true"}
+## Plot syntax walkthrough (Kaplan-Meier)
+
+Read this plot from top to bottom as a sequence of layers:
+
+1. `ggplot(km_plot_data, aes(...))` picks the data and default mappings (`time` on x-axis, survival `surv` on y-axis, colour by `group`).
+2. `geom_ribbon(aes(ymin = lower, ymax = upper, fill = group), ...)` draws the 95% confidence interval band between the lower and upper survival limits.
+3. `geom_step(...)` draws Kaplan-Meier style step curves.
+4. `scale_colour_manual(...)` applies the named palette so the step-line legend labels match the colours.
+5. `scale_fill_manual(...)` uses the same palette for the confidence-band fill.
+6. `scale_y_continuous(...)` constrains and labels the y-axis to survival-probability values between 0 and 1.
+7. `labs(...)` adds title, subtitle, and axis labels.
+8. `survival_theme` applies shared styling (legend placement, text emphasis, and cleaner gridlines).
+:::
+
+### Weibull Suitability Check
 
 Before fitting parametric models, check if the Weibull distribution is suitable.
-The **log-log transformation** of a Weibull survival curve is linear: $\log(-\log(S(t))) = \alpha \log(\lambda t)$
-
-::: callout-tip
-**Diagnostic plot interpretation**: - **Linear relationship**: Suggests Weibull fit is reasonable - **Curved pattern**: Suggests Weibull may not fit; consider exponential or other models
-:::
+The **log-log transformation** of a Weibull survival curve is linear: $$\log(-\log(S(t))) = \alpha \log(\lambda t),$$ and so plotting $\log(-\log(S(t)))$ vs. $\log(t)$ should yield a straight line if the Weibull model is appropriate.
 
 ```{r}
 #| label: 11-survival-chunk-5
-weibull_plot_data <- subset(km_plot_data, time > 0 & surv > 0)
-weibull_plot_data$log_time <- log(weibull_plot_data$time)
-weibull_plot_data$log_log_surv <- log(-log(weibull_plot_data$surv))
+weibull_plot_data <- km_plot_data |>
+    dplyr::filter(time > 0, surv > 0) |>
+    mutate(
+        log_time = log(time),
+        log_log_surv = log(-log(surv))
+    )
 
 ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group)) +
-    geom_line(linewidth = 1) +
-    geom_point(size = 1.8) +
-    scale_colour_manual(values = c("Negative Stain" = "red", "Positive Stain" = "blue")) +
+    geom_point(size = 2.2, alpha = 0.8) +
+    geom_line(linewidth = 0.9) +
+    scale_colour_manual(values = stain_colours, name = "Group") +
     labs(
         title = "Weibull diagnostic plot",
+        subtitle = "A roughly straight pattern suggests a Weibull model is reasonable",
         x = "log(Time)",
         y = "log(-log(Survival))",
         colour = NULL
     ) +
-    theme_minimal(base_size = 12) +
-    theme(legend.position = "top")
+    survival_theme
 ```
 
-## Proportional Hazards Assumption
+::: {.callout-tip collapse="true"}
+## Plot syntax walkthrough (Weibull diagnostic)
+
+1. `ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group))` sets the data source and maps transformed variables to the axes.
+2. `geom_point(size = 2.2, alpha = 0.8)` adds plotted observations with size and transparency controls.
+3. `geom_line(linewidth = 0.9)` connects points within each colour group.
+4. `scale_colour_manual(values = stain_colours, name = "Group")` applies a named colour vector and legend title.
+5. `labs(...)` sets the plot title, subtitle, and axis labels.
+6. `survival_theme` applies the shared theme object.
+:::
+
+Here we have a roughly linear pattern for both groups, suggesting the Weibull model may be a reasonable parametric choice for modeling survival in this dataset.
+
+### Proportional Hazards Assumption
 
 Many survival models (e.g., Cox) assume **proportional hazards**: the hazard ratio between groups is constant over time.
-Check this with the **cloglog transformation**.
-
-::: callout-note
-**Proportional hazards assumption**: If the cloglog curves are parallel, hazards are proportional.
-If curves cross, the assumption is violated, suggesting the treatment effect changes over time.
-:::
+We can check this by plotting the complementary log-log transformation of the survival curves: $\log(-\log(S(t)))$ vs. time, and looking for a parallel shift between groups.
 
 ```{r}
 #| label: 11-survival-chunk-6
-cloglog_plot_data <- subset(km_plot_data, time > 0 & surv > 0)
-cloglog_plot_data$cloglog <- log(-log(cloglog_plot_data$surv))
+cloglog_plot_data <- km_plot_data |>
+    dplyr::filter(time > 0, surv > 0) |>
+    mutate(cloglog = log(-log(surv)))
 
 ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group)) +
-    geom_line(linewidth = 1) +
-    geom_point(size = 1.8) +
-    scale_colour_manual(values = c("Negative Stain" = "red", "Positive Stain" = "blue")) +
-    coord_cartesian(xlim = c(5, 300)) +
+    geom_step(linewidth = 0.9) +
+    scale_colour_manual(values = stain_colours, name = "Group") +
     labs(
         title = "Proportional hazards check via cloglog plot",
+        subtitle = "A parallel shift supports the proportional hazards assumption",
         x = "Time",
         y = "log(-log(Survival))",
         colour = NULL
     ) +
-    theme_minimal(base_size = 12) +
-    theme(legend.position = "top")
+    survival_theme
 ```
 
-::: {.callout-important collapse="true"}
-## SELF TEST: What does parallelism of cloglog curves tell us?
+::: {.callout-tip collapse="true"}
+## Plot syntax walkthrough (cloglog PH check)
 
-Parallel cloglog curves suggest the proportional hazards assumption holds: the hazard of death for positive-stain patients is a constant multiple of that for negative-stain patients, regardless of time.
-Crossing curves suggest the groups' relative hazards change over time.
+1. `ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group))` maps time and the transformed `cloglog` response.
+2. `geom_step(linewidth = 0.9)` draws the observed transformed values as step functions.
+3. `scale_colour_manual(values = stain_colours, name = "Group")` uses the predefined palette and legend title.
+4. `labs(...)` defines the title, subtitle, and axis labels.
+5. `survival_theme` adds the common visual styling.
 :::
+
+Here is it plausible that the curves are roughly parallel, which supports the proportional hazards assumption.
 
 ## Exponential Regression
 
@@ -244,15 +310,14 @@ Higher $\lambda$ means shorter survival (higher hazard rate).
 
 ### Verification: MLE via Method of Moments
 
-For the exponential distribution, the MLE is: $\hat{\lambda} = \frac{\text{# events}}{\text{total time at risk}}$
+For the exponential distribution, the MLE is:
+$$\hat{\lambda} = \frac{\text{\# events}}{\text{total time at risk}}$$
 
 ```{r}
 #| label: 11-survival-chunk-11
-sum(bcancer$status[bcancer$group == "N"]) /
-    sum(bcancer$time[bcancer$group == "N"])
-
-sum(bcancer$status[bcancer$group == "P"]) /
-    sum(bcancer$time[bcancer$group == "P"])
+bcancer |>
+    group_by(group) |>
+    summarise(rate = sum(status) / sum(time), .groups = "drop")
 ```
 
 ::: {.callout-important collapse="true"}
