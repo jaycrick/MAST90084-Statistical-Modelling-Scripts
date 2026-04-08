@@ -1,6 +1,6 @@
 ---
-title: "Survival Analysis"
-subtitle: "Breast Cancer Data: Kaplan-Meier, Exponential and Weibull Models"
+title: "Survival Analysis: Breast Cancer"
+subtitle: "Kaplan-Meier, Exponential and Weibull Models"
 date: last-modified
 editor:
   markdown:
@@ -8,14 +8,14 @@ editor:
     canonical: true
 ---
 
-**DENNIS: You may want to add more exposition to this code. I'm not exactly sure what happens in the lectures but when you are explaining it you are quite succinct (particularly in the sections on parametric models).**
+**DENNIS: You may want to add more exposition to this code. I'm not exactly sure what happens in the lectures but when you are explaining it you are quite succinct (particularly in the sections on parametric models). You may also want to add some bibliographic information in the front end, such as the Cox and Oakes 84 paper, Kalbfleisch book, and @venables_modern_2002.**
 
 ## Data Loading and Setup
 
-We load packages and breast cancer survival data, and inspect the stucture:
+We load packages and breast cancer survival data adapted from @leathem_predictive_1987 (referenced by @collett_modelling_2023), and inspect the structure:
 
 ```{r}
-#| label: 11-survival-chunk-1
+#| label: 11-survival-chunk-1 
 library(conflicted)
 library(dplyr)
 library(ggplot2)
@@ -33,11 +33,11 @@ tail(bcancer)
 ::: callout-note
 **Data structure for survival analysis**:
 
-- `time`: Time in days until event (death) or censoring (last follow-up)
-- `status`: Censoring indicator (0 = censored, 1 = event observed)
-- `group`: Grouping variable (here: staining status: Positive (P) or Negative (N)) this indicates whether metastasis was observed in the lymph nodes, which is a prognostic factor for breast cancer survival.
+-   `time`: Time in days until event (death) or censoring (last follow-up)
+-   `status`: Censoring indicator (0 = censored, 1 = event observed)
+-   `group`: Grouping variable (here: staining status: Positive (P) or Negative (N)) this indicates whether metastasis was observed in the lymph nodes, which is a prognostic factor for breast cancer survival.
 
-The `Surv()` function combines time and status into a survival object for modeling.
+The `Surv()` function combines time and status into a survival object for modelling.
 :::
 
 ## Diagnostics
@@ -58,7 +58,8 @@ summary(cancer_km)
 Here the `survfit` object contains the estimated survival probabilities at each event time, along with confidence intervals and the number at risk.
 So for `group=N` at time 23, the estimated survival probability is 0.923.
 
-`n.risk` is the number of patients still at risk just before that time, and `n.event` is the number of events (deaths) that occur at that time. `n.risk` can decrease due to events or censoring, which is why it doesn't always decrease by the number of events.
+`n.risk` is the number of patients still at risk just before that time, and `n.event` is the number of events (deaths) that occur at that time.
+`n.risk` can decrease due to events or censoring, which is why it doesn't always decrease by the number of events.
 
 The generic `summary()` method for `survfit` objects also has a `data.frame = TRUE` option which we can use and convert to a tibble for easier manipulation:
 
@@ -113,12 +114,12 @@ survival_theme <- theme_minimal(base_size = 14) +
 ::: {.callout-tip collapse="true"}
 ## Syntax walkthrough (shared plot settings):
 
-- `stain_colours <- c(...)` creates a **named vector**: the names (`"Negative Stain"`, `"Positive Stain"`) must match the group labels in the data, and the values are the colours used in the legend and lines.
-- `theme_minimal(base_size = 14)` sets a clean base style and readable default text size.
-- `+ theme(...)` modifies specific theme elements on top of `theme_minimal()`.
-- `legend.position = "top"` moves the legend above the plot, which is usually easier to scan for two-group comparisons.
-- `legend.title = element_text(face = "bold")` and `plot.title = element_text(face = "bold")` make key text elements stand out.
-- `panel.grid.minor = element_blank()` removes minor gridlines to reduce visual clutter.
+-   `stain_colours <- c(...)` creates a **named vector**: the names (`"Negative Stain"`, `"Positive Stain"`) must match the group labels in the data, and the values are the colours used in the legend and lines.
+-   `theme_minimal(base_size = 14)` sets a clean base style and readable default text size.
+-   `+ theme(...)` modifies specific theme elements on top of `theme_minimal()`.
+-   `legend.position = "top"` moves the legend above the plot, which is usually easier to scan for two-group comparisons.
+-   `legend.title = element_text(face = "bold")` and `plot.title = element_text(face = "bold")` make key text elements stand out.
+-   `panel.grid.minor = element_blank()` removes minor gridlines to reduce visual clutter.
 :::
 
 Plot Kaplan-Meier survival curves for the two groups:
@@ -149,14 +150,14 @@ ggplot(km_plot_data, aes(x = time, y = surv, colour = group)) +
 
 Read this plot from top to bottom as a sequence of layers:
 
-1. `ggplot(km_plot_data, aes(...))` picks the data and default mappings (`time` on x-axis, survival `surv` on y-axis, colour by `group`).
-2. `geom_ribbon(aes(ymin = lower, ymax = upper, fill = group), ...)` draws the 95% confidence interval band between the lower and upper survival limits.
-3. `geom_step(...)` draws Kaplan-Meier style step curves.
-4. `scale_colour_manual(...)` applies the named palette so the step-line legend labels match the colours.
-5. `scale_fill_manual(...)` uses the same palette for the confidence-band fill.
-6. `scale_y_continuous(...)` constrains and labels the y-axis to survival-probability values between 0 and 1.
-7. `labs(...)` adds title, subtitle, and axis labels.
-8. `survival_theme` applies shared styling (legend placement, text emphasis, and cleaner gridlines).
+1.  `ggplot(km_plot_data, aes(...))` picks the data and default mappings (`time` on x-axis, survival `surv` on y-axis, colour by `group`).
+2.  `geom_ribbon(aes(ymin = lower, ymax = upper, fill = group), ...)` draws the 95% confidence interval band between the lower and upper survival limits.
+3.  `geom_step(...)` draws Kaplan-Meier style step curves.
+4.  `scale_colour_manual(...)` applies the named palette so the step-line legend labels match the colours.
+5.  `scale_fill_manual(...)` uses the same palette for the confidence-band fill.
+6.  `scale_y_continuous(...)` constrains and labels the y-axis to survival-probability values between 0 and 1.
+7.  `labs(...)` adds title, subtitle, and axis labels.
+8.  `survival_theme` applies shared styling (legend placement, text emphasis, and cleaner gridlines).
 :::
 
 ### Weibull Suitability Check
@@ -190,12 +191,12 @@ ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group)) +
 ::: {.callout-tip collapse="true"}
 ## Plot syntax walkthrough (Weibull diagnostic)
 
-1. `ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group))` sets the data source and maps transformed variables to the axes.
-2. `geom_point(size = 2.2, alpha = 0.8)` adds plotted observations with size and transparency controls.
-3. `geom_line(linewidth = 0.9)` connects points within each colour group.
-4. `scale_colour_manual(values = stain_colours, name = "Group")` applies a named colour vector and legend title.
-5. `labs(...)` sets the plot title, subtitle, and axis labels.
-6. `survival_theme` applies the shared theme object.
+1.  `ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group))` sets the data source and maps transformed variables to the axes.
+2.  `geom_point(size = 2.2, alpha = 0.8)` adds plotted observations with size and transparency controls.
+3.  `geom_line(linewidth = 0.9)` connects points within each colour group.
+4.  `scale_colour_manual(values = stain_colours, name = "Group")` applies a named colour vector and legend title.
+5.  `labs(...)` sets the plot title, subtitle, and axis labels.
+6.  `survival_theme` applies the shared theme object.
 :::
 
 Here we have a roughly linear pattern for both groups, suggesting the Weibull model may be a reasonable parametric choice for modeling survival in this dataset.
@@ -227,11 +228,11 @@ ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group)) +
 ::: {.callout-tip collapse="true"}
 ## Plot syntax walkthrough (cloglog PH check)
 
-1. `ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group))` maps time and the transformed `cloglog` response.
-2. `geom_step(linewidth = 0.9)` draws the observed transformed values as step functions.
-3. `scale_colour_manual(values = stain_colours, name = "Group")` uses the predefined palette and legend title.
-4. `labs(...)` defines the title, subtitle, and axis labels.
-5. `survival_theme` adds the common visual styling.
+1.  `ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group))` maps time and the transformed `cloglog` response.
+2.  `geom_step(linewidth = 0.9)` draws the observed transformed values as step functions.
+3.  `scale_colour_manual(values = stain_colours, name = "Group")` uses the predefined palette and legend title.
+4.  `labs(...)` defines the title, subtitle, and axis labels.
+5.  `survival_theme` adds the common visual styling.
 :::
 
 Here is it plausible that the curves are roughly parallel, which supports the proportional hazards assumption.
@@ -255,9 +256,9 @@ summary(cancer_exp)
 ::: {.callout-important collapse="true"}
 ## SELF TEST: What are the model assumptions for the exponential survival model?
 
-- The time-to-event follows an exponential distribution, which implies a constant hazard rate over time.
-- The effect of the group is multiplicative on the hazard scale (i.e., it shifts the rate parameter $\lambda$ by a factor of $e^{\beta}$).
-- Censoring is non-informative (the reason for censoring is unrelated to the survival time).
+-   The time-to-event follows an exponential distribution, which implies a constant hazard rate over time.
+-   The effect of the group is multiplicative on the hazard scale (i.e., it shifts the rate parameter $\lambda$ by a factor of $e^{\beta}$).
+-   Censoring is non-informative (the reason for censoring is unrelated to the survival time).
 :::
 
 We can recover the p-value for the group effect using the Wald test.
@@ -311,9 +312,7 @@ Higher $\lambda$ means shorter survival (higher hazard rate).
 
 ### Verification: MLE via Method of Moments
 
-For the exponential distribution, the MLE is:
-$$\hat{\lambda} = \frac{\text{\# events}}{\text{total time at risk}}.$$
-Therefore, we can verify our MLE estimates by calculating the event rates directly from the data:
+For the exponential distribution, the MLE is: $$\hat{\lambda} = \frac{\text{\# events}}{\text{total time at risk}}.$$ Therefore, we can verify our MLE estimates by calculating the event rates directly from the data:
 
 ```{r}
 #| label: 11-survival-chunk-11
@@ -326,7 +325,8 @@ These match our model-based estimates, confirming that the MLE for the exponenti
 
 ### Delta Method Confidence Interval
 
-Recall there are two methods we use to construct confidence intervals. Here, we use the **delta method** (linearization).
+Recall there are two methods we use to construct confidence intervals.
+Here, we use the **delta method** (linearization).
 $$\text{var}(g(X)) \approx (g'(X))^2 \cdot \text{var}(X)$$
 
 ```{r}
