@@ -8,6 +8,8 @@ editor:
     canonical: true
 ---
 
+**DENNIS: You may want to add more exposition to this code. I'm not exactly sure what happens in the lectures but when you are explaining it you are quite succinct (particularly in the sections on parametric models).**
+
 ## Data Loading and Setup
 
 We load packages and breast cancer survival data, and inspect the stucture:
@@ -31,7 +33,7 @@ tail(bcancer)
 ::: callout-note
 **Data structure for survival analysis**:
 
-- `time`: Time until event (in some unit, here likely days or months)
+- `time`: Time in days until event (death) or censoring (last follow-up)
 - `status`: Censoring indicator (0 = censored, 1 = event observed)
 - `group`: Grouping variable (here: staining status: Positive (P) or Negative (N)) this indicates whether metastasis was observed in the lymph nodes, which is a prognostic factor for breast cancer survival.
 
@@ -236,10 +238,8 @@ Here is it plausible that the curves are roughly parallel, which supports the pr
 
 ## Exponential Regression
 
-The **exponential model** is a parametric survival model with constant hazard rate.
-It assumes failures follow a Poisson process.
-
-Fit exponential survival model:
+Now we fit parametric survival models to estimate the effect of group on survival time.
+The first model we fit is the exponential survival model:
 
 ```{r}
 #| label: 11-survival-chunk-7
@@ -252,58 +252,59 @@ cancer_exp <- survreg(
 summary(cancer_exp)
 ```
 
-::: callout-note
-**Exponential model assumptions**: Constant hazard rate (hazard doesn't change over time).
-This is restrictive and often violated in practice, but is a useful baseline and computationally simple.
+::: {.callout-important collapse="true"}
+## SELF TEST: What are the model assumptions for the exponential survival model?
+
+- The time-to-event follows an exponential distribution, which implies a constant hazard rate over time.
+- The effect of the group is multiplicative on the hazard scale (i.e., it shifts the rate parameter $\lambda$ by a factor of $e^{\beta}$).
+- Censoring is non-informative (the reason for censoring is unrelated to the survival time).
 :::
 
-### Testing the Group Effect
+We can recover the p-value for the group effect using the Wald test.
 
 **Wald Test**:
 
 ```{r}
 #| label: 11-survival-chunk-8
-wald_stat <- cancer_exp$coeff[2] / sqrt(cancer_exp$var[2, 2])
-2 * pnorm(-abs(wald_stat))
+
+exp_coefs <- coef(cancer_exp)
+exp_coefs
+exp_cov <- vcov(cancer_exp)
+exp_cov
+
+beta <- exp_coefs[2]
+var_beta <- exp_cov[2, 2]
+
+wald_stat <- beta / sqrt(var_beta)
+2 * pnorm(-abs(wald_stat)) |> round(3)
 ```
 
-This gives a p-value for whether group significantly affects survival time.
-
-**Likelihood Ratio Test**:
+We can also do a likelihood ratio test comparing the exponential model with group to a null model without group:
 
 ```{r}
 #| label: 11-survival-chunk-9
-lr_stat <- -2 * (cancer_exp$loglik[1] - cancer_exp$loglik[2])
-pchisq(q = lr_stat, df = 1, lower.tail = FALSE)
+
+exp_loglik <- cancer_exp$loglik
+lr_stat <- -2 * (exp_loglik[1] - exp_loglik[2])
+pchisq(q = lr_stat, df = 1, lower.tail = FALSE) |> round(3)
 ```
-
-An alternative p-value based on the likelihood ratio statistic.
-
-::: {.callout-important collapse="true"}
-## SELF TEST: When would Wald and LR tests disagree?
-
-Both test the same hypothesis but use different asymptotics.
-For moderate sample sizes, they usually agree.
-With small samples or if the coefficient is near a boundary (e.g., near no effect), they can diverge.
-LR tests are generally more robust in finite samples.
-:::
 
 ### Extracting Rate Parameters
 
-For the exponential model, the rate parameter (hazard) is $\lambda = e^{(intercept + \beta \cdot \text{group})}$:
+For the exponential model, the rate parameter (hazard) is $$\lambda = e^{(\beta_0 + \beta_1 \cdot \text{group})}$$:
 
 ```{r}
 #| label: 11-survival-chunk-10
-lambda_n <- exp(-cancer_exp$coef[1])
-lambda_p <- exp(-sum(cancer_exp$coef))
+lambda_n <- exp(-exp_coefs[1])
+lambda_p <- exp(-sum(exp_coefs))
 
 lambda_n
 lambda_p
 ```
 
 ::: callout-note
-Negative stain group: $\lambda_N =$ `r lambda_n` events/time\
-Positive stain group: $\lambda_P =$ `r lambda_p` events/time
+Negative stain group: $\lambda_N =$ `r round(lambda_n, 4)` events/time\
+Positive stain group: $\lambda_P =$ `r round(lambda_p, 4)` events/time
 
 Higher $\lambda$ means shorter survival (higher hazard rate).
 :::
@@ -311,7 +312,8 @@ Higher $\lambda$ means shorter survival (higher hazard rate).
 ### Verification: MLE via Method of Moments
 
 For the exponential distribution, the MLE is:
-$$\hat{\lambda} = \frac{\text{\# events}}{\text{total time at risk}}$$
+$$\hat{\lambda} = \frac{\text{\# events}}{\text{total time at risk}}.$$
+Therefore, we can verify our MLE estimates by calculating the event rates directly from the data:
 
 ```{r}
 #| label: 11-survival-chunk-11
@@ -320,28 +322,20 @@ bcancer |>
     summarise(rate = sum(status) / sum(time), .groups = "drop")
 ```
 
-::: {.callout-important collapse="true"}
-## SELF TEST: Do these match the model rates above?
-
-These hand-computed values should match (to numerical precision) the rates extracted above.
-This verifies that `survreg` is fitting via maximum likelihood and our interpretation of the rates is correct.
-:::
+These match our model-based estimates, confirming that the MLE for the exponential model is consistent with the method of moments calculation.
 
 ### Delta Method Confidence Interval
 
-Construct a 95% CI for $\lambda_P$ using the **delta method** (linearization):
+Recall there are two methods we use to construct confidence intervals. Here, we use the **delta method** (linearization).
+$$\text{var}(g(X)) \approx (g'(X))^2 \cdot \text{var}(X)$$
 
 ```{r}
 #| label: 11-survival-chunk-12
-beta <- cancer_exp$coeff[2]
-var_beta <- (cancer_exp$var)[2, 2]
 
-# Delta method: var(e^X) ≈ (e^X)^2 * var(X)
 var_lambda <- (exp(-beta))^2 * var_beta
 
-# CI
-exp(-beta) + qnorm(0.975) * sqrt(var_lambda)
-exp(-beta) - qnorm(0.975) * sqrt(var_lambda)
+CI <- exp(-beta) + qnorm(0.975) * sqrt(var_lambda) * c(-1, 1)
+CI |> round(3)
 ```
 
 ::: callout-note
@@ -354,20 +348,16 @@ However, the delta method doesn't always respect parameter constraints; a safer 
 ```{r}
 #| label: 11-survival-chunk-13
 # Build CI on log scale, then exponentiate
-exp(-(beta - qnorm(0.975) * sqrt(var_beta)))
-exp(-(beta + qnorm(0.975) * sqrt(var_beta)))
+exp(-(beta - qnorm(0.975) * sqrt(var_beta) * c(-1, 1))) |>
+    round(3)
 ```
-
-::: callout-note
-This guarantees both bounds are positive because exponentiation preserves the ordering and always produces positive values.
-:::
 
 ## Weibull Regression
 
 The **Weibull model** generalizes the exponential by allowing a shape parameter $\alpha > 0$.
-When $\alpha = 1$, it reduces to exponential; $\alpha > 1$ means hazard increases with time (wear-out); $\alpha < 1$ means hazard decreases (infant mortality).
+When $\alpha = 1$, it reduces to exponential; $\alpha > 1$ means hazard increases with time; $\alpha < 1$ means hazard decreases (realistic in diseases that primarily effect infants such as malaria).
 
-Fit Weibull survival model:
+We fit the Weibull survival model, and extract some of its parameters:
 
 ```{r}
 #| label: 11-survival-chunk-14
@@ -378,14 +368,17 @@ cancer_wbl <- survreg(
 )
 
 summary(cancer_wbl)
-cancer_wbl$coef
-cancer_wbl$scale
-cancer_wbl$var
+wbl_coef <- coef(cancer_wbl)
+wbl_scale <- cancer_wbl$scale
+wbl_cov <- vcov(cancer_wbl)
+
+wbl_coef
+wbl_scale
+wbl_cov
 ```
 
-::: callout-note
+::: callout-caution
 Note: `survreg` parameterizes the scale as $\sigma = 1/\alpha$, so the shape parameter is $\alpha = 1/\text{scale}$.
-A scale close to 1 means $\alpha \approx 1$ (nearly exponential); scale \>\> 1 means $\alpha << 1$ (rapidly decreasing hazard).
 :::
 
 ### Rate and Shape Parameters
@@ -394,10 +387,10 @@ Extract and interpret the Weibull parameters:
 
 ```{r}
 #| label: 11-survival-chunk-15
-lambda_n <- exp(-cancer_wbl$coef[1])
-lambda_p <- exp(-sum(cancer_wbl$coef))
+lambda_n <- exp(-wbl_coef[1])
+lambda_p <- exp(-sum(wbl_coef))
 
-alpha <- 1 / cancer_wbl$scale
+alpha <- 1 / wbl_scale
 
 s_n_100 <- exp(-(lambda_n * 100)^alpha)
 s_p_100 <- exp(-(lambda_p * 100)^alpha)
@@ -414,12 +407,11 @@ s_p_100
 
 `s_n_100` is the estimated survival probability at time 100 for negative-stain patients.
 `s_p_100` is the same for positive-stain patients.
-Compare these to the Kaplan-Meier estimates for similar times to see how well the parametric model fits the data.
 :::
 
 ### Hazard Ratio
 
-Compute the hazard ratio (positive stain vs. negative stain):
+We can also estimate the hazard ratio (positive stain vs. negative stain):
 
 ```{r}
 #| label: 11-survival-chunk-16
@@ -434,23 +426,30 @@ A hazard ratio \> 1 means positive-stain patients have higher hazard (die sooner
 
 ### Testing the Shape Parameter
 
-**Wald test** for whether shape = 1 (exponential):
+We can do a Wald test or likelihood ratio test to check if the shape parameter $\alpha$ is significantly different from 1, which would indicate that the Weibull model provides a better fit than the exponential model.
+
+#### Wald Test
 
 ```{r}
 #| label: 11-survival-chunk-17
-wald_z <- log(cancer_wbl$scale) / sqrt(cancer_wbl$var[3, 3])
+wald_z <- log(wbl_scale) / sqrt(wbl_cov[3, 3])
 
 # p-value for H0: log(scale) = 0, i.e., scale = 1, i.e., alpha = 1
 2 * pnorm(-abs(wald_z))
 ```
 
-**Likelihood ratio test** comparing Weibull to exponential:
+Here we don't reject the null hypothesis that $\alpha = 1$, which suggests the exponential model may be sufficient.
+
+#### Likelihood Ratio Test
+
+We also check this with a likelihood ratio test comparing the Weibull model to the exponential model.
 
 ```{r}
 #| label: 11-survival-chunk-18
-lr_stat <- 2 * (cancer_wbl$loglik[2] - cancer_exp$loglik[2])
 
-qchisq(.95, df = 1)
+wbl_loglik <- logLik(cancer_wbl)
+wbl_loglik
+lr_stat <- 2 * (wbl_loglik - exp_loglik[2])
 
 pchisq(
     lr_stat,
@@ -459,42 +458,29 @@ pchisq(
 )
 ```
 
-::: {.callout-important collapse="true"}
-## SELF TEST: Does the Weibull model fit better than exponential?
+Again, we don't reject the null hypothesis that $\alpha = 1$.
 
-Compare the LR test p-value: if p \< 0.05, the shape parameter is significantly different from 1, meaning Weibull provides better fit than exponential.
-Also compare AIC/BIC or look at the scaled deviances to assess relative model quality.
-:::
+## Package Citations
 
-## Key Learning Points
+```{r}
+#| label: package-citations
+#| results: asis
+#| code-fold: true
 
-1.  **Survival data structure**: Time-to-event ($t$) and censoring indicator (0/1).
-    Censoring indicates incomplete observation—we know $T > t$ but not the exact value.
+packages <- c("conflicted", "dplyr", "ggplot2", "readr", "scales", "survival")
+for (pkg in packages) {
+    cit <- citation(pkg)
 
-2.  **Non-parametric vs. parametric**:
-
-    -   **Kaplan-Meier**: Non-parametric, makes no distributional assumption, handles censoring via risk sets
-    -   **Parametric models**: Assume specific distribution (exponential, Weibull), more efficient if assumption holds
-
-3.  **Diagnostic plots**:
-
-    -   **Log-log plot**: Linearity suggests Weibull fit is appropriate
-    -   **cloglog plot**: Parallelism checks proportional hazards assumption
-
-4.  **Model parameters**:
-
-    -   **Exponential**: Single rate parameter $\lambda$ (constant hazard)
-    -   **Weibull**: Rate $\lambda$ and shape $\alpha$ (hazard can increase/decrease over time)
-
-5.  **Interpretation**:
-
-    -   Hazard ratio: relative risk between groups
-    -   Survival probability at time $t$: probability of not having event by time $t$
-    -   Rates are on the inverse scale: higher rate = shorter survival time
-
-6.  **Inference**:
-
-    -   **Wald tests**: Test individual parameters (less robust in finite samples)
-    -   **LR tests**: Compare nested models (more robust)
-    -   Always verify with bootstrapping or sensitivity analyses when possible
-
+    # Check if multiple citations
+    if (length(cit) > 1) {
+        cat("- **", pkg, "**:\n", sep = "")
+        for (i in seq_along(cit)) {
+            cit_text <- format(cit[i], style = "text")
+            cat("    - ", cit_text, "\n\n", sep = "")
+        }
+    } else {
+        cit_text <- format(cit, style = "text")
+        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+    }
+}
+```
