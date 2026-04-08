@@ -1,6 +1,6 @@
 ---
-title: "Random Effects in Generalized Linear Models: Ohio Respiratory Data"
-subtitle: "@fahrmeir_multivariate_2001 Examples 7.1, 7.3"
+title: "Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness"
+subtitle: "@fahrmeir_multivariate_2001 Examples 7.1--7.4"
 date: last-modified
 editor:
   markdown:
