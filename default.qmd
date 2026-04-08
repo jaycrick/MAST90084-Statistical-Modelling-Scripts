@@ -22,17 +22,12 @@ Use the **Scripts** menu above, or jump directly to one of the guides below.
 -   [Generalized Estimating Equations: CTSIB Balance Test Data](quarto_scripts/08-gee_ctsib.qmd)
 -   [Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data](quarto_scripts/09-LM_mixed_effect.qmd)
 -   [Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness](quarto_scripts/10-GLM_mixed_Effect.qmd)
+-   [Survival Analysis: Breast Cancer](quarto_scripts/11-survival.qmd)
 
 ### Appendices
 
 -   [Appendix 1: Dispersion with Working Residuals](quarto_scripts/A1-dispersion-working-residuals.qmd)
 -   [Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data](quarto_scripts/A2-likelihood-multinomial.qmd)
-
-```{=html}
-<!--
-- [Survival Analysis](quarto_scripts/11-survival.qmd)
--->
-```
 
 ## Acknowledgements
 
