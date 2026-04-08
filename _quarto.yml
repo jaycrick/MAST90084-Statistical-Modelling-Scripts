@@ -32,10 +32,10 @@ website:
             file: quarto_scripts/07-ohio.qmd
           - text: "Generalized Estimating Equations: CTSIB Balance Test Data"
             file: quarto_scripts/08-gee_ctsib.qmd
-          # - text: "LM Mixed Effects"
-          #   file: quarto_scripts/09-LM_mixed_effect.qmd
-          # - text: "GLM Mixed Effects"
-          #   file: quarto_scripts/10-GLM_mixed_Effect.qmd
+          - text: "Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data"
+            file: quarto_scripts/09-LM_mixed_effect.qmd
+          - text: "Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness"
+            file: quarto_scripts/10-GLM_mixed_Effect.qmd
           # - text: "Survival Analysis"
           #   file: quarto_scripts/11-survival.qmd
           - text: "APPENDICES"
