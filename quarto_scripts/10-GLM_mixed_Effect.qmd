@@ -344,7 +344,7 @@ Note that the fitted values are evaluated at the conditional modes of the random
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-17
 # Fitted values for first few observations
-wine_mixed_fit$fitted.values
+fitted(wine_mixed_fit)
 ```
 
 As always, to get the estimated conditional modes of the random effects, we use the generic `ranef()` function.

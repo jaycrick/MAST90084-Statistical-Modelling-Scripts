@@ -157,7 +157,8 @@ We can also have a look at the deviance of the fitted model.
 
 ```{r}
 #| label: deviance-caes-nnet
-caes_nnet$deviance
+caes_nnet_dev <- deviance(caes_nnet)
+caes_nnet_dev
 ```
 
 ::: callout-caution
@@ -173,6 +174,7 @@ Always check the documentation for how deviance is calculated.
 
 Use `attributes(caes_nnet)` to see all available components of a model object.
 This reveals what elements you can access (like `$deviance`, `$fitted.values`, `$residuals`) and helps you understand the object's structure.
+We can access these components directly with `$`, but we can also use the generic methods `deviance()`, `fitted()`, and `residuals()` which are more robust to changes in the underlying object structure across different model types and packages.
 Similarly, `str()` shows the internal structure, and `names()` lists just the accessible components.
 
 ```{r}
@@ -274,8 +276,8 @@ We can also check the deviance of this fit, which should be the same as before s
 
 ```{r}
 #| label: compare-deviance-multinom-fits
-caes_nnet_prepared$deviance
-caes_nnet$deviance
+deviance(caes_nnet_prepared)
+caes_nnet_dev
 ```
 :::
 
@@ -286,14 +288,14 @@ The fitted values are the predicted probabilities for each category.
 
 ```{r}
 #| label: print-fitted-values
-caes_nnet$fitted.values
+fitted(caes_nnet)
 ```
 
 The residuals are the differences between the observed proportions and the fitted probabilities.
 
 ```{r}
 #| label: print-residuals
-caes_nnet$residuals
+residuals(caes_nnet)
 ```
 
 We can manually validate the residuals by computing the observed proportions and subtracting the fitted probabilities.
@@ -308,7 +310,7 @@ caes_nnet_prop <- caes_dat |>
   ) |>
   select(noInf, Inf1, Inf2)
 
-caes_nnet_prop - caes_nnet$fitted
+caes_nnet_prop - fitted(caes_nnet)
 ```
 
 Given a new observation, we can either predict the most likely category (with `type = "class"`) or the probabilities for each category (with `type = "probs"`).
@@ -381,7 +383,7 @@ Therefore the log-likelihood from `nnet` can be computed as:
 
 ```{r}
 #| label: nnet-loglik-from-deviance
--caes_nnet$deviance / 2
+-caes_nnet_dev / 2
 ```
 
 This is significantly different from the log-likelihood reported by `VGAM::vglm()` for the same data and model.
