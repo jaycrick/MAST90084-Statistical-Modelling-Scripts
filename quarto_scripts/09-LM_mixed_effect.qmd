@@ -391,7 +391,15 @@ The standard deviation of the random slope tells us how much variability there i
 A low correlation value tells us that the slope of income growth over time, is minimally effected by the initial salary (intercept).
 :::
 
-## Package Citations
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

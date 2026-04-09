@@ -13,18 +13,15 @@ editor:
 ## Overview
 
 This script reproduces Examples 3.6 and 3.7 from @fahrmeir_multivariate_2001.
-We analyse the relationship between tonsil size of children and their
-*Streptococcus pyogenes* carrier status.
+We analyse the relationship between tonsil size of children and their *Streptococcus pyogenes* carrier status.
 
 The response has three ordered categories:
 
-1. `present`
-2. `enlarged`
-3. `great_enlarged`.
+1.  `present`
+2.  `enlarged`
+3.  `great_enlarged`.
 
-There is a good physical interpretation of the ordering,
-where a normal tonsil must first become enlarged before it can become greatly enlarged,
-and so we are motivated to try a sequential regression model.
+There is a good physical interpretation of the ordering, where a normal tonsil must first become enlarged before it can become greatly enlarged, and so we are motivated to try a sequential regression model.
 
 ## Data and Packages
 
@@ -52,11 +49,9 @@ tonsil_tbl
 ### Data Reshaping
 
 The `tonsil` data are in long format: one row per carrier-status and size category.
-For `vglm`, we want one row per carrier-status and one column per size count,
-referred to as wide format.
+For `vglm`, we want one row per carrier-status and one column per size count, referred to as wide format.
 We can reshape using `tidyr::pivot_wider()`.
-We also rename the size category to be more descriptive
-and convert it to a factor with labels.
+We also rename the size category to be more descriptive and convert it to a factor with labels.
 
 ```{r}
 #| label: 05-tonsil-reshape-to-wide
@@ -77,22 +72,16 @@ tonsil_wide
 ::: {.callout-tip collapse="true"}
 ## What each step is doing
 
-- `mutate(...)`:
-creates or updates columns; here it rewrites `Size` as a labelled factor.
-- `factor(...)`: converts numeric codes (`1, 2, 3`)
-into ordered category labels used in output.
-- `dplyr::select(Streptococcus.p, Size, n)`:
-keeps only the columns needed for reshaping; in this case we want all three.
-- `pivot_wider(names_from = Size, values_from = n)`:
-converts long data into wide data, so each size category becomes its own count column. The `name_from` argument says we want the content of the `Size` column to become our column names, and the `values_from` argument says we want the content of the `n` column to become the cell values. 
-- `|>`:
-passes the result of one step to the next, making the workflow readable top-to-bottom.
+-   `mutate(...)`: creates or updates columns; here it rewrites `Size` as a labelled factor.
+-   `factor(...)`: converts numeric codes (`1, 2, 3`) into ordered category labels used in output.
+-   `dplyr::select(Streptococcus.p, Size, n)`: keeps only the columns needed for reshaping; in this case we want all three.
+-   `pivot_wider(names_from = Size, values_from = n)`: converts long data into wide data, so each size category becomes its own count column. The `name_from` argument says we want the content of the `Size` column to become our column names, and the `values_from` argument says we want the content of the `n` column to become the cell values.
+-   `|>`: passes the result of one step to the next, making the workflow readable top-to-bottom.
 :::
 
 ### Understanding Factor Coding
 
-As in the other scripts, we want to ensure effect coding (`contr.sum`)
-is used for factors.
+As in the other scripts, we want to ensure effect coding (`contr.sum`) is used for factors.
 This gives coefficients that are directly comparable to the textbook output on p.97.
 
 ```{r}
@@ -117,16 +106,11 @@ fit_cumulative <- vglm(
 summary(fit_cumulative)
 ```
 
-::: {.callout-caution}
-Here, the `parallel = TRUE ~ Streptococcus.p - 1`
-argument specifies that the effect of `Streptococcus.p` is the same across all levels,
-and the `- 1` removes the intercept from the model,
-which sets the intercept to be different,
-since the intercepts here are exactly the $\theta$s.
+::: callout-caution
+Here, the `parallel = TRUE ~ Streptococcus.p - 1` argument specifies that the effect of `Streptococcus.p` is the same across all levels, and the `- 1` removes the intercept from the model, which sets the intercept to be different, since the intercepts here are exactly the $\theta$s.
 :::
 
-Note that the $p$-values do not line up with those
-in Table 3.6 of @fahrmeir_multivariate_2001 for a completely unknown reason.
+Note that the $p$-values do not line up with those in Table 3.6 of @fahrmeir_multivariate_2001 for a completely unknown reason.
 If you manage to figure out why, please let me know.
 
 ## Model 2: Extended Cumulative Model
@@ -151,8 +135,7 @@ Here we fit a sequential model using `VGAM::sratio()`.
 ::: {.callout-important collapse="true"}
 ## Make sure you can write down the mathematical form of the model. Expand for hint.
 
-HINT: it should have the form:
-\begin{equation*}
+HINT: it should have the form: \begin{equation*}
     \Pr(Y = r | Y \geq r, x) = \ldots
 \end{equation*}
 
@@ -170,14 +153,10 @@ fit_sequential <- vglm(
 summary(fit_sequential)
 ```
 
-Again, the $p$-values do not line up with those in Table 3.6 for an unknown reason,
-but the deviances do match.
-We can see that the deviance for the sequential model is much smaller
-than that of the cumulative model which suggests a much better fit to the data.
+Again, the $p$-values do not line up with those in Table 3.6 for an unknown reason, but the deviances do match.
+We can see that the deviance for the sequential model is much smaller than that of the cumulative model which suggests a much better fit to the data.
 
-
-
-::: {.callout-tip collapse="true"}
+:::: {.callout-tip collapse="true"}
 ## Alternative: MASS::polr() Implementation
 
 Here we fit the same cumulative model using `MASS::polr()` to verify our $p$-values.
@@ -201,12 +180,12 @@ polr_dat
 ::: {.callout-tip collapse="true"}
 ## What each step is doing
 
-- `pivot_longer(...)`: turns the wide count columns back into long format (one row per category).
-- `cols = c(present, enlarged, great_enlarged)`: chooses which columns to stack into one variable.
-- `names_to = "size"`: stores the former column names as category labels in a new `size` column.
-- `values_to = "weight"`: stores the corresponding counts in a new `weight` column used as case weights.
-- `ordered(...)`: makes `size` an ordered factor so `polr()` respects the category order.
-- `|>`: pipes each intermediate result to the next transformation step.
+-   `pivot_longer(...)`: turns the wide count columns back into long format (one row per category).
+-   `cols = c(present, enlarged, great_enlarged)`: chooses which columns to stack into one variable.
+-   `names_to = "size"`: stores the former column names as category labels in a new `size` column.
+-   `values_to = "weight"`: stores the corresponding counts in a new `weight` column used as case weights.
+-   `ordered(...)`: makes `size` an ordered factor so `polr()` respects the category order.
+-   `|>`: pipes each intermediate result to the next transformation step.
 :::
 
 ```{r}
@@ -222,9 +201,17 @@ summary(polr_obj)
 ```
 
 The `polr()` standard errors agree with the cumulative `vglm()` fit.
-:::
+::::
 
-## Reproducibility
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

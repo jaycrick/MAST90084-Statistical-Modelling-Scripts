@@ -136,3 +136,13 @@ For the original "wide format data":
 
 **Moral:** One must be very careful when interpreting numbers reported by different packages.
 The same data can produce different values for the what seems to be the same quantity.
+
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::

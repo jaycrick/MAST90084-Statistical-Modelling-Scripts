@@ -544,7 +544,15 @@ coef(caes_nnet_prepared)
 ```
 :::
 
-## Package citations and references
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

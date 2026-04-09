@@ -548,6 +548,16 @@ gee_mu2_inference
 
 Our manually computed robust $p$-values match the ones reported for the quadratic variance structure in @fahrmeir_multivariate_2001 as in @tbl-robust-estimates.
 
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
+
 ```{r}
 #| label: 02-celldiff-chunk-28
 #| results: asis

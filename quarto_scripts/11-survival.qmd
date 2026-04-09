@@ -460,7 +460,15 @@ pchisq(
 
 Again, we don't reject the null hypothesis that $\alpha = 1$.
 
-## Package Citations
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

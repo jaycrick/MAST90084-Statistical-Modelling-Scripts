@@ -525,12 +525,13 @@ We do not reject the new model with `noplan:factor` interaction at usual levels 
 
 ## Reproducibility
 
-### Session Information
+::: {.callout-tip collapse="true"}
+## Session Information
 
 ```{r}
-#| label: 01-anodev-chunk-31
 sessionInfo()
 ```
+:::
 
 ### Package Citations
 

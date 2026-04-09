@@ -354,7 +354,15 @@ As always, to get the estimated conditional modes of the random effects, we use 
 ranef(wine_mixed_fit)
 ```
 
-## Package Citations
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

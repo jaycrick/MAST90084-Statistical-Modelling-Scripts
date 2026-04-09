@@ -412,7 +412,15 @@ geefit_exch_no_interaction$robust.variance |> round(6)
 geefit_unstruct_no_interaction$robust.variance |> round(6)
 ```
 
-## Package Citations
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations
