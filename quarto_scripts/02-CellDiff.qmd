@@ -83,7 +83,8 @@ We inspect the returned coefficients.
 ```{r}
 #| label: 02-celldiff-chunk-5
 glm_poisson_summary <- summary(glm_poisson)
-round(glm_poisson_summary$coefficients, digits = 4)
+glm_pois_coefs <- coef(glm_poisson_summary)
+round(glm_pois_coefs, digits = 4)
 ```
 
 We see that these estimates line up with those reported in @fahrmeir_multivariate_2001 p. 38.
@@ -111,12 +112,12 @@ We can directly access the deviance and we can calculate the Pearson chi-squared
 
 ```{r}
 #| label: 02-celldiff-chunk-6
-poisson_deviance <- glm_poisson$deviance
+poisson_deviance <- deviance(glm_poisson)
 round(poisson_deviance, 1)
 pearson_chisq_stat <-
   sum(
-    (glm_poisson$y - glm_poisson$fitted.values)^2 /
-      glm_poisson$fitted.values
+    (glm_poisson$y - fitted(glm_poisson))^2 /
+      fitted(glm_poisson)
   )
 round(pearson_chisq_stat, 1)
 ```
@@ -212,8 +213,9 @@ We can compare the coefficients with those from the full Poisson GLM.
 
 ```{r}
 #| label: 02-celldiff-chunk-11
-round(glm_poisson_summary$coefficients, 5)
-round(glm_quasi_poisson_summary$coefficients, 5)
+round(glm_pois_coefs, 5)
+glm_quasi_pois_coefs <- coef(glm_quasi_poisson_summary)
+round(glm_quasi_pois_coefs, 5)
 ```
 
 We see that the coefficients are the exact same and match @tbl-poisson-compare, but the standard errors between the two models are significantly different.
@@ -225,14 +227,14 @@ For example, taking the rescaled coefficient estimate $-1.22748$ for `TNF:IFN`, 
 
 ```{r}
 #| label: calibrate_with_normal
-2*(pnorm(1.22748, lower.tail = F))
+2 * (pnorm(1.22748, lower.tail = F))
 ```
 
 , while calibrating based on $t_{12}$ gives
 
 ```{r}
 #| label: calibrate_with_t_12
-2*(pt(1.22748, df = 12,  lower.tail = F))
+2 * (pt(1.22748, df = 12, lower.tail = F))
 ```
 
 As with the typical `glm()` and `lm()` analysis, we can still use the standard `anova()` function:
@@ -247,10 +249,10 @@ which compares nested models by comparing the quasi log-likelihoods (@dunn_smyth
 ```{r}
 #| label: 02-celldiff-chunk-12
 residuals_tbl <- tibble(
-  default = resid(glm_quasi_poisson),
-  deviance = resid(glm_quasi_poisson, type = "deviance"),
-  working = resid(glm_quasi_poisson, type = "working"),
-  pearson = resid(glm_quasi_poisson, type = "pearson")
+  default = residuals(glm_quasi_poisson),
+  deviance = residuals(glm_quasi_poisson, type = "deviance"),
+  working = residuals(glm_quasi_poisson, type = "working"),
+  pearson = residuals(glm_quasi_poisson, type = "pearson")
 )
 residuals_tbl
 ```
@@ -287,7 +289,7 @@ We can recover the exact number reported by `glm()` as follows:
 
 ```{r}
 #| label: 02-celldiff-chunk-16
-sum(glm_quasi_poisson$weights * glm_quasi_poisson$residuals^2) / 12
+sum(glm_quasi_poisson$weights * residuals(glm_quasi_poisson, type = "working")^2) / 12
 ```
 
 The dispersion estimate provided by `glm()` actually leverages the "working residuals" and the IWLS weights.
@@ -353,11 +355,11 @@ ggplot(variance_summary_by_IFN, aes(x = est_mean, y = est_var, color = factor(IF
 ::: {.callout-tip collapse="true"}
 ## ggplot2 Syntax Explanation
 
--   `ggplot(data, aes(...))`: Initialize plot with aesthetic mappings (x, y, color, size, etc.)
+-   `ggplot2::ggplot(data, ggplot2::aes(...))`: Initialize plot with aesthetic mappings (x, y, color, size, etc.)
     -   `color = factor(TNF)`: Convert numeric to factor for discrete coloring
--   `geom_point()`: Add scatter plot layer
--   `labs()`: Set axis and legend labels (`color = "TNF Level"` customizes legend title)
--   `theme_minimal()`: Apply clean theme
+-   `ggplot2::geom_point()`: Add scatter plot layer
+-   `ggplot2::labs()`: Set axis and legend labels (`color = "TNF Level"` customizes legend title)
+-   `ggplot2::theme_minimal()`: Apply clean theme
 -   Layers combined with `+` (similar to piping)
 
 The equivalent base R code to create the same scatter plot would be:
@@ -385,7 +387,7 @@ We leave the linear + quadratic case for further exploration.
 
 ### Fit GEE with Linear Variance
 
-We will now use the `gee()` function for "robust inference".
+We will now use the `gee::gee()` function for "robust inference".
 This means that we do not assume that the variance structure is correctly specified, but instead use the sandwich variance estimator for inference.
 We now try to partially replicate Table 2.7 from @fahrmeir_multivariate_2001 (p.60), adapted below:
 
@@ -417,7 +419,7 @@ gee_mu <- gee(
 ```
 
 ::: {.callout-tip collapse="true"}
-## `gee()` Syntax Explanation
+## `gee::gee()` Syntax Explanation
 
 -   `id`: Cluster identifier for which observations are correlated. Here `seq_len(nrow(cells_tbl))` is same as `1:nrow(cells_tbl)` and creates unique IDs (1, 2, ..., n) for each row, treating observations as independent
 -   `family = quasi(variance = "...", link = "...")`: Specifies the assumed variance function and link function
@@ -436,8 +438,8 @@ We compare the coefficients and standard errors to the previous models:
 
 ```{r}
 #| label: 02-celldiff-chunk-22
-round(gee_mu_summary$coefficients, 4)
-round(glm_quasi_poisson_summary$coefficients, 4)
+round(coef(gee_mu_summary), 4)
+round(glm_quasi_pois_coefs, 4)
 ```
 
 The coefficients are be identical to the previous models, since the same score function is being solved.
@@ -464,9 +466,11 @@ Assuming we have correctly specified the variance structure (naive approach):
 
 ```{r}
 #| label: 02-celldiff-chunk-23
+
+gee_mu_coefs <- coef(gee_mu)
 naive_z_values <- tibble(
-  coefficient = names(gee_mu$coefficients),
-  z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$naive.variance)),
+  coefficient = names(gee_mu_coefs),
+  z_value = gee_mu_coefs / sqrt(diag((gee_mu)$naive.variance)),
   p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
 )
 naive_z_values
@@ -477,8 +481,8 @@ Without assuming the variance structure is correct (robust approach):
 ```{r}
 #| label: 02-celldiff-chunk-24
 robust_z_values <- tibble(
-  coefficient = names(gee_mu$coefficients),
-  z_value = gee_mu$coefficients / sqrt(diag((gee_mu)$robust.variance)),
+  coefficient = names(gee_mu_coefs),
+  z_value = gee_mu_coefs / sqrt(diag((gee_mu)$robust.variance)),
   p_value = round(2 * pnorm(abs(z_value), lower.tail = FALSE), 3)
 )
 robust_z_values
@@ -530,17 +534,29 @@ For a final sanity check, we manually compute both the naive and robust $Z$ and 
 
 ```{r}
 #| label: 02-celldiff-chunk-27
+
+gee_mu2_coefs <- coef(gee_mu2)
 gee_mu2_inference <- tibble(
-  coefficient = names(gee_mu2$coefficients),
-  naive_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$naive.variance)),
+  coefficient = names(gee_mu2_coefs),
+  naive_z = gee_mu2_coefs / sqrt(diag(gee_mu2$naive.variance)),
   naive_p = round(2 * pnorm(abs(naive_z), lower.tail = FALSE), 3),
-  robust_z = gee_mu2$coefficients / sqrt(diag(gee_mu2$robust.variance)),
+  robust_z = gee_mu2_coefs / sqrt(diag(gee_mu2$robust.variance)),
   robust_p = round(2 * pnorm(abs(robust_z), lower.tail = FALSE), 3)
 )
 gee_mu2_inference
 ```
 
 Our manually computed robust $p$-values match the ones reported for the quadratic variance structure in @fahrmeir_multivariate_2001 as in @tbl-robust-estimates.
+
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: 02-celldiff-chunk-28

@@ -69,9 +69,9 @@ happy_wide
 ::: {.callout-tip collapse="true"}
 ## Understanding the tidying
 
--   `mutate()` recodes factor levels so the column names match the model inputs.
--   `summarize(..., .by = ...)` aggregates counts within each group.
--   `pivot_wider()` spreads groups into columns and fills missing combinations with 0 (if there is any).
+-   `dplyr::mutate()` recodes factor levels so the column names match the model inputs.
+-   `dplyr::summarize(..., .by = ...)` aggregates counts within each group.
+-   `tidyr::pivot_wider()` spreads groups into columns and fills missing combinations with 0 (if there is any).
 :::
 
 ### Setting Effect Coding
@@ -116,11 +116,10 @@ happy_logit1_vglm <- vglm(
 summary(happy_logit1_vglm)
 ```
 
-The coefficient values are the same as those reported in the first six rows of Table 3.11 on p.117 of  @fahrmeir_multivariate_2001.
+The coefficient values are the same as those reported in the first six rows of Table 3.11 on p.117 of @fahrmeir_multivariate_2001.
 
 ::: callout-warning
-
-We can reproduce the standard errors (and hence the $p$-values) reported in  the first six rows of Table 3.11 by using the code below:
+We can reproduce the standard errors (and hence the $p$-values) reported in the first six rows of Table 3.11 by using the code below:
 
 ```{r}
 #| label: 06-happiness-chunk-7
@@ -130,8 +129,8 @@ happy_logit1_vglm |>
   sqrt()
 ```
 
-However, we probably should  treat these standard errors and $p$-values in Table 3.11 with a grain of salt. See the end for more explanation.
-
+However, we probably should treat these standard errors and $p$-values in Table 3.11 with a grain of salt.
+See the end for more explanation.
 :::
 
 We can access the linear predictors
@@ -291,11 +290,21 @@ This is same as the deviance reported on p.116 in @fahrmeir_multivariate_2001.
 
 ## Potential problems with the reported Standard Errors and $p$-values in Table 3.11 of @fahrmeir_multivariate_2001
 
-The model prescribed by display $(3.5.3)$ on p.116 of @fahrmeir_multivariate_2001 is by nature one single GLM with $(Y_1, Y_2)$ (years of school and happiness levels) as response (precisely, a multinomial response with 1 trial and 12 categories) and $x$ (sex) as the covariate. To properly get the standard errors for all the 14 parameter estimates in Table 3.11, strictly speaking, one should first get an estimate of  the $14 \times 14$ Fisher information of this GLM (e.g. use the observed information matrix), and take the 14 diagonal entries of the inverse of it as the estimated variance for these  parameter estimates. 
+The model prescribed by display $(3.5.3)$ on p.116 of @fahrmeir_multivariate_2001 is by nature one single GLM with $(Y_1, Y_2)$ (years of school and happiness levels) as response (precisely, a multinomial response with 1 trial and 12 categories) and $x$ (sex) as the covariate.
+To properly get the standard errors for all the 14 parameter estimates in Table 3.11, strictly speaking, one should first get an estimate of the $14 \times 14$ Fisher information of this GLM (e.g. use the observed information matrix), and take the 14 diagonal entries of the inverse of it as the estimated variance for these parameter estimates.
 
-Apparently, the standard errors presented in Table 3.11 are not obtained this way: From  `summary(happy_logit1_vglm)` (which reproduces all the standard deviations for $\theta_1, \theta_2, \theta_3, \beta_1^{(1)}, \beta_2^{(1)}, \beta_3^{(1)}$ in Table 3.11) and  `summary(happy_logit2_vglm)`(which also reproduces the same standard deviations $0.109$ and $0.092$ for $\theta_{11}$ and $\theta_{12}$ in Table 3.11), we can see that these standard errors are only computed based on treating the two conditional models in $(3.5.3)$ as two separate GLMs. These may not  be the same standard errors we could derive by using the (proper) "one single GLM" approach described in the prior paragraph; I leave it to the interested student to check if the two approaches actually coincide.
+Apparently, the standard errors presented in Table 3.11 are not obtained this way: From `summary(happy_logit1_vglm)` (which reproduces all the standard deviations for $\theta_1, \theta_2, \theta_3, \beta_1^{(1)}, \beta_2^{(1)}, \beta_3^{(1)}$ in Table 3.11) and `summary(happy_logit2_vglm)`(which also reproduces the same standard deviations $0.109$ and $0.092$ for $\theta_{11}$ and $\theta_{12}$ in Table 3.11), we can see that these standard errors are only computed based on treating the two conditional models in $(3.5.3)$ as two separate GLMs.
+These may not be the same standard errors we could derive by using the (proper) "one single GLM" approach described in the prior paragraph; I leave it to the interested student to check if the two approaches actually coincide.
 
-## Package Citations and References
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

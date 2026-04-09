@@ -13,7 +13,7 @@ nocite: |
 In the [Cellular Differentiation Script](02-CellDiff.qmd), it was revealed that,
 for quasi-Poisson regression, the `glm()` function in R
 uses the working residuals to construct its estimate for the dispersion parameter $\phi$,
-as opposed to the "usual" Pearson residual based estimate used by `gee()`,
+as opposed to the "usual" Pearson residual based estimate used by `gee::gee()`,
 giving a slightly different number.
 
 ## The Working Residual Based Estimator

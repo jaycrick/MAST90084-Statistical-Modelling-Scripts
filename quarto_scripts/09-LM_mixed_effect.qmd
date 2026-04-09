@@ -73,7 +73,7 @@ m_pulp_mle <- lmer(bright ~ 1 + (1 | operator), pulp_tbl, REML = FALSE)
 ::: {.callout-tip collapse="true"}
 ## `lme4::lmer()` Syntax
 
-`lmer()` uses the pattern `response ~ fixed effects + (random effects | group), data = ...`.
+`lme4::lmer()` uses the pattern `response ~ fixed effects + (random effects | group), data = ...`.
 The second argument is the data frame, and `REML = FALSE` switches from REML to MLE.
 Here `(1 | operator)` gives a random intercept for each operator.
 
@@ -125,7 +125,7 @@ Generally they will differ for unbalanced designs.
 
 #### Extracting Model Components
 
-Usually we don't extract the random effects estimates directly (since there is only a posterior distribution), but we can extract the conditional modes using the generic method `ranef()`:
+Usually we don't extract the random effects estimates directly (since there is only a posterior distribution), but we can extract the conditional modes using the generic method `lme4::ranef()`:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-8
@@ -181,9 +181,9 @@ Z <- rep(1, 20)
 ::: {.callout-tip collapse="true"}
 ## What This Code Does and Syntax Notes
 
-1.  `components <- as_tibble(VarCorr(m_pulp_reml))$vcov` extracts estimated variance components from the fitted model. `VarCorr(...)` returns random-effect and residual variance information, `as_tibble(...)` turns it into a tidy table, and `$vcov` selects the variance column.
+1.  `components <- tibble::as_tibble(lme4::VarCorr(m_pulp_reml))$vcov` extracts estimated variance components from the fitted model. `lme4::VarCorr(...)` returns random-effect and residual variance information, `tibble::as_tibble(...)` turns it into a tidy table, and `$vcov` selects the variance column.
 2.  `Vi <- components[2] * ...` builds the $5 \times 5$ covariance matrix for one operator. `diag(5)` creates an identity matrix, and `matrix(1, nrow = 5, ncol = 5)` creates a $5 \times 5$ matrix of ones.
-3.  `V <- bdiag(Vi, Vi, Vi, Vi)` creates a block-diagonal covariance matrix for all 4 operators. `bdiag(...)` stacks the operator-level covariance blocks on the diagonal.
+3.  `V <- Matrix::bdiag(Vi, Vi, Vi, Vi)` creates a block-diagonal covariance matrix for all 4 operators. `Matrix::bdiag(...)` stacks the operator-level covariance blocks on the diagonal.
 4.  `Z <- rep(1, 20)` creates the intercept-only fixed-effect design vector for all 20 observations.
 :::
 
@@ -391,7 +391,15 @@ The standard deviation of the random slope tells us how much variability there i
 A low correlation value tells us that the slope of income growth over time, is minimally effected by the initial salary (intercept).
 :::
 
-## Package Citations
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

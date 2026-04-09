@@ -43,10 +43,10 @@ We convert them to factors before fitting models.
 ```{r}
 #| label: preprocess-classes
 ohio_tbl <- ohio_tbl %>%
-    mutate(
-        age = as.factor(age),
-        smoke = as.factor(smoke)
-    )
+  mutate(
+    age = as.factor(age),
+    smoke = as.factor(smoke)
+  )
 ohio_tbl
 ```
 
@@ -116,11 +116,11 @@ We first fit the model under the independence working correlation.
 ```{r}
 #| label: fit-independence
 geefit_indep <- gee(
-    formula = resp ~ smoke * age,
-    id = id,
-    data = ohio_tbl,
-    family = binomial,
-    corstr = "independence"
+  formula = resp ~ smoke * age,
+  id = id,
+  data = ohio_tbl,
+  family = binomial,
+  corstr = "independence"
 )
 
 summary_indep <- summary(geefit_indep)
@@ -128,12 +128,12 @@ summary_indep <- summary(geefit_indep)
 coefs_indep <- coef(summary_indep)
 
 coefs_indep |>
-    round(3)
+  round(3)
 ```
 
 ::: {.callout-tip collapse = "true"}
 
-## What `id` and `corstr` do in `gee()`
+## What `id` and `corstr` do in `gee::gee()`
 
 -   `id` identifies which rows belong to the same subject/cluster. In this dataset, repeated observations from the same child share the same `id`.
 -   `corstr` specifies the working correlation pattern within each `id` cluster.
@@ -159,31 +159,31 @@ We also try the exchangeable and unstructured working correlations.
 ```{r}
 #| label: fit-exchangeable
 geefit_exch <- gee(
-    formula = resp ~ smoke * age,
-    id = id,
-    data = ohio_tbl,
-    family = binomial,
-    corstr = "exchangeable"
+  formula = resp ~ smoke * age,
+  id = id,
+  data = ohio_tbl,
+  family = binomial,
+  corstr = "exchangeable"
 )
 
 summary(geefit_exch) |>
-    coef() |>
-    round(3)
+  coef() |>
+  round(3)
 ```
 
 ```{r}
 #| label: fit-unstructured
 geefit_unstruct <- gee(
-    formula = resp ~ smoke * age,
-    id = id,
-    data = ohio_tbl,
-    family = binomial,
-    corstr = "unstructured"
+  formula = resp ~ smoke * age,
+  id = id,
+  data = ohio_tbl,
+  family = binomial,
+  corstr = "unstructured"
 )
 
 summary(geefit_unstruct) |>
-    coef() |>
-    round(3)
+  coef() |>
+  round(3)
 ```
 
 ::: callout-note
@@ -226,8 +226,10 @@ We can derive the scale estimate ourselves by computing the method-of-moments di
 
 ```{r}
 #| label: scale-by-hand
-pearson_resid <- (ohio_tbl$resp - geefit_indep$fitted) /
-    sqrt(geefit_indep$fitted.values * (1 - geefit_indep$fitted.values))
+
+geefit_indep_fitted <- fitted(geefit_indep)
+pearson_resid <- (ohio_tbl$resp - geefit_indep_fitted) /
+  sqrt(geefit_indep_fitted * (1 - geefit_indep_fitted))
 
 length(pearson_resid)
 ```
@@ -239,7 +241,7 @@ Each row is an observation of a child, where each child is observed multiple tim
 
 ```{r}
 scale_by_hand <- sum(pearson_resid^2) /
-    (geefit_indep$nobs - length(coef(geefit_indep)))
+  (geefit_indep$nobs - length(coef(geefit_indep)))
 
 scale_by_hand
 ```
@@ -253,12 +255,12 @@ To verify the naive standard errors reported by `gee`, we refit with `scale.fix 
 ```{r}
 #| label: fit-indep-scale-fix
 geefit_indep_scale_fix <- gee(
-    formula = resp ~ smoke * age,
-    id = id,
-    data = ohio_tbl,
-    family = binomial,
-    corstr = "independence",
-    scale.fix = TRUE
+  formula = resp ~ smoke * age,
+  id = id,
+  data = ohio_tbl,
+  family = binomial,
+  corstr = "independence",
+  scale.fix = TRUE
 )
 
 geefit_indep_scale_fix$scale
@@ -410,7 +412,15 @@ geefit_exch_no_interaction$robust.variance |> round(6)
 geefit_unstruct_no_interaction$robust.variance |> round(6)
 ```
 
-## Package Citations
+## Package Citations and Session Information
+
+::: {.callout-tip collapse="true"}
+## Session Information
+
+```{r}
+sessionInfo()
+```
+:::
 
 ```{r}
 #| label: package-citations

@@ -6,26 +6,23 @@ nocite: |
     @fahrmeir_multivariate_2001
 editor:
   markdown:
-    wrap: 72
+    wrap: sentence
+    canonical: true
 ---
 
 ## Overview
 
-The [Fahrmeir & Tutz book is available to download for free from the
-University of Melbourne
-Library](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-1-4757-3454-6){target="_blank"}
+The [Fahrmeir & Tutz book is available to download for free from the University of Melbourne Library](https://go.openathens.net/redirector/unimelb.edu.au?url=https%3A%2F%2Flink.springer.com%2F10.1007%2F978-1-4757-3454-6){target="_blank"}
 
-This script reproduces **Examples 2.1, 2.4** from
-@fahrmeir_multivariate_2001 (pages 30 and 51). We consider the Caesarian
-birth study with 251 births. We consider the binary response variable
-$y$, which is 1 for infection, and 0 for no infection.
+This script reproduces **Examples 2.1, 2.4** from @fahrmeir_multivariate_2001 (pages 30 and 51).
+We consider the Caesarian birth study with 251 births.
+We consider the binary response variable $y$, which is 1 for infection, and 0 for no infection.
 
 There are 3 categorical covariates:
 
 1.  `NOPLAN`: whether or not the Caesarian was planned or not
 2.  `FACTOR`: whether there are risk factors present or not
-3.  `ANTIB`: whether antibiotics were given to prevent infection (rather
-    than treat infection)
+3.  `ANTIB`: whether antibiotics were given to prevent infection (rather than treat infection)
 
 We use fit the logistic regression model $$
 \ln\biggl(\frac{\Pr(\text{infection})}{\Pr(\text{no infection})}\biggr)
@@ -44,8 +41,8 @@ We want to replicate the following table from page 30:
 
 ## Data Setup
 
-We start by loading the Caesar dataset from the `Fahrmeir` package. If
-you don't already have the packages installed, run
+We start by loading the Caesar dataset from the `Fahrmeir` package.
+If you don't already have the packages installed, run
 
 ```{r}
 #| label: 01-anodev-chunk-1
@@ -53,10 +50,8 @@ you don't already have the packages installed, run
 install.packages(c("conflicted", "dplyr", "forcats", "Fahrmeir"))
 ```
 
-The `conflicted` library forces you to choose which library you want to
-call a function from if it is in two or more loaded libraries. This is
-very important, particularly if you are looking at legacy code (old
-code) from someone else who may have had particular functions loaded.
+The `conflicted` library forces you to choose which library you want to call a function from if it is in two or more loaded libraries.
+This is very important, particularly if you are looking at legacy code (old code) from someone else who may have had particular functions loaded.
 
 ```{r}
 #| label: 01-anodev-chunk-2
@@ -66,8 +61,7 @@ library(forcats) # deal with categorical data (factors)
 library(Fahrmeir) # load datasets from the book
 ```
 
-We load the caeser dataset in (from the Fahrmeir package), and inspect
-the top few rows using `head`.
+We load the caeser dataset in (from the Fahrmeir package), and inspect the top few rows using `utils::head()`.
 
 ```{r}
 #| label: 01-anodev-chunk-3a
@@ -82,8 +76,7 @@ Note that the caesar dataset is of type `data.frame` in R.
 class(caesar)
 ```
 
-You can inspect information about the data set from its help page by
-running the following command in RStudio
+You can inspect information about the data set from its help page by running the following command in RStudio
 
 ```{r}
 #| label: 01-anodev-chunk-4
@@ -94,17 +87,9 @@ running the following command in RStudio
 ## Data Transformation
 
 The raw `caesar` dataset has one row per combination of covariates and response.
-For binomial regression, we need to aggregate the data: one row per unique
-combination of covariates (`noplan`, `factor`, `antib`), with columns
-for total cases and infection counts in each group.
+For binomial regression, we need to aggregate the data: one row per unique combination of covariates (`noplan`, `factor`, `antib`), with columns for total cases and infection counts in each group.
 
-First, convert to a
-[tibble](https://r4ds.had.co.nz/tibbles.html){target="_blank"} (a modern
-take on data frames in Hadley Wickham's
-[tidyverse](https://tidyverse.org/){target="_blank"}) for clearer
-printing, and easier data manipulation; for instance, see [this
-vignette](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html){target="_blank"}
-for some of the advantages of tibble over the traditional `data.frame`.
+First, convert to a [tibble](https://r4ds.had.co.nz/tibbles.html){target="_blank"} (a modern take on data frames in Hadley Wickham's [tidyverse](https://tidyverse.org/){target="_blank"}) for clearer printing, and easier data manipulation; for instance, see [this vignette](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html){target="_blank"} for some of the advantages of tibble over the traditional `data.frame`.
 At the very least, tibble prints the data types of each column.
 
 ```{r}
@@ -123,35 +108,26 @@ class(caesar_tbl)
 ### Grouping and Summarizing
 
 The `caesar_tbl` above still has one row per combination of covariates and response.
-In what follows, we will first use the `group_by()`
-function to group the observations according to the three covariates
-(without the response variable),
-and then use the `summarize()` function to sum the total number of women with each combination of covariates
-(as a new variable `size`) and infected count (as a new variable
-`Infect_count`) for each combination of the covariate values. Both
-functions are from the ***dplyr*** package.
+In what follows, we will first use the `dplyr::group_by()` function to group the observations according to the three covariates (without the response variable), and then use the `dplyr::summarize()` function to sum the total number of women with each combination of covariates (as a new variable `size`) and infected count (as a new variable `Infect_count`) for each combination of the covariate values.
+Both functions are from the ***dplyr*** package.
 
 ```{r}
 #| label: 01-anodev-chunk-6a
 caesar_tbl_grouped <- group_by(caesar_tbl, noplan, factor, antib)
 caesar_tbl_summary <- summarize(caesar_tbl_grouped,
-        size = sum(w),
-        Infect_count = sum(yl * w),
-        .groups = "drop"
-    )
+  size = sum(w),
+  Infect_count = sum(yl * w),
+  .groups = "drop"
+)
 
 caesar_tbl_summary
 ```
 
-Note that setting `.groups = "drop"` removes the grouping after
-`summarize()`, giving us a normal tibble, and avoiding confusing
-behaviour in later operations.
+Note that setting `.groups = "drop"` removes the grouping after `dplyr::summarize()`, giving us a normal tibble, and avoiding confusing behaviour in later operations.
 
-We encourage using a
-[pipe](https://stat.ethz.ch/R-manual//R-devel/RHOME/library/base/html/pipeOp.html){target="_blank"}
-(`|>`) as below to chain operations together. It passes the result of
-the left-hand-side expression as the first argument in the
-right-hand-side expression. Think of the pipe as saying "and then...":
+We encourage using a [pipe](https://stat.ethz.ch/R-manual//R-devel/RHOME/library/base/html/pipeOp.html){target="_blank"} (`|>`) as below to chain operations together.
+It passes the result of the left-hand-side expression as the first argument in the right-hand-side expression.
+Think of the pipe as saying "and then...":
 
 -   Take `caesar_tbl` **and then**
 -   Group rows by covariate combinations **and then**
@@ -160,38 +136,36 @@ right-hand-side expression. Think of the pipe as saying "and then...":
 ```{r}
 #| label: 01-anodev-chunk-6b
 caesar_tbl <- caesar_tbl |>
-    group_by(noplan, factor, antib) |>
-    summarize(
-        size = sum(w),
-        Infect_count = sum(yl * w),
-        .groups = "drop"
-    )
+  group_by(noplan, factor, antib) |>
+  summarize(
+    size = sum(w),
+    Infect_count = sum(yl * w),
+    .groups = "drop"
+  )
 caesar_tbl
 ```
 
-Note that we will primarily use the data frame in this grouped form. So
-instead of naming it as `caesar_tbl_summary` as before, we will simply
-stick with the original name `caesar_tbl`. The third row has `size`
-zero, and so we remove it (and any other empty variable combinations)
+Note that we will primarily use the data frame in this grouped form.
+So instead of naming it as `caesar_tbl_summary` as before, we will simply stick with the original name `caesar_tbl`.
+The third row has `size` zero, and so we remove it (and any other empty variable combinations)
 
 ```{r}
 #| label: 01-anodev-chunk-7
 caesar_tbl <- caesar_tbl |>
-    dplyr::filter(size != 0)
+  dplyr::filter(size != 0)
 
 caesar_tbl
 ```
 
 ## Understanding Factor Coding
 
-It is good practice to understand the data structure we have. From the
-above tibble we can see that we have 7 observations of 5 variables. The
-benefit of tibbles is that we can see what class each variable has.
-`noplan`, `factor`, and `antib` have the class factor. `size` and
-`Infect_count` have the class double (numeric).
+It is good practice to understand the data structure we have.
+From the above tibble we can see that we have 7 observations of 5 variables.
+The benefit of tibbles is that we can see what class each variable has.
+`noplan`, `factor`, and `antib` have the class factor.
+`size` and `Infect_count` have the class double (numeric).
 
-Look at a description of the structure of caesar and the coding scheme
-of each variable of type "factor" using the function `contrasts()`.
+Look at a description of the structure of caesar and the coding scheme of each variable of type "factor" using the function `stats::contrasts()`.
 
 ```{r}
 #| label: 01-anodev-chunk-9
@@ -200,21 +174,18 @@ contrasts(caesar_tbl$factor)
 contrasts(caesar_tbl$antib)
 ```
 
-We can see that these are coded in the exact opposite way that F & T
-describes, and so we need to redefine the reference levels of these
-variables, using the
-`fct_relevel()` function in the ***forcats*** package. `fct_relevel()` is a more flexible extension of the `stat::relevel()` function in base R.  The reference
-level (first level) becomes the baseline category for regression
-coefficients.
+We can see that these are coded in the exact opposite way that F & T describes, and so we need to redefine the reference levels of these variables, using the `forcats::fct_relevel()` function in the ***forcats*** package.
+`forcats::fct_relevel()` is a more flexible extension of the `stats::relevel()` function in base R.
+The reference level (first level) becomes the baseline category for regression coefficients.
 
 ```{r}
 #| label: 01-anodev-chunk-10
 caesar_tbl <- caesar_tbl |>
-    mutate(
-        noplan =  fct_relevel(noplan, "planned"),
-        factor = fct_relevel(factor, "without"),
-        antib =  fct_relevel(antib, "without")
-    )
+  mutate(
+    noplan = fct_relevel(noplan, "planned"),
+    factor = fct_relevel(factor, "without"),
+    antib = fct_relevel(antib, "without")
+  )
 
 contrasts(caesar_tbl$noplan)
 contrasts(caesar_tbl$factor)
@@ -223,35 +194,35 @@ contrasts(caesar_tbl$antib)
 
 ## Main Effects Model
 
-Now that our dataset looks good, we are ready to go ahead with the
-regression. `Infect_count / size` as our $y$ gives us the proportion of
-women with an infection per group of covariates. When we use grouped
-data, the weight should always be the same as the number of counts of
-that combination of covariates, hence `weights = size`. Now we fit the regression with the logit link (default):
+Now that our dataset looks good, we are ready to go ahead with the regression.
+`Infect_count / size` as our $y$ gives us the proportion of women with an infection per group of covariates.
+When we use grouped data, the weight should always be the same as the number of counts of that combination of covariates, hence `weights = size`.
+Now we fit the regression with the logit link (default):
 
 ```{r}
 #| label: 01-anodev-chunk-11
 caesar_glm_fct <- glm(
-    Infect_count / size ~ antib + factor + noplan,
-    family = binomial,
-    data = caesar_tbl,
-    weights = size
+  Infect_count / size ~ antib + factor + noplan,
+  family = binomial,
+  data = caesar_tbl,
+  weights = size
 )
 
 caesar_glm_fct
 ```
 
-These results line up with the ones on p.30 of the book (yay), but the default covariate names given by `glm()` look kind of weird. Alternatively, we can assign integer values to the factors. This makes
-the dataframe look exactly like it is described in  the book.
+These results line up with the ones on p.30 of the book (yay), but the default covariate names given by `stats::glm()` look kind of weird.
+Alternatively, we can assign integer values to the factors.
+This makes the dataframe look exactly like it is described in the book.
 
 ```{r}
 #| label: 01-anodev-chunk-12
 caesar_tbl_int <- caesar_tbl |>
-    mutate(
-        noplan = as.integer(noplan == "not"),
-        factor = as.integer(factor == "risk factors"),
-        antib = as.integer(antib == "antibiotics")
-    )
+  mutate(
+    noplan = as.integer(noplan == "not"),
+    factor = as.integer(factor == "risk factors"),
+    antib = as.integer(antib == "antibiotics")
+  )
 
 caesar_tbl_int
 caesar_tbl
@@ -262,39 +233,36 @@ We can see that we get the same coefficient estimates for the integer version, w
 ```{r}
 #| label: 01-anodev-chunk-13
 caesar_int_glm <- glm(
-    Infect_count / size ~ antib + factor + noplan,
-    family = binomial,
-    data = caesar_tbl_int,
-    weights = size
+  Infect_count / size ~ antib + factor + noplan,
+  family = binomial,
+  data = caesar_tbl_int,
+  weights = size
 )
 
 caesar_int_glm
 ```
 
-We can see the results more fully by using `summary()`
+We can see the results more fully by using `summary()`.
 
 ```{r}
 #| label: 01-anodev-chunk-14a
 summary(caesar_int_glm)
 ```
 
-We can also extract the deviance using `deviance()`.
+We can also extract the deviance using `stats::deviance()`.
 
 ```{r}
 #| label: 01-anodev-chunk-14b
 deviance(caesar_int_glm)
 ```
 
-It is important to understand how `glm()` reports the summary, and sometimes the terms "residual deviance" and "deviance" are used interchangeably. [The documentation of
-`glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that it is "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***". So this number is what we call the (unscaled) deviance.
+It is important to understand how `stats::glm()` reports the summary, and sometimes the terms "residual deviance" and "deviance" are used interchangeably.
+[The documentation of `stats::glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that it is "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***".
+So this number is what we call the (unscaled) deviance.
 
 ::: callout-note
-The documentation of
-`glm()` on what it is reporting for the deviance
-may be misleading, because it ignores the fact that the deviance only
-becomes twice the log-likelihood difference ***when rescaled by the
-dispersion***. In the binomial and Poisson cases,
-the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.
+The documentation of `stats::glm()` on what it is reporting for the deviance may be misleading, because it ignores the fact that the deviance only becomes twice the log-likelihood difference ***when rescaled by the dispersion***.
+In the binomial and Poisson cases, the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.
 :::
 
 We can now consider the significance of each of the variables
@@ -304,8 +272,8 @@ We can now consider the significance of each of the variables
 anova(caesar_int_glm, test = "Chisq")
 ```
 
-The format of this table closely matches the one in the slides. All three effects are
-highly significant.
+The format of this table closely matches the one in the slides.
+All three effects are highly significant.
 
 ```{r}
 #| label: 01-anodev-chunk-16
@@ -315,99 +283,80 @@ anova(caesar_int_glm, test = "F")
 ::: {.callout-tip collapse="true"}
 ## Why is an F test inappropriate here? Expand for answer
 
-For binomial GLMs, because the dispersion parameter $\phi$ is fixed at
-$1$, the natural test for nested models is based on the difference in their
-deviance (or scaled deviance because $\phi =  1$ anyway), which asymptotically follows a chi-square distribution. The F
-test is exact for Gaussian GLMs with identity link (i.e. the classical
-Gaussian linear model) when the dispersion (i.e. the variance) is
-unknown and has to be estimated, and, by heuristic extension,
-appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and
-perhaps certain quasi-likelihood cases), but not for binomial GLMs with
-fixed dispersion. The documentation of `anova.glm()` also says "***the dispersion estimate will be taken from the largest model, using the value returned by summary.glm***", and  `summary.glm()` reports our typical Pearson residual based  estimator for $\phi$ by default.
+For binomial GLMs, because the dispersion parameter $\phi$ is fixed at $1$, the natural test for nested models is based on the difference in their deviance (or scaled deviance because $\phi =  1$ anyway), which asymptotically follows a chi-square distribution.
+The F test is exact for Gaussian GLMs with identity link (i.e. the classical Gaussian linear model) when the dispersion (i.e. the variance) is unknown and has to be estimated, and, by heuristic extension, appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and perhaps certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
+The documentation of `stats::anova.glm()` also says "***the dispersion estimate will be taken from the largest model, using the value returned by summary.glm***", and `stats::summary.glm()` reports our typical Pearson residual based estimator for $\phi$ by default.
 
-See the documentation of `anova.glm()`, as well as
-@venables_modern_2002, p.186-187 and Section 7.5, for more discussion. Alternatively, Sections 7.6.4 and 7.6.5 of  @dunn_smyth_2018 also give nice exposition on such approximate F tests.
+See the documentation of `stats::anova.glm()`, as well as @venables_modern_2002, p.186-187 and Section 7.5, for more discussion.
+Alternatively, Sections 7.6.4 and 7.6.5 of @dunn_smyth_2018 also give nice exposition on such approximate F tests.
 :::
 
 ## Model Diagnostics
 
-We can extract residuals of different types; here we collect them into a
-single tibble and round to three decimals for readability.
+We can extract residuals of different types; here we collect them into a single tibble and round to three decimals for readability.
 
 ```{r}
 #| label: 01-anodev-chunk-17
 tibble(
-    deviance = resid(caesar_int_glm, type = "deviance"),
-    pearson = resid(caesar_int_glm, type = "pearson"),
-    working = resid(caesar_int_glm, type = "working"),
-    response = resid(caesar_int_glm, type = "response")
+  deviance = residuals(caesar_int_glm, type = "deviance"),
+  pearson = residuals(caesar_int_glm, type = "pearson"),
+  working = residuals(caesar_int_glm, type = "working"),
+  response = residuals(caesar_int_glm, type = "response")
 )
 ```
 
-As a sanity check, if we sum the squares of the deviance residuals, we
-should recover the deviance.
-
+As a sanity check, if we sum the squares of the deviance residuals, we should recover the deviance.
 
 ```{r}
 #| label: 01-anodev-chunk-18
-sum(resid(caesar_int_glm, type = "deviance")^2)
+sum(residuals(caesar_int_glm, type = "deviance")^2)
 ```
 
-
-
-We can also test the goodness of fit using the deviance and the Pearson
-statistic. Both of these converge to the same asymptotic chi-squared
-distribution with degree 3, assuming the GLM is true and that the number of observations in each group
-is sufficiently large and the asymptotics apply.  The degrees of freedom in the chi-squared
-distribution is the difference between the number of parameters in the
-saturated model (7, make sure you can explain why), and the degrees of
-freedom in the glm model (4).
+We can also test the goodness of fit using the deviance and the Pearson statistic.
+Both of these converge to the same asymptotic chi-squared distribution with degree 3, assuming the GLM is true and that the number of observations in each group is sufficiently large and the asymptotics apply.
+The degrees of freedom in the chi-squared distribution is the difference between the number of parameters in the saturated model (7, make sure you can explain why), and the degrees of freedom in the glm model (4).
 
 Both the deviance test
 
 ```{r}
 #| label: 01-anodev-chunk-19
-1 - pchisq(caesar_int_glm$deviance, df = 3)
+1 - pchisq(deviance(caesar_int_glm), df = 3)
 ```
 
 and the Pearson test
 
 ```{r}
 #| label: 01-anodev-chunk-20
-1 - pchisq(sum(resid(caesar_int_glm, type = "pearson")^2), df = 3)
+1 - pchisq(sum(residuals(caesar_int_glm, type = "pearson")^2), df = 3)
 ```
 
-return $p$-values under 0.05, so we reject null hypothesis that the data can be
-explained by the GLM under the significant level of 0.05. We can investigate why by comparing the observed and
-fitted proportions side by side as in Example 2.4 (on the top of p.52 of @fahrmeir_multivariate_2001):
+return $p$-values under 0.05, so we reject null hypothesis that the data can be explained by the GLM under the significant level of 0.05.
+We can investigate why by comparing the observed and fitted proportions side by side as in Example 2.4 (on the top of p.52 of @fahrmeir_multivariate_2001):
 
 ```{r}
 #| label: 01-anodev-chunk-21
 tibble(
-    observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
-    fitted = round(caesar_int_glm$fitted.values, 2)
+  observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
+  fitted = round(fitted(caesar_int_glm), 2)
 )
 ```
 
-We can see that this lines up with what we have in the book (Example
-2.4), with a significant discrepancy in the 3rd row
-(`unplanned, no risk factors, without antibiotics`).
+We can see that this lines up with what we have in the book (Example 2.4), with a significant discrepancy in the 3rd row (`unplanned, no risk factors, without antibiotics`).
 
 ## Alternative Link Function: Probit
 
-We can also fit with a probit link as was done on p. 31 (towards the end
-of Example 2.1). The coefficient estimates should be the same as those
-reported by the book.
+We can also fit with a probit link as was done on p. 31 (towards the end of Example 2.1).
+The coefficient estimates should be the same as those reported by the book.
 
 ```{r}
 #| label: 01-anodev-chunk-22
 caesar_glm_probit <- glm(
-    Infect_count / size ~ antib + factor + noplan,
-    data = caesar_tbl_int,
-    weights = size,
-    family = binomial(link = "probit")
+  Infect_count / size ~ antib + factor + noplan,
+  data = caesar_tbl_int,
+  weights = size,
+  family = binomial(link = "probit")
 )
-summary(caesar_glm_probit)$coeff
+coef(summary(caesar_glm_probit))
 ```
 
 ## Interaction Effects
@@ -416,8 +365,8 @@ We now follow **Example 2.4** and add in interaction effects.
 
 ### Adding `noplan:antib` Interaction
 
-We test the interaction between `noplan` (planned/emergency surgery) and
-`antib` (antibiotic use). We are aiming to replicate the results in book.
+We test the interaction between `noplan` (planned/emergency surgery) and `antib` (antibiotic use).
+We are aiming to replicate the results in book.
 
 ::: {.callout-tip collapse="true"}
 ## What do we expect to happen to the deviance of the model by furthering incorporating interaction effects? Expand for answer.
@@ -428,24 +377,23 @@ The deviance must decrease, since it is a larger model nesting the main effects 
 ```{r}
 #| label: 01-anodev-chunk-23
 caesar_glm_noplan_antib <- glm(
-    Infect_count / size ~ factor + noplan * antib,
-    data = caesar_tbl_int,
-    weights = size,
-    family = binomial
+  Infect_count / size ~ factor + noplan * antib,
+  data = caesar_tbl_int,
+  weights = size,
+  family = binomial
 )
 
 anova(caesar_glm_noplan_antib)
 ```
 
-The change in deviance agrees with the numbers in **Example 2.4**. To test the significance of this interaction effect, we use the limiting
-chi-squared distribution with degree of freedom one.
+The change in deviance agrees with the numbers in **Example 2.4**.
+To test the significance of this interaction effect, we use the limiting chi-squared distribution with degree of freedom one.
 
 ::: callout-tip
 Make sure you know why the degree of freedom is one.
 :::
 
-We extract the deviance for the interaction term and compute the
-$p$-value manually:
+We extract the deviance for the interaction term and compute the $p$-value manually:
 
 ```{r}
 #| label: 01-anodev-chunk-24
@@ -456,21 +404,21 @@ interaction_deviance
 1 - pchisq(interaction_deviance, df = 1)
 ```
 
-It agrees with the number in the anova table and is very large. We do not reject the null hypothesis that the `noplan:antib` interaction effect is
-zero.
+It agrees with the number in the anova table and is very large.
+We do not reject the null hypothesis that the `noplan:antib` interaction effect is zero.
 
 ### Adding `noplan:factor` Interaction
 
-`noplan:antib` is not the only possible interaction effect. We now try the
-interaction effect `noplan:factor`.
+`noplan:antib` is not the only possible interaction effect.
+We now try the interaction effect `noplan:factor`.
 
 ```{r}
 #| label: 01-anodev-chunk-25
 caesar_glm_noplan_factor <- glm(
-    Infect_count / size ~ noplan + factor + antib + noplan:factor,
-    data = caesar_tbl_int,
-    weights = size,
-    family = binomial
+  Infect_count / size ~ noplan + factor + antib + noplan:factor,
+  data = caesar_tbl_int,
+  weights = size,
+  family = binomial
 )
 
 # eqiuvalently, you can do
@@ -480,46 +428,38 @@ caesar_glm_noplan_factor <- glm(
 summary(caesar_glm_noplan_factor)
 ```
 
-We see some enormous estimates and standard errors for some
-coefficients. The standard errors are the diagonal of the inverse of the
-Fisher information matrix. Therefore the values of the Fisher
-information are very small. Therefore, when we plot the log-likelihood
-it will have a very small second derivative, and will be very flat in
-these dimensions.
+We see some enormous estimates and standard errors for some coefficients.
+The standard errors are the diagonal of the inverse of the Fisher information matrix.
+Therefore the values of the Fisher information are very small.
+Therefore, when we plot the log-likelihood it will have a very small second derivative, and will be very flat in these dimensions.
 
-This means that the estimates are likely to be very unreliable. Read the
-book in detail to understand why, but in summary, there are two rows
-with no infection counts, which means that certain conditions for **uniqueness and existence of MLE's** are not
-satisfied. See p.43
-of the textbook for more information.
+This means that the estimates are likely to be very unreliable.
+Read the book in detail to understand why, but in summary, there are two rows with no infection counts, which means that certain conditions for **uniqueness and existence of MLE's** are not satisfied.
+See p.43 of the textbook for more information.
 
 ::: {.callout-warning collapse="true"}
 ## Typo on p.52 of @fahrmeir_multivariate_2001
 
-The book says *'The reason is that data are too sparse with responses
-for the cell `NOPLAN = 0`, `FACTOR = 0` and `ANTIB = 1` all in the "yes"
-category, and for the cell `NOPLAN = 1`, `FACTOR= 0` and `ANTIB = 0` all
-in the "no" category.'* however, there is a typo. The first "yes" should
-instead say "no".
+The book says *'The reason is that data are too sparse with responses for the cell `NOPLAN = 0`, `FACTOR = 0` and `ANTIB = 1` all in the "yes" category, and for the cell `NOPLAN = 1`, `FACTOR= 0` and `ANTIB = 0` all in the "no" category.'* however, there is a typo.
+The first "yes" should instead say "no".
 :::
 
-If we ignore the problem for the time being, we can continue by testing
-for goodness-of-fit.
+If we ignore the problem for the time being, we can continue by testing for goodness-of-fit.
 
 ```{r}
 #| label: 01-anodev-chunk-26
-1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "pearson")^2), df = 2)
-1 - pchisq(sum(resid(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
+1 - pchisq(sum(residuals(caesar_glm_noplan_factor, type = "pearson")^2), df = 2)
+1 - pchisq(sum(residuals(caesar_glm_noplan_factor, type = "deviance")^2), df = 2)
 ```
 
-Both statistics give a large $p$-value, and so we don't reject this
-interaction model. We can also compare fitted and realized proportions as on p.53.
+Both statistics give a large $p$-value, and so we don't reject this interaction model.
+We can also compare fitted and realized proportions as on p.53.
 
 ```{r}
 #| label: 01-anodev-chunk-27
 tibble(
-    observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
-    fitted = round(caesar_glm_noplan_factor$fitted.values, 2)
+  observed = round(caesar_tbl_int$Infect_count / caesar_tbl_int$size, 2),
+  fitted = round(fitted(caesar_glm_noplan_factor), 2)
 )
 ```
 
@@ -527,10 +467,8 @@ We can see that the observed and fitted values are very similar.
 
 ## Handling the issues on Uniqueness and Existence of the MLE
 
-The book recommends that to make the analysis more robust, we should augment
-fictitious data to the two zero `Infect_count` cells to avoid the existence
--of-MLE issue. We do this by adding a 'count' of 0.5 infections and 1
-total case to the 3rd problematic row.
+The book recommends that to make the analysis more robust, we should augment fictitious data to the two zero `Infect_count` cells to avoid the existence -of-MLE issue.
+We do this by adding a 'count' of 0.5 infections and 1 total case to the 3rd problematic row.
 
 ```{r}
 #| label: 01-anodev-chunk-28
@@ -542,10 +480,10 @@ caesar_augment$size[3] <- caesar_augment$size[3] + 1
 caesar_augment
 
 caesar_glm_noplan_factor_augment <- glm(
-    Infect_count / size ~ noplan + factor + antib + noplan:factor,
-    data = caesar_augment,
-    weights = size,
-    family = binomial
+  Infect_count / size ~ noplan + factor + antib + noplan:factor,
+  data = caesar_augment,
+  weights = size,
+  family = binomial
 )
 
 summary(caesar_glm_noplan_factor_augment)
@@ -557,8 +495,8 @@ Compare observed and fitted proportions:
 ```{r}
 #| label: 01-anodev-chunk-29
 tibble(
-    observed = round(caesar_augment$Infect_count / caesar_augment$size, 2),
-    fitted = round(caesar_glm_noplan_factor_augment$fitted.values, 2)
+  observed = round(caesar_augment$Infect_count / caesar_augment$size, 2),
+  fitted = round(fitted(caesar_glm_noplan_factor_augment), 2)
 )
 ```
 
@@ -567,33 +505,33 @@ Test goodness-of-fit using Pearson and deviance statistics:
 ```{r}
 #| label: 01-anodev-chunk-30
 pearson_pval <- 1 -
-    pchisq(
-        sum(resid(caesar_glm_noplan_factor_augment, type = "pearson")^2),
-        df = 2
-    )
+  pchisq(
+    sum(residuals(caesar_glm_noplan_factor_augment, type = "pearson")^2),
+    df = 2
+  )
 deviance_pval <- 1 -
-    pchisq(
-        sum(resid(caesar_glm_noplan_factor_augment, type = "deviance")^2),
-        df = 2
-    )
+  pchisq(
+    sum(residuals(caesar_glm_noplan_factor_augment, type = "deviance")^2),
+    df = 2
+  )
 
 tibble(
-    test = c("Pearson", "Deviance"),
-    p_value = c(pearson_pval, deviance_pval)
+  test = c("Pearson", "Deviance"),
+  p_value = c(pearson_pval, deviance_pval)
 )
 ```
 
-We do not reject the new model with `noplan:factor` interaction at usual
-levels such as 0.1 or 0.05.
+We do not reject the new model with `noplan:factor` interaction at usual levels such as 0.1 or 0.05.
 
 ## Reproducibility
 
-### Session Information
+::: {.callout-tip collapse="true"}
+## Session Information
 
 ```{r}
-#| label: 01-anodev-chunk-31
 sessionInfo()
 ```
+:::
 
 ### Package Citations
 
@@ -605,18 +543,18 @@ Below are the formal citations for the packages used in this analysis:
 #| code-fold: true
 packages <- c("conflicted", "dplyr", "forcats", "Fahrmeir")
 for (pkg in packages) {
-    cit <- citation(pkg)
+  cit <- citation(pkg)
 
-    # Check if multiple citations
-    if (length(cit) > 1) {
-        cat("- **", pkg, "**:\n", sep = "")
-        for (i in seq_along(cit)) {
-            cit_text <- format(cit[i], style = "text")
-            cat("    - ", cit_text, "\n\n", sep = "")
-        }
-    } else {
-        cit_text <- format(cit, style = "text")
-        cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  # Check if multiple citations
+  if (length(cit) > 1) {
+    cat("- **", pkg, "**:\n", sep = "")
+    for (i in seq_along(cit)) {
+      cit_text <- format(cit[i], style = "text")
+      cat("    - ", cit_text, "\n\n", sep = "")
     }
+  } else {
+    cit_text <- format(cit, style = "text")
+    cat("- **", pkg, "**: ", cit_text, "\n\n", sep = "")
+  }
 }
 ```
