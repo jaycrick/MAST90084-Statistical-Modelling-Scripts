@@ -355,11 +355,11 @@ ggplot(variance_summary_by_IFN, aes(x = est_mean, y = est_var, color = factor(IF
 ::: {.callout-tip collapse="true"}
 ## ggplot2 Syntax Explanation
 
--   `ggplot(data, aes(...))`: Initialize plot with aesthetic mappings (x, y, color, size, etc.)
+-   `ggplot2::ggplot(data, ggplot2::aes(...))`: Initialize plot with aesthetic mappings (x, y, color, size, etc.)
     -   `color = factor(TNF)`: Convert numeric to factor for discrete coloring
--   `geom_point()`: Add scatter plot layer
--   `labs()`: Set axis and legend labels (`color = "TNF Level"` customizes legend title)
--   `theme_minimal()`: Apply clean theme
+-   `ggplot2::geom_point()`: Add scatter plot layer
+-   `ggplot2::labs()`: Set axis and legend labels (`color = "TNF Level"` customizes legend title)
+-   `ggplot2::theme_minimal()`: Apply clean theme
 -   Layers combined with `+` (similar to piping)
 
 The equivalent base R code to create the same scatter plot would be:
@@ -387,7 +387,7 @@ We leave the linear + quadratic case for further exploration.
 
 ### Fit GEE with Linear Variance
 
-We will now use the `gee()` function for "robust inference".
+We will now use the `gee::gee()` function for "robust inference".
 This means that we do not assume that the variance structure is correctly specified, but instead use the sandwich variance estimator for inference.
 We now try to partially replicate Table 2.7 from @fahrmeir_multivariate_2001 (p.60), adapted below:
 
@@ -419,7 +419,7 @@ gee_mu <- gee(
 ```
 
 ::: {.callout-tip collapse="true"}
-## `gee()` Syntax Explanation
+## `gee::gee()` Syntax Explanation
 
 -   `id`: Cluster identifier for which observations are correlated. Here `seq_len(nrow(cells_tbl))` is same as `1:nrow(cells_tbl)` and creates unique IDs (1, 2, ..., n) for each row, treating observations as independent
 -   `family = quasi(variance = "...", link = "...")`: Specifies the assumed variance function and link function

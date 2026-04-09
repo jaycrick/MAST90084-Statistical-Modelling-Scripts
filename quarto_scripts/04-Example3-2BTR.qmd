@@ -93,8 +93,8 @@ The default reference categories are `never-smoked` for `Smoking`, and the `<40`
 
 ## Model Fitting: Proportional Odds Models
 
-The `polr()` function fits cumulative logit (and other) models.
-[Looking at the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html) using `?polr`, particularly how $\eta$ is defined therein; the signs of beta coefficients in `polr()` is **opposite** to the corresponding coefficients in the textbook (@fahrmeir_multivariate_2001)'s formula.
+The `MASS::polr()` function fits cumulative logit (and other) models.
+[Looking at the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html) using `?polr`, particularly how $\eta$ is defined therein; the signs of beta coefficients in `MASS::polr()` is **opposite** to the corresponding coefficients in the textbook (@fahrmeir_multivariate_2001)'s formula.
 
 We first fit a cumulative logistic/proportional odds model with an intercept, age, smoking.
 We also include an interaction effect between age and smoking.
@@ -111,7 +111,7 @@ btr_logit_inter <- polr(
 ```
 
 ::: {.callout-tip collapse="true"}
-## `polr()` Function Syntax
+## `MASS::polr()` Function Syntax
 
 -   **`formula`**: Model structure `response ~ predictors`; response must be an ordered factor
 -   **`data`**: Data frame containing the variables
@@ -120,7 +120,7 @@ btr_logit_inter <- polr(
 -   **`method`**: Link function---`"logistic"` (default, proportional odds), `"probit"`, `"cloglog"`, `"loglog"`, or `"cauchit"`
 :::
 
-The `polr()` function is limited.
+The `MASS::polr()` function is limited.
 It can model standard cumulative models (see section 3.3.1 of @fahrmeir_multivariate_2001), but doesn't allow for extended cumulative model with threshold variables (see section 3.3.2 of @fahrmeir_multivariate_2001).
 
 ```{r}
@@ -136,7 +136,7 @@ Given that a worker is less than 40 years of age, the cumulative odds of having 
 If smoking has no association with the breathing test results, then we would expect this cumulative odds ratio to be 1.
 :::
 
-There is no residual readily available, but we can observe the linear predictor $\eta$ **as defined in the documentation page for the `polr()` function without the intercept**.
+There is no residual readily available, but we can observe the linear predictor $\eta$ **as defined in the documentation page for the `MASS::polr()` function without the intercept**.
 
 ```{r}
 #| label: linear-predictor
@@ -218,7 +218,7 @@ Each residual deviance reported is $-2 \times \log(\text{likelihood})$ for that 
 ## Alternative Link Functions
 
 The proportional odds assumption can be tested by fitting models with different link functions.
-The `polr()` function supports:
+The `MASS::polr()` function supports:
 
 -   **logistic**: cumulative logit model (default)
 -   **probit**: cumulative normal model
@@ -392,8 +392,8 @@ We also fit the models with complementary log-log and loglog link functions usin
 The table is built in three steps:
 
 1.  Fit one model per link and extract coefficient estimates with `coef(summary(...))[ ,"Value"]`.
-2.  Build two small tibbles (one for coefficients, one for residual deviance) and stack them with `bind_rows()`.
-3.  Use `mutate(across(where(is.numeric), ~ round(., 3)))` to round all numeric columns to 3 decimal places for cleaner display.
+2.  Build two small tibbles (one for coefficients, one for residual deviance) and stack them with `dplyr::bind_rows()`.
+3.  Use `dplyr::mutate(across(where(is.numeric), ~ round(., 3)))` to round all numeric columns to 3 decimal places for cleaner display.
 
 `rownames(coef(...))` supplies the parameter labels so each estimate aligns across link functions.
 :::
@@ -456,7 +456,7 @@ results_table
 ## Alternative (completely optional!): Nested Data + Functional Mapping Workflow
 
 This can be written in a nested/list-column style using functional programming.
-The idea is to store one row per link function, fit each model via `map()`, then map again to extract coefficients and residual deviance.
+The idea is to store one row per link function, fit each model via `purrr::map()`, then map again to extract coefficients and residual deviance.
 
 ```{r}
 #| label: fit-alt-links-eff-functional
@@ -520,7 +520,7 @@ It is worth considering here that the proportional hazard has the lowest devianc
 
 ### Residuals
 
-The `polr()` function does not readily provide residuals.
+The `MASS::polr()` function does not readily provide residuals.
 
 ```{r}
 #| label: residuals-check
@@ -577,7 +577,7 @@ se_from_vcov == se_from_summary
 
 We should be able to recover the same confidence intervals by using the variance-covariance matrix and a normal approximation (Wald intervals).
 
-We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by `polr()`; note that I can simply refer to it as `btr_logit_inter_eff$Hess` instead of `btr_logit_inter_eff$Hessian` because of [partial matching in R](https://humdrumr.ccml.gtcmt.gatech.edu/reference/partialMatching.html#:~:text=Partial%20matching%20explained,as%20do%20many%20humdrumR%20functions.):
+We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by `MASS::polr()`; note that I can simply refer to it as `btr_logit_inter_eff$Hess` instead of `btr_logit_inter_eff$Hessian` because of [partial matching in R](https://humdrumr.ccml.gtcmt.gatech.edu/reference/partialMatching.html#:~:text=Partial%20matching%20explained,as%20do%20many%20humdrumR%20functions.):
 
 ```{r}
 #| label: hessian-comparison

@@ -133,7 +133,7 @@ coefs_indep |>
 
 ::: {.callout-tip collapse = "true"}
 
-## What `id` and `corstr` do in `gee()`
+## What `id` and `corstr` do in `gee::gee()`
 
 -   `id` identifies which rows belong to the same subject/cluster. In this dataset, repeated observations from the same child share the same `id`.
 -   `corstr` specifies the working correlation pattern within each `id` cluster.

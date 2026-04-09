@@ -69,9 +69,9 @@ happy_wide
 ::: {.callout-tip collapse="true"}
 ## Understanding the tidying
 
--   `mutate()` recodes factor levels so the column names match the model inputs.
--   `summarize(..., .by = ...)` aggregates counts within each group.
--   `pivot_wider()` spreads groups into columns and fills missing combinations with 0 (if there is any).
+-   `dplyr::mutate()` recodes factor levels so the column names match the model inputs.
+-   `dplyr::summarize(..., .by = ...)` aggregates counts within each group.
+-   `tidyr::pivot_wider()` spreads groups into columns and fills missing combinations with 0 (if there is any).
 :::
 
 ### Setting Effect Coding

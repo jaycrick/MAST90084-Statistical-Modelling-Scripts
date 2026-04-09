@@ -72,10 +72,10 @@ tonsil_wide
 ::: {.callout-tip collapse="true"}
 ## What each step is doing
 
--   `mutate(...)`: creates or updates columns; here it rewrites `Size` as a labelled factor.
+-   `dplyr::mutate(...)`: creates or updates columns; here it rewrites `Size` as a labelled factor.
 -   `factor(...)`: converts numeric codes (`1, 2, 3`) into ordered category labels used in output.
 -   `dplyr::select(Streptococcus.p, Size, n)`: keeps only the columns needed for reshaping; in this case we want all three.
--   `pivot_wider(names_from = Size, values_from = n)`: converts long data into wide data, so each size category becomes its own count column. The `name_from` argument says we want the content of the `Size` column to become our column names, and the `values_from` argument says we want the content of the `n` column to become the cell values.
+-   `tidyr::pivot_wider(names_from = Size, values_from = n)`: converts long data into wide data, so each size category becomes its own count column. The `name_from` argument says we want the content of the `Size` column to become our column names, and the `values_from` argument says we want the content of the `n` column to become the cell values.
 -   `|>`: passes the result of one step to the next, making the workflow readable top-to-bottom.
 :::
 
@@ -180,11 +180,11 @@ polr_dat
 ::: {.callout-tip collapse="true"}
 ## What each step is doing
 
--   `pivot_longer(...)`: turns the wide count columns back into long format (one row per category).
+-   `tidyr::pivot_longer(...)`: turns the wide count columns back into long format (one row per category).
 -   `cols = c(present, enlarged, great_enlarged)`: chooses which columns to stack into one variable.
 -   `names_to = "size"`: stores the former column names as category labels in a new `size` column.
 -   `values_to = "weight"`: stores the corresponding counts in a new `weight` column used as case weights.
--   `ordered(...)`: makes `size` an ordered factor so `polr()` respects the category order.
+-   `ordered(...)`: makes `size` an ordered factor so `MASS::polr()` respects the category order.
 -   `|>`: pipes each intermediate result to the next transformation step.
 :::
 
@@ -200,7 +200,7 @@ polr_obj <- polr(
 summary(polr_obj)
 ```
 
-The `polr()` standard errors agree with the cumulative `vglm()` fit.
+The `MASS::polr()` standard errors agree with the cumulative `VGAM::vglm()` fit.
 ::::
 
 ## Package Citations and Session Information

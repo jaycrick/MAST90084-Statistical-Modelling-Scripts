@@ -67,7 +67,7 @@ contrasts(ohio_tbl$smoke)
 When fitting a generalised linear mixed model (GLMM), the likelihood involves integrating over the random effects, which typically has no closed-form solution.
 Therefore we need to choose a numerical integration method to approximate the likelihood.
 The `lme4::glmer()` function provides two main methods for this: the Laplace approximation and adaptive Gauss-Hermite quadrature (AGHQ).
-The default `glmer()` approach uses the **Laplace approximation**.
+The default `lme4::glmer()` approach uses the **Laplace approximation**.
 Once we have chosen the integration method, we also need to specify the optimization algorithm; the Nelder-Mead optimizer is recommended by @faraway_extending_2016.
 
 ```{r}
@@ -131,7 +131,7 @@ Unfortunately the `lme4::glmer()` function is not well documented enough for us 
 ### `lme4::glmer()` Fitting with Adaptive Gauss-Hermite Quadrature
 
 In order to get more accurate estimates, we can improve the numerical integration by using adaptive Gauss-Hermite quadrature (AGHQ) instead of the Laplace approximation.
-The `nAGQ` argument in `glmer()` controls the number of quadrature points used for the integration.
+The `nAGQ` argument in `lme4::glmer()` controls the number of quadrature points used for the integration.
 The default `nAGQ = 1` corresponds to the Laplace approximation, while `nAGQ > 1` uses multiple quadrature points for a more accurate approximation of the likelihood.
 
 Here we try `nAGQ = 10`, which is what @fahrmeir_multivariate_2001 claim to use in their analysis.
@@ -155,7 +155,7 @@ Comparing to Table 7.2, we are significantly closer to the book's reported estim
 
 ### Random Effects Estimates
 
-As with the LMMs, we can use the `ranef()` function to extract the conditional modes of the random effects for each subject:
+As with the LMMs, we can use the `lme4::ranef()` function to extract the conditional modes of the random effects for each subject:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-7
@@ -295,7 +295,7 @@ The reason for all the small mismatches is not clear.
 ::: {.callout-tip collapse="true"}
 ## Alternative Fit with `ordinal::clm()`
 
-In order to make sure that the mismatches aren't due to the specific implementation of `polr()`, we can try a different function `ordinal::clm()`:
+In order to make sure that the mismatches aren't due to the specific implementation of `MASS::polr()`, we can try a different function `ordinal::clm()`:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-14
@@ -310,7 +310,7 @@ alphas_clm <- c(thresholds_clm[1], log(diff(thresholds_clm)))
 alphas_clm
 ```
 
-The values retrieved are almost the same as those obtained with `polr()`.
+The values retrieved are almost the same as those obtained with `MASS::polr()`.
 :::
 
 ### Random Effects Model: `ordinal::clmm()`
@@ -347,7 +347,7 @@ Note that the fitted values are evaluated at the conditional modes of the random
 fitted(wine_mixed_fit)
 ```
 
-As always, to get the estimated conditional modes of the random effects, we use the generic `ranef()` function.
+As always, to get the estimated conditional modes of the random effects, we use the generic `lme4::ranef()` function.
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-18

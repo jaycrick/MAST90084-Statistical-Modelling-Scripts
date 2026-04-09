@@ -61,7 +61,7 @@ library(forcats) # deal with categorical data (factors)
 library(Fahrmeir) # load datasets from the book
 ```
 
-We load the caeser dataset in (from the Fahrmeir package), and inspect the top few rows using `head`.
+We load the caeser dataset in (from the Fahrmeir package), and inspect the top few rows using `utils::head()`.
 
 ```{r}
 #| label: 01-anodev-chunk-3a
@@ -108,7 +108,7 @@ class(caesar_tbl)
 ### Grouping and Summarizing
 
 The `caesar_tbl` above still has one row per combination of covariates and response.
-In what follows, we will first use the `group_by()` function to group the observations according to the three covariates (without the response variable), and then use the `summarize()` function to sum the total number of women with each combination of covariates (as a new variable `size`) and infected count (as a new variable `Infect_count`) for each combination of the covariate values.
+In what follows, we will first use the `dplyr::group_by()` function to group the observations according to the three covariates (without the response variable), and then use the `dplyr::summarize()` function to sum the total number of women with each combination of covariates (as a new variable `size`) and infected count (as a new variable `Infect_count`) for each combination of the covariate values.
 Both functions are from the ***dplyr*** package.
 
 ```{r}
@@ -123,7 +123,7 @@ caesar_tbl_summary <- summarize(caesar_tbl_grouped,
 caesar_tbl_summary
 ```
 
-Note that setting `.groups = "drop"` removes the grouping after `summarize()`, giving us a normal tibble, and avoiding confusing behaviour in later operations.
+Note that setting `.groups = "drop"` removes the grouping after `dplyr::summarize()`, giving us a normal tibble, and avoiding confusing behaviour in later operations.
 
 We encourage using a [pipe](https://stat.ethz.ch/R-manual//R-devel/RHOME/library/base/html/pipeOp.html){target="_blank"} (`|>`) as below to chain operations together.
 It passes the result of the left-hand-side expression as the first argument in the right-hand-side expression.
@@ -165,7 +165,7 @@ The benefit of tibbles is that we can see what class each variable has.
 `noplan`, `factor`, and `antib` have the class factor.
 `size` and `Infect_count` have the class double (numeric).
 
-Look at a description of the structure of caesar and the coding scheme of each variable of type "factor" using the function `contrasts()`.
+Look at a description of the structure of caesar and the coding scheme of each variable of type "factor" using the function `stats::contrasts()`.
 
 ```{r}
 #| label: 01-anodev-chunk-9
@@ -174,8 +174,8 @@ contrasts(caesar_tbl$factor)
 contrasts(caesar_tbl$antib)
 ```
 
-We can see that these are coded in the exact opposite way that F & T describes, and so we need to redefine the reference levels of these variables, using the `fct_relevel()` function in the ***forcats*** package.
-`fct_relevel()` is a more flexible extension of the `stat::relevel()` function in base R.
+We can see that these are coded in the exact opposite way that F & T describes, and so we need to redefine the reference levels of these variables, using the `forcats::fct_relevel()` function in the ***forcats*** package.
+`forcats::fct_relevel()` is a more flexible extension of the `stats::relevel()` function in base R.
 The reference level (first level) becomes the baseline category for regression coefficients.
 
 ```{r}
@@ -211,7 +211,7 @@ caesar_glm_fct <- glm(
 caesar_glm_fct
 ```
 
-These results line up with the ones on p.30 of the book (yay), but the default covariate names given by `glm()` look kind of weird.
+These results line up with the ones on p.30 of the book (yay), but the default covariate names given by `stats::glm()` look kind of weird.
 Alternatively, we can assign integer values to the factors.
 This makes the dataframe look exactly like it is described in the book.
 
@@ -242,26 +242,26 @@ caesar_int_glm <- glm(
 caesar_int_glm
 ```
 
-We can see the results more fully by using `summary()`
+We can see the results more fully by using `summary()`.
 
 ```{r}
 #| label: 01-anodev-chunk-14a
 summary(caesar_int_glm)
 ```
 
-We can also extract the deviance using `deviance()`.
+We can also extract the deviance using `stats::deviance()`.
 
 ```{r}
 #| label: 01-anodev-chunk-14b
 deviance(caesar_int_glm)
 ```
 
-It is important to understand how `glm()` reports the summary, and sometimes the terms "residual deviance" and "deviance" are used interchangeably.
-[The documentation of `glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that it is "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***".
+It is important to understand how `stats::glm()` reports the summary, and sometimes the terms "residual deviance" and "deviance" are used interchangeably.
+[The documentation of `stats::glm()`](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html){target="_blank"} says that it is "***up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero***".
 So this number is what we call the (unscaled) deviance.
 
 ::: callout-note
-The documentation of `glm()` on what it is reporting for the deviance may be misleading, because it ignores the fact that the deviance only becomes twice the log-likelihood difference ***when rescaled by the dispersion***.
+The documentation of `stats::glm()` on what it is reporting for the deviance may be misleading, because it ignores the fact that the deviance only becomes twice the log-likelihood difference ***when rescaled by the dispersion***.
 In the binomial and Poisson cases, the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.
 :::
 
@@ -285,9 +285,9 @@ anova(caesar_int_glm, test = "F")
 
 For binomial GLMs, because the dispersion parameter $\phi$ is fixed at $1$, the natural test for nested models is based on the difference in their deviance (or scaled deviance because $\phi =  1$ anyway), which asymptotically follows a chi-square distribution.
 The F test is exact for Gaussian GLMs with identity link (i.e. the classical Gaussian linear model) when the dispersion (i.e. the variance) is unknown and has to be estimated, and, by heuristic extension, appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and perhaps certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion.
-The documentation of `anova.glm()` also says "***the dispersion estimate will be taken from the largest model, using the value returned by summary.glm***", and `summary.glm()` reports our typical Pearson residual based estimator for $\phi$ by default.
+The documentation of `stats::anova.glm()` also says "***the dispersion estimate will be taken from the largest model, using the value returned by summary.glm***", and `stats::summary.glm()` reports our typical Pearson residual based estimator for $\phi$ by default.
 
-See the documentation of `anova.glm()`, as well as @venables_modern_2002, p.186-187 and Section 7.5, for more discussion.
+See the documentation of `stats::anova.glm()`, as well as @venables_modern_2002, p.186-187 and Section 7.5, for more discussion.
 Alternatively, Sections 7.6.4 and 7.6.5 of @dunn_smyth_2018 also give nice exposition on such approximate F tests.
 :::
 

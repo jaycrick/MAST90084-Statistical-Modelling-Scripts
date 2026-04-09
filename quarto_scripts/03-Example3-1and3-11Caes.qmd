@@ -108,21 +108,21 @@ caesar_clean
 ```
 :::
 
-### Fit with `multinom()` from `nnet`
+### Fit with `nnet::multinom()` from `nnet`
 
-To fit the a multinomial log-linear model we use the `multinom()` function from the `nnet` package.
+To fit the a multinomial log-linear model we use the `nnet::multinom()` function from the `nnet` package.
 The `nnet` package is written by the authors of and well documented in @venables_modern_2002.
-To see more information about the `multinom()` function, you can [refer to the documentation](https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html) by running `?multinom` in your R environment.
+To see more information about the `nnet::multinom()` function, you can [refer to the documentation](https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html) by running `?multinom` in your R environment.
 It is especially useful to check the arguments controlling optimisation (`maxit`, `trace`, `Hess`) when reproducing textbook results.
 
 ::: {.callout-note collapse="true"}
 ## `multinom` Optimization Method
 
-The `multinom()` function uses the BFGS optimization method, which is a quasi-Newton method for finding the maximum likelihood estimates of the model parameters.
+The `nnet::multinom()` function uses the BFGS optimization method, which is a quasi-Newton method for finding the maximum likelihood estimates of the model parameters.
 This is quicker than the Fisher scoring algorithm which requires computing the Hessian matrix at each iteration.
 :::
 
-We extract the response variables as a matrix format for the `multinom` function,
+We extract the response variables as a matrix format for the `nnet::multinom` function,
 
 ```{r}
 #| label: extract-response-matrix
@@ -164,8 +164,8 @@ caes_nnet_dev
 ::: callout-caution
 ## Deviance Interpretation
 
-Looking at the documentation of the `multinom()` function by running `?multinom`, we see that the deviance reported by `multinom()` is $-2 \times \text{log-likelihood}$ and has **not been adjusted** by the saturated model (or the scale parameter).
-This differs from deviance in `glm()` and our usual deviance.
+Looking at the documentation of the `nnet::multinom()` function by running `?multinom`, we see that the deviance reported by `nnet::multinom()` is $-2 \times \text{log-likelihood}$ and has **not been adjusted** by the saturated model (or the scale parameter).
+This differs from deviance in `stats::glm()` and our usual deviance.
 Always check the documentation for how deviance is calculated.
 :::
 
@@ -192,7 +192,7 @@ The codebase is in Fortran, and is very fast.
 
 We can use `glmnet` to fit the same multinomial model by setting `lambda = 0` (giving no weight to the regularisation step) to get the unregularized estimates.
 If you look up `?glmnet`, pay attention to what they said about symmetric multinomial model which has a different parametrization; [see the section on "Multinomial Regression" in their vignette](https://glmnet.stanford.edu/articles/glmnet.html#multinomial-regression-family-multinomial) for the precise form of this parametrization.
-Because of a different parametrization, the returned fitted coefficients won't be same as `multinom()`.
+Because of a different parametrization, the returned fitted coefficients won't be same as `nnet::multinom()`.
 
 ```{r}
 #| label: glmnet-multinomial-fit
@@ -223,7 +223,7 @@ $$
 = \beta_{r0} + \mathbf{z}_i^T\boldsymbol{\beta}_r.
 $$
 
-Therefore, we can retrieve the `multinom()` coefficients by taking differences of the `glmnet` alphas:
+Therefore, we can retrieve the `nnet::multinom()` coefficients by taking differences of the `glmnet` alphas:
 
 1.  Extract slope coefficients for each category and compute differences relative to the reference category
 2.  Extract intercept coefficients and compute differences relative to the reference category intercept
@@ -346,11 +346,11 @@ The exact reason for this discrepancy is not clear.
 The `VGAM` package will be used a lot more later in the course, because it fits a wide variety of multivariate response regression models.
 It is not as fast as `glmnet` or `nnet` for large datasets, because it uses the Fisher scoring algorithm (like the book).
 
-It is good practice to [read the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html) for the `vglm()` function with `?vglm` to understand the arguments and output structure.
+It is good practice to [read the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html) for the `VGAM::vglm()` function with `?vglm` to understand the arguments and output structure.
 Also check `?multinomial`, especially `refLevel` and `parallel`, since these choices directly affect model interpretation.
 
 We use the raw data `caes_dat` extracted from the CSV file.
-`multinomial()` has a `refLevel` argument to specify the reference category.
+`VGAM::multinomial()` has a `refLevel` argument to specify the reference category.
 
 ```{r}
 #| label: fit-vgam-caes
@@ -364,7 +364,7 @@ caes_vgam <- vglm(
 ::: {.callout-tip collapse="true"}
 ## `vglm` Default Reference Level
 
-[Looking at the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/multinomial.html) for `multinomial()`, we can see that the default parameter for `refLevel` is `"(Last)"`.
+[Looking at the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/multinomial.html) for `VGAM::multinomial()`, we can see that the default parameter for `refLevel` is `"(Last)"`.
 This means that the last category in the response matrix is treated as the reference.
 In our case, this would be `Inf2`, which is not what we want.
 we ensure that `noInf` is treated as the reference category by setting `refLevel = "noInf"`.
@@ -391,7 +391,7 @@ This is because different packages treat grouped vs. ungrouped multinomial data 
 See [Appendix A2](A2-likelihood-multinomial.qmd) for a detailed explanation of how this arises and why you must be careful when comparing results across packages.
 :::
 
-Extracting the coefficients from the `vglm` fit we see they also those in @fahrmeir_multivariate_2001 p. 75, and the fitted probabilities match those from `multinom()`.
+Extracting the coefficients from the `vglm` fit we see they also those in @fahrmeir_multivariate_2001 p. 75, and the fitted probabilities match those from `nnet::multinom()`.
 
 ```{r}
 #| label: coef-and-fitted-vgam
@@ -440,7 +440,7 @@ coefvlm(caes_vgam_parallel, matrix.out = TRUE)
 :::: {.callout-note collapse="true"}
 ## `VGAM` Using `Fahrmeir` Package Data
 
-We can try running the `vglm()` function on the original `caesar` data [we manipulated earlier](#alternative-original-fahrmeir-data) from the `Fahrmeir` package.
+We can try running the `VGAM::vglm()` function on the original `caesar` data [we manipulated earlier](#alternative-original-fahrmeir-data) from the `Fahrmeir` package.
 We don't fit the parallel model here.
 
 ```{r}
@@ -503,7 +503,7 @@ The deviance of `caes_vgam` matches that of in the book, however the deviance of
 
 In R, `@` accesses **slots** of S4 objects, while `$` accesses named elements in lists, data frames, and many S3 objects.
 
-`vglm()` returns an S4 object, so `criterion` is stored as a slot, and we use `caes_vgam@criterion` rather than `caes_vgam$criterion`.
+`VGAM::vglm()` returns an S4 object, so `criterion` is stored as a slot, and we use `caes_vgam@criterion` rather than `caes_vgam$criterion`.
 :::
 ::::
 

@@ -37,7 +37,7 @@ tail(bcancer)
 -   `status`: Censoring indicator (0 = censored, 1 = event observed)
 -   `group`: Grouping variable (here: staining status: Positive (P) or Negative (N)) this indicates whether metastasis was observed in the lymph nodes, which is a prognostic factor for breast cancer survival.
 
-The `Surv()` function combines time and status into a survival object for modelling.
+The `survival::Surv()` function combines time and status into a survival object for modelling.
 :::
 
 ## Diagnostics
@@ -115,11 +115,11 @@ survival_theme <- theme_minimal(base_size = 14) +
 ## Syntax walkthrough (shared plot settings):
 
 -   `stain_colours <- c(...)` creates a **named vector**: the names (`"Negative Stain"`, `"Positive Stain"`) must match the group labels in the data, and the values are the colours used in the legend and lines.
--   `theme_minimal(base_size = 14)` sets a clean base style and readable default text size.
--   `+ theme(...)` modifies specific theme elements on top of `theme_minimal()`.
+-   `ggplot2::theme_minimal(base_size = 14)` sets a clean base style and readable default text size.
+-   `+ ggplot2::theme(...)` modifies specific theme elements on top of `ggplot2::theme_minimal()`.
 -   `legend.position = "top"` moves the legend above the plot, which is usually easier to scan for two-group comparisons.
--   `legend.title = element_text(face = "bold")` and `plot.title = element_text(face = "bold")` make key text elements stand out.
--   `panel.grid.minor = element_blank()` removes minor gridlines to reduce visual clutter.
+-   `legend.title = ggplot2::element_text(face = "bold")` and `plot.title = ggplot2::element_text(face = "bold")` make key text elements stand out.
+-   `panel.grid.minor = ggplot2::element_blank()` removes minor gridlines to reduce visual clutter.
 :::
 
 Plot Kaplan-Meier survival curves for the two groups:
@@ -150,13 +150,13 @@ ggplot(km_plot_data, aes(x = time, y = surv, colour = group)) +
 
 Read this plot from top to bottom as a sequence of layers:
 
-1.  `ggplot(km_plot_data, aes(...))` picks the data and default mappings (`time` on x-axis, survival `surv` on y-axis, colour by `group`).
-2.  `geom_ribbon(aes(ymin = lower, ymax = upper, fill = group), ...)` draws the 95% confidence interval band between the lower and upper survival limits.
-3.  `geom_step(...)` draws Kaplan-Meier style step curves.
-4.  `scale_colour_manual(...)` applies the named palette so the step-line legend labels match the colours.
-5.  `scale_fill_manual(...)` uses the same palette for the confidence-band fill.
-6.  `scale_y_continuous(...)` constrains and labels the y-axis to survival-probability values between 0 and 1.
-7.  `labs(...)` adds title, subtitle, and axis labels.
+1.  `ggplot2::ggplot(km_plot_data, ggplot2::aes(...))` picks the data and default mappings (`time` on x-axis, survival `surv` on y-axis, colour by `group`).
+2.  `ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper, fill = group), ...)` draws the 95% confidence interval band between the lower and upper survival limits.
+3.  `ggplot2::geom_step(...)` draws Kaplan-Meier style step curves.
+4.  `ggplot2::scale_colour_manual(...)` applies the named palette so the step-line legend labels match the colours.
+5.  `ggplot2::scale_fill_manual(...)` uses the same palette for the confidence-band fill.
+6.  `ggplot2::scale_y_continuous(...)` constrains and labels the y-axis to survival-probability values between 0 and 1.
+7.  `ggplot2::labs(...)` adds title, subtitle, and axis labels.
 8.  `survival_theme` applies shared styling (legend placement, text emphasis, and cleaner gridlines).
 :::
 
@@ -191,11 +191,11 @@ ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group)) +
 ::: {.callout-tip collapse="true"}
 ## Plot syntax walkthrough (Weibull diagnostic)
 
-1.  `ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group))` sets the data source and maps transformed variables to the axes.
-2.  `geom_point(size = 2.2, alpha = 0.8)` adds plotted observations with size and transparency controls.
-3.  `geom_line(linewidth = 0.9)` connects points within each colour group.
-4.  `scale_colour_manual(values = stain_colours, name = "Group")` applies a named colour vector and legend title.
-5.  `labs(...)` sets the plot title, subtitle, and axis labels.
+1.  `ggplot2::ggplot(weibull_plot_data, ggplot2::aes(x = log_time, y = log_log_surv, colour = group))` sets the data source and maps transformed variables to the axes.
+2.  `ggplot2::geom_point(size = 2.2, alpha = 0.8)` adds plotted observations with size and transparency controls.
+3.  `ggplot2::geom_line(linewidth = 0.9)` connects points within each colour group.
+4.  `ggplot2::scale_colour_manual(values = stain_colours, name = "Group")` applies a named colour vector and legend title.
+5.  `ggplot2::labs(...)` sets the plot title, subtitle, and axis labels.
 6.  `survival_theme` applies the shared theme object.
 :::
 
@@ -228,10 +228,10 @@ ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group)) +
 ::: {.callout-tip collapse="true"}
 ## Plot syntax walkthrough (cloglog PH check)
 
-1.  `ggplot(cloglog_plot_data, aes(x = time, y = cloglog, colour = group))` maps time and the transformed `cloglog` response.
-2.  `geom_step(linewidth = 0.9)` draws the observed transformed values as step functions.
-3.  `scale_colour_manual(values = stain_colours, name = "Group")` uses the predefined palette and legend title.
-4.  `labs(...)` defines the title, subtitle, and axis labels.
+1.  `ggplot2::ggplot(cloglog_plot_data, ggplot2::aes(x = time, y = cloglog, colour = group))` maps time and the transformed `cloglog` response.
+2.  `ggplot2::geom_step(linewidth = 0.9)` draws the observed transformed values as step functions.
+3.  `ggplot2::scale_colour_manual(values = stain_colours, name = "Group")` uses the predefined palette and legend title.
+4.  `ggplot2::labs(...)` defines the title, subtitle, and axis labels.
 5.  `survival_theme` adds the common visual styling.
 :::
 
