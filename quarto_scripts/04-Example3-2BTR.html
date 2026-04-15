@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-29">
+<meta name="dcterms.date" content="2026-04-15">
 
 <title>Ordinal Regression: Breathing Test Results. – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -208,6 +208,26 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
  <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Marginal Models: Ohio Respiratory Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">Generalized Estimating Equations: CTSIB Balance Test Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-LM_mixed_effect.html">
+ <span class="dropdown-text">Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-GLM_mixed_Effect.html">
+ <span class="dropdown-text">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis: Breast Cancer</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -258,6 +278,7 @@ window.Quarto = {
   <li><a href="#variance-covariance-matrix-and-standard-errors" id="toc-variance-covariance-matrix-and-standard-errors" class="nav-link" data-scroll-target="#variance-covariance-matrix-and-standard-errors">Variance-Covariance Matrix and Standard Errors</a></li>
   <li><a href="#confidence-intervals" id="toc-confidence-intervals" class="nav-link" data-scroll-target="#confidence-intervals">Confidence Intervals</a></li>
   </ul></li>
+  <li><a href="#package-citations-and-session-information" id="toc-package-citations-and-session-information" class="nav-link" data-scroll-target="#package-citations-and-session-information">Package Citations and Session Information</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/04-Example3-2BTR.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -278,7 +299,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 29, 2026</p>
+      <p class="date">April 15, 2026</p>
     </div>
   </div>
   
@@ -308,7 +329,7 @@ window.Quarto = {
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>btr_dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"data/Example3-2BTR.csv"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data/Example3-2BTR.csv"</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -327,13 +348,13 @@ dbl (1): Freq
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>btr_dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"data/Example3-2BTR.csv"</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">BTR =</span> <span class="fu">col_factor</span>(),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">Age =</span> <span class="fu">col_factor</span>(),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">Smoking =</span> <span class="fu">col_factor</span>(),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">Freq =</span> <span class="fu">col_double</span>()</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data/Example3-2BTR.csv"</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">BTR =</span> <span class="fu">col_factor</span>(),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Age =</span> <span class="fu">col_factor</span>(),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Smoking =</span> <span class="fu">col_factor</span>(),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Freq =</span> <span class="fu">col_double</span>()</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>btr_dat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -449,17 +470,17 @@ Note
 </section>
 <section id="model-fitting-proportional-odds-models" class="level2">
 <h2 class="anchored" data-anchor-id="model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</h2>
-<p>The <code>polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html">Looking at the documentation</a> using <code>?polr</code>, particularly how <span class="math inline">\(\eta\)</span> is defined therein; the signs of beta coefficients in <code>polr()</code> is <strong>opposite</strong> to the corresponding coefficients in the textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>)’s formula.</p>
+<p>The <code>MASS::polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html">Looking at the documentation</a> using <code>?polr</code>, particularly how <span class="math inline">\(\eta\)</span> is defined therein; the signs of beta coefficients in <code>MASS::polr()</code> is <strong>opposite</strong> to the corresponding coefficients in the textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>)’s formula.</p>
 <p>We first fit a cumulative logistic/proportional odds model with an intercept, age, smoking. We also include an interaction effect between age and smoking.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">*</span> Smoking,</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">*</span> Smoking,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"logistic"</span></span>
 <span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
@@ -469,7 +490,7 @@ Note
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span><code>polr()</code> Function Syntax
+<span class="screen-reader-only">Tip</span><code>MASS::polr()</code> Function Syntax
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -485,7 +506,7 @@ Note
 </div>
 </div>
 </div>
-<p>The <code>polr()</code> function is limited. It can model standard cumulative models (see section 3.3.1 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>), but doesn’t allow for extended cumulative model with threshold variables (see section 3.3.2 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>).</p>
+<p>The <code>MASS::polr()</code> function is limited. It can model standard cumulative models (see section 3.3.1 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>), but doesn’t allow for extended cumulative model with threshold variables (see section 3.3.2 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -530,7 +551,7 @@ AIC: 1578.968 </code></pre>
 </div>
 </div>
 </div>
-<p>There is no residual readily available, but we can observe the linear predictor <span class="math inline">\(\eta\)</span> <strong>as defined in the documentation page for the <code>polr()</code> function without the intercept</strong>.</p>
+<p>There is no residual readily available, but we can observe the linear predictor <span class="math inline">\(\eta\)</span> <strong>as defined in the documentation page for the <code>MASS::polr()</code> function without the intercept</strong>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -561,16 +582,16 @@ AIC: 1578.968 </code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>),</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"2Former"</span>),</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"3Current"</span>),</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>) <span class="sc">*</span> (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"2Former"</span>),</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>) <span class="sc">*</span> (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"3Current"</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>),</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"2Former"</span>),</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"3Current"</span>),</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>) <span class="sc">*</span> (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"2Former"</span>),</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  (btr_dat<span class="sc">$</span>Age <span class="sc">==</span> <span class="st">"40to59"</span>) <span class="sc">*</span> (btr_dat<span class="sc">$</span>Smoking <span class="sc">==</span> <span class="st">"3Current"</span>)</span>
 <span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">manual =</span> <span class="fu">c</span>(Z <span class="sc">%*%</span> btr_logit_inter<span class="sc">$</span>coeff),</span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">polr =</span> btr_logit_inter<span class="sc">$</span>lp</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">manual =</span> <span class="fu">c</span>(Z <span class="sc">%*%</span> <span class="fu">coef</span>(btr_logit_inter)),</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">polr =</span> btr_logit_inter<span class="sc">$</span>lp</span>
 <span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -605,11 +626,11 @@ AIC: 1578.968 </code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>btr_logit_main <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking,</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"logistic"</span></span>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -700,7 +721,7 @@ Note
 </section>
 <section id="alternative-link-functions" class="level2">
 <h2 class="anchored" data-anchor-id="alternative-link-functions">Alternative Link Functions</h2>
-<p>The proportional odds assumption can be tested by fitting models with different link functions. The <code>polr()</code> function supports:</p>
+<p>The proportional odds assumption can be tested by fitting models with different link functions. The <code>MASS::polr()</code> function supports:</p>
 <ul>
 <li><strong>logistic</strong>: cumulative logit model (default)</li>
 <li><strong>probit</strong>: cumulative normal model</li>
@@ -715,11 +736,11 @@ Note
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>btr_ph <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"cloglog"</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"cloglog"</span></span>
 <span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_ph)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -754,11 +775,11 @@ AIC: 1573.949 </code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>btr_extm <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"loglog"</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"loglog"</span></span>
 <span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_extm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -819,22 +840,23 @@ AIC: 1580.335 </code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"logistic"</span></span>
 <span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>btr_logit_main_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>    BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking,</span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> btr_dat,</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> Freq,</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking,</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"logistic"</span></span>
 <span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_inter_eff)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_inter_eff)</span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -859,7 +881,8 @@ AIC: 1578.968 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(btr_logit_main_eff)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>btr_logit_main_eff_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_main_eff)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>btr_logit_main_eff_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -911,11 +934,11 @@ Response: BTR
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>btr_counts <span class="ot">&lt;-</span> btr_dat <span class="sc">|&gt;</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_wider</span>(</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">id_cols =</span> <span class="fu">c</span>(Age, Smoking),</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_from =</span> BTR,</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_from =</span> Freq</span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_cols =</span> <span class="fu">c</span>(Age, Smoking),</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> BTR,</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> Freq</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>btr_counts</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -932,8 +955,8 @@ Response: BTR
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>data_mat <span class="ot">&lt;-</span> btr_counts <span class="sc">|&gt;</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>Age, <span class="sc">-</span>Smoking) <span class="sc">|&gt;</span></span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>Age, <span class="sc">-</span>Smoking) <span class="sc">|&gt;</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>()</span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>data_mat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1012,7 +1035,7 @@ Response: BTR
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>residual_dev_logit <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_logit_inter_eff<span class="sc">$</span>deviance</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>residual_dev_logit <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> <span class="fu">deviance</span>(btr_logit_inter_eff)</span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>residual_dev_logit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1036,8 +1059,8 @@ Tip
 <p>The table is built in three steps:</p>
 <ol type="1">
 <li>Fit one model per link and extract coefficient estimates with <code>coef(summary(...))[ ,"Value"]</code>.</li>
-<li>Build two small tibbles (one for coefficients, one for residual deviance) and stack them with <code>bind_rows()</code>.</li>
-<li>Use <code>mutate(across(where(is.numeric), ~ round(., 3)))</code> to round all numeric columns to 3 decimal places for cleaner display.</li>
+<li>Build two small tibbles (one for coefficients, one for residual deviance) and stack them with <code>dplyr::bind_rows()</code>.</li>
+<li>Use <code>dplyr::mutate(across(where(is.numeric), ~ round(., 3)))</code> to round all numeric columns to 3 decimal places for cleaner display.</li>
 </ol>
 <p><code>rownames(coef(...))</code> supplies the parameter labels so each estimate aligns across link functions.</p>
 </div>
@@ -1053,45 +1076,47 @@ Tip
 <span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
 <span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"cloglog"</span></span>
 <span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit loglog (extreme maximal-value)</span></span>
-<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>btr_extm_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
-<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
-<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
-<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
-<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"loglog"</span></span>
-<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a list of models for easy iteration</span></span>
-<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>models <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">Logistic =</span> <span class="fu">summary</span>(btr_logit_inter_eff),</span>
-<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Complementary Log-Log</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">summary</span>(btr_ph_eff),</span>
-<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">Loglog =</span> <span class="fu">summary</span>(btr_extm_eff)</span>
-<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract variable names</span></span>
-<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>coef_names <span class="ot">&lt;-</span> <span class="fu">rownames</span>(<span class="fu">coef</span>(models[[<span class="dv">1</span>]]))</span>
-<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>results_table <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Coefficients</span></span>
-<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">Parameter =</span> coef_names,</span>
-<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Cum Log</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(<span class="fu">summary</span>(btr_logit_inter_eff))[, <span class="st">"Value"</span>],</span>
-<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Prop Haz</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(<span class="fu">summary</span>(btr_ph_eff))[, <span class="st">"Value"</span>],</span>
-<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Ext Max Val</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(<span class="fu">summary</span>(btr_extm_eff))[, <span class="st">"Value"</span>]</span>
-<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Residual Deviance</span></span>
-<span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">Parameter =</span> <span class="st">"Deviance"</span>,</span>
-<span id="cb58-40"><a href="#cb58-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Cum Log</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_logit_inter_eff<span class="sc">$</span>deviance,</span>
-<span id="cb58-41"><a href="#cb58-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Prop Haz</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_ph_eff<span class="sc">$</span>deviance,</span>
-<span id="cb58-42"><a href="#cb58-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Ext Max Val</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> btr_extm_eff<span class="sc">$</span>deviance</span>
-<span id="cb58-43"><a href="#cb58-43" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb58-44"><a href="#cb58-44" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">3</span>)))</span>
-<span id="cb58-46"><a href="#cb58-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a>results_table</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>btr_ph_eff_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_ph_eff)</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit loglog (extreme maximal-value)</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>btr_extm_eff <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>  BTR <span class="sc">~</span> Age <span class="sc">+</span> Smoking <span class="sc">+</span> Age<span class="sc">:</span>Smoking,</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> btr_dat,</span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> Freq,</span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"loglog"</span></span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>btr_extm_eff_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_extm_eff)</span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a list of models for easy iteration</span></span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>models <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">Logistic =</span> btr_logit_inter_eff_summary,</span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Complementary Log-Log</span><span class="st">`</span> <span class="ot">=</span> btr_ph_eff_summary,</span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">Loglog =</span> btr_extm_eff_summary</span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract variable names</span></span>
+<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>coef_names <span class="ot">&lt;-</span> <span class="fu">rownames</span>(<span class="fu">coef</span>(models[[<span class="dv">1</span>]]))</span>
+<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a>results_table <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Coefficients</span></span>
+<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">Parameter =</span> coef_names,</span>
+<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Cum Log</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(btr_logit_inter_eff_summary)[, <span class="st">"Value"</span>],</span>
+<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Prop Haz</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(btr_ph_eff_summary)[, <span class="st">"Value"</span>],</span>
+<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Ext Max Val</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">coef</span>(btr_extm_eff_summary)[, <span class="st">"Value"</span>]</span>
+<span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Residual Deviance</span></span>
+<span id="cb58-40"><a href="#cb58-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb58-41"><a href="#cb58-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">Parameter =</span> <span class="st">"Deviance"</span>,</span>
+<span id="cb58-42"><a href="#cb58-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Cum Log</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> <span class="fu">deviance</span>(btr_logit_inter_eff),</span>
+<span id="cb58-43"><a href="#cb58-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Prop Haz</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> <span class="fu">deviance</span>(btr_ph_eff),</span>
+<span id="cb58-44"><a href="#cb58-44" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Ext Max Val</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> <span class="fu">deviance</span>(btr_extm_eff)</span>
+<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb58-46"><a href="#cb58-46" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">3</span>)))</span>
+<span id="cb58-48"><a href="#cb58-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-49"><a href="#cb58-49" aria-hidden="true" tabindex="-1"></a>results_table</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 4
@@ -1119,7 +1144,7 @@ Tip
 </div>
 <div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>This can be written in a nested/list-column style using functional programming. The idea is to store one row per link function, fit each model via <code>map()</code>, then map again to extract coefficients and residual deviance.</p>
+<p>This can be written in a nested/list-column style using functional programming. The idea is to store one row per link function, fit each model via <code>purrr::map()</code>, then map again to extract coefficients and residual deviance.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1142,7 +1167,7 @@ Tip
 <span id="cb60-17"><a href="#cb60-17" aria-hidden="true" tabindex="-1"></a>      )</span>
 <span id="cb60-18"><a href="#cb60-18" aria-hidden="true" tabindex="-1"></a>    ),</span>
 <span id="cb60-19"><a href="#cb60-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">coef_value =</span> <span class="fu">map</span>(model, <span class="sc">~</span> <span class="fu">coef</span>(<span class="fu">summary</span>(.x))[, <span class="st">"Value"</span>]),</span>
-<span id="cb60-20"><a href="#cb60-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">residual_dev =</span> <span class="fu">map_dbl</span>(model, <span class="sc">~</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> .x<span class="sc">$</span>deviance)</span>
+<span id="cb60-20"><a href="#cb60-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">residual_dev =</span> <span class="fu">map_dbl</span>(model, <span class="sc">~</span> <span class="dv">2</span> <span class="sc">*</span> loglike_saturated <span class="sc">+</span> <span class="fu">deviance</span>(.x))</span>
 <span id="cb60-21"><a href="#cb60-21" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb60-22"><a href="#cb60-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb60-23"><a href="#cb60-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Expand mapped coefficients to long format</span></span>
@@ -1196,7 +1221,7 @@ Tip
 <h2 class="anchored" data-anchor-id="other-tricks-and-commands">Other Tricks and Commands</h2>
 <section id="residuals" class="level3">
 <h3 class="anchored" data-anchor-id="residuals">Residuals</h3>
-<p>The <code>polr()</code> function does not readily provide residuals.</p>
+<p>The <code>MASS::polr()</code> function does not readily provide residuals.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1213,7 +1238,7 @@ Tip
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(btr_logit_inter_eff<span class="sc">$</span>fitted)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">fitted</span>(btr_logit_inter_eff))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>    1Normal    2Border    3Abnorm
@@ -1306,10 +1331,25 @@ Age1:Smoking2     0.020179722    -0.006001108    -0.005918600
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(logit_vcov))</span>
-<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>se_from_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_inter_eff)<span class="sc">$</span>coefficients[, <span class="st">"Std. Error"</span>]</span>
-<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="sc">==</span> se_from_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff_coefs <span class="ot">&lt;-</span> <span class="fu">coef</span>(btr_logit_inter_eff_summary)</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>btr_logit_inter_eff_coefs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                      Value Std. Error    t value
+Age1            -0.11486771  0.1085714 -1.0579927
+Smoking1        -0.90596380  0.1890052 -4.7933268
+Smoking2         0.36428448  0.1420540  2.5644091
+Age1:Smoking1    0.55777234  0.1889957  2.9512429
+Age1:Smoking2   -0.01516692  0.1420553 -0.1067677
+1Normal|2Border  2.37038447  0.1086289 21.8209350
+2Border|3Abnorm  3.84473524  0.1598734 24.0486169</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(logit_vcov))</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>se_from_summary <span class="ot">&lt;-</span> btr_logit_inter_eff_coefs[, <span class="st">"Std. Error"</span>]</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>se_from_vcov <span class="sc">==</span> se_from_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>           Age1        Smoking1        Smoking2   Age1:Smoking1   Age1:Smoking2 
@@ -1319,12 +1359,12 @@ Age1:Smoking2     0.020179722    -0.006001108    -0.005918600
 </div>
 </div>
 <p>We should be able to recover the same confidence intervals by using the variance-covariance matrix and a normal approximation (Wald intervals).</p>
-<p>We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by <code>polr()</code>; note that I can simply refer to it as <code>btr_logit_inter_eff$Hess</code> instead of <code>btr_logit_inter_eff$Hessian</code> because of <a href="https://humdrumr.ccml.gtcmt.gatech.edu/reference/partialMatching.html#:~:text=Partial%20matching%20explained,as%20do%20many%20humdrumR%20functions.">partial matching in R</a>:</p>
+<p>We can check the covariance matrix against the inverse of the Hessian matrix (Fisher information) returned by <code>MASS::polr()</code>; note that I can simply refer to it as <code>btr_logit_inter_eff$Hess</code> instead of <code>btr_logit_inter_eff$Hessian</code> because of <a href="https://humdrumr.ccml.gtcmt.gatech.edu/reference/partialMatching.html#:~:text=Partial%20matching%20explained,as%20do%20many%20humdrumR%20functions.">partial matching in R</a>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>hessian_inv <span class="ot">&lt;-</span> <span class="fu">solve</span>(btr_logit_inter_eff<span class="sc">$</span>Hess)</span>
-<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>hessian_inv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>hessian_inv <span class="ot">&lt;-</span> <span class="fu">solve</span>(btr_logit_inter_eff<span class="sc">$</span>Hess)</span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>hessian_inv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>                         Age1     Smoking1      Smoking2 Age1:Smoking1
@@ -1349,7 +1389,7 @@ Age1:Smoking2    2.017972e-02   -0.0060011075    5.596186e-05
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(hessian_inv, logit_vcov)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(hessian_inv, logit_vcov)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "Mean relative difference: 0.2576063"</code></pre>
@@ -1362,7 +1402,7 @@ Age1:Smoking2    2.017972e-02   -0.0060011075    5.596186e-05
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(btr_logit_inter_eff) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(btr_logit_inter_eff) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Waiting for profiling to be done...</code></pre>
@@ -1380,11 +1420,11 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manual Wald CI (upper limit)</span></span>
-<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>coeff_est <span class="ot">&lt;-</span> <span class="fu">summary</span>(btr_logit_inter_eff)<span class="sc">$</span>coefficients[, <span class="dv">1</span>]</span>
-<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>wald_upper <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
-<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>wald_lower <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.025</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
-<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(wald_lower, wald_upper)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manual Wald CI (upper limit)</span></span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>coeff_est <span class="ot">&lt;-</span> btr_logit_inter_eff_coefs[, <span class="dv">1</span>]</span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>wald_upper <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a>wald_lower <span class="ot">&lt;-</span> coeff_est <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fl">0.025</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(btr_logit_inter_eff)))</span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(wald_lower, wald_upper)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 7 × 2
@@ -1401,24 +1441,82 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 </div>
 <p>These values are different from the confidence intervals computed by <code>confint()</code>; in particular, they don’t give symmetric CIs around the parameter estimates. This is because the <code>confint()</code> function uses the profile likelihood confidence intervals contructed by inverting the likelihood ratio tests, which is more suitable for some non-linear regression problems. See <span class="citation" data-cites="agresti_cda_2013">Agresti (<a href="#ref-agresti_cda_2013" role="doc-biblioref">2013</a>)</span>, sections 1.3.4 for constructing CIs by inverting tests and 3.2.6 for constructing profile likelihood confidence intervals.</p>
 <p>Run <code>profile(btr_logit_inter_eff)</code> and see <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.&nbsp;220 for more details on the <code>profile()</code> function.</p>
+</section>
+</section>
+<section id="package-citations-and-session-information" class="level2">
+<h2 class="anchored" data-anchor-id="package-citations-and-session-information">Package Citations and Session Information</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Session Information
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-apple-darwin20
+Running under: macOS Sequoia 15.7.5
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Australia/Melbourne
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+other attached packages:
+[1] tidyr_1.3.2      readr_2.1.6      purrr_1.2.1      MASS_7.3-61     
+[5] dplyr_1.2.0      conflicted_1.2.0
+
+loaded via a namespace (and not attached):
+ [1] crayon_1.5.3      vctrs_0.7.1       cli_3.6.5         knitr_1.51       
+ [5] rlang_1.1.7       xfun_0.56         renv_1.1.7        generics_0.1.4   
+ [9] jsonlite_2.0.0    bit_4.6.0         glue_1.8.0        htmltools_0.5.9  
+[13] hms_1.1.4         rmarkdown_2.30    evaluate_1.0.5    tibble_3.3.1     
+[17] tzdb_0.5.0        fastmap_1.2.0     yaml_2.3.12       lifecycle_1.0.5  
+[21] memoise_2.0.1     compiler_4.4.2    pkgconfig_2.0.3   rstudioapi_0.18.0
+[25] digest_0.6.39     R6_2.6.1          utf8_1.2.6        tidyselect_1.2.1 
+[29] parallel_4.4.2    vroom_1.7.0       pillar_1.11.1     magrittr_2.0.4   
+[33] withr_3.0.2       bit64_4.6.0-1     tools_4.4.2       cachem_1.1.0     </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"MASS"</span>, <span class="st">"purrr"</span>, <span class="st">"readr"</span>, <span class="st">"tidyr"</span>)</span>
-<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
-<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
-<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb84-11"><a href="#cb84-11" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb84-12"><a href="#cb84-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb84-13"><a href="#cb84-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"MASS"</span>, <span class="st">"purrr"</span>, <span class="st">"readr"</span>, <span class="st">"tidyr"</span>)</span>
+<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb88-7"><a href="#cb88-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb88-8"><a href="#cb88-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb88-9"><a href="#cb88-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb88-10"><a href="#cb88-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb88-11"><a href="#cb88-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb88-12"><a href="#cb88-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb88-13"><a href="#cb88-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb88-14"><a href="#cb88-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb88-15"><a href="#cb88-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb88-16"><a href="#cb88-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
@@ -1431,7 +1529,6 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 
 
 
-</section>
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">

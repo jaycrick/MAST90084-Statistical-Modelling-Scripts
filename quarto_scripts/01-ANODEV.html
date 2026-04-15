@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-29">
+<meta name="dcterms.date" content="2026-04-15">
 
 <title>Binomial Generalized Linear Models: Caesarian Birth Study – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -208,6 +208,26 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
  <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Marginal Models: Ohio Respiratory Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">Generalized Estimating Equations: CTSIB Balance Test Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-LM_mixed_effect.html">
+ <span class="dropdown-text">Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-GLM_mixed_Effect.html">
+ <span class="dropdown-text">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis: Breast Cancer</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -253,7 +273,6 @@ window.Quarto = {
   <li><a href="#handling-the-issues-on-uniqueness-and-existence-of-the-mle" id="toc-handling-the-issues-on-uniqueness-and-existence-of-the-mle" class="nav-link" data-scroll-target="#handling-the-issues-on-uniqueness-and-existence-of-the-mle">Handling the issues on Uniqueness and Existence of the MLE</a></li>
   <li><a href="#reproducibility" id="toc-reproducibility" class="nav-link" data-scroll-target="#reproducibility">Reproducibility</a>
   <ul class="collapse">
-  <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information">Session Information</a></li>
   <li><a href="#package-citations" id="toc-package-citations" class="nav-link" data-scroll-target="#package-citations">Package Citations</a></li>
   </ul></li>
   </ul>
@@ -276,7 +295,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 29, 2026</p>
+      <p class="date">April 15, 2026</p>
     </div>
   </div>
   
@@ -350,7 +369,7 @@ window.Quarto = {
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Fahrmeir) <span class="co"># load datasets from the book</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>We load the caeser dataset in (from the Fahrmeir package), and inspect the top few rows using <code>head</code>.</p>
+<p>We load the caeser dataset in (from the Fahrmeir package), and inspect the top few rows using <code>utils::head()</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -424,16 +443,16 @@ window.Quarto = {
 </div>
 <section id="grouping-and-summarizing" class="level3">
 <h3 class="anchored" data-anchor-id="grouping-and-summarizing">Grouping and Summarizing</h3>
-<p>The <code>caesar_tbl</code> above still has one row per combination of covariates and response. In what follows, we will first use the <code>group_by()</code> function to group the observations according to the three covariates (without the response variable), and then use the <code>summarize()</code> function to sum the total number of women with each combination of covariates (as a new variable <code>size</code>) and infected count (as a new variable <code>Infect_count</code>) for each combination of the covariate values. Both functions are from the <strong><em>dplyr</em></strong> package.</p>
+<p>The <code>caesar_tbl</code> above still has one row per combination of covariates and response. In what follows, we will first use the <code>dplyr::group_by()</code> function to group the observations according to the three covariates (without the response variable), and then use the <code>dplyr::summarize()</code> function to sum the total number of women with each combination of covariates (as a new variable <code>size</code>) and infected count (as a new variable <code>Infect_count</code>) for each combination of the covariate values. Both functions are from the <strong><em>dplyr</em></strong> package.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>caesar_tbl_grouped <span class="ot">&lt;-</span> <span class="fu">group_by</span>(caesar_tbl, noplan, factor, antib)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>caesar_tbl_summary <span class="ot">&lt;-</span> <span class="fu">summarize</span>(caesar_tbl_grouped,</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">sum</span>(w),</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">Infect_count =</span> <span class="fu">sum</span>(yl <span class="sc">*</span> w),</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">size =</span> <span class="fu">sum</span>(w),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Infect_count =</span> <span class="fu">sum</span>(yl <span class="sc">*</span> w),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>caesar_tbl_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -451,7 +470,7 @@ window.Quarto = {
 8 planned without      without        40            8</code></pre>
 </div>
 </div>
-<p>Note that setting <code>.groups = "drop"</code> removes the grouping after <code>summarize()</code>, giving us a normal tibble, and avoiding confusing behaviour in later operations.</p>
+<p>Note that setting <code>.groups = "drop"</code> removes the grouping after <code>dplyr::summarize()</code>, giving us a normal tibble, and avoiding confusing behaviour in later operations.</p>
 <p>We encourage using a <a href="https://stat.ethz.ch/R-manual//R-devel/RHOME/library/base/html/pipeOp.html" target="_blank">pipe</a> (<code>|&gt;</code>) as below to chain operations together. It passes the result of the left-hand-side expression as the first argument in the right-hand-side expression. Think of the pipe as saying “and then…”:</p>
 <ul>
 <li>Take <code>caesar_tbl</code> <strong>and then</strong></li>
@@ -462,12 +481,12 @@ window.Quarto = {
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>caesar_tbl <span class="ot">&lt;-</span> caesar_tbl <span class="sc">|&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(noplan, factor, antib) <span class="sc">|&gt;</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">sum</span>(w),</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">Infect_count =</span> <span class="fu">sum</span>(yl <span class="sc">*</span> w),</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(noplan, factor, antib) <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fu">sum</span>(w),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Infect_count =</span> <span class="fu">sum</span>(yl <span class="sc">*</span> w),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>caesar_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -489,7 +508,7 @@ window.Quarto = {
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>caesar_tbl <span class="ot">&lt;-</span> caesar_tbl <span class="sc">|&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(size <span class="sc">!=</span> <span class="dv">0</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(size <span class="sc">!=</span> <span class="dv">0</span>)</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>caesar_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -511,7 +530,7 @@ window.Quarto = {
 <section id="understanding-factor-coding" class="level2">
 <h2 class="anchored" data-anchor-id="understanding-factor-coding">Understanding Factor Coding</h2>
 <p>It is good practice to understand the data structure we have. From the above tibble we can see that we have 7 observations of 5 variables. The benefit of tibbles is that we can see what class each variable has. <code>noplan</code>, <code>factor</code>, and <code>antib</code> have the class factor. <code>size</code> and <code>Infect_count</code> have the class double (numeric).</p>
-<p>Look at a description of the structure of caesar and the coding scheme of each variable of type “factor” using the function <code>contrasts()</code>.</p>
+<p>Look at a description of the structure of caesar and the coding scheme of each variable of type “factor” using the function <code>stats::contrasts()</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -541,16 +560,16 @@ antibiotics       0
 without           1</code></pre>
 </div>
 </div>
-<p>We can see that these are coded in the exact opposite way that F &amp; T describes, and so we need to redefine the reference levels of these variables, using the <code>fct_relevel()</code> function in the <strong><em>forcats</em></strong> package. <code>fct_relevel()</code> is a more flexible extension of the <code>stat::relevel()</code> function in base R. The reference level (first level) becomes the baseline category for regression coefficients.</p>
+<p>We can see that these are coded in the exact opposite way that F &amp; T describes, and so we need to redefine the reference levels of these variables, using the <code>forcats::fct_relevel()</code> function in the <strong><em>forcats</em></strong> package. <code>forcats::fct_relevel()</code> is a more flexible extension of the <code>stats::relevel()</code> function in base R. The reference level (first level) becomes the baseline category for regression coefficients.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>caesar_tbl <span class="ot">&lt;-</span> caesar_tbl <span class="sc">|&gt;</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">noplan =</span>  <span class="fu">fct_relevel</span>(noplan, <span class="st">"planned"</span>),</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">factor =</span> <span class="fu">fct_relevel</span>(factor, <span class="st">"without"</span>),</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">antib =</span>  <span class="fu">fct_relevel</span>(antib, <span class="st">"without"</span>)</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">noplan =</span> <span class="fu">fct_relevel</span>(noplan, <span class="st">"planned"</span>),</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">factor =</span> <span class="fu">fct_relevel</span>(factor, <span class="st">"without"</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">antib =</span> <span class="fu">fct_relevel</span>(antib, <span class="st">"without"</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(caesar_tbl<span class="sc">$</span>noplan)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -586,10 +605,10 @@ antibiotics           1</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>caesar_glm_fct <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    Infect_count <span class="sc">/</span> size <span class="sc">~</span> antib <span class="sc">+</span> factor <span class="sc">+</span> noplan,</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_tbl,</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> size</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  Infect_count <span class="sc">/</span> size <span class="sc">~</span> antib <span class="sc">+</span> factor <span class="sc">+</span> noplan,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_tbl,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> size</span>
 <span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>caesar_glm_fct</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -608,16 +627,16 @@ Null Deviance:      83.49
 Residual Deviance: 11   AIC: 36.18</code></pre>
 </div>
 </div>
-<p>These results line up with the ones on p.30 of the book (yay), but the default covariate names given by <code>glm()</code> look kind of weird. Alternatively, we can assign integer values to the factors. This makes the dataframe look exactly like it is described in the book.</p>
+<p>These results line up with the ones on p.30 of the book (yay), but the default covariate names given by <code>stats::glm()</code> look kind of weird. Alternatively, we can assign integer values to the factors. This makes the dataframe look exactly like it is described in the book.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>caesar_tbl_int <span class="ot">&lt;-</span> caesar_tbl <span class="sc">|&gt;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">noplan =</span> <span class="fu">as.integer</span>(noplan <span class="sc">==</span> <span class="st">"not"</span>),</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">factor =</span> <span class="fu">as.integer</span>(factor <span class="sc">==</span> <span class="st">"risk factors"</span>),</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">antib =</span> <span class="fu">as.integer</span>(antib <span class="sc">==</span> <span class="st">"antibiotics"</span>)</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">noplan =</span> <span class="fu">as.integer</span>(noplan <span class="sc">==</span> <span class="st">"not"</span>),</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">factor =</span> <span class="fu">as.integer</span>(factor <span class="sc">==</span> <span class="st">"risk factors"</span>),</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">antib =</span> <span class="fu">as.integer</span>(antib <span class="sc">==</span> <span class="st">"antibiotics"</span>)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>caesar_tbl_int</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -655,10 +674,10 @@ Residual Deviance: 11   AIC: 36.18</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>caesar_int_glm <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    Infect_count <span class="sc">/</span> size <span class="sc">~</span> antib <span class="sc">+</span> factor <span class="sc">+</span> noplan,</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_tbl_int,</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> size</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  Infect_count <span class="sc">/</span> size <span class="sc">~</span> antib <span class="sc">+</span> factor <span class="sc">+</span> noplan,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_tbl_int,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> size</span>
 <span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>caesar_int_glm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -677,7 +696,7 @@ Null Deviance:      83.49
 Residual Deviance: 11   AIC: 36.18</code></pre>
 </div>
 </div>
-<p>We can see the results more fully by using <code>summary()</code></p>
+<p>We can see the results more fully by using <code>summary()</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -707,7 +726,7 @@ AIC: 36.178
 Number of Fisher Scoring iterations: 5</code></pre>
 </div>
 </div>
-<p>We can also extract the deviance using <code>deviance()</code>.</p>
+<p>We can also extract the deviance using <code>stats::deviance()</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -717,7 +736,7 @@ Number of Fisher Scoring iterations: 5</code></pre>
 <pre><code>[1] 10.99674</code></pre>
 </div>
 </div>
-<p>It is important to understand how <code>glm()</code> reports the summary, and sometimes the terms “residual deviance” and “deviance” are used interchangeably. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html" target="_blank">The documentation of <code>glm()</code></a> says that it is “<strong><em>up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero</em></strong>”. So this number is what we call the (unscaled) deviance.</p>
+<p>It is important to understand how <code>stats::glm()</code> reports the summary, and sometimes the terms “residual deviance” and “deviance” are used interchangeably. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/glm.html" target="_blank">The documentation of <code>stats::glm()</code></a> says that it is “<strong><em>up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero</em></strong>”. So this number is what we call the (unscaled) deviance.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -728,7 +747,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The documentation of <code>glm()</code> on what it is reporting for the deviance may be misleading, because it ignores the fact that the deviance only becomes twice the log-likelihood difference <strong><em>when rescaled by the dispersion</em></strong>. In the binomial and Poisson cases, the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.</p>
+<p>The documentation of <code>stats::glm()</code> on what it is reporting for the deviance may be misleading, because it ignores the fact that the deviance only becomes twice the log-likelihood difference <strong><em>when rescaled by the dispersion</em></strong>. In the binomial and Poisson cases, the scaled deviance will be the same as the unscaled deviance, because the dispersion is simply 1.</p>
 </div>
 </div>
 <p>We can now consider the significance of each of the variables</p>
@@ -795,8 +814,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>For binomial GLMs, because the dispersion parameter <span class="math inline">\(\phi\)</span> is fixed at <span class="math inline">\(1\)</span>, the natural test for nested models is based on the difference in their deviance (or scaled deviance because <span class="math inline">\(\phi =  1\)</span> anyway), which asymptotically follows a chi-square distribution. The F test is exact for Gaussian GLMs with identity link (i.e.&nbsp;the classical Gaussian linear model) when the dispersion (i.e.&nbsp;the variance) is unknown and has to be estimated, and, by heuristic extension, appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and perhaps certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion. The documentation of <code>anova.glm()</code> also says “<strong><em>the dispersion estimate will be taken from the largest model, using the value returned by summary.glm</em></strong>”, and <code>summary.glm()</code> reports our typical Pearson residual based estimator for <span class="math inline">\(\phi\)</span> by default.</p>
-<p>See the documentation of <code>anova.glm()</code>, as well as <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.186-187 and Section 7.5, for more discussion. Alternatively, Sections 7.6.4 and 7.6.5 of <span class="citation" data-cites="dunn_smyth_2018">Dunn and Smyth (<a href="#ref-dunn_smyth_2018" role="doc-biblioref">2018</a>)</span> also give nice exposition on such approximate F tests.</p>
+<p>For binomial GLMs, because the dispersion parameter <span class="math inline">\(\phi\)</span> is fixed at <span class="math inline">\(1\)</span>, the natural test for nested models is based on the difference in their deviance (or scaled deviance because <span class="math inline">\(\phi =  1\)</span> anyway), which asymptotically follows a chi-square distribution. The F test is exact for Gaussian GLMs with identity link (i.e.&nbsp;the classical Gaussian linear model) when the dispersion (i.e.&nbsp;the variance) is unknown and has to be estimated, and, by heuristic extension, appropriate for GLMs with unknown dispersion, such as Gamma GLMs (and perhaps certain quasi-likelihood cases), but not for binomial GLMs with fixed dispersion. The documentation of <code>stats::anova.glm()</code> also says “<strong><em>the dispersion estimate will be taken from the largest model, using the value returned by summary.glm</em></strong>”, and <code>stats::summary.glm()</code> reports our typical Pearson residual based estimator for <span class="math inline">\(\phi\)</span> by default.</p>
+<p>See the documentation of <code>stats::anova.glm()</code>, as well as <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.186-187 and Section 7.5, for more discussion. Alternatively, Sections 7.6.4 and 7.6.5 of <span class="citation" data-cites="dunn_smyth_2018">Dunn and Smyth (<a href="#ref-dunn_smyth_2018" role="doc-biblioref">2018</a>)</span> also give nice exposition on such approximate F tests.</p>
 </div>
 </div>
 </div>
@@ -808,10 +827,10 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">deviance =</span> <span class="fu">resid</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"deviance"</span>),</span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">pearson =</span> <span class="fu">resid</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"pearson"</span>),</span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">working =</span> <span class="fu">resid</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"working"</span>),</span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">response =</span> <span class="fu">resid</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">deviance =</span> <span class="fu">residuals</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"deviance"</span>),</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">pearson =</span> <span class="fu">residuals</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"pearson"</span>),</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">working =</span> <span class="fu">residuals</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"working"</span>),</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">response =</span> <span class="fu">residuals</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"response"</span>)</span>
 <span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -831,7 +850,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">resid</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"deviance"</span>)<span class="sc">^</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">residuals</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"deviance"</span>)<span class="sc">^</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 10.99674</code></pre>
@@ -842,7 +861,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(caesar_int_glm<span class="sc">$</span>deviance, <span class="at">df =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(<span class="fu">deviance</span>(caesar_int_glm), <span class="at">df =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.01174351</code></pre>
@@ -852,7 +871,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(<span class="fu">sum</span>(<span class="fu">resid</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>), <span class="at">df =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(<span class="fu">sum</span>(<span class="fu">residuals</span>(caesar_int_glm, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>), <span class="at">df =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.04069089</code></pre>
@@ -863,8 +882,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">round</span>(caesar_tbl_int<span class="sc">$</span>Infect_count <span class="sc">/</span> caesar_tbl_int<span class="sc">$</span>size, <span class="dv">2</span>),</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">fitted =</span> <span class="fu">round</span>(caesar_int_glm<span class="sc">$</span>fitted.values, <span class="dv">2</span>)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">observed =</span> <span class="fu">round</span>(caesar_tbl_int<span class="sc">$</span>Infect_count <span class="sc">/</span> caesar_tbl_int<span class="sc">$</span>size, <span class="dv">2</span>),</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">fitted =</span> <span class="fu">round</span>(<span class="fu">fitted</span>(caesar_int_glm), <span class="dv">2</span>)</span>
 <span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -889,12 +908,12 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>caesar_glm_probit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    Infect_count <span class="sc">/</span> size <span class="sc">~</span> antib <span class="sc">+</span> factor <span class="sc">+</span> noplan,</span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_tbl_int,</span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> size,</span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"probit"</span>)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  Infect_count <span class="sc">/</span> size <span class="sc">~</span> antib <span class="sc">+</span> factor <span class="sc">+</span> noplan,</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_tbl_int,</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> size,</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"probit"</span>)</span>
 <span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(caesar_glm_probit)<span class="sc">$</span>coeff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(<span class="fu">summary</span>(caesar_glm_probit))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>              Estimate Std. Error   z value     Pr(&gt;|z|)
@@ -931,10 +950,10 @@ noplan       0.6076428  0.2427441  2.503224 1.230676e-02</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>caesar_glm_noplan_antib <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>    Infect_count <span class="sc">/</span> size <span class="sc">~</span> factor <span class="sc">+</span> noplan <span class="sc">*</span> antib,</span>
-<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_tbl_int,</span>
-<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> size,</span>
-<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  Infect_count <span class="sc">/</span> size <span class="sc">~</span> factor <span class="sc">+</span> noplan <span class="sc">*</span> antib,</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_tbl_int,</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> size,</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial</span>
 <span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(caesar_glm_noplan_antib)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1000,10 +1019,10 @@ Tip
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>caesar_glm_noplan_factor <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>    Infect_count <span class="sc">/</span> size <span class="sc">~</span> noplan <span class="sc">+</span> factor <span class="sc">+</span> antib <span class="sc">+</span> noplan<span class="sc">:</span>factor,</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_tbl_int,</span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> size,</span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  Infect_count <span class="sc">/</span> size <span class="sc">~</span> noplan <span class="sc">+</span> factor <span class="sc">+</span> antib <span class="sc">+</span> noplan<span class="sc">:</span>factor,</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_tbl_int,</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> size,</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial</span>
 <span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a><span class="co"># eqiuvalently, you can do</span></span>
@@ -1059,14 +1078,14 @@ Number of Fisher Scoring iterations: 19</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(<span class="fu">sum</span>(<span class="fu">resid</span>(caesar_glm_noplan_factor, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>), <span class="at">df =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(<span class="fu">sum</span>(<span class="fu">residuals</span>(caesar_glm_noplan_factor, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>), <span class="at">df =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.5293846</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(<span class="fu">sum</span>(<span class="fu">resid</span>(caesar_glm_noplan_factor, <span class="at">type =</span> <span class="st">"deviance"</span>)<span class="sc">^</span><span class="dv">2</span>), <span class="at">df =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(<span class="fu">sum</span>(<span class="fu">residuals</span>(caesar_glm_noplan_factor, <span class="at">type =</span> <span class="st">"deviance"</span>)<span class="sc">^</span><span class="dv">2</span>), <span class="at">df =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6203355</code></pre>
@@ -1077,8 +1096,8 @@ Number of Fisher Scoring iterations: 19</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">round</span>(caesar_tbl_int<span class="sc">$</span>Infect_count <span class="sc">/</span> caesar_tbl_int<span class="sc">$</span>size, <span class="dv">2</span>),</span>
-<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">fitted =</span> <span class="fu">round</span>(caesar_glm_noplan_factor<span class="sc">$</span>fitted.values, <span class="dv">2</span>)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">observed =</span> <span class="fu">round</span>(caesar_tbl_int<span class="sc">$</span>Infect_count <span class="sc">/</span> caesar_tbl_int<span class="sc">$</span>size, <span class="dv">2</span>),</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">fitted =</span> <span class="fu">round</span>(<span class="fu">fitted</span>(caesar_glm_noplan_factor), <span class="dv">2</span>)</span>
 <span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1140,10 +1159,10 @@ Number of Fisher Scoring iterations: 19</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>caesar_glm_noplan_factor_augment <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>    Infect_count <span class="sc">/</span> size <span class="sc">~</span> noplan <span class="sc">+</span> factor <span class="sc">+</span> antib <span class="sc">+</span> noplan<span class="sc">:</span>factor,</span>
-<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> caesar_augment,</span>
-<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">weights =</span> size,</span>
-<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial</span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>  Infect_count <span class="sc">/</span> size <span class="sc">~</span> noplan <span class="sc">+</span> factor <span class="sc">+</span> antib <span class="sc">+</span> noplan<span class="sc">:</span>factor,</span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> caesar_augment,</span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> size,</span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial</span>
 <span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -1183,8 +1202,8 @@ Number of Fisher Scoring iterations: 5</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">observed =</span> <span class="fu">round</span>(caesar_augment<span class="sc">$</span>Infect_count <span class="sc">/</span> caesar_augment<span class="sc">$</span>size, <span class="dv">2</span>),</span>
-<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">fitted =</span> <span class="fu">round</span>(caesar_glm_noplan_factor_augment<span class="sc">$</span>fitted.values, <span class="dv">2</span>)</span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">observed =</span> <span class="fu">round</span>(caesar_augment<span class="sc">$</span>Infect_count <span class="sc">/</span> caesar_augment<span class="sc">$</span>size, <span class="dv">2</span>),</span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">fitted =</span> <span class="fu">round</span>(<span class="fu">fitted</span>(caesar_glm_noplan_factor_augment), <span class="dv">2</span>)</span>
 <span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1205,19 +1224,19 @@ Number of Fisher Scoring iterations: 5</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>pearson_pval <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span></span>
-<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pchisq</span>(</span>
-<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sum</span>(<span class="fu">resid</span>(caesar_glm_noplan_factor_augment, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>),</span>
-<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">df =</span> <span class="dv">2</span></span>
-<span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pchisq</span>(</span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">residuals</span>(caesar_glm_noplan_factor_augment, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">df =</span> <span class="dv">2</span></span>
+<span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>deviance_pval <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span></span>
-<span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pchisq</span>(</span>
-<span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sum</span>(<span class="fu">resid</span>(caesar_glm_noplan_factor_augment, <span class="at">type =</span> <span class="st">"deviance"</span>)<span class="sc">^</span><span class="dv">2</span>),</span>
-<span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">df =</span> <span class="dv">2</span></span>
-<span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pchisq</span>(</span>
+<span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">residuals</span>(caesar_glm_noplan_factor_augment, <span class="at">type =</span> <span class="st">"deviance"</span>)<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">df =</span> <span class="dv">2</span></span>
+<span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb83-11"><a href="#cb83-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb83-12"><a href="#cb83-12" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb83-13"><a href="#cb83-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">test =</span> <span class="fu">c</span>(<span class="st">"Pearson"</span>, <span class="st">"Deviance"</span>),</span>
-<span id="cb83-14"><a href="#cb83-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">c</span>(pearson_pval, deviance_pval)</span>
+<span id="cb83-13"><a href="#cb83-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">test =</span> <span class="fu">c</span>(<span class="st">"Pearson"</span>, <span class="st">"Deviance"</span>),</span>
+<span id="cb83-14"><a href="#cb83-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">p_value =</span> <span class="fu">c</span>(pearson_pval, deviance_pval)</span>
 <span id="cb83-15"><a href="#cb83-15" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1232,8 +1251,18 @@ Number of Fisher Scoring iterations: 5</code></pre>
 </section>
 <section id="reproducibility" class="level2">
 <h2 class="anchored" data-anchor-id="reproducibility">Reproducibility</h2>
-<section id="session-information" class="level3">
-<h3 class="anchored" data-anchor-id="session-information">Session Information</h3>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Session Information
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1270,7 +1299,9 @@ loaded via a namespace (and not attached):
 [25] pillar_1.11.1     magrittr_2.0.4    tools_4.4.2       cachem_1.1.0     </code></pre>
 </div>
 </div>
-</section>
+</div>
+</div>
+</div>
 <section id="package-citations" class="level3">
 <h3 class="anchored" data-anchor-id="package-citations">Package Citations</h3>
 <p>Below are the formal citations for the packages used in this analysis:</p>
@@ -1278,19 +1309,19 @@ loaded via a namespace (and not attached):
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"forcats"</span>, <span class="st">"Fahrmeir"</span>)</span>
 <span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>    cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
 <span id="cb87-4"><a href="#cb87-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check if multiple citations</span></span>
-<span id="cb87-6"><a href="#cb87-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb87-7"><a href="#cb87-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb87-9"><a href="#cb87-9" aria-hidden="true" tabindex="-1"></a>            cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb87-10"><a href="#cb87-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb87-11"><a href="#cb87-11" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb87-12"><a href="#cb87-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb87-13"><a href="#cb87-13" aria-hidden="true" tabindex="-1"></a>        cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb87-14"><a href="#cb87-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb87-15"><a href="#cb87-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb87-6"><a href="#cb87-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb87-7"><a href="#cb87-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb87-9"><a href="#cb87-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb87-10"><a href="#cb87-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb87-11"><a href="#cb87-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb87-12"><a href="#cb87-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb87-13"><a href="#cb87-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb87-14"><a href="#cb87-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb87-15"><a href="#cb87-15" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb87-16"><a href="#cb87-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>

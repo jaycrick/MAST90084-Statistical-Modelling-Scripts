@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-29">
+<meta name="dcterms.date" content="2026-04-15">
 
 <title>Marginal Models: Ohio Respiratory Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -208,6 +208,26 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
  <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Marginal Models: Ohio Respiratory Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">Generalized Estimating Equations: CTSIB Balance Test Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-LM_mixed_effect.html">
+ <span class="dropdown-text">Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-GLM_mixed_Effect.html">
+ <span class="dropdown-text">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis: Breast Cancer</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -251,7 +271,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#robust-variance-matrix-comparisons" id="toc-robust-variance-matrix-comparisons" class="nav-link" data-scroll-target="#robust-variance-matrix-comparisons">Robust Variance Matrix Comparisons</a></li>
   </ul></li>
-  <li><a href="#package-citations" id="toc-package-citations" class="nav-link" data-scroll-target="#package-citations">Package Citations</a></li>
+  <li><a href="#package-citations-and-session-information" id="toc-package-citations-and-session-information" class="nav-link" data-scroll-target="#package-citations-and-session-information">Package Citations and Session Information</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/07-ohio.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -272,7 +292,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 29, 2026</p>
+      <p class="date">April 15, 2026</p>
     </div>
   </div>
   
@@ -339,10 +359,10 @@ Note
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ohio_tbl <span class="ot">&lt;-</span> ohio_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">age =</span> <span class="fu">as.factor</span>(age),</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">smoke =</span> <span class="fu">as.factor</span>(smoke)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">age =</span> <span class="fu">as.factor</span>(age),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">smoke =</span> <span class="fu">as.factor</span>(smoke)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ohio_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -475,11 +495,11 @@ Note
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>geefit_indep <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio_tbl,</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"independence"</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"independence"</span></span>
 <span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -501,7 +521,7 @@ smoke1:age2 smoke1:age3
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>coefs_indep <span class="ot">&lt;-</span> <span class="fu">coef</span>(summary_indep)</span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>coefs_indep <span class="sc">|&gt;</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
@@ -521,7 +541,7 @@ smoke1:age3    0.025      0.106   0.240       0.082    0.310</code></pre>
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>What <code>id</code> and <code>corstr</code> do in <code>gee()</code>
+<span class="screen-reader-only">Tip</span>What <code>id</code> and <code>corstr</code> do in <code>gee::gee()</code>
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -553,11 +573,11 @@ smoke1:age3    0.025      0.106   0.240       0.082    0.310</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>geefit_exch <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio_tbl,</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -575,8 +595,8 @@ smoke1:age2 smoke1:age3
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_exch) <span class="sc">|&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
@@ -594,11 +614,11 @@ smoke1:age3    0.025      0.085   0.298       0.082    0.310</code></pre>
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio_tbl,</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
 <span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -616,8 +636,8 @@ smoke1:age2 smoke1:age3
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_unstruct) <span class="sc">|&gt;</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
@@ -766,10 +786,11 @@ smoke1:age3 -1.791102e-16 -1.687019e-16 -8.760354e-17  1.084202e-16</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>pearson_resid <span class="ot">&lt;-</span> (ohio_tbl<span class="sc">$</span>resp <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted) <span class="sc">/</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(geefit_indep<span class="sc">$</span>fitted.values <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> geefit_indep<span class="sc">$</span>fitted.values))</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(pearson_resid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_fitted <span class="ot">&lt;-</span> <span class="fu">fitted</span>(geefit_indep)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>pearson_resid <span class="ot">&lt;-</span> (ohio_tbl<span class="sc">$</span>resp <span class="sc">-</span> geefit_indep_fitted) <span class="sc">/</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sqrt</span>(geefit_indep_fitted <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> geefit_indep_fitted))</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(pearson_resid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 2148</code></pre>
@@ -792,7 +813,7 @@ Note
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>scale_by_hand <span class="ot">&lt;-</span> <span class="fu">sum</span>(pearson_resid<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    (geefit_indep<span class="sc">$</span>nobs <span class="sc">-</span> <span class="fu">length</span>(<span class="fu">coef</span>(geefit_indep)))</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  (geefit_indep<span class="sc">$</span>nobs <span class="sc">-</span> <span class="fu">length</span>(<span class="fu">coef</span>(geefit_indep)))</span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>scale_by_hand</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -809,12 +830,12 @@ Note
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_scale_fix <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> id,</span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ohio_tbl,</span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"independence"</span>,</span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale.fix =</span> <span class="cn">TRUE</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">*</span> age,</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"independence"</span>,</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale.fix =</span> <span class="cn">TRUE</span></span>
 <span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
@@ -1124,26 +1145,79 @@ age3           0.000000  0.000103 -0.002702 -0.001235  0.006445</code></pre>
 </div>
 </section>
 </section>
-<section id="package-citations" class="level2">
-<h2 class="anchored" data-anchor-id="package-citations">Package Citations</h2>
+<section id="package-citations-and-session-information" class="level2">
+<h2 class="anchored" data-anchor-id="package-citations-and-session-information">Package Citations and Session Information</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Session Information
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-apple-darwin20
+Running under: macOS Sequoia 15.7.5
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Australia/Melbourne
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+other attached packages:
+[1] dplyr_1.2.0      geepack_1.3.13   gee_4.13-29      conflicted_1.2.0
+
+loaded via a namespace (and not attached):
+ [1] vctrs_0.7.1       cli_3.6.5         knitr_1.51        rlang_1.1.7      
+ [5] xfun_0.56         purrr_1.2.1       renv_1.1.7        generics_0.1.4   
+ [9] jsonlite_2.0.0    glue_1.8.0        backports_1.5.0   htmltools_0.5.9  
+[13] rmarkdown_2.30    evaluate_1.0.5    tibble_3.3.1      MASS_7.3-61      
+[17] fastmap_1.2.0     yaml_2.3.12       lifecycle_1.0.5   memoise_2.0.1    
+[21] compiler_4.4.2    pkgconfig_2.0.3   tidyr_1.3.2       rstudioapi_0.18.0
+[25] digest_0.6.39     R6_2.6.1          utf8_1.2.6        tidyselect_1.2.1 
+[29] pillar_1.11.1     magrittr_2.0.4    tools_4.4.2       broom_1.0.12     
+[33] cachem_1.1.0     </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"dplyr"</span>)</span>
-<span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
-<span id="cb89-4"><a href="#cb89-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb89-5"><a href="#cb89-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
-<span id="cb89-6"><a href="#cb89-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb89-7"><a href="#cb89-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb89-8"><a href="#cb89-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb89-9"><a href="#cb89-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb89-10"><a href="#cb89-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb89-11"><a href="#cb89-11" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb89-12"><a href="#cb89-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb89-13"><a href="#cb89-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb89-14"><a href="#cb89-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb89-15"><a href="#cb89-15" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb89-16"><a href="#cb89-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"dplyr"</span>)</span>
+<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb91-4"><a href="#cb91-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-5"><a href="#cb91-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb91-6"><a href="#cb91-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb91-7"><a href="#cb91-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb91-8"><a href="#cb91-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb91-9"><a href="#cb91-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb91-10"><a href="#cb91-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb91-11"><a href="#cb91-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb91-12"><a href="#cb91-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb91-13"><a href="#cb91-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb91-14"><a href="#cb91-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb91-15"><a href="#cb91-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb91-16"><a href="#cb91-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>

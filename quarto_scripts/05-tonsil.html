@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-29">
+<meta name="dcterms.date" content="2026-04-15">
 
 <title>Sequential Regression: Tonsil Size and Streptococcus – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -208,6 +208,26 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
  <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Marginal Models: Ohio Respiratory Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">Generalized Estimating Equations: CTSIB Balance Test Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-LM_mixed_effect.html">
+ <span class="dropdown-text">Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-GLM_mixed_Effect.html">
+ <span class="dropdown-text">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis: Breast Cancer</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -244,7 +264,7 @@ window.Quarto = {
   <li><a href="#model-1-cumulative-link-model-proportional-odds" id="toc-model-1-cumulative-link-model-proportional-odds" class="nav-link" data-scroll-target="#model-1-cumulative-link-model-proportional-odds">Model 1: Cumulative Link Model (Proportional Odds)</a></li>
   <li><a href="#model-2-extended-cumulative-model" id="toc-model-2-extended-cumulative-model" class="nav-link" data-scroll-target="#model-2-extended-cumulative-model">Model 2: Extended Cumulative Model</a></li>
   <li><a href="#model-3-sequential-model" id="toc-model-3-sequential-model" class="nav-link" data-scroll-target="#model-3-sequential-model">Model 3: Sequential Model</a></li>
-  <li><a href="#reproducibility" id="toc-reproducibility" class="nav-link" data-scroll-target="#reproducibility">Reproducibility</a></li>
+  <li><a href="#package-citations-and-session-information" id="toc-package-citations-and-session-information" class="nav-link" data-scroll-target="#package-citations-and-session-information">Package Citations and Session Information</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/05-tonsil.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -265,7 +285,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 29, 2026</p>
+      <p class="date">April 15, 2026</p>
     </div>
   </div>
   
@@ -367,10 +387,10 @@ window.Quarto = {
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
-<li><code>mutate(...)</code>: creates or updates columns; here it rewrites <code>Size</code> as a labelled factor.</li>
+<li><code>dplyr::mutate(...)</code>: creates or updates columns; here it rewrites <code>Size</code> as a labelled factor.</li>
 <li><code>factor(...)</code>: converts numeric codes (<code>1, 2, 3</code>) into ordered category labels used in output.</li>
 <li><code>dplyr::select(Streptococcus.p, Size, n)</code>: keeps only the columns needed for reshaping; in this case we want all three.</li>
-<li><code>pivot_wider(names_from = Size, values_from = n)</code>: converts long data into wide data, so each size category becomes its own count column. The <code>name_from</code> argument says we want the content of the <code>Size</code> column to become our column names, and the <code>values_from</code> argument says we want the content of the <code>n</code> column to become the cell values.</li>
+<li><code>tidyr::pivot_wider(names_from = Size, values_from = n)</code>: converts long data into wide data, so each size category becomes its own count column. The <code>name_from</code> argument says we want the content of the <code>Size</code> column to become our column names, and the <code>values_from</code> argument says we want the content of the <code>n</code> column to become the cell values.</li>
 <li><code>|&gt;</code>: passes the result of one step to the next, making the workflow readable top-to-bottom.</li>
 </ul>
 </div>
@@ -631,11 +651,11 @@ Streptococcus.p1
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
-<li><code>pivot_longer(...)</code>: turns the wide count columns back into long format (one row per category).</li>
+<li><code>tidyr::pivot_longer(...)</code>: turns the wide count columns back into long format (one row per category).</li>
 <li><code>cols = c(present, enlarged, great_enlarged)</code>: chooses which columns to stack into one variable.</li>
 <li><code>names_to = "size"</code>: stores the former column names as category labels in a new <code>size</code> column.</li>
 <li><code>values_to = "weight"</code>: stores the corresponding counts in a new <code>weight</code> column used as case weights.</li>
-<li><code>ordered(...)</code>: makes <code>size</code> an ordered factor so <code>polr()</code> respects the category order.</li>
+<li><code>ordered(...)</code>: makes <code>size</code> an ordered factor so <code>MASS::polr()</code> respects the category order.</li>
 <li><code>|&gt;</code>: pipes each intermediate result to the next transformation step.</li>
 </ul>
 </div>
@@ -671,31 +691,85 @@ Residual Deviance: 2955.495
 AIC: 2961.495 </code></pre>
 </div>
 </div>
-<p>The <code>polr()</code> standard errors agree with the cumulative <code>vglm()</code> fit.</p>
+<p>The <code>MASS::polr()</code> standard errors agree with the cumulative <code>VGAM::vglm()</code> fit.</p>
 </div>
 </div>
 </div>
 </section>
-<section id="reproducibility" class="level2">
-<h2 class="anchored" data-anchor-id="reproducibility">Reproducibility</h2>
+<section id="package-citations-and-session-information" class="level2">
+<h2 class="anchored" data-anchor-id="package-citations-and-session-information">Package Citations and Session Information</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Session Information
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-apple-darwin20
+Running under: macOS Sequoia 15.7.5
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Australia/Melbourne
+tzcode source: internal
+
+attached base packages:
+[1] splines   stats4    stats     graphics  grDevices datasets  utils    
+[8] methods   base     
+
+other attached packages:
+[1] VGAM_1.1-14        tidyr_1.3.2        MASS_7.3-61        Fahrmeir_2016.5.31
+[5] dplyr_1.2.0        conflicted_1.2.0  
+
+loaded via a namespace (and not attached):
+ [1] vctrs_0.7.1       cli_3.6.5         knitr_1.51        rlang_1.1.7      
+ [5] xfun_0.56         purrr_1.2.1       renv_1.1.7        generics_0.1.4   
+ [9] jsonlite_2.0.0    glue_1.8.0        htmltools_0.5.9   rmarkdown_2.30   
+[13] evaluate_1.0.5    tibble_3.3.1      fastmap_1.2.0     yaml_2.3.12      
+[17] lifecycle_1.0.5   memoise_2.0.1     compiler_4.4.2    pkgconfig_2.0.3  
+[21] rstudioapi_0.18.0 digest_0.6.39     R6_2.6.1          utf8_1.2.6       
+[25] tidyselect_1.2.1  pillar_1.11.1     magrittr_2.0.4    withr_3.0.2      
+[29] tools_4.4.2       cachem_1.1.0     </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"Fahrmeir"</span>, <span class="st">"MASS"</span>, <span class="st">"tidyr"</span>, <span class="st">"VGAM"</span>)</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"Fahrmeir"</span>, <span class="st">"MASS"</span>, <span class="st">"tidyr"</span>, <span class="st">"VGAM"</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
@@ -721,7 +795,7 @@ AIC: 2961.495 </code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.2 (2024-10-31)

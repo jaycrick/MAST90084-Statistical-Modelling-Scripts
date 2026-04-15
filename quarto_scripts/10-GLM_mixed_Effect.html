@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-04-15">
+
+<title>Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness – MAST90084 - Statistical Modelling Scripts</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-975e726794ce811e14261b5ab5acfd7c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-48bd3c6b253a25ccd03947192839ad8b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">MAST90084 - Statistical Modelling Scripts</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../default.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-scripts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Scripts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-scripts">    
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/01-ANODEV.html">
+ <span class="dropdown-text">Binomial GLMS: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/02-CellDiff.html">
+ <span class="dropdown-text">(Quasi-)Poisson GLM: Cell Differentiation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/03-Example3-1and3-11Caes.html">
+ <span class="dropdown-text">Multinomial Logistic Regression: Caesarian Birth</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/04-Example3-2BTR.html">
+ <span class="dropdown-text">Ordinal Regression: Breathing Test Results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/05-tonsil.html">
+ <span class="dropdown-text">Sequential Regression: Tonsil Size</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
+ <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Marginal Models: Ohio Respiratory Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">Generalized Estimating Equations: CTSIB Balance Test Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-LM_mixed_effect.html">
+ <span class="dropdown-text">Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-GLM_mixed_Effect.html">
+ <span class="dropdown-text">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis: Breast Cancer</span></a>
+  </li>  
+        <li class="dropdown-header">APPENDICES</li>
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
+ <span class="dropdown-text">Appendix 1: Dispersion with Working Residuals</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/A2-likelihood-multinomial.html">
+ <span class="dropdown-text">Appendix 2: Likelihood for Grouped and Ungrouped Multinomial Data</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#ohio-respiratory-data-fahrmeir_multivariate_2001-example-7.1-and-7.3" id="toc-ohio-respiratory-data-fahrmeir_multivariate_2001-example-7.1-and-7.3" class="nav-link active" data-scroll-target="#ohio-respiratory-data-fahrmeir_multivariate_2001-example-7.1-and-7.3">Ohio Respiratory Data <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (2001)</span> Example 7.1 and 7.3</a>
+  <ul class="collapse">
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#lme4glmer-fitting-with-laplace-approximation" id="toc-lme4glmer-fitting-with-laplace-approximation" class="nav-link" data-scroll-target="#lme4glmer-fitting-with-laplace-approximation"><code>lme4::glmer()</code> Fitting with Laplace Approximation</a></li>
+  <li><a href="#lme4glmer-fitting-with-adaptive-gauss-hermite-quadrature" id="toc-lme4glmer-fitting-with-adaptive-gauss-hermite-quadrature" class="nav-link" data-scroll-target="#lme4glmer-fitting-with-adaptive-gauss-hermite-quadrature"><code>lme4::glmer()</code> Fitting with Adaptive Gauss-Hermite Quadrature</a></li>
+  <li><a href="#random-effects-estimates" id="toc-random-effects-estimates" class="nav-link" data-scroll-target="#random-effects-estimates">Random Effects Estimates</a></li>
+  </ul></li>
+  <li><a href="#wine-bitterness-fahrmeir_multivariate_2001-example-7.2-and-7.4" id="toc-wine-bitterness-fahrmeir_multivariate_2001-example-7.2-and-7.4" class="nav-link" data-scroll-target="#wine-bitterness-fahrmeir_multivariate_2001-example-7.2-and-7.4">Wine Bitterness: <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (2001)</span> Example 7.2 and 7.4</a>
+  <ul class="collapse">
+  <li><a href="#data-setup-and-contrast-coding" id="toc-data-setup-and-contrast-coding" class="nav-link" data-scroll-target="#data-setup-and-contrast-coding">Data Setup and Contrast Coding</a></li>
+  <li><a href="#fixed-effects-ordinal-model-masspolr" id="toc-fixed-effects-ordinal-model-masspolr" class="nav-link" data-scroll-target="#fixed-effects-ordinal-model-masspolr">Fixed Effects Ordinal Model: <code>MASS::polr()</code></a></li>
+  <li><a href="#random-effects-model-ordinalclmm" id="toc-random-effects-model-ordinalclmm" class="nav-link" data-scroll-target="#random-effects-model-ordinalclmm">Random Effects Model: <code>ordinal::clmm()</code></a></li>
+  </ul></li>
+  <li><a href="#package-citations-and-session-information" id="toc-package-citations-and-session-information" class="nav-link" data-scroll-target="#package-citations-and-session-information">Package Citations and Session Information</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/10-GLM_mixed_Effect.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</h1>
+<p class="subtitle lead"><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Examples 7.1–7.4</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 15, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>GLMM Software Options
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Many R packages exist for fitting generalised linear mixed models, using different estimation methods:</p>
+<ul>
+<li><strong>lme4::glmer</strong> (most widely used): Frequentist GLMMs via Laplace approximation (<code>nAGQ = 1</code>) or adaptive Gauss-Hermite quadrature (<code>nAGQ &gt; 1</code>)</li>
+<li><strong>MASS::glmmPQL</strong>: Penalized quasi-likelihood (PQL; approximate, fast, but can be biased for binary/sparse outcomes)</li>
+<li><strong>MCMCglmm</strong>: Bayesian GLMMs fitted by Markov chain Monte Carlo (MCMC)</li>
+<li><strong>glmmTMB</strong> (very popular modern alternative): Frequentist GLMMs via Template Model Builder/Laplace; especially strong for count models, zero inflation, and overdispersion</li>
+<li><strong>ordinal::clmm</strong>: Cumulative link mixed models for ordinal outcomes (an ordinal GLMM family)</li>
+<li><strong>glmmML</strong>: Classical random-intercept GLMMs using adaptive Gauss-Hermite quadrature (more limited model scope)</li>
+<li><strong>ASREML-R</strong>: Commercial software with broad mixed-model/GLMM capability, widely used in biostatistics/agricultural genetics</li>
+<li><strong>glmmADMB</strong>: GLMMs via AD Model Builder/Laplace (historically important, but largely superseded and no longer actively maintained)</li>
+<li><strong>glmm</strong> (from Jim Lindsey’s <code>repeated</code> package): Older AGHQ-based approach for repeated-measures GLMMs (now uncommon)</li>
+<li><strong>sabreR</strong>, <strong>mcemGLM</strong>, <strong>gamlss.mx</strong>: Specialized/less commonly used frameworks that can fit mixed or latent/random-effect extensions in narrower settings</li>
+</ul>
+</div>
+</div>
+</div>
+<section id="ohio-respiratory-data-fahrmeir_multivariate_2001-example-7.1-and-7.3" class="level2">
+<h2 class="anchored" data-anchor-id="ohio-respiratory-data-fahrmeir_multivariate_2001-example-7.1-and-7.3">Ohio Respiratory Data <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 7.1 and 7.3</h2>
+<section id="setup" class="level3">
+<h3 class="anchored" data-anchor-id="setup">Setup</h3>
+<p>The Ohio respiratory dataset contains repeated respiratory status measurements (yes/no) for children in a longitudinal study, with covariates including age and smoking status. We’ll fit GLMM models to account for within-child correlation using random intercepts. Our goal is to reproduce some of Table 7.2 from <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<p>Load required packages and do the standard preparation of the Ohio respiratory dataset:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Matrix</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geepack)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ordinal)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>ohio_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(ohio)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ohio_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2,148 × 4
+    resp    id   age smoke
+   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;
+ 1     0     0    -2     0
+ 2     0     0    -1     0
+ 3     0     0     0     0
+ 4     0     0     1     0
+ 5     0     1    -2     0
+ 6     0     1    -1     0
+ 7     0     1     0     0
+ 8     0     1     1     0
+ 9     0     2    -2     0
+10     0     2    -1     0
+# ℹ 2,138 more rows</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ohio_tbl <span class="ot">&lt;-</span> <span class="fu">mutate</span>(ohio_tbl, <span class="fu">across</span>(<span class="fu">c</span>(age, smoke), factor))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Check default contrasts</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   -1 0 1
+-2  0 0 0
+-1  1 0 0
+0   0 1 0
+1   0 0 1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  1
+0 0
+1 1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.sum"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>age)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   [,1] [,2] [,3]
+-2    1    0    0
+-1    0    1    0
+0     0    0    1
+1    -1   -1   -1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [,1]
+0    1
+1   -1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke) <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ohio_tbl<span class="sc">$</span>smoke)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [,1]
+0   -1
+1    1</code></pre>
+</div>
+</div>
+</section>
+<section id="lme4glmer-fitting-with-laplace-approximation" class="level3">
+<h3 class="anchored" data-anchor-id="lme4glmer-fitting-with-laplace-approximation"><code>lme4::glmer()</code> Fitting with Laplace Approximation</h3>
+<p>When fitting a generalised linear mixed model (GLMM), the likelihood involves integrating over the random effects, which typically has no closed-form solution. Therefore we need to choose a numerical integration method to approximate the likelihood. The <code>lme4::glmer()</code> function provides two main methods for this: the Laplace approximation and adaptive Gauss-Hermite quadrature (AGHQ). The default <code>lme4::glmer()</code> approach uses the <strong>Laplace approximation</strong>. Once we have chosen the integration method, we also need to specify the optimization algorithm; the Nelder-Mead optimizer is recommended by <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>glmer_fit_nelder_mead <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  resp <span class="sc">~</span> age <span class="sc">*</span> smoke <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">glmerControl</span>(</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">optimizer =</span> <span class="st">"Nelder_Mead"</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, : Model failed to converge with max|grad| = 0.0589875 (tol = 0.002, component 1)
+  See ?lme4::convergence and ?lme4::troubleshooting.</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>SELF TEST: What does the <code>(1 | id)</code> formula mean?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This specifies a random intercept model: <code>(1 | id)</code> means each subject (<code>id</code>) has its own random intercept drawn from a normal distribution with mean 0 and estimated standard deviation. The <code>1</code> represents the intercept term; <code>| id</code> conditions on subject ID. This allows each subject to have a different baseline probability of respiratory status while maintaining a common effect of the fixed covariates.</p>
+</div>
+</div>
+</div>
+<p>We can see that there is an error message about convergence. Checking <code>?lme4::troubleshooting</code> suggests that this type of error may be fixed by trying a different optimiser. The other optimiser available is Bound Optimization BY Quadratic Approximation (BOBYQA). Let’s try that:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>glmer_fit <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  resp <span class="sc">~</span> age <span class="sc">*</span> smoke <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">glmerControl</span>(</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">optimizer =</span> <span class="st">"bobyqa"</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(glmer_fit) <span class="sc">-</span> <span class="fu">logLik</span>(glmer_fit_nelder_mead)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>'log Lik.' 0.004172472 (df=9)</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">coef</span>(<span class="fu">summary</span>(glmer_fit)) <span class="sc">-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(glmer_fit_nelder_mead)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 4
+   Estimate `Std. Error` `z value` `Pr(&gt;|z|)`
+      &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+1  0.00661    -0.00187   -0.0657    -2.79e-35
+2 -0.00591     0.0000131 -0.0441     2.78e- 2
+3 -0.00347    -0.0000743 -0.0254     3.27e- 3
+4  0.00415    -0.000176   0.0321    -1.91e- 2
+5 -0.000761   -0.000608   0.000747  -2.14e- 4
+6 -0.00516     0.0000285 -0.0381    -1.27e- 2
+7 -0.00101    -0.0000643 -0.00724    3.89e- 3
+8  0.00413    -0.000178   0.0314    -2.39e- 2</code></pre>
+</div>
+</div>
+<p>There are no longer convergence issues, and comparing the log-likelihoods, we see that the log-likelihood is slightly higher with the BOBYQA optimizer. The coefficient estimates are slightly different, but the overall pattern of results is the same.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glmer_fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: resp ~ age * smoke + (1 | id)
+   Data: ohio_tbl
+Control: glmerControl(optimizer = "bobyqa")
+
+      AIC       BIC    logLik -2*log(L)  df.resid 
+   1601.5    1652.6    -791.8    1583.5      2139 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.4831 -0.1819 -0.1583 -0.1174  2.7911 
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ id     (Intercept) 5.628    2.372   
+Number of obs: 2148, groups:  id, 537
+
+Fixed effects:
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -3.11284    0.25076 -12.414   &lt;2e-16 ***
+age1         0.08911    0.13434   0.663   0.5071    
+age2         0.24920    0.13140   1.897   0.0579 .  
+age3         0.10406    0.13333   0.780   0.4351    
+smoke1       0.20808    0.14540   1.431   0.1524    
+age1:smoke1 -0.18014    0.13447  -1.340   0.1804    
+age2:smoke1  0.11622    0.13112   0.886   0.3754    
+age3:smoke1  0.04222    0.13328   0.317   0.7514    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) age1   age2   age3   smoke1 ag1:s1 ag2:s1
+age1        -0.027                                          
+age2        -0.084 -0.299                                   
+age3        -0.037 -0.314 -0.292                            
+smoke1       0.115  0.026 -0.019 -0.008                     
+age1:smoke1  0.056  0.277 -0.089 -0.095 -0.014              
+age2:smoke1 -0.041 -0.084  0.218 -0.053 -0.041 -0.303       
+age3:smoke1 -0.016 -0.093 -0.053  0.228 -0.019 -0.315 -0.294</code></pre>
+</div>
+</div>
+<p>The output is very similar to that in the linear mixed model fit, with fixed effects estimates, as well as a correlation matrix for the fixed effects, and an estimate of the random effect variance.</p>
+<p>The coefficient estimates are in the right ballpark, but ultimately don’t match very closely with those in the book. Instead we follow the book’s approach and try using adaptive Gauss-Hermite quadrature (AGHQ) to estimate the integration.</p>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>Standard Errors in Table 7.2
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Although strictly speaking the mixed effects model is not in the exponential family, it is still a likelihood-based model, and so in theory, we should be able to approximate a Fisher information matrix to compute standard errors. Unfortunately the <code>lme4::glmer()</code> function is not well documented enough for us to reproduce the standard errors in the book.</p>
+</div>
+</div>
+</section>
+<section id="lme4glmer-fitting-with-adaptive-gauss-hermite-quadrature" class="level3">
+<h3 class="anchored" data-anchor-id="lme4glmer-fitting-with-adaptive-gauss-hermite-quadrature"><code>lme4::glmer()</code> Fitting with Adaptive Gauss-Hermite Quadrature</h3>
+<p>In order to get more accurate estimates, we can improve the numerical integration by using adaptive Gauss-Hermite quadrature (AGHQ) instead of the Laplace approximation. The <code>nAGQ</code> argument in <code>lme4::glmer()</code> controls the number of quadrature points used for the integration. The default <code>nAGQ = 1</code> corresponds to the Laplace approximation, while <code>nAGQ &gt; 1</code> uses multiple quadrature points for a more accurate approximation of the likelihood.</p>
+<p>Here we try <code>nAGQ = 10</code>, which is what <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> claim to use in their analysis.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>glmer_fit_n_agq_10 <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  resp <span class="sc">~</span> age <span class="sc">*</span> smoke <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id),</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">glmerControl</span>(</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">optimizer =</span> <span class="st">"bobyqa"</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">nAGQ =</span> <span class="dv">10</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glmer_fit_n_agq_10)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Adaptive
+  Gauss-Hermite Quadrature, nAGQ = 10) [glmerMod]
+ Family: binomial  ( logit )
+Formula: resp ~ age * smoke + (1 | id)
+   Data: ohio_tbl
+Control: glmerControl(optimizer = "bobyqa")
+
+      AIC       BIC    logLik -2*log(L)  df.resid 
+   1607.3    1658.3    -794.6    1589.3      2139 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.4428 -0.2051 -0.1800 -0.1340  2.7803 
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ id     (Intercept) 4.697    2.167   
+Number of obs: 2148, groups:  id, 537
+
+Fixed effects:
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -2.82560    0.18486 -15.285   &lt;2e-16 ***
+age1         0.08847    0.13354   0.663   0.5076    
+age2         0.24591    0.13086   1.879   0.0602 .  
+age3         0.10175    0.13265   0.767   0.4430    
+smoke1       0.19938    0.13724   1.453   0.1463    
+age1:smoke1 -0.17911    0.13366  -1.340   0.1802    
+age2:smoke1  0.11461    0.13064   0.877   0.3803    
+age3:smoke1  0.04135    0.13261   0.312   0.7552    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) age1   age2   age3   smoke1 ag1:s1 ag2:s1
+age1        -0.023                                          
+age2        -0.077 -0.302                                   
+age3        -0.032 -0.315 -0.296                            
+smoke1       0.158  0.026 -0.021 -0.008                     
+age1:smoke1  0.050  0.270 -0.086 -0.092 -0.013              
+age2:smoke1 -0.040 -0.083  0.215 -0.055 -0.042 -0.305       
+age3:smoke1 -0.015 -0.091 -0.055  0.224 -0.019 -0.316 -0.298</code></pre>
+</div>
+</div>
+<p>Comparing to Table 7.2, we are significantly closer to the book’s reported estimates.</p>
+</section>
+<section id="random-effects-estimates" class="level3">
+<h3 class="anchored" data-anchor-id="random-effects-estimates">Random Effects Estimates</h3>
+<p>As with the LMMs, we can use the <code>lme4::ranef()</code> function to extract the conditional modes of the random effects for each subject:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ranef</span>(glmer_fit)<span class="sc">$</span>id <span class="sc">|&gt;</span> <span class="fu">tail</span>(<span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    (Intercept)
+517    2.452273
+518    2.452273
+519    3.327563
+520    2.452273
+521    2.452273
+522    2.452273
+523    2.452273
+524    3.327563
+525    3.327563
+526    3.327563
+527    3.327563
+528    3.327563
+529    3.327563
+530    4.357668
+531    4.357668
+532    4.357668
+533    4.357668
+534    4.357668
+535    4.357668
+536    4.357668</code></pre>
+</div>
+</div>
+<p>Note that now we are no longer dealing with normally distributed errors, and so the modes are not necessarily the same as the means of the random effects distribution.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Alternative: Penalized Quasi-Likelihood (not examinable)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Penalized quasi-likelihood (PQL) is an alternative (and much faster) method that doesn’t require numerical integration. See Chapter 13 in <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span> for more details.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>glmm_pql_fit <span class="ot">&lt;-</span> <span class="fu">glmmPQL</span>(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  resp <span class="sc">~</span> age <span class="sc">*</span> smoke,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">random =</span> <span class="sc">~</span> <span class="dv">1</span> <span class="sc">|</span> id,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 7</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>iteration 8</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glmm_pql_fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed-effects model fit by maximum likelihood
+  Data: ohio_tbl 
+  AIC BIC logLik
+   NA  NA     NA
+
+Random effects:
+ Formula: ~1 | id
+        (Intercept)  Residual
+StdDev:     2.07297 0.6341298
+
+Variance function:
+ Structure: fixed weights
+ Formula: ~invwt 
+Fixed effects:  resp ~ age * smoke 
+                 Value  Std.Error   DF    t-value p-value
+(Intercept) -2.5323392 0.11682431 1605 -21.676475  0.0000
+age1         0.0913145 0.08635904 1605   1.057382  0.2905
+age2         0.2553234 0.08463119 1605   3.016895  0.0026
+age3         0.1054854 0.08581869 1605   1.229166  0.2192
+smoke1       0.1621624 0.11682431  535   1.388088  0.1657
+age1:smoke1 -0.1858799 0.08635904 1605  -2.152408  0.0315
+age2:smoke1  0.1190618 0.08463119 1605   1.406832  0.1597
+age3:smoke1  0.0426174 0.08581869 1605   0.496598  0.6195
+ Correlation: 
+            (Intr) age1   age2   age3   smoke1 ag1:s1 ag2:s1
+age1        -0.009                                          
+age2        -0.042 -0.304                                   
+age3        -0.017 -0.316 -0.297                            
+smoke1       0.273  0.025 -0.024 -0.009                     
+age1:smoke1  0.025  0.271 -0.086 -0.092 -0.009              
+age2:smoke1 -0.024 -0.086  0.218 -0.056 -0.042 -0.304       
+age3:smoke1 -0.009 -0.092 -0.056  0.226 -0.017 -0.316 -0.297
+
+Standardized Within-Group Residuals:
+       Min         Q1        Med         Q3        Max 
+-2.7730944 -0.2836175 -0.2612394 -0.1922996  3.8397997 
+
+Number of Observations: 2148
+Number of Groups: 537 </code></pre>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">ranef</span>(glmm_pql_fit))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 537 × 1
+   `(Intercept)`
+           &lt;dbl&gt;
+ 1         -1.04
+ 2         -1.04
+ 3         -1.04
+ 4         -1.04
+ 5         -1.04
+ 6         -1.04
+ 7         -1.04
+ 8         -1.04
+ 9         -1.04
+10         -1.04
+# ℹ 527 more rows</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="wine-bitterness-fahrmeir_multivariate_2001-example-7.2-and-7.4" class="level2">
+<h2 class="anchored" data-anchor-id="wine-bitterness-fahrmeir_multivariate_2001-example-7.2-and-7.4">Wine Bitterness: <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 7.2 and 7.4</h2>
+<p>Now we demonstrate <strong>ordinal regression with random effects</strong>. For this we consider the <code>ordinal::wine</code> dataset, described in Example 7.2 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, which contains ratings of wine bitterness by different judges under different conditions.</p>
+<p>As always, we should inspect the data help page</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>?wine</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>The covariates are - <code>response</code>: a continuous measure of bitterness - <code>rating</code>: an ordered factor rating of bitterness (1-5) - <code>temp</code>: temperature (cold/warm) - <code>contact</code>: contact with skin (yes/no) - <code>judge</code>: judge ID</p>
+<p>We will regress the ordinal <code>rating</code> on the covariates <code>temp</code> and <code>contact</code>, while including a random intercept for <code>judge</code> to account for judge-specific differences in rating tendencies, in order to reproduce some of the results in Table 7.4 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>.</p>
+<section id="data-setup-and-contrast-coding" class="level3">
+<h3 class="anchored" data-anchor-id="data-setup-and-contrast-coding">Data Setup and Contrast Coding</h3>
+<p>Even though the book says that no contact is the reference level, the analysis appears to be done with contact as the reference level.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>wine_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(wine)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>wine_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 72 × 6
+   response rating temp  contact bottle judge
+      &lt;dbl&gt; &lt;ord&gt;  &lt;fct&gt; &lt;fct&gt;   &lt;fct&gt;  &lt;fct&gt;
+ 1       36 2      cold  no      1      1    
+ 2       48 3      cold  no      2      1    
+ 3       47 3      cold  yes     3      1    
+ 4       67 4      cold  yes     4      1    
+ 5       77 4      warm  no      5      1    
+ 6       60 4      warm  no      6      1    
+ 7       83 5      warm  yes     7      1    
+ 8       90 5      warm  yes     8      1    
+ 9       17 1      cold  no      1      2    
+10       22 2      cold  no      2      2    
+# ℹ 62 more rows</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>wine_tbl <span class="ot">&lt;-</span> wine_tbl <span class="sc">|&gt;</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">temp =</span> <span class="fu">factor</span>(temp, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"warm"</span>, <span class="st">"cold"</span>)),</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">contact =</span> <span class="fu">factor</span>(contact, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"yes"</span>, <span class="st">"no"</span>))</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>contact)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    [,1]
+yes    1
+no    -1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>temp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1]
+warm    1
+cold   -1</code></pre>
+</div>
+</div>
+<p>Reset contrasts to dummy coding:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.treatment"</span>, <span class="st">"contr.poly"</span>))</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Check default contrasts</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>contact)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    no
+yes  0
+no   1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>temp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     cold
+warm    0
+cold    1</code></pre>
+</div>
+</div>
+</section>
+<section id="fixed-effects-ordinal-model-masspolr" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-effects-ordinal-model-masspolr">Fixed Effects Ordinal Model: <code>MASS::polr()</code></h3>
+<p>To replicate the first column of Table 7.4, we fit using <code>MASS::polr()</code>:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>wine_fixed_fit_polr <span class="ot">&lt;-</span> <span class="fu">polr</span>(</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  rating <span class="sc">~</span> temp <span class="sc">+</span> contact,</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> wine_tbl,</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Hess =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"logistic"</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine_fixed_fit_polr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+polr(formula = rating ~ temp + contact, data = wine_tbl, Hess = TRUE, 
+    method = "logistic")
+
+Coefficients:
+           Value Std. Error t value
+tempcold  -2.503     0.5287  -4.735
+contactno -1.528     0.4766  -3.205
+
+Intercepts:
+    Value   Std. Error t value
+1|2 -5.3753  0.7680    -6.9991
+2|3 -2.7801  0.5306    -5.2397
+3|4 -0.5640  0.4076    -1.3837
+4|5  0.9755  0.4593     2.1238
+
+Residual Deviance: 172.9838 
+AIC: 184.9838 </code></pre>
+</div>
+</div>
+<p>Our coefficient estimates for the non-threshold coefficients are relatively close to the book’s (up to the signs as we expect, explained in <a href="../quarto_scripts/04-Example3-2BTR.html#model-fitting-proportional-odds-models">the first ordinal regression script</a>).</p>
+<p>The book reports thresholds differently to how we do, but we can easily convert our results to the book’s formulation (see the equation (7.5.1) on page 320 to see why this is the case). Let’s check:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>thresholds <span class="ot">&lt;-</span> wine_fixed_fit_polr<span class="sc">$</span>zeta</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>alphas <span class="ot">&lt;-</span> <span class="fu">c</span>(thresholds[<span class="dv">1</span>], <span class="fu">log</span>(<span class="fu">diff</span>(thresholds)))</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>alphas</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       1|2        2|3        3|4        4|5 
+-5.3753078  0.9536691  0.7957376  0.4314940 </code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>What does <code>c(thresholds[1], log(diff(thresholds)))</code> do?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This line re-parameterises the ordered thresholds into the book’s unconstrained parameterisation (<code>alphas</code>):</p>
+<ul>
+<li><code>thresholds[1]</code>: keeps the first cutpoint unchanged.</li>
+<li><code>diff(thresholds)</code>: computes successive gaps<br>
+<span class="math inline">\((\theta_2-\theta_1,\theta_3-\theta_2,\ldots)\)</span>.</li>
+<li><code>log(diff(thresholds))</code>: log-transforms those positive gaps so they can be modelled on the real line.</li>
+<li><code>c(...)</code>: concatenates the first cutpoint and the logged gaps into one vector.</li>
+</ul>
+<p>So if <code>thresholds = (theta_1, theta_2, theta_3, theta_4)</code>, then this creates <span class="math display">\[
+\alpha = \left(\theta_1,\log(\theta_2-\theta_1),\log(\theta_3-\theta_2),\log(\theta_4-\theta_3)\right).
+\]</span></p>
+<p>This guarantees ordered thresholds when converting back, because exponentiating the gap terms makes each gap strictly positive.</p>
+</div>
+</div>
+</div>
+<p>These are also close but not exact. For a final sanity check, we can compare our log-likelihood with the book’s:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(wine_fixed_fit_polr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>'log Lik.' -86.49192 (df=6)</code></pre>
+</div>
+</div>
+<p>The log-likelihood is close to the reported log-likehood in Table 7.4, but not exact. In fact, ours is marginally higher than the book’s. The reason for all the small mismatches is not clear.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Alternative Fit with <code>ordinal::clm()</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>In order to make sure that the mismatches aren’t due to the specific implementation of <code>MASS::polr()</code>, we can try a different function <code>ordinal::clm()</code>:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>wine_fixed_fit_clm <span class="ot">&lt;-</span> <span class="fu">clm</span>(rating <span class="sc">~</span> temp <span class="sc">+</span> contact, <span class="at">data =</span> wine_tbl)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine_fixed_fit_clm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>formula: rating ~ temp + contact
+data:    wine_tbl
+
+ link  threshold nobs logLik AIC    niter max.grad cond.H 
+ logit flexible  72   -86.49 184.98 6(0)  4.01e-12 2.5e+01
+
+Coefficients:
+          Estimate Std. Error z value Pr(&gt;|z|)    
+tempcold   -2.5031     0.5287  -4.735 2.19e-06 ***
+contactno  -1.5278     0.4766  -3.205  0.00135 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Threshold coefficients:
+    Estimate Std. Error z value
+1|2  -5.3753     0.7680  -6.999
+2|3  -2.7801     0.5306  -5.240
+3|4  -0.5640     0.4076  -1.384
+4|5   0.9755     0.4593   2.124</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(wine_fixed_fit_clm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       1|2        2|3        3|4        4|5   tempcold  contactno 
+-5.3752831 -2.7800909 -0.5640127  0.9755045 -2.5031020 -1.5277977 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(wine_fixed_fit_clm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>'log Lik.' -86.49192 (df=6)</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>thresholds_clm <span class="ot">&lt;-</span> wine_fixed_fit_clm<span class="sc">$</span>alpha</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>alphas_clm <span class="ot">&lt;-</span> <span class="fu">c</span>(thresholds_clm[<span class="dv">1</span>], <span class="fu">log</span>(<span class="fu">diff</span>(thresholds_clm)))</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>alphas_clm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       1|2        2|3        3|4        4|5 
+-5.3752831  0.9536606  0.7957390  0.4314689 </code></pre>
+</div>
+</div>
+<p>The values retrieved are almost the same as those obtained with <code>MASS::polr()</code>.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="random-effects-model-ordinalclmm" class="level3">
+<h3 class="anchored" data-anchor-id="random-effects-model-ordinalclmm">Random Effects Model: <code>ordinal::clmm()</code></h3>
+<p>Now we fit a random effects model using <code>ordinal::clmm()</code>, which is designed for cumulative link mixed models (CLMMs).</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>wine_mixed_fit <span class="ot">&lt;-</span> <span class="fu">clmm</span>(</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  rating <span class="sc">~</span> temp <span class="sc">+</span> contact <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> judge),</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> wine_tbl,</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">nAGQ =</span> <span class="dv">10</span></span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine_mixed_fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cumulative Link Mixed Model fitted with the adaptive Gauss-Hermite 
+quadrature approximation with 10 quadrature points 
+
+formula: rating ~ temp + contact + (1 | judge)
+data:    wine_tbl
+
+ link  threshold nobs logLik AIC    niter    max.grad cond.H 
+ logit flexible  72   -81.53 177.06 289(870) 4.39e-05 2.7e+01
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ judge  (Intercept) 1.288    1.135   
+Number of groups:  judge 9 
+
+Coefficients:
+          Estimate Std. Error z value Pr(&gt;|z|)    
+tempcold   -3.0619     0.5951  -5.145 2.67e-07 ***
+contactno  -1.8334     0.5122  -3.580 0.000344 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Threshold coefficients:
+    Estimate Std. Error z value
+1|2  -6.5188     1.0330  -6.310
+2|3  -3.3825     0.7265  -4.656
+3|4  -0.6683     0.5805  -1.151
+4|5   1.1908     0.6287   1.894</code></pre>
+</div>
+</div>
+<p>Again these results are close to, but not exactly the same as, those in Table 7.4.</p>
+<p>We can compare threshold estimates again as above:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>thresholds_mixed <span class="ot">&lt;-</span> wine_mixed_fit<span class="sc">$</span>alpha</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>alphas_mixed <span class="ot">&lt;-</span> <span class="fu">c</span>(thresholds_mixed[<span class="dv">1</span>], <span class="fu">log</span>(<span class="fu">diff</span>(thresholds_mixed)))</span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>alphas_mixed</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       1|2        2|3        3|4        4|5 
+-6.5188348  1.1430410  0.9985211  0.6200911 </code></pre>
+</div>
+</div>
+<p>We can extract fitted values and contrast structure from the fitted model. Note that the fitted values are evaluated at the conditional modes of the random effects distribution (see <code>?clmm</code>).</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitted values for first few observations</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fitted</span>(wine_mixed_fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 0.4188893 0.4724074 0.5499018 0.2607457 0.4203979 0.4203979 0.6242554
+ [8] 0.6242554 0.2578999 0.6309828 0.0526328 0.3895658 0.2563875 0.5772438
+[15] 0.1471160 0.3782859 0.5628160 0.3305670 0.5901682 0.2038518 0.1136763
+[22] 0.1136763 0.3922237 0.3922237 0.1583375 0.6550367 0.4857244 0.4026850
+[29] 0.5888987 0.1742657 0.2226634 0.3175280 0.6474039 0.1992047 0.0855586
+[36] 0.5313730 0.5736197 0.5736197 0.2629314 0.2629314 0.2391484 0.6288978
+[43] 0.5613280 0.2911541 0.1107011 0.2619797 0.3289653 0.4298561 0.5720274
+[50] 0.5720274 0.6549805 0.6549805 0.5312644 0.3658760 0.1772063 0.5893861
+[57] 0.6506202 0.6506202 0.4483256 0.4469287 0.5899550 0.5899550 0.3597395
+[64] 0.4096655 0.2557231 0.6320281 0.3918395 0.5063004 0.5780355 0.2543115
+[71] 0.3796922 0.3796922</code></pre>
+</div>
+</div>
+<p>As always, to get the estimated conditional modes of the random effects, we use the generic <code>lme4::ranef()</code> function.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ranef</span>(wine_mixed_fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>$judge
+  (Intercept)
+1   1.6984688
+2  -0.5665832
+3   0.9705262
+4  -0.0593933
+5   0.2311041
+6   0.4779502
+7  -1.9136235
+8  -0.2730379
+9  -0.5551779</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="package-citations-and-session-information" class="level2">
+<h2 class="anchored" data-anchor-id="package-citations-and-session-information">Package Citations and Session Information</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Session Information
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-apple-darwin20
+Running under: macOS Sequoia 15.7.5
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Australia/Melbourne
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+other attached packages:
+[1] ordinal_2025.12-29 MASS_7.3-61        geepack_1.3.13     lme4_1.1-38       
+[5] Matrix_1.7-1       dplyr_1.2.0        conflicted_1.2.0  
+
+loaded via a namespace (and not attached):
+ [1] jsonlite_2.0.0      ucminf_1.2.2        compiler_4.4.2     
+ [4] renv_1.1.7          tidyselect_1.2.1    Rcpp_1.1.1         
+ [7] tidyr_1.3.2         splines_4.4.2       boot_1.3-31        
+[10] yaml_2.3.12         fastmap_1.2.0       lattice_0.22-6     
+[13] R6_2.6.1            generics_0.1.4      knitr_1.51         
+[16] backports_1.5.0     rbibutils_2.4.1     tibble_3.3.1       
+[19] nloptr_2.2.1        minqa_1.2.8         pillar_1.11.1      
+[22] rlang_1.1.7         utf8_1.2.6          broom_1.0.12       
+[25] cachem_1.1.0        xfun_0.56           memoise_2.0.1      
+[28] cli_3.6.5           withr_3.0.2         magrittr_2.0.4     
+[31] Rdpack_2.6.5        digest_0.6.39       grid_4.4.2         
+[34] rstudioapi_0.18.0   lifecycle_1.0.5     nlme_3.1-166       
+[37] reformulas_0.4.4    vctrs_0.7.1         evaluate_1.0.5     
+[40] glue_1.8.0          numDeriv_2016.8-1.1 purrr_1.2.1        
+[43] rmarkdown_2.30      tools_4.4.2         pkgconfig_2.0.3    
+[46] htmltools_0.5.9    </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"dplyr"</span>, <span class="st">"geepack"</span>, <span class="st">"lme4"</span>, <span class="st">"MASS"</span>, <span class="st">"ordinal"</span>)</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<ul>
+<li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
+<li><p><strong>dplyr</strong>: Wickham H, François R, Henry L, Müller K, Vaughan D (2026). <em>dplyr: A Grammar of Data Manipulation</em>. R package version 1.2.0, https://github.com/tidyverse/dplyr, <a href="https://dplyr.tidyverse.org" class="uri">https://dplyr.tidyverse.org</a>.</p></li>
+<li><p><strong>geepack</strong>:</p>
+<ul>
+<li><p>Halekoh U, Højsgaard S, Yan J (2006). “The R Package geepack for Generalized Estimating Equations.” <em>Journal of Statistical Software</em>, <em>15/2</em>, 1-11.</p></li>
+<li><p>Yan J, Fine JP (2004). “Estimating Equations for Association Structures.” <em>Statistics in Medicine</em>, <em>23</em>, 859-880.</p></li>
+<li><p>Yan J (2002). “geepack: Yet Another Package for Generalized Estimating Equations.” <em>R-News</em>, <em>2/3</em>, 12-14.</p></li>
+<li><p>Xu, Z., Fine, P. J, Song, W., Yan, J. (2025). “On GEE for mean-variance-correlation models: Variance estimation and model selection.” <em>Statistics in Medicine</em>, <em>44</em>, 1-2.</p></li>
+</ul></li>
+<li><p><strong>lme4</strong>: Bates D, Mächler M, Bolker B, Walker S (2015). “Fitting Linear Mixed-Effects Models Using lme4.” <em>Journal of Statistical Software</em>, <em>67</em>(1), 1-48. doi:10.18637/jss.v067.i01 <a href="https://doi.org/10.18637/jss.v067.i01" class="uri">https://doi.org/10.18637/jss.v067.i01</a>.</p></li>
+<li><p><strong>MASS</strong>: Venables WN, Ripley BD (2002). <em>Modern Applied Statistics with S</em>, Fourth edition. Springer, New York. ISBN 0-387-95457-0, <a href="https://www.stats.ox.ac.uk/pub/MASS4/" class="uri">https://www.stats.ox.ac.uk/pub/MASS4/</a>.</p></li>
+<li><p><strong>ordinal</strong>: Christensen R (2025). <em>ordinal-Regression Models for Ordinal Data</em>. R package version 2025.12-29, <a href="https://CRAN.R-project.org/package=ordinal" class="uri">https://CRAN.R-project.org/package=ordinal</a>.</p></li>
+</ul>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
+Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
+</div>
+<div id="ref-faraway_extending_2016" class="csl-entry" role="listitem">
+Faraway, Julian J. 2016. <em>Extending the Linear Model with r : Generalized Linear, Mixed Effects and Nonparametric Regression Models, Second Edition</em>. Second edition. Chapman &amp; Hall/<span>CRC</span> Texts in Statistical Science Series. Chapman; Hall/<span>CRC</span>. <a href="https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53">https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jaycrick\.github\.io\/MAST90084-Statistical-Modelling-Scripts\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/10-GLM_mixed_Effect.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-29">
+<meta name="dcterms.date" content="2026-04-15">
 
 <title>Multinomial Logistic Regression: Caesarian Dataset Analysis – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -208,6 +208,26 @@ window.Quarto = {
     <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
  <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Marginal Models: Ohio Respiratory Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">Generalized Estimating Equations: CTSIB Balance Test Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-LM_mixed_effect.html">
+ <span class="dropdown-text">Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-GLM_mixed_Effect.html">
+ <span class="dropdown-text">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis: Breast Cancer</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -239,11 +259,11 @@ window.Quarto = {
   <li><a href="#packages-and-data" id="toc-packages-and-data" class="nav-link" data-scroll-target="#packages-and-data">Packages and Data</a></li>
   <li><a href="#example-3.1-caesarian-birth-study-p.-73" id="toc-example-3.1-caesarian-birth-study-p.-73" class="nav-link" data-scroll-target="#example-3.1-caesarian-birth-study-p.-73">Example 3.1: Caesarian Birth Study (p.&nbsp;73)</a>
   <ul class="collapse">
-  <li><a href="#fit-with-multinom-from-nnet" id="toc-fit-with-multinom-from-nnet" class="nav-link" data-scroll-target="#fit-with-multinom-from-nnet">Fit with <code>multinom()</code> from <code>nnet</code></a></li>
+  <li><a href="#fit-with-nnetmultinom-from-nnet" id="toc-fit-with-nnetmultinom-from-nnet" class="nav-link" data-scroll-target="#fit-with-nnetmultinom-from-nnet">Fit with <code>nnet::multinom()</code> from <code>nnet</code></a></li>
   <li><a href="#explore-the-fitted-values-and-residuals" id="toc-explore-the-fitted-values-and-residuals" class="nav-link" data-scroll-target="#explore-the-fitted-values-and-residuals">Explore the Fitted Values and Residuals</a></li>
   </ul></li>
   <li><a href="#example-3.11" id="toc-example-3.11" class="nav-link" data-scroll-target="#example-3.11">Example 3.11</a></li>
-  <li><a href="#package-citations-and-references" id="toc-package-citations-and-references" class="nav-link" data-scroll-target="#package-citations-and-references">Package citations and references</a></li>
+  <li><a href="#package-citations-and-session-information" id="toc-package-citations-and-session-information" class="nav-link" data-scroll-target="#package-citations-and-session-information">Package Citations and Session Information</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/03-Example3-1and3-11Caes.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -264,7 +284,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 29, 2026</p>
+      <p class="date">April 15, 2026</p>
     </div>
   </div>
   
@@ -321,7 +341,7 @@ window.Quarto = {
 <section id="example-3.1-caesarian-birth-study-p.-73" class="level2">
 <h2 class="anchored" data-anchor-id="example-3.1-caesarian-birth-study-p.-73">Example 3.1: Caesarian Birth Study (p.&nbsp;73)</h2>
 <p>This data is the same as the data we examined in <a href="../quarto_scripts/01-ANODEV.html">the first script</a>, but now we distinguish between the two infection types <code>Inf1</code> and <code>Inf2</code> instead of just a binary <code>Inf</code> variable. We import the ready made dataset.</p>
-<p>We do this using a basic multinomial logit model with no infection as the reference category.</p>
+<p>We analyze this using a basic multinomial logit model with no infection as the reference category.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -453,9 +473,9 @@ dbl (7): size, noInf, Inf1, Inf2, NoPlan, Antib, RiskF
 </div>
 </div>
 </div>
-<section id="fit-with-multinom-from-nnet" class="level3">
-<h3 class="anchored" data-anchor-id="fit-with-multinom-from-nnet">Fit with <code>multinom()</code> from <code>nnet</code></h3>
-<p>To fit the a multinomial log-linear model we use the <code>multinom()</code> function from the <code>nnet</code> package. The <code>nnet</code> package is written by the authors of and well documented in <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>. To see more information about the <code>multinom()</code> function, you can <a href="https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html">refer to the documentation</a> by running <code>?multinom</code> in your R environment. It is especially useful to check the arguments controlling optimisation (<code>maxit</code>, <code>trace</code>, <code>Hess</code>) when reproducing textbook results.</p>
+<section id="fit-with-nnetmultinom-from-nnet" class="level3">
+<h3 class="anchored" data-anchor-id="fit-with-nnetmultinom-from-nnet">Fit with <code>nnet::multinom()</code> from <code>nnet</code></h3>
+<p>To fit the a multinomial log-linear model we use the <code>nnet::multinom()</code> function from the <code>nnet</code> package. The <code>nnet</code> package is written by the authors of and well documented in <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>. To see more information about the <code>nnet::multinom()</code> function, you can <a href="https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html" target="_blank">refer to the documentation</a> by running <code>?multinom</code> in your R environment. It is especially useful to check the arguments controlling optimisation (<code>maxit</code>, <code>trace</code>, <code>Hess</code>) when reproducing textbook results.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -468,11 +488,11 @@ dbl (7): size, noInf, Inf1, Inf2, NoPlan, Antib, RiskF
 </div>
 <div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>The <code>multinom()</code> function uses the BFGS optimization method, which is a quasi-Newton method for finding the maximum likelihood estimates of the model parameters. This is quicker than the Fisher scoring algorithm which requires computing the Hessian matrix at each iteration.</p>
+<p>The <code>nnet::multinom()</code> function uses the BFGS optimization method, which is a quasi-Newton method for finding the maximum likelihood estimates of the model parameters. This is quicker than the Fisher scoring algorithm which requires computing the Hessian matrix at each iteration.</p>
 </div>
 </div>
 </div>
-<p>We extract the response variables as a matrix format for the <code>multinom</code> function,</p>
+<p>We extract the response variables as a matrix format for the <code>nnet::multinom</code> function,</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -550,7 +570,8 @@ RiskF        1.829  2.195</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>caes_nnet<span class="sc">$</span>deviance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>caes_nnet_dev <span class="ot">&lt;-</span> <span class="fu">deviance</span>(caes_nnet)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>caes_nnet_dev</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 321.8743</code></pre>
@@ -566,7 +587,7 @@ RiskF        1.829  2.195</code></pre>
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Looking at the documentation of the <code>multinom()</code> function by running <code>?multinom</code>, we see that the deviance reported by <code>multinom()</code> is <span class="math inline">\(-2 \times \text{log-likelihood}\)</span> and has <strong>not been adjusted</strong> by the saturated model (or the scale parameter). This differs from deviance in <code>glm()</code> and our usual deviance. Always check the documentation for how deviance is calculated.</p>
+<p>Looking at the documentation of the <code>nnet::multinom()</code> function by running <code>?multinom</code>, we see that the deviance reported by <code>nnet::multinom()</code> is <span class="math inline">\(-2 \times \text{log-likelihood}\)</span> and has <strong>not been adjusted</strong> by the saturated model (or the scale parameter). This differs from deviance in <code>stats::glm()</code> and our usual deviance. <strong>Always check the documentation for how a package’s definition of “deviance” is calculated</strong>.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
@@ -581,7 +602,7 @@ RiskF        1.829  2.195</code></pre>
 </div>
 <div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Use <code>attributes(caes_nnet)</code> to see all available components of a model object. This reveals what elements you can access (like <code>$deviance</code>, <code>$fitted.values</code>, <code>$residuals</code>) and helps you understand the object’s structure. Similarly, <code>str()</code> shows the internal structure, and <code>names()</code> lists just the accessible components.</p>
+<p>Use <code>attributes(caes_nnet)</code> to see all available components of a model object. This reveals what elements you can access (like <code>$deviance</code>, <code>$fitted.values</code>, <code>$residuals</code>) and helps you understand the object’s structure. We can access these components directly with <code>$</code>, but we can also use the generic methods <code>deviance()</code>, <code>fitted()</code>, and <code>residuals()</code> which are more robust to changes in the underlying object structure across different model types and packages. Similarly, <code>str()</code> shows the internal structure, and <code>names()</code> lists just the accessible components.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -610,14 +631,14 @@ $class
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Fit with <code>glmnet</code> Package
+<span class="screen-reader-only">Note</span>Fit with <code>glmnet</code> Package (Non-examinable)
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>This section is not examinable, but just for fun. <code>glmnet</code> is written by Jerome Friedman and Trevor Hastie, and is a popular package for regularized regression (that is, Lasso and Ridge regression). The codebase is in Fortran, and is very fast.</p>
-<p>We can use <code>glmnet</code> to fit the same multinomial model by setting <code>lambda = 0</code> (giving no weight to the regularisation step) to get the unregularized estimates. If you look up <code>?glmnet</code>, pay attention to what they said about symmetric multinomial model which has a different parametrization; <a href="https://glmnet.stanford.edu/articles/glmnet.html#multinomial-regression-family-multinomial">see the section on “Multinomial Regression” in their vignette</a> for the precise form of this parametrization. Because of a different parametrization, the returned fitted coefficients won’t be same as <code>multinom()</code>.</p>
+<p>We can use <code>glmnet</code> to fit the same multinomial model by setting <code>lambda = 0</code> (giving no weight to the regularisation step) to get the unregularized estimates. If you look up <code>?glmnet</code>, pay attention to what they said about symmetric multinomial model which has a different parametrization; <a href="https://glmnet.stanford.edu/articles/glmnet.html#multinomial-regression-family-multinomial" target="_blank">see the section on “Multinomial Regression” in their vignette</a> for the precise form of this parametrization. Because of a different parametrization, the returned fitted coefficients won’t be same as <code>nnet::multinom()</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -671,7 +692,7 @@ RiskF        0.3663593</code></pre>
 }_{\boldsymbol{\beta}_r}
 = \beta_{r0} + \mathbf{z}_i^T\boldsymbol{\beta}_r.
 \]</span></p>
-<p>Therefore, we can retrieve the <code>multinom()</code> coefficients by taking differences of the <code>glmnet</code> alphas:</p>
+<p>Therefore, we can retrieve the <code>nnet::multinom()</code> coefficients by taking differences of the <code>glmnet</code> alphas:</p>
 <ol type="1">
 <li>Extract slope coefficients for each category and compute differences relative to the reference category</li>
 <li>Extract intercept coefficients and compute differences relative to the reference category intercept</li>
@@ -775,18 +796,18 @@ factorrisk factors  1.829  2.195</code></pre>
 </div>
 </div>
 <p>This again matches the textbook.</p>
-<p>We can also check the deviance of this fit, which should be the same as before since it’s the same model.</p>
+<p>We can also check the “deviance” of this fit, which should be the same as before since it’s the same model.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>caes_nnet_prepared<span class="sc">$</span>deviance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">deviance</span>(caes_nnet_prepared)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 321.8743</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>caes_nnet<span class="sc">$</span>deviance</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>caes_nnet_dev</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 321.8743</code></pre>
@@ -802,7 +823,7 @@ factorrisk factors  1.829  2.195</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>caes_nnet<span class="sc">$</span>fitted.values</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fitted</span>(caes_nnet)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>      noInf        Inf1        Inf2
@@ -819,7 +840,7 @@ factorrisk factors  1.829  2.195</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>caes_nnet<span class="sc">$</span>residuals</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">residuals</span>(caes_nnet)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>         noInf         Inf1         Inf2
@@ -844,7 +865,7 @@ factorrisk factors  1.829  2.195</code></pre>
 <span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
 <span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(noInf, Inf1, Inf2)</span>
 <span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>caes_nnet_prop <span class="sc">-</span> caes_nnet<span class="sc">$</span>fitted</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>caes_nnet_prop <span class="sc">-</span> <span class="fu">fitted</span>(caes_nnet)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>         noInf         Inf1         Inf2
@@ -857,7 +878,7 @@ factorrisk factors  1.829  2.195</code></pre>
 7  0.002162595  0.002399788 -0.004562382</code></pre>
 </div>
 </div>
-<p>Given a new observation, we can either predict the most likely category (with <code>type = "class"</code>) or the probabilities for each category (with <code>type = "probs"</code>). Checking <code>?predict.multinom</code> is recommended here, because these two <code>type</code> options return different output scales and structures.</p>
+<p>Given a new observation, we can either predict the most likely category (with <code>type = "class"</code>) or the probabilities for each category (with <code>type = "probs"</code>).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -918,8 +939,8 @@ Caution
 <div id="callout-11" class="callout-11-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The <code>VGAM</code> package will be used a lot more later in the course, because it fits a wide variety of multivariate response regression models. It is not as fast as <code>glmnet</code> or <code>nnet</code> for large datasets, because it uses the Fisher scoring algorithm (like the book).</p>
-<p>It is good practice to <a href="https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html">read the documentation</a> for the <code>vglm()</code> function with <code>?vglm</code> to understand the arguments and output structure. Also check <code>?multinomial</code>, especially <code>refLevel</code> and <code>parallel</code>, since these choices directly affect model interpretation.</p>
-<p>We use the raw data <code>caes_dat</code> extracted from the CSV file. <code>multinomial()</code> has a <code>refLevel</code> argument to specify the reference category.</p>
+<p>It is good practice to <a href="https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html" target="_blank">read the documentation</a> for the <code>VGAM::vglm()</code> function with <code>?vglm</code> to understand the arguments and output structure. Also check <code>?multinomial</code>, especially <code>refLevel</code> and <code>parallel</code>, since these choices directly affect model interpretation.</p>
+<p>We use the raw data <code>caes_dat</code> extracted from the CSV file. <code>VGAM::multinomial()</code> has a <code>refLevel</code> argument to specify the reference category.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -942,7 +963,7 @@ Caution
 </div>
 <div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p><a href="https://search.r-project.org/CRAN/refmans/VGAM/html/multinomial.html">Looking at the documentation</a> for <code>multinomial()</code>, we can see that the default parameter for <code>refLevel</code> is <code>"(Last)"</code>. This means that the last category in the response matrix is treated as the reference. In our case, this would be <code>Inf2</code>, which is not what we want. we ensure that <code>noInf</code> is treated as the reference category by setting <code>refLevel = "noInf"</code>.</p>
+<p><a href="https://search.r-project.org/CRAN/refmans/VGAM/html/multinomial.html">Looking at the documentation</a> for <code>VGAM::multinomial()</code>, we can see that the default parameter for <code>refLevel</code> is <code>"(Last)"</code>. This means that the last category in the response matrix is treated as the reference. In our case, this would be <code>Inf2</code>, which is not what we want. we ensure that <code>noInf</code> is treated as the reference category by setting <code>refLevel = "noInf"</code>.</p>
 </div>
 </div>
 </div>
@@ -996,27 +1017,27 @@ Reference group is level  1  of the response</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="sc">-</span>caes_nnet<span class="sc">$</span>deviance <span class="sc">/</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="sc">-</span>caes_nnet_dev <span class="sc">/</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -160.9371</code></pre>
 </div>
 </div>
-<p>This is significantly different from the log-likelihood reported by <code>VGAM::vglm()</code> for the same data and model. This is because different packages treat grouped vs.&nbsp;ungrouped multinomial data differently. See <a href="../quarto_scripts/A2-likelihood-multinomial.html">Appendix A2</a> for a detailed explanation of how this arises and why you must be careful when comparing results across packages.</p>
+<p>This is significantly different from the log-likelihood <code>-20.8871</code> reported by <code>VGAM::vglm()</code> for the same data and model. This is because different packages treat grouped vs.&nbsp;ungrouped multinomial data differently. See <a href="../quarto_scripts/A2-likelihood-multinomial.html" target="_blank">Appendix A2</a> for a detailed explanation of how this arises and why you must be careful when comparing results across packages.</p>
 </div>
 </div>
-<p>Extracting the coefficients from the <code>vglm</code> fit we see they also those in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> p.&nbsp;75, and the fitted probabilities match those from <code>multinom()</code>.</p>
+<p>Extracting the coefficients and the fitted probabilities from the <code>vglm</code> fit, we see they also those in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> p.&nbsp;75. They match those from <code>nnet::multinom()</code> up to numerical differences, likely due to the difference in fitting algorithms used under the hood.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">coef</span>(caes_vgam, <span class="at">matrix.out =</span> <span class="cn">TRUE</span>), <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a> <span class="fu">coef</span>(caes_vgam, <span class="at">matrix.out =</span> <span class="cn">TRUE</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            log(mu[,2]/mu[,1]) log(mu[,3]/mu[,1])
-(Intercept)             -2.621             -2.560
-NoPlan                   1.174              0.996
-Antib                   -3.520             -3.087
-RiskF                    1.829              2.195</code></pre>
+(Intercept)          -2.621010         -2.5599132
+NoPlan                1.174247          0.9959748
+Antib                -3.520248         -3.0871595
+RiskF                 1.829241          2.1954542</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1100,7 +1121,7 @@ RiskF                 2.029896           2.029896</code></pre>
 </div>
 <div id="callout-14" class="callout-14-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>We can try running the <code>vglm()</code> function on the original <code>caesar</code> data <a href="#alternative-original-fahrmeir-data">we manipulated earlier</a> from the <code>Fahrmeir</code> package. We don’t fit the parallel model here.</p>
+<p>We can try running the <code>VGAM::vglm()</code> function on the original <code>caesar</code> data <a href="#alternative-original-fahrmeir-data">we manipulated earlier</a> from the <code>Fahrmeir</code> package. We don’t fit the parallel model here.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1270,7 +1291,7 @@ $loglikelihood
 <div id="callout-13" class="callout-13-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>In R, <code>@</code> accesses <strong>slots</strong> of S4 objects, while <code>$</code> accesses named elements in lists, data frames, and many S3 objects.</p>
-<p><code>vglm()</code> returns an S4 object, so <code>criterion</code> is stored as a slot, and we use <code>caes_vgam@criterion</code> rather than <code>caes_vgam$criterion</code>.</p>
+<p><code>VGAM::vglm()</code> returns an S4 object, so <code>criterion</code> is stored as a slot, and we use <code>caes_vgam@criterion</code> rather than <code>caes_vgam$criterion</code>.</p>
 </div>
 </div>
 </div>
@@ -1364,35 +1385,94 @@ Inf2   -2.559917 0.9959762 -3.087160 2.195458</code></pre>
 </div>
 </div>
 </section>
-<section id="package-citations-and-references" class="level2">
-<h2 class="anchored" data-anchor-id="package-citations-and-references">Package citations and references</h2>
+<section id="package-citations-and-session-information" class="level2">
+<h2 class="anchored" data-anchor-id="package-citations-and-session-information">Package Citations and Session Information</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Session Information
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-apple-darwin20
+Running under: macOS Sequoia 15.7.5
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Australia/Melbourne
+tzcode source: internal
+
+attached base packages:
+[1] splines   stats4    stats     graphics  grDevices datasets  utils    
+[8] methods   base     
+
+other attached packages:
+[1] VGAM_1.1-14        readr_2.1.6        tidyr_1.3.2        nnet_7.3-19       
+[5] glmnet_4.1-10      Matrix_1.7-1       Fahrmeir_2016.5.31 dplyr_1.2.0       
+[9] conflicted_1.2.0  
+
+loaded via a namespace (and not attached):
+ [1] utf8_1.2.6        generics_0.1.4    renv_1.1.7        shape_1.4.6.1    
+ [5] lattice_0.22-6    hms_1.1.4         digest_0.6.39     magrittr_2.0.4   
+ [9] evaluate_1.0.5    grid_4.4.2        iterators_1.0.14  fastmap_1.2.0    
+[13] foreach_1.5.2     jsonlite_2.0.0    survival_3.7-0    purrr_1.2.1      
+[17] codetools_0.2-20  cli_3.6.5         rlang_1.1.7       crayon_1.5.3     
+[21] bit64_4.6.0-1     withr_3.0.2       cachem_1.1.0      yaml_2.3.12      
+[25] parallel_4.4.2    tools_4.4.2       tzdb_0.5.0        memoise_2.0.1    
+[29] vctrs_0.7.1       R6_2.6.1          lifecycle_1.0.5   bit_4.6.0        
+[33] vroom_1.7.0       pkgconfig_2.0.3   pillar_1.11.1     glue_1.8.0       
+[37] Rcpp_1.1.1        xfun_0.56         tibble_3.3.1      tidyselect_1.2.1 
+[41] rstudioapi_0.18.0 knitr_1.51        htmltools_0.5.9   rmarkdown_2.30   
+[45] compiler_4.4.2   </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"conflicted"</span>,</span>
-<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
-<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Fahrmeir"</span>,</span>
-<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"glmnet"</span>,</span>
-<span id="cb93-6"><a href="#cb93-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"nnet"</span>,</span>
-<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tidyr"</span>,</span>
-<span id="cb93-8"><a href="#cb93-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"readr"</span>,</span>
-<span id="cb93-9"><a href="#cb93-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"VGAM"</span></span>
-<span id="cb93-10"><a href="#cb93-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb93-11"><a href="#cb93-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb93-12"><a href="#cb93-12" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
-<span id="cb93-13"><a href="#cb93-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb93-14"><a href="#cb93-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
-<span id="cb93-15"><a href="#cb93-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb93-16"><a href="#cb93-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb93-17"><a href="#cb93-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb93-18"><a href="#cb93-18" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb93-19"><a href="#cb93-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb93-20"><a href="#cb93-20" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb93-21"><a href="#cb93-21" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb93-22"><a href="#cb93-22" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb93-23"><a href="#cb93-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb93-24"><a href="#cb93-24" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb93-25"><a href="#cb93-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb95"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"conflicted"</span>,</span>
+<span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"dplyr"</span>,</span>
+<span id="cb95-4"><a href="#cb95-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Fahrmeir"</span>,</span>
+<span id="cb95-5"><a href="#cb95-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"glmnet"</span>,</span>
+<span id="cb95-6"><a href="#cb95-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"nnet"</span>,</span>
+<span id="cb95-7"><a href="#cb95-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tidyr"</span>,</span>
+<span id="cb95-8"><a href="#cb95-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"readr"</span>,</span>
+<span id="cb95-9"><a href="#cb95-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"VGAM"</span></span>
+<span id="cb95-10"><a href="#cb95-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb95-11"><a href="#cb95-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb95-12"><a href="#cb95-12" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb95-13"><a href="#cb95-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb95-14"><a href="#cb95-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb95-15"><a href="#cb95-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb95-16"><a href="#cb95-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb95-17"><a href="#cb95-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb95-18"><a href="#cb95-18" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb95-19"><a href="#cb95-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb95-20"><a href="#cb95-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb95-21"><a href="#cb95-21" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb95-22"><a href="#cb95-22" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb95-23"><a href="#cb95-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb95-24"><a href="#cb95-24" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb95-25"><a href="#cb95-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>

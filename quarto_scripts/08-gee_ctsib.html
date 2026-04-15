@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-03-29">
+<meta name="dcterms.date" content="2026-04-15">
 
-<title>GEE Analysis: CTSIB Balance Test Data – MAST90084 - Statistical Modelling Scripts</title>
+<title>Generalized Estimating Equations: CTSIB Balance Test Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -59,7 +59,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -160,6 +179,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../quarto_scripts/06-Happiness.html">
  <span class="dropdown-text">Conditional Models: Happiness Data</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/07-ohio.html">
+ <span class="dropdown-text">Marginal Models: Ohio Respiratory Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/08-gee_ctsib.html">
+ <span class="dropdown-text">Generalized Estimating Equations: CTSIB Balance Test Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/09-LM_mixed_effect.html">
+ <span class="dropdown-text">Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/10-GLM_mixed_Effect.html">
+ <span class="dropdown-text">Generalised Linear Mixed Models: Ohio Respiratory Data and Wine Bitterness</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../quarto_scripts/11-survival.html">
+ <span class="dropdown-text">Survival Analysis: Breast Cancer</span></a>
+  </li>  
         <li class="dropdown-header">APPENDICES</li>
         <li>
     <a class="dropdown-item" href="../quarto_scripts/A1-dispersion-working-residuals.html">
@@ -192,17 +231,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#creating-binary-response" id="toc-creating-binary-response" class="nav-link" data-scroll-target="#creating-binary-response">Creating Binary Response</a></li>
   </ul></li>
-  <li><a href="#gee-with-exchangeable-correlation" id="toc-gee-with-exchangeable-correlation" class="nav-link" data-scroll-target="#gee-with-exchangeable-correlation">GEE with Exchangeable Correlation</a>
+  <li><a href="#fitting-the-model-with-geegee" id="toc-fitting-the-model-with-geegee" class="nav-link" data-scroll-target="#fitting-the-model-with-geegee">Fitting the Model with <code>gee::gee()</code></a>
   <ul class="collapse">
-  <li><a href="#fixed-scale-estimation" id="toc-fixed-scale-estimation" class="nav-link" data-scroll-target="#fixed-scale-estimation">Fixed Scale Estimation</a></li>
   <li><a href="#empirical-scale-estimation" id="toc-empirical-scale-estimation" class="nav-link" data-scroll-target="#empirical-scale-estimation">Empirical Scale Estimation</a></li>
   </ul></li>
-  <li><a href="#alternative-geepack-package" id="toc-alternative-geepack-package" class="nav-link" data-scroll-target="#alternative-geepack-package">Alternative: geepack Package</a>
-  <ul class="collapse">
-  <li><a href="#fitting-with-geepack-fixed-scale" id="toc-fitting-with-geepack-fixed-scale" class="nav-link" data-scroll-target="#fitting-with-geepack-fixed-scale">Fitting with geepack (Fixed Scale)</a></li>
-  <li><a href="#fitting-with-geepack-empirical-scale" id="toc-fitting-with-geepack-empirical-scale" class="nav-link" data-scroll-target="#fitting-with-geepack-empirical-scale">Fitting with geepack (Empirical Scale)</a></li>
-  </ul></li>
-  <li><a href="#key-learning-points" id="toc-key-learning-points" class="nav-link" data-scroll-target="#key-learning-points">Key Learning Points</a></li>
+  <li><a href="#package-citations-and-session-information" id="toc-package-citations-and-session-information" class="nav-link" data-scroll-target="#package-citations-and-session-information">Package Citations and Session Information</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/edit/main/quarto_scripts/08-gee_ctsib.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jaycrick/MAST90084-Statistical-Modelling-Scripts/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -211,8 +244,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">GEE Analysis: CTSIB Balance Test Data</h1>
-<p class="subtitle lead">Generalized Estimating Equations for Repeated Measures</p>
+<h1 class="title">Generalized Estimating Equations: CTSIB Balance Test Data</h1>
+<p class="subtitle lead"><span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span> Section 13.5</p>
 </div>
 
 
@@ -223,7 +256,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 29, 2026</p>
+      <p class="date">April 15, 2026</p>
     </div>
   </div>
   
@@ -237,120 +270,124 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>This script demonstrates <strong>Generalized Estimating Equations (GEE)</strong> for analyzing <strong>repeated measures and clustered data</strong> using the CTSIB (Computerized Dynamic Posturography) balance test dataset.</p>
-<p><strong>When to use GEE</strong>: Use GEE when you have repeated measurements on subjects and want population-average (marginal) estimates. GEE differs from GLMM—it provides marginal effects rather than subject-specific effects, and it’s more robust to correlation specification.</p>
-<p>This script reproduces the analysis on p.292 of Faraway (2nd ed., 2016) or p.225 (1st ed.), fitting both Pearson moment-based scale estimation (<code>scale.fix = TRUE</code>) and empirical scale estimation (<code>scale.fix = FALSE</code>).</p>
+<p>We now look at the CTSIB balance test dataset from the very applied book by <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span>, which can be <a href="https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53">accessed online</a>. In the second edition of this book, it is in section 13.5, page 292.</p>
 </section>
 <section id="data-setup" class="level2">
 <h2 class="anchored" data-anchor-id="data-setup">Data Setup</h2>
-<p>The CTSIB dataset contains repeated balance test measurements on multiple subjects under different sensory conditions (surface, vision). We’ll model the probability of stable balance as a function of demographic and test characteristics.</p>
-<p>First, set default contrasts and load the data:</p>
+<p>First, we load the data and set the default contrasts to effect coding:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gee)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geepack)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(faraway)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(faraway)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gee)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">"contr.treatment"</span>, <span class="st">"contr.poly"</span>))</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ctsib)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Read the description of the data:</p>
+<p>As always, we should spend some time <a href="https://search.r-project.org/CRAN/refmans/faraway/html/ctsib.html">reading the documentation</a> to understand the data set.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>?ctsib</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Take a look at the data:</p>
+<p>We can also inspect the data types by converting the data to a tibble:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ctsib, <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ctsib_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(ctsib)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ctsib_tbl, <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>   Subject  Sex Age Height Weight Surface Vision CTSIB
-1        1 male  22    176   68.2    norm   open     1
-2        1 male  22    176   68.2    norm   open     1
-3        1 male  22    176   68.2    norm closed     2
-4        1 male  22    176   68.2    norm closed     2
-5        1 male  22    176   68.2    norm   dome     1
-6        1 male  22    176   68.2    norm   dome     2
-7        1 male  22    176   68.2    foam   open     2
-8        1 male  22    176   68.2    foam   open     2
-9        1 male  22    176   68.2    foam closed     2
-10       1 male  22    176   68.2    foam closed     2
-11       1 male  22    176   68.2    foam   dome     2
-12       1 male  22    176   68.2    foam   dome     2
-13       2 male  22    181   67.6    norm   open     1
-14       2 male  22    181   67.6    norm   open     1
-15       2 male  22    181   67.6    norm closed     2
-16       2 male  22    181   67.6    norm closed     2
-17       2 male  22    181   67.6    norm   dome     2
-18       2 male  22    181   67.6    norm   dome     2
-19       2 male  22    181   67.6    foam   open     2
-20       2 male  22    181   67.6    foam   open     2</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(ctsib)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>'data.frame':   480 obs. of  8 variables:
- $ Subject: int  1 1 1 1 1 1 1 1 1 1 ...
- $ Sex    : Factor w/ 2 levels "female","male": 2 2 2 2 2 2 2 2 2 2 ...
- $ Age    : int  22 22 22 22 22 22 22 22 22 22 ...
- $ Height : num  176 176 176 176 176 176 176 176 176 176 ...
- $ Weight : num  68.2 68.2 68.2 68.2 68.2 68.2 68.2 68.2 68.2 68.2 ...
- $ Surface: Factor w/ 2 levels "foam","norm": 2 2 2 2 2 2 1 1 1 1 ...
- $ Vision : Factor w/ 3 levels "closed","dome",..: 3 3 1 1 2 2 3 3 1 1 ...
- $ CTSIB  : int  1 1 2 2 1 2 2 2 2 2 ...</code></pre>
+<pre><code># A tibble: 20 × 8
+   Subject Sex     Age Height Weight Surface Vision CTSIB
+     &lt;int&gt; &lt;fct&gt; &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;fct&gt;   &lt;fct&gt;  &lt;int&gt;
+ 1       1 male     22    176   68.2 norm    open       1
+ 2       1 male     22    176   68.2 norm    open       1
+ 3       1 male     22    176   68.2 norm    closed     2
+ 4       1 male     22    176   68.2 norm    closed     2
+ 5       1 male     22    176   68.2 norm    dome       1
+ 6       1 male     22    176   68.2 norm    dome       2
+ 7       1 male     22    176   68.2 foam    open       2
+ 8       1 male     22    176   68.2 foam    open       2
+ 9       1 male     22    176   68.2 foam    closed     2
+10       1 male     22    176   68.2 foam    closed     2
+11       1 male     22    176   68.2 foam    dome       2
+12       1 male     22    176   68.2 foam    dome       2
+13       2 male     22    181   67.6 norm    open       1
+14       2 male     22    181   67.6 norm    open       1
+15       2 male     22    181   67.6 norm    closed     2
+16       2 male     22    181   67.6 norm    closed     2
+17       2 male     22    181   67.6 norm    dome       2
+18       2 male     22    181   67.6 norm    dome       2
+19       2 male     22    181   67.6 foam    open       2
+20       2 male     22    181   67.6 foam    open       2</code></pre>
 </div>
 </div>
 <section id="creating-binary-response" class="level3">
 <h3 class="anchored" data-anchor-id="creating-binary-response">Creating Binary Response</h3>
-<p>The raw CTSIB variable contains balance test results. We create a binary response where 1 = completely stable (most favorable outcome), and 0 = any other result (borderline or abnormal).</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
+<p>We convert the ordinal CTSIB outcome into a binary variable indicating “stable” (when <code>CTSIB == 1</code>) vs.&nbsp;“not stable” balance.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ctsib_tbl <span class="ot">&lt;-</span> ctsib_tbl <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stable =</span> (CTSIB <span class="sc">==</span> <span class="dv">1</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ctsib_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 480 × 9
+   Subject Sex     Age Height Weight Surface Vision CTSIB stable
+     &lt;int&gt; &lt;fct&gt; &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;fct&gt;   &lt;fct&gt;  &lt;int&gt; &lt;lgl&gt; 
+ 1       1 male     22    176   68.2 norm    open       1 TRUE  
+ 2       1 male     22    176   68.2 norm    open       1 TRUE  
+ 3       1 male     22    176   68.2 norm    closed     2 FALSE 
+ 4       1 male     22    176   68.2 norm    closed     2 FALSE 
+ 5       1 male     22    176   68.2 norm    dome       1 TRUE  
+ 6       1 male     22    176   68.2 norm    dome       2 FALSE 
+ 7       1 male     22    176   68.2 foam    open       2 FALSE 
+ 8       1 male     22    176   68.2 foam    open       2 FALSE 
+ 9       1 male     22    176   68.2 foam    closed     2 FALSE 
+10       1 male     22    176   68.2 foam    closed     2 FALSE 
+# ℹ 470 more rows</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="fitting-the-model-with-geegee" class="level2">
+<h2 class="anchored" data-anchor-id="fitting-the-model-with-geegee">Fitting the Model with <code>gee::gee()</code></h2>
+<p>We fit a model using the generalised estimating equations assuming <strong>exchangeable correlation structure</strong> among repeated measurements within each subject.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Note
+<span class="screen-reader-only">Important</span>SELF TEST: What is the Exchangeable Correlation Structure?
 </div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p><strong>Binary recoding convention</strong>: We recode the ordinal CTSIB outcome into a binary indicator for “stable” balance. This is a common simplification in practice when the primary interest is in the best outcome vs.&nbsp;all others.</p>
+<p>The exchangeable correlation structure assumes that any pair of observations within the same cluster (subject) has the same correlation.</p>
+</div>
 </div>
 </div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ctsib<span class="sc">$</span>stable <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(ctsib<span class="sc">$</span>CTSIB <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
-</section>
-</section>
-<section id="gee-with-exchangeable-correlation" class="level2">
-<h2 class="anchored" data-anchor-id="gee-with-exchangeable-correlation">GEE with Exchangeable Correlation</h2>
-<p>We fit a GEE model assuming <strong>exchangeable correlation structure</strong> among repeated measurements within each subject. This assumes all pairs of measurements on the same subject have the same correlation, regardless of their temporal distance.</p>
-<section id="fixed-scale-estimation" class="level3">
-<h3 class="anchored" data-anchor-id="fixed-scale-estimation">Fixed Scale Estimation</h3>
-<p>First, fit GEE with scale fixed at 1 (Pearson moment estimation of scale):</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>gg <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    stable <span class="sc">~</span> Sex <span class="sc">+</span> Age <span class="sc">+</span> Height <span class="sc">+</span> Weight <span class="sc">+</span> Surface <span class="sc">+</span> Vision,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> Subject,</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ctsib,</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"exchangeable"</span>,</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale.fix =</span> <span class="cn">TRUE</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>gg <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  stable <span class="sc">~</span> Sex <span class="sc">+</span> Age <span class="sc">+</span> Height <span class="sc">+</span> Weight <span class="sc">+</span> Surface <span class="sc">+</span> Vision,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> Subject,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ctsib_tbl,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale.fix =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
@@ -366,7 +403,7 @@ Note
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>gg<span class="sc">$</span>coefficients</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(gg)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept)     Sexmale         Age      Height      Weight Surfacenorm 
@@ -376,7 +413,7 @@ Note
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(gg)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(gg)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -390,8 +427,8 @@ Model:
 
 Call:
 gee(formula = stable ~ Sex + Age + Height + Weight + Surface + 
-    Vision, id = Subject, data = ctsib, family = binomial, corstr = "exchangeable", 
-    scale.fix = TRUE)
+    Vision, id = Subject, data = ctsib_tbl, family = binomial, 
+    corstr = "exchangeable", scale.fix = TRUE)
 
 Summary of Residuals:
          Min           1Q       Median           3Q          Max 
@@ -441,37 +478,44 @@ Working Correlation
 [12,] 0.2138948 0.2138948 0.2138948 0.2138948 1.0000000</code></pre>
 </div>
 </div>
-<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>SELF TEST: What does <code>scale.fix = TRUE</code> mean?
+<span class="screen-reader-only">Note</span>Revision on <code>gee::gee()</code> syntax
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>When <code>scale.fix = TRUE</code>, the scale parameter (dispersion) is fixed at 1, and standard errors are computed using the standard Pearson moment estimator without adjustment. This is appropriate for binomial models where the theoretical variance is fully specified. When <code>scale.fix = FALSE</code>, the scale parameter is estimated from the data, which can better account for overdispersion if the data violates Bernoulli assumptions.</p>
+<ul>
+<li><code>stable ~ Sex + Age + Height + Weight + Surface + Vision</code>: a main effects model, with <code>stable</code> as the response.</li>
+<li><code>id = Subject</code>: identifies the subject-level clusters for repeated measures.</li>
+<li><code>data = ctsib_tbl</code>: the data frame used to evaluate the variables in the formula.</li>
+<li><code>family = binomial</code>: a binomial mean-variance model for the binary response.</li>
+<li><code>corstr = "exchangeable"</code>: assumes a common within-subject correlation for all repeated observations.</li>
+<li><code>scale.fix = TRUE</code>: fixes the scale parameter fixed to 1.</li>
+</ul>
 </div>
 </div>
 </div>
-</section>
+<p><strong>DENNIS: you finished the demonstration of this script here last year</strong></p>
 <section id="empirical-scale-estimation" class="level3">
 <h3 class="anchored" data-anchor-id="empirical-scale-estimation">Empirical Scale Estimation</h3>
-<p>Now let’s try the alternative: estimating scale from the data. Faraway didn’t demonstrate this, but it’s instructive to compare:</p>
+<p>Alternatively, we can also estimate the scale from the data (which <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span> does not do).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>gg_scale <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    stable <span class="sc">~</span> Sex <span class="sc">+</span> Age <span class="sc">+</span> Height <span class="sc">+</span> Weight <span class="sc">+</span> Surface <span class="sc">+</span> Vision,</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> Subject,</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> binomial,</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> ctsib,</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">corstr =</span> <span class="st">"exchangeable"</span>,</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale.fix =</span> <span class="cn">FALSE</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>gg_scale <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  stable <span class="sc">~</span> Sex <span class="sc">+</span> Age <span class="sc">+</span> Height <span class="sc">+</span> Weight <span class="sc">+</span> Surface <span class="sc">+</span> Vision,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> Subject,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ctsib_tbl,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale.fix =</span> <span class="cn">FALSE</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
@@ -487,128 +531,309 @@ Working Correlation
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>gg_scale<span class="sc">$</span>coefficients</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>(Intercept)     Sexmale         Age      Height      Weight Surfacenorm 
- 8.60287367  1.64107984 -0.01184236 -0.10202012  0.04365469  3.91725411 
- Visiondome  Visionopen 
- 0.35896088  3.18012592 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>gg_scale<span class="sc">$</span>scale</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>gg_scale<span class="sc">$</span>scale</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.7438231</code></pre>
 </div>
 </div>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
+<p>We can compare the coefficient estimates from the fixed scale vs.&nbsp;empirical scale models:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>coef_compare <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(gg)),</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">fixed_scale =</span> <span class="fu">coef</span>(gg),</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">empirical_scale =</span> <span class="fu">coef</span>(gg_scale),</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>coef_compare</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 3
+  term        fixed_scale empirical_scale
+  &lt;chr&gt;             &lt;dbl&gt;           &lt;dbl&gt;
+1 (Intercept)      8.60            8.60  
+2 Sexmale          1.64            1.64  
+3 Age             -0.0118         -0.0118
+4 Height          -0.102          -0.102 
+5 Weight           0.0437          0.0437
+6 Surfacenorm      3.92            3.92  
+7 Visiondome       0.359           0.359 
+8 Visionopen       3.18            3.18  </code></pre>
+</div>
+</div>
+<p>The coefficient estimates are actually identical.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Tip
+<span class="screen-reader-only">Note</span>Alternative: geepack Package
 </div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p><strong>Comparing fixed vs.&nbsp;empirical scale</strong>: - The fixed scale model (<code>scale.fix = TRUE</code>) assumes the Bernoulli variance structure is correct. - The empirical scale model (<code>scale.fix = FALSE</code>) estimates a scale parameter that can adjust for over- or under-dispersion. - Compare the estimated <code>scale</code> value to 1: a value &gt; 1 suggests overdispersion (positive correlation within clusters); &lt; 1 suggests underdispersion.</p>
+<p>The <strong>geepack</strong> package provides an alternative implementation of GEE with some methodological differences. This is the same package used in <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span>. The code is provided here without commentary.</p>
+<section id="fitting-with-geepack-fixed-scale" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-with-geepack-fixed-scale">Fitting with geepack (Fixed Scale)</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geepack)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>modgeep <span class="ot">&lt;-</span> <span class="fu">geeglm</span>(</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  stable <span class="sc">~</span> Sex <span class="sc">+</span> Age <span class="sc">+</span> Height <span class="sc">+</span> Weight <span class="sc">+</span> Surface <span class="sc">+</span> Vision,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> Subject,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale.fix =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ctsib_tbl,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(modgeep)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)     Sexmale         Age      Height      Weight Surfacenorm 
+ 8.62332261  1.64487784 -0.01205120 -0.10210508  0.04365101  3.91631510 
+ Visiondome  Visionopen 
+ 0.35888245  3.17990085 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(modgeep)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+geeglm(formula = stable ~ Sex + Age + Height + Weight + Surface + 
+    Vision, family = binomial, data = ctsib_tbl, id = Subject, 
+    corstr = "exchangeable", scale.fix = TRUE)
+
+ Coefficients:
+            Estimate  Std.err   Wald Pr(&gt;|W|)    
+(Intercept)  8.62332  5.91992  2.122   0.1452    
+Sexmale      1.64488  0.90347  3.315   0.0687 .  
+Age         -0.01205  0.04802  0.063   0.8019    
+Height      -0.10211  0.04239  5.801   0.0160 *  
+Weight       0.04365  0.03399  1.649   0.1991    
+Surfacenorm  3.91632  0.56682 47.738 4.87e-12 ***
+Visiondome   0.35888  0.40403  0.789   0.3744    
+Visionopen   3.17990  0.46063 47.657 5.08e-12 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation structure = exchangeable 
+Scale is fixed.
+
+  Link = identity 
+
+Estimated Correlation Parameters:
+      Estimate Std.err
+alpha   0.2185 0.04467
+Number of clusters:   40  Maximum cluster size: 12 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(modgeep)<span class="sc">$</span>scale.value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>NULL</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(modgeep)<span class="sc">$</span>dispersion</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std.err
+(Intercept)   0.7262       0</code></pre>
 </div>
 </div>
-<div class="callout callout-style-default callout-important callout-titled">
+</section>
+<section id="fitting-with-geepack-empirical-scale" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-with-geepack-empirical-scale">Fitting with geepack (Empirical Scale)</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>modgeep_scale <span class="ot">&lt;-</span> <span class="fu">geeglm</span>(</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  stable <span class="sc">~</span> Sex <span class="sc">+</span> Age <span class="sc">+</span> Height <span class="sc">+</span> Weight <span class="sc">+</span> Surface <span class="sc">+</span> Vision,</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> Subject,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span>,</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale.fix =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ctsib_tbl,</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(modgeep_scale)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)     Sexmale         Age      Height      Weight Surfacenorm 
+    8.61677     1.64358    -0.01198    -0.10208     0.04365     3.91664 
+ Visiondome  Visionopen 
+    0.35891     3.17998 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(modgeep_scale)<span class="sc">$</span>scale.value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>NULL</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(modgeep_scale)<span class="sc">$</span>dispersion</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std.err
+(Intercept)   0.7315  0.6742</code></pre>
+</div>
+</div>
+</section>
+<section id="final-comparison-all-four-models" class="level3">
+<h3 class="anchored" data-anchor-id="final-comparison-all-four-models">Final Comparison: All Four Models</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>all_terms <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">unique</span>(<span class="fu">c</span>(</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(<span class="fu">coef</span>(gg)),</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(<span class="fu">coef</span>(gg_scale)),</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(<span class="fu">coef</span>(modgeep)),</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(<span class="fu">coef</span>(modgeep_scale))</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>)))</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>coef_compare_all <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">term =</span> all_terms,</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">gee_fixed =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(gg)[all_terms]),</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">gee_empirical =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(gg_scale)[all_terms]),</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">geepack_fixed =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(modgeep)[all_terms]),</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">geepack_empirical =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(modgeep_scale)[all_terms])</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>coef_compare_all</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 5
+  term        gee_fixed gee_empirical geepack_fixed geepack_empirical
+  &lt;chr&gt;           &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;             &lt;dbl&gt;
+1 (Intercept)    8.60          8.60          8.62              8.62  
+2 Age           -0.0118       -0.0118       -0.0121           -0.0120
+3 Height        -0.102        -0.102        -0.102            -0.102 
+4 Sexmale        1.64          1.64          1.64              1.64  
+5 Surfacenorm    3.92          3.92          3.92              3.92  
+6 Visiondome     0.359         0.359         0.359             0.359 
+7 Visionopen     3.18          3.18          3.18              3.18  
+8 Weight         0.0437        0.0437        0.0437            0.0437</code></pre>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="package-citations-and-session-information" class="level2">
+<h2 class="anchored" data-anchor-id="package-citations-and-session-information">Package Citations and Session Information</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>SELF TEST: When would you prefer empirical scale estimation?
+<span class="screen-reader-only">Tip</span>Session Information
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Use empirical scale estimation (<code>scale.fix = FALSE</code>) when you suspect the data may exhibit overdispersion beyond the theoretical binomial variance, perhaps due to unmeasured subject-level heterogeneity or strong within-subject correlation. This makes your inference more robust if the exchangeable correlation assumption is violated.</p>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="alternative-geepack-package" class="level2">
-<h2 class="anchored" data-anchor-id="alternative-geepack-package">Alternative: geepack Package</h2>
-<p>The <strong>geepack</strong> package provides an alternative implementation of GEE with some methodological differences. Importantly, its estimate of dispersion is <strong>NOT</strong> based on the standard Pearson residual method-of-moments estimator. See the original paper by Yan and Fine (2010) for technical details.</p>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>SELF TEST: Why compare different GEE packages?
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>Different software implementations may use different estimators for the dispersion/scale parameter. Comparing results across implementations helps verify results and understand when methodological choices matter. The <code>gee</code> package uses Pearson moment estimation; <code>geepack</code> uses an alternative. Both are valid; differences reveal sensitivity to the scale estimation method.</p>
-</div>
-</div>
-</div>
-<section id="fitting-with-geepack-fixed-scale" class="level3">
-<h3 class="anchored" data-anchor-id="fitting-with-geepack-fixed-scale">Fitting with geepack (Fixed Scale)</h3>
-<p>Uncomment and run to compare with the primary <code>gee</code> package results:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep &lt;- geeglm(</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   stable ~ Sex + Age + Height + Weight + Surface + Vision,</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   id = Subject,</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   corstr = "exchangeable",</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale.fix = TRUE,</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   data = ctsib,</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   family = binomial</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep$coefficients</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep)</span></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep)$scale.value</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep)$dispersion</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-apple-darwin20
+Running under: macOS Sequoia 15.7.5
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Australia/Melbourne
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+other attached packages:
+[1] geepack_1.3.13   gee_4.13-29      faraway_1.0.9    dplyr_1.2.0     
+[5] conflicted_1.2.0
+
+loaded via a namespace (and not attached):
+ [1] Matrix_1.7-1      jsonlite_2.0.0    compiler_4.4.2    renv_1.1.7       
+ [5] tidyselect_1.2.1  Rcpp_1.1.1        tidyr_1.3.2       splines_4.4.2    
+ [9] boot_1.3-31       yaml_2.3.12       fastmap_1.2.0     lattice_0.22-6   
+[13] R6_2.6.1          generics_0.1.4    knitr_1.51        backports_1.5.0  
+[17] rbibutils_2.4.1   MASS_7.3-61       tibble_3.3.1      nloptr_2.2.1     
+[21] minqa_1.2.8       pillar_1.11.1     rlang_1.1.7       utf8_1.2.6       
+[25] broom_1.0.12      cachem_1.1.0      xfun_0.56         memoise_2.0.1    
+[29] cli_3.6.5         magrittr_2.0.4    Rdpack_2.6.5      digest_0.6.39    
+[33] grid_4.4.2        rstudioapi_0.18.0 lme4_1.1-38       lifecycle_1.0.5  
+[37] nlme_3.1-166      reformulas_0.4.4  vctrs_0.7.1       evaluate_1.0.5   
+[41] glue_1.8.0        purrr_1.2.1       rmarkdown_2.30    tools_4.4.2      
+[45] pkgconfig_2.0.3   htmltools_0.5.9  </code></pre>
 </div>
-</section>
-<section id="fitting-with-geepack-empirical-scale" class="level3">
-<h3 class="anchored" data-anchor-id="fitting-with-geepack-empirical-scale">Fitting with geepack (Empirical Scale)</h3>
-<p>And the empirical scale version:</p>
-<div class="cell">
-<details open="" class="code-fold">
+</div>
+</div>
+</div>
+</div>
+<details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep.scale &lt;- geeglm(</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   stable ~ Sex + Age + Height + Weight + Surface + Vision,</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   id = Subject,</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   corstr = "exchangeable",</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   scale.fix = FALSE,</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   data = ctsib,</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   family = binomial</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co"># modgeep.scale$coefficients</span></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(modgeep.scale)$dispersion</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"dplyr"</span>, <span class="st">"faraway"</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<ul>
+<li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
+<li><p><strong>gee</strong>: Carey VJ (2024). <em>gee: Generalized Estimation Equation Solver</em>. R package version 4.13-29.</p></li>
+<li><p><strong>geepack</strong>:</p>
+<ul>
+<li><p>Halekoh U, Højsgaard S, Yan J (2006). “The R Package geepack for Generalized Estimating Equations.” <em>Journal of Statistical Software</em>, <em>15/2</em>, 1-11.</p></li>
+<li><p>Yan J, Fine JP (2004). “Estimating Equations for Association Structures.” <em>Statistics in Medicine</em>, <em>23</em>, 859-880.</p></li>
+<li><p>Yan J (2002). “geepack: Yet Another Package for Generalized Estimating Equations.” <em>R-News</em>, <em>2/3</em>, 12-14.</p></li>
+<li><p>Xu, Z., Fine, P. J, Song, W., Yan, J. (2025). “On GEE for mean-variance-correlation models: Variance estimation and model selection.” <em>Statistics in Medicine</em>, <em>44</em>, 1-2.</p></li>
+</ul></li>
+<li><p><strong>dplyr</strong>: Wickham H, François R, Henry L, Müller K, Vaughan D (2026). <em>dplyr: A Grammar of Data Manipulation</em>. R package version 1.2.0, https://github.com/tidyverse/dplyr, <a href="https://dplyr.tidyverse.org" class="uri">https://dplyr.tidyverse.org</a>.</p></li>
+<li><p><strong>faraway</strong>: Faraway J (2025). <em>faraway: Datasets and Functions for Books by Julian Faraway</em>. R package version 1.0.9, <a href="https://github.com/julianfaraway/faraway" class="uri">https://github.com/julianfaraway/faraway</a>.</p></li>
+</ul>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-faraway_extending_2016" class="csl-entry" role="listitem">
+Faraway, Julian J. 2016. <em>Extending the Linear Model with r : Generalized Linear, Mixed Effects and Nonparametric Regression Models, Second Edition</em>. Second edition. Chapman &amp; Hall/<span>CRC</span> Texts in Statistical Science Series. Chapman; Hall/<span>CRC</span>. <a href="https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53">https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53</a>.
 </div>
-</section>
-</section>
-<section id="key-learning-points" class="level2">
-<h2 class="anchored" data-anchor-id="key-learning-points">Key Learning Points</h2>
-<ol type="1">
-<li><p><strong>GEE for repeated measures</strong>: GEE provides population-average estimates for clustered/repeated measurements, differing from GLMM’s subject-specific approach.</p></li>
-<li><p><strong>Exchangeable correlation</strong>: Assumes constant correlation between any two measurements on the same subject.</p></li>
-<li><p><strong>Scale parameter</strong>: Controls for overdispersion; compare <code>scale = 1</code> (fixed) vs.&nbsp;estimated values to assess whether variance assumptions hold.</p></li>
-<li><p><strong>Software comparisons</strong>: Different implementations (gee vs.&nbsp;geepack) use different scale estimators; comparing them provides robustness checks.</p></li>
-<li><p><strong>Working correlation vs.&nbsp;true correlation</strong>: GEE is semi-parametric; results are consistent even if the working correlation structure is misspecified, though efficiency may suffer.</p></li>
-</ol>
-
-
-</section>
-
-</main> <!-- /main -->
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
