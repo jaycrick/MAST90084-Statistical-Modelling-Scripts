@@ -43,7 +43,7 @@ library(VGAM)
 This data is the same as the data we examined in [the first script](01-ANODEV.qmd), but now we distinguish between the two infection types `Inf1` and `Inf2` instead of just a binary `Inf` variable.
 We import the ready made dataset.
 
-We do this using a basic multinomial logit model with no infection as the reference category.
+We analyze this using a basic multinomial logit model with no infection as the reference category.
 
 ::: {.callout-important collapse="true"}
 ## What is the Model Specification: Expand for Answer
@@ -112,7 +112,7 @@ caesar_clean
 
 To fit the a multinomial log-linear model we use the `nnet::multinom()` function from the `nnet` package.
 The `nnet` package is written by the authors of and well documented in @venables_modern_2002.
-To see more information about the `nnet::multinom()` function, you can [refer to the documentation](https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html) by running `?multinom` in your R environment.
+To see more information about the `nnet::multinom()` function, you can [refer to the documentation](https://search.r-project.org/CRAN/refmans/nnet/html/multinom.html){target="_blank"} by running `?multinom` in your R environment.
 It is especially useful to check the arguments controlling optimisation (`maxit`, `trace`, `Hess`) when reproducing textbook results.
 
 ::: {.callout-note collapse="true"}
@@ -166,7 +166,7 @@ caes_nnet_dev
 
 Looking at the documentation of the `nnet::multinom()` function by running `?multinom`, we see that the deviance reported by `nnet::multinom()` is $-2 \times \text{log-likelihood}$ and has **not been adjusted** by the saturated model (or the scale parameter).
 This differs from deviance in `stats::glm()` and our usual deviance.
-Always check the documentation for how deviance is calculated.
+**Always check the documentation for how a package's definition of "deviance" is calculated**.
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -184,14 +184,14 @@ attributes(caes_nnet)
 :::
 
 ::: {.callout-note collapse="true"}
-## Fit with `glmnet` Package
+## Fit with `glmnet` Package (Non-examinable)
 
 This section is not examinable, but just for fun.
 `glmnet` is written by Jerome Friedman and Trevor Hastie, and is a popular package for regularized regression (that is, Lasso and Ridge regression).
 The codebase is in Fortran, and is very fast.
 
 We can use `glmnet` to fit the same multinomial model by setting `lambda = 0` (giving no weight to the regularisation step) to get the unregularized estimates.
-If you look up `?glmnet`, pay attention to what they said about symmetric multinomial model which has a different parametrization; [see the section on "Multinomial Regression" in their vignette](https://glmnet.stanford.edu/articles/glmnet.html#multinomial-regression-family-multinomial) for the precise form of this parametrization.
+If you look up `?glmnet`, pay attention to what they said about symmetric multinomial model which has a different parametrization; [see the section on "Multinomial Regression" in their vignette](https://glmnet.stanford.edu/articles/glmnet.html#multinomial-regression-family-multinomial){target="_blank"} for the precise form of this parametrization.
 Because of a different parametrization, the returned fitted coefficients won't be same as `nnet::multinom()`.
 
 ```{r}
@@ -272,7 +272,7 @@ round(t(coef(caes_nnet_prepared)), 3)
 
 This again matches the textbook.
 
-We can also check the deviance of this fit, which should be the same as before since it's the same model.
+We can also check the "deviance" of this fit, which should be the same as before since it's the same model.
 
 ```{r}
 #| label: compare-deviance-multinom-fits
@@ -314,7 +314,6 @@ caes_nnet_prop - fitted(caes_nnet)
 ```
 
 Given a new observation, we can either predict the most likely category (with `type = "class"`) or the probabilities for each category (with `type = "probs"`).
-Checking `?predict.multinom` is recommended here, because these two `type` options return different output scales and structures.
 
 ```{r}
 #| label: predict-new-case
@@ -346,7 +345,7 @@ The exact reason for this discrepancy is not clear.
 The `VGAM` package will be used a lot more later in the course, because it fits a wide variety of multivariate response regression models.
 It is not as fast as `glmnet` or `nnet` for large datasets, because it uses the Fisher scoring algorithm (like the book).
 
-It is good practice to [read the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html) for the `VGAM::vglm()` function with `?vglm` to understand the arguments and output structure.
+It is good practice to [read the documentation](https://search.r-project.org/CRAN/refmans/VGAM/html/vglm.html){target="_blank"} for the `VGAM::vglm()` function with `?vglm` to understand the arguments and output structure.
 Also check `?multinomial`, especially `refLevel` and `parallel`, since these choices directly affect model interpretation.
 
 We use the raw data `caes_dat` extracted from the CSV file.
@@ -386,16 +385,17 @@ Therefore the log-likelihood from `nnet` can be computed as:
 -caes_nnet_dev / 2
 ```
 
-This is significantly different from the log-likelihood reported by `VGAM::vglm()` for the same data and model.
+This is significantly different from the log-likelihood `-20.8871` reported by `VGAM::vglm()` for the same data and model.
 This is because different packages treat grouped vs. ungrouped multinomial data differently.
-See [Appendix A2](A2-likelihood-multinomial.qmd) for a detailed explanation of how this arises and why you must be careful when comparing results across packages.
+See [Appendix A2](A2-likelihood-multinomial.qmd){target="_blank"} for a detailed explanation of how this arises and why you must be careful when comparing results across packages.
 :::
 
-Extracting the coefficients from the `vglm` fit we see they also those in @fahrmeir_multivariate_2001 p. 75, and the fitted probabilities match those from `nnet::multinom()`.
+Extracting the coefficients and the fitted probabilities from the `vglm` fit, we see they also those in @fahrmeir_multivariate_2001 p. 75.
+They match those from `nnet::multinom()` up to numerical differences, likely due to the difference in fitting algorithms used under the hood.
 
 ```{r}
 #| label: coef-and-fitted-vgam
-round(coef(caes_vgam, matrix.out = TRUE), 3)
+ coef(caes_vgam, matrix.out = TRUE) 
 
 fitted(caes_vgam)
 ```
