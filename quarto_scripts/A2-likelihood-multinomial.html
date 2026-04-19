@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dennis Leung">
-<meta name="dcterms.date" content="2026-04-15">
+<meta name="dcterms.date" content="2026-04-19">
 
 <title>Likelihood for Grouped and Ungrouped Multinomial Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -272,7 +272,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 15, 2026</p>
+      <p class="date">April 19, 2026</p>
     </div>
   </div>
   
@@ -288,7 +288,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
 <p>Let <span class="math display">\[
 \mathbf{y}_i = (y_{i1}, \dots, y_{ik}), \qquad i = 1, \dots, n
-\]</span> be i.i.d random <span class="math inline">\(k\)</span>-vectors distributed as <span class="math display">\[
+\]</span> be i.i.d. random <span class="math inline">\(k\)</span>-vectors distributed as <span class="math display">\[
 \mathbf{y}_i \sim \operatorname{Multinom}(1, \boldsymbol{\pi}).
 \]</span> That is, each <span class="math inline">\(\mathbf{y}_i\)</span> is a multinomial distributed random vector of 1 trial with class probability <span class="math inline">\(k\)</span>-vector <span class="math display">\[
 \boldsymbol{\pi} = ({\pi}_1, \dots, {\pi}_k).
@@ -300,25 +300,25 @@ L_{\text{u}}(\boldsymbol{\pi}) = \prod_{i=1}^{n} {\pi}_1^{y_{i1}} \cdots {\pi}_k
 \]</span> with log-likelihood: <span id="eq-ungrouped"><span class="math display">\[
 \ell_{\text{u}}(\boldsymbol{\pi}) = \sum_{j=1}^{k} \log({\pi}_j) \sum_{i=1}^{n} y_{ij}
 \tag{1}\]</span></span></p></li>
-<li><p>Grouped View Alternatively, we can group the <span class="math inline">\(\mathbf{y}_i\)</span>’s as: <span class="math display">\[
-\mathbf{x} = \sum_{i=1}^{n} \mathbf{y}_i
+<li><p>Grouped View: Alternatively, since they are i.i.d., we can group all the <span class="math inline">\(\mathbf{y}_i\)</span>’s as: <span class="math display">\[
+\tilde{\mathbf{y}} = \sum_{i=1}^{n} \mathbf{y}_i
 \]</span> so <span class="math display">\[
-\mathbf{x} = (x_1, \ldots, x_k)
-= \biggl(\sum_i y_{i1}, \ldots, \sum_i y_{ik}\biggr)
+\tilde{\mathbf{y}} = ( \tilde{y}_1, \ldots, \tilde{y}_k)
+= \biggl(\sum_{i=1}^n y_{i1}, \ldots, \sum_{i=1}^n y_{ik}\biggr)
 \sim \operatorname{Multinom}(n, \boldsymbol{\pi}),
-\]</span> and treat <span class="math inline">\(\mathbf{x}\)</span> as our raw data. In this view, the likelihood is: <span class="math display">\[
-L_{\text{g}}(\boldsymbol{\pi}) = \frac{n!}{x_1! \cdots x_k!} {\pi}_1^{x_1} \cdots {\pi}_k^{x_k}
+\]</span> and treat <span class="math inline">\(\tilde{\mathbf{y}}\)</span> as our raw data. In this view, the likelihood is: <span class="math display">\[
+L_{\text{g}}(\boldsymbol{\pi}) = \frac{n!}{\tilde{y}_1! \cdots \tilde{y}_k!} {\pi}_1^{\tilde{y}_1} \cdots {\pi}_k^{\tilde{y}_k}
 \]</span> with log-likelihood: <span id="eq-grouped"><span class="math display">\[
 \ell_{\text{g}}(\boldsymbol{\pi})
 = {
-\log \biggl(\frac{n!}{x_1! \cdots x_k!} \biggr)
+\log \biggl(\frac{n!}{\tilde{y}_1! \cdots \tilde{y}_k!} \biggr)
 + \sum_{j=1}^{k} \log({\pi}_j)\sum_{i=1}^{n} y_{ij}
 }
 \tag{2}\]</span></span></p></li>
 </ol>
 <p>Comparing log-likelihood equations (<a href="#eq-ungrouped" class="quarto-xref">1</a>) and (<a href="#eq-grouped" class="quarto-xref">2</a>), we see that the grouped and ungrouped log-likelihoods differ by:</p>
 <p><span class="math display">\[
-\log\biggl(\frac{n!}{x_1! \cdots x_k!}\biggr)
+\log \biggl(\frac{n!}{\tilde{y}_1! \cdots \tilde{y}_k!} \biggr)
 \]</span></p>
 <p>This term adjusts for the different permutations that can give rise to the same grouped multinomial data.</p>
 </section>
@@ -367,7 +367,7 @@ dbl (7): size, noInf, Inf1, Inf2, NoPlan, Antib, RiskF
 </div>
 <section id="using-nnetmultinom" class="level3">
 <h3 class="anchored" data-anchor-id="using-nnetmultinom">Using nnet::multinom()</h3>
-<p>When we fit a multinomial model using <code>nnet::multinom()</code>, treating the data as ungrouped:</p>
+<p>When we fit a multinomial model using <code>nnet::multinom()</code>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -396,7 +396,7 @@ converged</code></pre>
 </section>
 <section id="using-vgamvglm" class="level3">
 <h3 class="anchored" data-anchor-id="using-vgamvglm">Using VGAM::vglm()</h3>
-<p>When we fit using <code>VGAM::vglm()</code> with the data in grouped format:</p>
+<p>When we fit using <code>VGAM::vglm()</code>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -416,9 +416,9 @@ converged</code></pre>
 </section>
 <section id="explanation" class="level3">
 <h3 class="anchored" data-anchor-id="explanation">Explanation</h3>
-<p>To understand the difference, we compute the sum of the “permutation factors” <span class="math display">\[
-\log\biggl(\frac{n!}{x_1! \cdots x_k!}\biggr)
-\]</span> in (<a href="#eq-grouped" class="quarto-xref">2</a>) for the seven covariate groups:</p>
+<p>To understand the difference, we compute the “permutation factor” <span class="math display">\[
+\log \biggl(\frac{n!}{\tilde{y}_1! \cdots \tilde{y}_k!} \biggr)
+\]</span> in (<a href="#eq-grouped" class="quarto-xref">2</a>) for each of the seven covariate groups, and sum them:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
