@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-04-15">
+<meta name="dcterms.date" content="2026-04-20">
 
 <title>Ordinal Regression: Breathing Test Results. – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -299,7 +299,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 15, 2026</p>
+      <p class="date">April 20, 2026</p>
     </div>
   </div>
   
@@ -324,7 +324,7 @@ window.Quarto = {
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>We load the BTR dataset. It contains breathing test results normal, borderline, and abnormal (which we can consider ordered categories), and considered the effects of the covariates age and smoking status.</p>
+<p>We load the BTR dataset. It contains breathing test results with 3 levels: normal, borderline, and abnormal (which we can consider as ordered). We want to analyze the effects of the covariates age and smoking status.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -343,7 +343,7 @@ dbl (1): Freq
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
 </div>
-<p>If we just read_csv() as it is, we can see that the variables <code>BTR</code>, <code>Age</code>, and <code>Smoking</code> are all read as characters. This is not what we want, and we will use the <code>col_types</code> argument to specify that we want them as factors.</p>
+<p>As it is, we can see that the variables <code>BTR</code>, <code>Age</code>, and <code>Smoking</code> are all read as characters. This is not what we want, and we will use the <code>col_types</code> argument to specify that we want them as factors.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -383,7 +383,7 @@ dbl (1): Freq
 18 3Abnorm 40to59 3Current    27</code></pre>
 </div>
 </div>
-<p>We can see that <code>BTR</code>, <code>Age</code>, and <code>Smoking</code> are all factors now. We check if the breathing test result (<code>BTR</code>) is encoded as an ordered factor, and if not, we convert it to an ordered factor.</p>
+<p><code>BTR</code>, <code>Age</code>, and <code>Smoking</code> are all factors now. We next check if the breathing test result (<code>BTR</code>) is encoded as an ordered factor, and if not, we convert it to an ordered factor:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -428,7 +428,7 @@ Levels: 1Normal &lt; 2Border &lt; 3Abnorm</code></pre>
 "contr.treatment"      "contr.poly" </code></pre>
 </div>
 </div>
-<p><code>"contr.treatment"</code> corresponds to dummy coding for unordered factors. For ordered factors, the default is <code>"contr.poly"</code> (orthogonal polynomials). We consider <code>Age</code> and <code>Smoking</code> as unordered factors, and we will use dummy coding.</p>
+<p><code>"contr.treatment"</code> corresponds to dummy coding for unordered factors. For ordered factors, the default is <code>"contr.poly"</code> (orthogonal polynomials); we won’t cover polynomial contrasts in this subject but refer to p.33 of <span class="citation" data-cites="chambers_hastie_sms_1992">Chambers and Hastie (<a href="#ref-chambers_hastie_sms_1992" role="doc-biblioref">1992</a>)</span> for more details. We consider <code>Age</code> and <code>Smoking</code> as unordered factors, and we will use dummy coding.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -470,8 +470,8 @@ Note
 </section>
 <section id="model-fitting-proportional-odds-models" class="level2">
 <h2 class="anchored" data-anchor-id="model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</h2>
-<p>The <code>MASS::polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html">Looking at the documentation</a> using <code>?polr</code>, particularly how <span class="math inline">\(\eta\)</span> is defined therein; the signs of beta coefficients in <code>MASS::polr()</code> is <strong>opposite</strong> to the corresponding coefficients in the textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>)’s formula.</p>
-<p>We first fit a cumulative logistic/proportional odds model with an intercept, age, smoking. We also include an interaction effect between age and smoking.</p>
+<p>The <code>MASS::polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html" target="_blank">Looking at the documentation</a> using <code>?polr</code>, particularly how <span class="math inline">\(\eta\)</span> is defined therein; the signs of beta coefficients in <code>MASS::polr()</code> is <strong>opposite</strong> to the corresponding coefficients in the textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>)’s formula.</p>
+<p>We first fit a cumulative logistic (proportional odds) model with an intercept, age, smoking. We also include an interaction effect between age and smoking.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -655,7 +655,7 @@ Residual Deviance: 1589.744
 AIC: 1599.744 </code></pre>
 </div>
 </div>
-<p>Again the signs of the coefficients are the opposite to our model.</p>
+<p>Again the signs of the covariate coefficients are the opposite to our model.</p>
 <p>Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
@@ -714,7 +714,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The LR statistic in the <code>anova()</code> output is the difference between the deviances of the two models. Each residual deviance reported is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for that model.</p>
+<p>The LR statistic in the <code>anova()</code> output is the difference between the deviances of the two models. Each residual deviance reported is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for that model (more on this to follow).</p>
 </div>
 </div>
 </section>
@@ -1534,6 +1534,9 @@ loaded via a namespace (and not attached):
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-agresti_cda_2013" class="csl-entry" role="listitem">
 Agresti, Alan. 2013. <em>Categorical Data Analysis</em>. Third. Wiley Series in Probability and Statistics. Wiley-Interscience [John Wiley &amp; Sons], Hoboken, NJ.
+</div>
+<div id="ref-chambers_hastie_sms_1992" class="csl-entry" role="listitem">
+Chambers, John M., and Trevor J. Hastie. 1992. <em>Statistical Models in s</em>. Wadsworth &amp; Brooks/Cole.
 </div>
 <div id="ref-fahrmeir_multivariate_2001" class="csl-entry" role="listitem">
 Fahrmeir, Ludwig, and Gerhard Tutz. 2001. <em>Multivariate Statistical Modelling Based on Generalized Linear Models</em>. Second Edition. Springer Series in Statistics. Springer. <a href="https://doi.org/10.1007/978-1-4757-3454-6">https://doi.org/10.1007/978-1-4757-3454-6</a>.
