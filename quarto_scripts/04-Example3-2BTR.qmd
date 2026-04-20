@@ -21,7 +21,8 @@ library(tidyr)
 ```
 
 We load the BTR dataset.
-It contains breathing test results normal, borderline, and abnormal (which we can consider ordered categories), and considered the effects of the covariates age and smoking status.
+It contains breathing test results with 3 levels: normal, borderline, and abnormal (which we can consider as ordered).
+We want to analyze the effects of the covariates age and smoking status.
 
 ```{r}
 #| label: load-btr
@@ -30,7 +31,7 @@ btr_dat <- read_csv(
 )
 ```
 
-If we just read_csv() as it is, we can see that the variables `BTR`, `Age`, and `Smoking` are all read as characters.
+As it is, we can see that the variables `BTR`, `Age`, and `Smoking` are all read as characters.
 This is not what we want, and we will use the `col_types` argument to specify that we want them as factors.
 
 ```{r}
@@ -48,8 +49,8 @@ btr_dat <- read_csv(
 btr_dat
 ```
 
-We can see that `BTR`, `Age`, and `Smoking` are all factors now.
-We check if the breathing test result (`BTR`) is encoded as an ordered factor, and if not, we convert it to an ordered factor.
+`BTR`, `Age`, and `Smoking` are all factors now.
+We next check if the breathing test result (`BTR`) is encoded as an ordered factor, and if not, we convert it to an ordered factor:
 
 ```{r}
 #| label: order-btr
@@ -75,7 +76,7 @@ getOption("contrasts")
 ```
 
 `"contr.treatment"` corresponds to dummy coding for unordered factors.
-For ordered factors, the default is `"contr.poly"` (orthogonal polynomials).
+For ordered factors, the default is `"contr.poly"` (orthogonal polynomials); we won't cover polynomial contrasts in this subject but refer to p.33 of @chambers_hastie_sms_1992 for more details.
 We consider `Age` and `Smoking` as unordered factors, and we will use dummy coding.
 
 ```{r}
@@ -94,9 +95,9 @@ The default reference categories are `never-smoked` for `Smoking`, and the `<40`
 ## Model Fitting: Proportional Odds Models
 
 The `MASS::polr()` function fits cumulative logit (and other) models.
-[Looking at the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html) using `?polr`, particularly how $\eta$ is defined therein; the signs of beta coefficients in `MASS::polr()` is **opposite** to the corresponding coefficients in the textbook (@fahrmeir_multivariate_2001)'s formula.
+[Looking at the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html){target="_blank"} using `?polr`, particularly how $\eta$ is defined therein; the signs of beta coefficients in `MASS::polr()` is **opposite** to the corresponding coefficients in the textbook (@fahrmeir_multivariate_2001)'s formula.
 
-We first fit a cumulative logistic/proportional odds model with an intercept, age, smoking.
+We first fit a cumulative logistic (proportional odds) model with an intercept, age, smoking.
 We also include an interaction effect between age and smoking.
 
 ```{r}
@@ -187,7 +188,7 @@ btr_logit_main <- polr(
 summary(btr_logit_main)
 ```
 
-Again the signs of the coefficients are the opposite to our model.
+Again the signs of the covariate coefficients are the opposite to our model.
 
 Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.
 
@@ -212,7 +213,7 @@ We reject the null hypothesis that there is no interaction, at all reasonable si
 
 ::: callout-note
 The LR statistic in the `anova()` output is the difference between the deviances of the two models.
-Each residual deviance reported is $-2 \times \log(\text{likelihood})$ for that model.
+Each residual deviance reported is $-2 \times \log(\text{likelihood})$ for that model (more on this to follow).
 :::
 
 ## Alternative Link Functions
