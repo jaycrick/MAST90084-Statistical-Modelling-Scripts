@@ -632,7 +632,8 @@ wald_lower <- coeff_est + qnorm(0.025) * sqrt(diag(vcov(btr_logit_inter_eff)))
 tibble(wald_lower, wald_upper)
 ```
 
-These *Wald* confidence intervals are different from those computed by `confint()`; in particular, they don't give symmetric CIs around the parameter estimates.
+These *Wald* confidence intervals are different from those computed by `confint()`; in particular, the Wald ones are symmetric around the parameter estimates, but those by `confint()` aren't.
+
 This is because the `confint()` function uses the *profile likelihood* confidence intervals contructed by inverting the likelihood ratio tests, which is more suitable for some non-linear regression problems.
 See @agresti_cda_2013 section 1.3.4 for constructing CIs by inverting tests, and also @agresti_cda_2013 section 3.2.6 for constructing profile likelihood confidence intervals.
 
