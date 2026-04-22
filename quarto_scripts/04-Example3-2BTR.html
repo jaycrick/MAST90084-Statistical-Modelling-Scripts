@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-04-20">
+<meta name="dcterms.date" content="2026-04-22">
 
 <title>Ordinal Regression: Breathing Test Results. – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -258,7 +258,7 @@ window.Quarto = {
   <li><a href="#data-loading-and-setup" id="toc-data-loading-and-setup" class="nav-link active" data-scroll-target="#data-loading-and-setup">Data Loading and Setup</a></li>
   <li><a href="#model-fitting-proportional-odds-models" id="toc-model-fitting-proportional-odds-models" class="nav-link" data-scroll-target="#model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</a>
   <ul class="collapse">
-  <li><a href="#fit-model-without-interaction" id="toc-fit-model-without-interaction" class="nav-link" data-scroll-target="#fit-model-without-interaction">Fit Model without Interaction</a></li>
+  <li><a href="#fit-model-without-interaction-main-effects-only" id="toc-fit-model-without-interaction-main-effects-only" class="nav-link" data-scroll-target="#fit-model-without-interaction-main-effects-only">Fit Model without Interaction (Main Effects Only)</a></li>
   </ul></li>
   <li><a href="#alternative-link-functions" id="toc-alternative-link-functions" class="nav-link" data-scroll-target="#alternative-link-functions">Alternative Link Functions</a>
   <ul class="collapse">
@@ -299,7 +299,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 20, 2026</p>
+      <p class="date">April 22, 2026</p>
     </div>
   </div>
   
@@ -470,7 +470,7 @@ Note
 </section>
 <section id="model-fitting-proportional-odds-models" class="level2">
 <h2 class="anchored" data-anchor-id="model-fitting-proportional-odds-models">Model Fitting: Proportional Odds Models</h2>
-<p>The <code>MASS::polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html" target="_blank">Looking at the documentation</a> using <code>?polr</code>, particularly how <span class="math inline">\(\eta\)</span> is defined therein; the signs of beta coefficients in <code>MASS::polr()</code> is <strong>opposite</strong> to the corresponding coefficients in the textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>)’s formula.</p>
+<p>The <code>MASS::polr()</code> function fits cumulative logit (and other) models. <a href="https://search.r-project.org/CRAN/refmans/MASS/html/polr.html" target="_blank">Looking at the documentation</a> using <code>?polr</code>, particularly how the linear predictor <span class="math inline">\(\eta\)</span> is defined therein; the signs of beta coefficients in <code>MASS::polr()</code> is <strong>opposite</strong> to the corresponding coefficients in the textbook (<span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>)’s formula.</p>
 <p>We first fit a cumulative logistic (proportional odds) model with an intercept, age, smoking. We also include an interaction effect between age and smoking.</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -540,14 +540,34 @@ AIC: 1578.968 </code></pre>
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>SELF TEST: Provided that a worker is less than 40 years of age, what is his/her (cumulative) odds of having a normal test result if s/he is a current smoker, compared to if s/he has never smoked?
+<span class="screen-reader-only">Important</span>SELF TEST: Provided that a worker is in the 40–59 age group, what is his/her (cumulative) odds of having a normal test result if s/he is former smoker, compared to if s/he has never smoked?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Given that a worker is less than 40 years of age, the cumulative odds of having a normal test result for a current smoker is <span class="math inline">\(\exp(-0.6973)= 0.5\)</span> times that for a person who has never smoked.</p>
-<p>If smoking has no association with the breathing test results, then we would expect this cumulative odds ratio to be 1.</p>
+<p>The fitted model has cumulative logit link of the form <span class="math display">\[\begin{multline*}
+\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}&gt;\texttt{Normal})} = \theta_1
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} +\\
+\gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current}
+\end{multline*}\]</span> and <span class="math display">\[\begin{multline*}
+\log\frac{P(\texttt{BTR} \leq \texttt{Borderline})}{P(\texttt{BTR}&gt;\texttt{Borderline})} = \theta_2
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} +\\
+\gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current},
+\end{multline*}\]</span> where the MLE of the parameters are</p>
+<p><span class="math display">\[
+\hat{\theta}_1=2.8334,  
+\hat{\theta}_2=4.3078,
+\hat{\gamma}_1=0.8857,  
+\hat{\gamma}_2=-0.6973 ,
+\hat{\gamma}_3=-0.3472 ,
+\hat{\gamma}_4=-1.1458 ,
+\hat{\gamma}_5=-2.2007.
+\]</span></p>
+<p>Given that a worker is in the 40–59 age group, the cumulative odds of having a normal test result for a former smoker is <span class="math inline">\(\exp(-0.6973 - 1.1458)= 0.158\)</span> times that for a person who has never smoked.</p>
+<p>As it is a “proportional odds” model, the same is true for the cumulative odds of having “<span class="math inline">\(\leq\)</span> Borderline” testing result.</p>
 </div>
 </div>
 </div>
@@ -619,8 +639,8 @@ AIC: 1578.968 </code></pre>
 </div>
 </div>
 <p>We see that they line up.</p>
-<section id="fit-model-without-interaction" class="level3">
-<h3 class="anchored" data-anchor-id="fit-model-without-interaction">Fit Model without Interaction</h3>
+<section id="fit-model-without-interaction-main-effects-only" class="level3">
+<h3 class="anchored" data-anchor-id="fit-model-without-interaction-main-effects-only">Fit Model without Interaction (Main Effects Only)</h3>
 <p>We fit a main-effects-only model without interaction.</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -655,8 +675,7 @@ Residual Deviance: 1589.744
 AIC: 1599.744 </code></pre>
 </div>
 </div>
-<p>Again the signs of the covariate coefficients are the opposite to our model.</p>
-<p>Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.</p>
+<p>Again the signs of the covariate coefficients are the opposite to our model defined in lectures. Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -728,10 +747,9 @@ Note
 <li><strong>cloglog</strong>: complementary log-log (grouped Cox/proportional hazards)</li>
 <li><strong>loglog</strong>: extreme maximal-value distribution.</li>
 </ul>
-<p>See Figure 3.1 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> for some good diagrams demonstrating the shapes of these link functions.</p>
+<p>As discussed in lecture, these can be motivated by the so-called “threshold approach” where the response is a categorized version of an underlying latent continuous variables. Figure 3.1 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> displays the shapes of the error densities of the latent variable with respect to these models .</p>
 <section id="grouped-cox-proportional-hazards-complementary-log-log-link" class="level3">
 <h3 class="anchored" data-anchor-id="grouped-cox-proportional-hazards-complementary-log-log-link">Grouped Cox / Proportional Hazards (Complementary Log-Log Link)</h3>
-<p>We run a grouped Cox model with the complementary log-log link function.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -770,7 +788,6 @@ AIC: 1573.949 </code></pre>
 </section>
 <section id="extreme-maximal-value-distribution" class="level3">
 <h3 class="anchored" data-anchor-id="extreme-maximal-value-distribution">Extreme Maximal-Value Distribution</h3>
-<p>This model is just a reparameterisation of the proportional hazard model.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -810,7 +827,7 @@ AIC: 1580.335 </code></pre>
 </section>
 <section id="matching-our-results-to-fahrmeir_multivariate_2001-example-3.4" class="level2">
 <h2 class="anchored" data-anchor-id="matching-our-results-to-fahrmeir_multivariate_2001-example-3.4">Matching our Results to <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 3.4</h2>
-<p>By default, R uses dummy coding. To match to the results in the textbook, we need to use effect coding. We switch the global contrast option and refit.</p>
+<p>By default, R uses dummy coding. To match to the numerical results in Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Example 3.4, we need to use effect coding. We switch the global contrast option and refit.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -835,7 +852,7 @@ AIC: 1580.335 </code></pre>
 40to59   -1</code></pre>
 </div>
 </div>
-<p>We now have the final categories coded as -1, as also done in the textbook. Therefore we refit both models:</p>
+<p>We now have the last categories coded as -1, as also done in the textbook. Refitting both models:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -904,8 +921,7 @@ Residual Deviance: 1589.744
 AIC: 1599.744 </code></pre>
 </div>
 </div>
-<p>The values reported in the summaries now match the textbook (excluding rounding errors).</p>
-<p>In addition, we can redo the likelihood ratio test with the new models to confirm we get the same result.</p>
+<p>The values reported in the summaries now match the textbook (up to rounding errors and sign change of the covariate coefficients). In addition, we can redo the likelihood ratio test with the new models to confirm we get the same result.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -923,13 +939,13 @@ Response: BTR
 2 4.168618e-06</code></pre>
 </div>
 </div>
-<p>As expected, the likelihood ratio test results are the same as before.</p>
+<p>As expected, the likelihood ratio test results are the same as before, because using effect coding, as opposed to dummy coding, amounts only to a reparametrization of the model.</p>
 </section>
 <section id="saturated-model-and-deviance-calculation" class="level2">
 <h2 class="anchored" data-anchor-id="saturated-model-and-deviance-calculation">Saturated Model and Deviance Calculation</h2>
-<p>In each of the regressed model summaries, there is a value “Residual Deviance” reported. We need to be careful to understand what this exactly means, because as we have previously seen, this can be highly package dependent.</p>
+<p>In each of the regressed model summaries, there is a value “Residual Deviance” reported. We need to be careful about what this exactly means; as usual, this can be highly package dependent.</p>
 <p>The <code>deviance</code> component (reported as “residual deviance” by the <code>summary()</code> function) contained in a <code>polr</code> object is <span class="math inline">\(-2 \times \log(\text{likelihood})\)</span> for the fitted model. We can manually compute the (scaled) deviance as defined in class , i.e.&nbsp;twice the difference between the maximum log-likelihoods of the saturated model and the GLM.</p>
-<p>We first compute the maximum log-likelihood of the saturated model. We create a matrix with each row corresponding to a unique covariate combination, and each column counting the frequency of each response per category for that covariate combination.</p>
+<p>We aim to compute the maximum log-likelihood of the saturated model. We first create a matrix with each row corresponding to a unique covariate combination, with three columns counting the frequencies of each response category for that covariate combination. This can be accomplished elegantly by the function <code>pivot_wider()</code> in the <code>tidyr</code> package.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -986,7 +1002,7 @@ Response: BTR
 [6,] 0.7680251 0.14733542 0.08463950</code></pre>
 </div>
 </div>
-<p>This is the also the matrix of maximum likelihood estimates for the saturated model. We can manually calculate the maximum log-likelihood of the saturated model using the multinomial distribution by first calculating the log-likelihood for each cell, (treating <span class="math inline">\(0 \log(0) := 0\)</span>, as one of the cells in <code>data_mat</code> is a zero entry), and summing over all cells to get the total log-likelihood for the saturated model.</p>
+<p>This is the also the matrix of maximum likelihood estimates under the saturated model (<strong>Why?</strong>). We can manually calculate the maximum log-likelihood of the saturated model using the multinomial distribution by first calculating the log-likelihood for each cell, (treating <span class="math inline">\(0 \log(0) := 0\)</span>, as one of the cells in <code>data_mat</code> is a zero entry), and summing over all cells to get the total log-likelihood for the saturated model.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1025,13 +1041,13 @@ Response: BTR
 </div>
 <div id="callout-7" class="callout-7-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>The above computation is under the ungrouped view of the multinomial data as in <a href="../quarto_scripts/A2-likelihood-multinomial.html">Appendix A2</a>. The log-likelihood is then: <span class="math display">\[
+<p>The above computation is under the ungrouped view of the multinomial data as in <a href="../quarto_scripts/A2-likelihood-multinomial.html" target="_blank">Appendix A2</a>. The log-likelihood is then: <span class="math display">\[
 \sum_{i = 1}^6 \sum_{j = 1}^3 \Bigl(\log(p_{ij}) \tilde{y}_{ij} \Bigr),
 \]</span> where <span class="math inline">\(\tilde{y}_{ij}\)</span> (the entries in <code>data_mat</code>) is the count of workers in response category <span class="math inline">\(j\)</span> (one of “Normal”, “Border” or “Abnormal”) within covariate group <span class="math inline">\(i\)</span> (defined by “Age” and “Smoking”), and we treat <span class="math inline">\(0 \log(0) = 0\)</span>.</p>
 </div>
 </div>
 </div>
-<p>We can recover the deviance reported in Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> by computing twice the difference between the reported <code>deviance</code> of the fitted model and the log-likelihood of the saturated model just manually computed.</p>
+<p>We can recover the deviance reported in Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> by computing twice the difference between the reported <code>deviance</code> of the fitted model and the log-likelihood of the saturated model (just manually computed).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1042,7 +1058,7 @@ Response: BTR
 <pre><code>[1] 8.146686</code></pre>
 </div>
 </div>
-<p>This confirms that the so called <code>deviance</code> component of a <code>polr</code> object is actually just twice the negative of the log-likelihood of the fitted model. This is very different from what we usually consider the deviance.</p>
+<p>This confirms that the so called <code>deviance</code> component of a <code>polr</code> object is actually just twice the negative of the log-likelihood of the fitted model (under the ungrouped view in <a href="../quarto_scripts/A2-likelihood-multinomial.html" target="_blank">Appendix A2</a>). This is very different from what we usually consider the deviance.</p>
 <section id="returning-the-deviance-for-alternative-link-functions" class="level3">
 <h3 class="anchored" data-anchor-id="returning-the-deviance-for-alternative-link-functions">Returning the Deviance for Alternative Link Functions</h3>
 <p>We also fit the models with complementary log-log and loglog link functions using effect coding, then summarize results in a comparison table similar to Table 3.3 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>, p.90:</p>
@@ -1439,7 +1455,7 @@ Age1:Smoking2 -0.305  0.257</code></pre>
 7     3.53       4.16  </code></pre>
 </div>
 </div>
-<p>These values are different from the confidence intervals computed by <code>confint()</code>; in particular, they don’t give symmetric CIs around the parameter estimates. This is because the <code>confint()</code> function uses the profile likelihood confidence intervals contructed by inverting the likelihood ratio tests, which is more suitable for some non-linear regression problems. See <span class="citation" data-cites="agresti_cda_2013">Agresti (<a href="#ref-agresti_cda_2013" role="doc-biblioref">2013</a>)</span>, sections 1.3.4 for constructing CIs by inverting tests and 3.2.6 for constructing profile likelihood confidence intervals.</p>
+<p>These values are different from the confidence intervals computed by <code>confint()</code>; in particular, they don’t give symmetric CIs around the parameter estimates. This is because the <code>confint()</code> function uses the profile likelihood confidence intervals contructed by inverting the likelihood ratio tests, which is more suitable for some non-linear regression problems. See <span class="citation" data-cites="agresti_cda_2013">Agresti (<a href="#ref-agresti_cda_2013" role="doc-biblioref">2013</a>)</span> section 1.3.4 for constructing CIs by inverting tests, and also <span class="citation" data-cites="agresti_cda_2013">Agresti (<a href="#ref-agresti_cda_2013" role="doc-biblioref">2013</a>)</span> section 3.2.6 for constructing profile likelihood confidence intervals.</p>
 <p>Run <code>profile(btr_logit_inter_eff)</code> and see <span class="citation" data-cites="venables_modern_2002">Venables and Ripley (<a href="#ref-venables_modern_2002" role="doc-biblioref">2002</a>)</span>, p.&nbsp;220 for more details on the <code>profile()</code> function.</p>
 </section>
 </section>
