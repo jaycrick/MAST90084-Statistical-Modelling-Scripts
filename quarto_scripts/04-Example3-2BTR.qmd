@@ -95,7 +95,7 @@ The default reference categories are `never-smoked` for `Smoking`, and the `<40`
 ## Model Fitting: Proportional Odds Models
 
 The `MASS::polr()` function fits cumulative logit (and other) models.
-[Looking at the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html){target="_blank"} using `?polr`, particularly how $\eta$ is defined therein; the signs of beta coefficients in `MASS::polr()` is **opposite** to the corresponding coefficients in the textbook (@fahrmeir_multivariate_2001)'s formula.
+[Looking at the documentation](https://search.r-project.org/CRAN/refmans/MASS/html/polr.html){target="_blank"} using `?polr`, particularly how the linear predictor $\eta$ is defined therein; the signs of beta coefficients in `MASS::polr()` is **opposite** to the corresponding coefficients in the textbook (@fahrmeir_multivariate_2001)'s formula.
 
 We first fit a cumulative logistic (proportional odds) model with an intercept, age, smoking.
 We also include an interaction effect between age and smoking.
@@ -130,11 +130,33 @@ summary(btr_logit_inter)
 ```
 
 ::: {.callout-important collapse="true"}
-## SELF TEST: Provided that a worker is less than 40 years of age, what is his/her (cumulative) odds of having a normal test result if s/he is a current smoker, compared to if s/he has never smoked?
+## SELF TEST: Provided that a worker is in the 40–59 age group, what is his/her (cumulative) odds of having a normal test result if s/he is former smoker, compared to if s/he has never smoked?
 
-Given that a worker is less than 40 years of age, the cumulative odds of having a normal test result for a current smoker is $\exp(-0.6973)= 0.5$ times that for a person who has never smoked.
+The fitted model has cumulative logit link of the form \begin{multline*}
+\log\frac{P(\texttt{BTR}=\texttt{Normal})}{P(\texttt{BTR}>\texttt{Normal})} = \theta_1
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} +\\
+\gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current}
+\end{multline*} and \begin{multline*}
+\log\frac{P(\texttt{BTR} \leq \texttt{Borderline})}{P(\texttt{BTR}>\texttt{Borderline})} = \theta_2
++ \gamma_1\texttt{Age40to59}+\gamma_2\texttt{Smoking2Former}+\gamma_3\texttt{Smoking3Current} +\\
+\gamma_4\texttt{Age40to59}\cdot \texttt{Smoking2Former}
++ \gamma_5\texttt{Age40to59}\cdot \texttt{Smoking3Current},
+\end{multline*} where the MLE of the parameters are
 
-If smoking has no association with the breathing test results, then we would expect this cumulative odds ratio to be 1.
+$$
+\hat{\theta}_1=2.8334,  
+\hat{\theta}_2=4.3078,
+\hat{\gamma}_1=0.8857,  
+\hat{\gamma}_2=-0.6973 , 
+\hat{\gamma}_3=-0.3472 ,
+\hat{\gamma}_4=-1.1458 ,
+\hat{\gamma}_5=-2.2007.
+$$
+
+Given that a worker is in the 40–59 age group, the cumulative odds of having a normal test result for a former smoker is $\exp(-0.6973 - 1.1458)= 0.158$ times that for a person who has never smoked.
+
+As it is a "proportional odds" model, the same is true for the cumulative odds of having "$\leq$ Borderline" testing result.
 :::
 
 There is no residual readily available, but we can observe the linear predictor $\eta$ **as defined in the documentation page for the `MASS::polr()` function without the intercept**.
@@ -171,7 +193,7 @@ tibble(
 
 We see that they line up.
 
-### Fit Model without Interaction
+### Fit Model without Interaction (Main Effects Only)
 
 We fit a main-effects-only model without interaction.
 
@@ -188,8 +210,7 @@ btr_logit_main <- polr(
 summary(btr_logit_main)
 ```
 
-Again the signs of the covariate coefficients are the opposite to our model.
-
+Again the signs of the covariate coefficients are the opposite to our model defined in lectures.
 Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.
 
 ::: {.callout-important collapse="true"}
@@ -226,11 +247,10 @@ The `MASS::polr()` function supports:
 -   **cloglog**: complementary log-log (grouped Cox/proportional hazards)
 -   **loglog**: extreme maximal-value distribution.
 
-See Figure 3.1 of @fahrmeir_multivariate_2001 for some good diagrams demonstrating the shapes of these link functions.
+As discussed in lecture, these can be motivated by the so-called "threshold approach" where the response is a categorized version of an underlying latent continuous variables.
+Figure 3.1 of @fahrmeir_multivariate_2001 displays the shapes of the error densities of the latent variable with respect to these models .
 
 ### Grouped Cox / Proportional Hazards (Complementary Log-Log Link)
-
-We run a grouped Cox model with the complementary log-log link function.
 
 ```{r}
 #| label: fit-cloglog-int
@@ -246,8 +266,6 @@ summary(btr_ph)
 ```
 
 ### Extreme Maximal-Value Distribution
-
-This model is just a reparameterisation of the proportional hazard model.
 
 ```{r}
 #| label: fit-loglog-int
@@ -265,7 +283,7 @@ summary(btr_extm)
 ## Matching our Results to @fahrmeir_multivariate_2001 Example 3.4
 
 By default, R uses dummy coding.
-To match to the results in the textbook, we need to use effect coding.
+To match to the numerical results in Table 3.3 of @fahrmeir_multivariate_2001 Example 3.4, we need to use effect coding.
 We switch the global contrast option and refit.
 
 ```{r}
@@ -277,8 +295,8 @@ contrasts(btr_dat$Smoking)
 contrasts(btr_dat$Age)
 ```
 
-We now have the final categories coded as -1, as also done in the textbook.
-Therefore we refit both models:
+We now have the last categories coded as -1, as also done in the textbook.
+Refitting both models:
 
 ```{r}
 #| label: fit-logit-eff
@@ -304,8 +322,7 @@ btr_logit_main_eff_summary <- summary(btr_logit_main_eff)
 btr_logit_main_eff_summary
 ```
 
-The values reported in the summaries now match the textbook (excluding rounding errors).
-
+The values reported in the summaries now match the textbook (up to rounding errors and sign change of the covariate coefficients).
 In addition, we can redo the likelihood ratio test with the new models to confirm we get the same result.
 
 ```{r}
@@ -313,18 +330,19 @@ In addition, we can redo the likelihood ratio test with the new models to confir
 anova(btr_logit_inter_eff, btr_logit_main_eff)
 ```
 
-As expected, the likelihood ratio test results are the same as before.
+As expected, the likelihood ratio test results are the same as before, because using effect coding, as opposed to dummy coding, amounts only to a reparametrization of the model.
 
 ## Saturated Model and Deviance Calculation
 
 In each of the regressed model summaries, there is a value "Residual Deviance" reported.
-We need to be careful to understand what this exactly means, because as we have previously seen, this can be highly package dependent.
+We need to be careful about what this exactly means; as usual, this can be highly package dependent.
 
 The `deviance` component (reported as "residual deviance" by the `summary()` function) contained in a `polr` object is $-2 \times \log(\text{likelihood})$ for the fitted model.
 We can manually compute the (scaled) deviance as defined in class , i.e. twice the difference between the maximum log-likelihoods of the saturated model and the GLM.
 
-We first compute the maximum log-likelihood of the saturated model.
-We create a matrix with each row corresponding to a unique covariate combination, and each column counting the frequency of each response per category for that covariate combination.
+We aim to compute the maximum log-likelihood of the saturated model.
+We first create a matrix with each row corresponding to a unique covariate combination, with three columns counting the frequencies of each response category for that covariate combination.
+This can be accomplished elegantly by the function `pivot_wider()` in the `tidyr` package.
 
 ```{r}
 #| label: make-count-matrix
@@ -350,7 +368,7 @@ probs <- data_mat / rowSums(data_mat)
 probs
 ```
 
-This is the also the matrix of maximum likelihood estimates for the saturated model.
+This is the also the matrix of maximum likelihood estimates under the saturated model (**Why?**).
 We can manually calculate the maximum log-likelihood of the saturated model using the multinomial distribution by first calculating the log-likelihood for each cell, (treating $0 \log(0) := 0$, as one of the cells in `data_mat` is a zero entry), and summing over all cells to get the total log-likelihood for the saturated model.
 
 ```{r}
@@ -368,13 +386,13 @@ loglike_saturated
 ::: {.callout-note collapse="true"}
 ## SELF TEST: Explain Why We Compute the Saturated Log-Likelihood with this Sum
 
-The above computation is under the ungrouped view of the multinomial data as in [Appendix A2](A2-likelihood-multinomial.qmd).
+The above computation is under the ungrouped view of the multinomial data as in [Appendix A2](A2-likelihood-multinomial.qmd){target="_blank"}.
 The log-likelihood is then: $$
 \sum_{i = 1}^6 \sum_{j = 1}^3 \Bigl(\log(p_{ij}) \tilde{y}_{ij} \Bigr),
 $$ where $\tilde{y}_{ij}$ (the entries in `data_mat`) is the count of workers in response category $j$ (one of "Normal", "Border" or "Abnormal") within covariate group $i$ (defined by "Age" and "Smoking"), and we treat $0 \log(0) = 0$.
 :::
 
-We can recover the deviance reported in Table 3.3 of @fahrmeir_multivariate_2001 by computing twice the difference between the reported `deviance` of the fitted model and the log-likelihood of the saturated model just manually computed.
+We can recover the deviance reported in Table 3.3 of @fahrmeir_multivariate_2001 by computing twice the difference between the reported `deviance` of the fitted model and the log-likelihood of the saturated model (just manually computed).
 
 ```{r}
 #| label: residual-dev-logit
@@ -382,7 +400,7 @@ residual_dev_logit <- 2 * loglike_saturated + deviance(btr_logit_inter_eff)
 residual_dev_logit
 ```
 
-This confirms that the so called `deviance` component of a `polr` object is actually just twice the negative of the log-likelihood of the fitted model.
+This confirms that the so called `deviance` component of a `polr` object is actually just twice the negative of the log-likelihood of the fitted model (under the ungrouped view in [Appendix A2](A2-likelihood-multinomial.qmd){target="_blank"}).
 This is very different from what we usually consider the deviance.
 
 ### Returning the Deviance for Alternative Link Functions
@@ -616,7 +634,7 @@ tibble(wald_lower, wald_upper)
 
 These values are different from the confidence intervals computed by `confint()`; in particular, they don't give symmetric CIs around the parameter estimates.
 This is because the `confint()` function uses the profile likelihood confidence intervals contructed by inverting the likelihood ratio tests, which is more suitable for some non-linear regression problems.
-See @agresti_cda_2013, sections 1.3.4 for constructing CIs by inverting tests and 3.2.6 for constructing profile likelihood confidence intervals.
+See @agresti_cda_2013 section 1.3.4 for constructing CIs by inverting tests, and also @agresti_cda_2013 section 3.2.6 for constructing profile likelihood confidence intervals.
 
 Run `profile(btr_logit_inter_eff)` and see @venables_modern_2002, p. 220 for more details on the `profile()` function.
 
