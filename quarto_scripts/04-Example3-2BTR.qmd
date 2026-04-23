@@ -211,7 +211,7 @@ summary(btr_logit_main)
 ```
 
 Again the signs of the covariate coefficients are the opposite to our model defined in lectures.
-Since the interaction model is nested within the main effects model, we can compare them with a likelihood ratio test.
+Since the main effects model is nested within the interaction model, we can compare them with a likelihood ratio test.
 
 ::: {.callout-important collapse="true"}
 ## SELF TEST: How Many Degrees of Freedom will the Likelihood Ratio Test have?
