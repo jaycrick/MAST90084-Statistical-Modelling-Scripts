@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-04-15">
+<meta name="dcterms.date" content="2026-04-30">
 
 <title>Multinomial Logistic Regression: Caesarian Dataset Analysis – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -284,7 +284,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 15, 2026</p>
+      <p class="date">April 30, 2026</p>
     </div>
   </div>
   
@@ -729,7 +729,7 @@ RiskF   1.829  2.195</code></pre>
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Alternative Using <code>Fahrmeir</code> Package Data
+<span class="screen-reader-only">Note</span>Alternative <code>multinom</code> fit Using <code>Fahrmeir</code> Package Data
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -1121,7 +1121,7 @@ RiskF                 2.029896           2.029896</code></pre>
 </div>
 <div id="callout-14" class="callout-14-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>We can try running the <code>VGAM::vglm()</code> function on the original <code>caesar</code> data <a href="#alternative-original-fahrmeir-data">we manipulated earlier</a> from the <code>Fahrmeir</code> package. We don’t fit the parallel model here.</p>
+<p>We can try running the <code>VGAM::vglm()</code> function on the long-format <code>caesar_prepared</code> we manipulated earlier from the original <code>caesar</code> data from the <code>Fahrmeir</code> package. We don’t fit the parallel model here.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1228,7 +1228,7 @@ Number of Fisher scoring iterations: 5
 Reference group is level  1  of the response</code></pre>
 </div>
 </div>
-<p>We can compare the coefficients from this fit to the earlier <code>vglm</code> fit on the wide-format data.</p>
+<p>We can compare the coefficients from this fit to the earlier <code>vglm</code> fit <code>caes_vgam</code> based on the wide-format data.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1277,7 +1277,8 @@ $loglikelihood
 [1] -160.9371</code></pre>
 </div>
 </div>
-<p>We can see that the deviance and log-likelihoods are different between the fits. The deviance of <code>caes_vgam</code> matches that of in the book, however the deviance of <code>caes_vgam2</code> is just two times the negative log-likelihood of the fitted model.</p>
+<p>We can see that the deviance and log-likelihoods are different between the two <code>vglm()</code> fits. The deviance of <code>caes_vgam</code> matches that of in the book, however the deviance of <code>caes_vgam2</code> is just two times the negative log-likelihood of the fitted model.</p>
+<p>This obscure behavior is unlike the two <code>multinom</code> fits <code>caes_nnet</code> and <code>caes_nnet_prepared</code> respectively based on wide and long data, where both give a deviance of 321.8743.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
