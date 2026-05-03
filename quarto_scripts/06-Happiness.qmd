@@ -210,7 +210,7 @@ In contrast, the book treats each school intercept as it's own absolute level (s
 
 ### Recovering Coefficients
 
-Therefore to recover the original estimates, we add the intercepts to each pair of coefficients for the other schooling levels:
+Therefore to recover the absolute-level estimates in the last 6 rows of Table 3.11 in @fahrmeir_multivariate_2001, we add the intercepts to each pair of coefficients for the other schooling levels:
 
 ```{r}
 #| label: 06-happiness-chunk-11
@@ -263,7 +263,8 @@ happy_female <- dplyr::filter(happy, Sex == "Females")
 happy_male
 happy_female
 
-log_lik_saturated <- dmultinom(
+log_lik_saturated <- 
+  dmultinom(
   happy_male$n,
   prob = happy_male$n / sum(happy_male$n),
   log = TRUE

@@ -245,7 +245,7 @@ These also matches the coefficients from @fahrmeir_multivariate_2001 p. 75.
 :::
 
 ::: {.callout-note collapse="true"}
-## Alternative Using `Fahrmeir` Package Data
+## Alternative `multinom` fit Using `Fahrmeir` Package Data
 
 We can fit instead using the `caesar` data from the Fahrmeir package, setting preferred reference levels before modeling.
 
@@ -440,7 +440,7 @@ coefvlm(caes_vgam_parallel, matrix.out = TRUE)
 :::: {.callout-note collapse="true"}
 ## `VGAM` Using `Fahrmeir` Package Data
 
-We can try running the `VGAM::vglm()` function on the original `caesar` data [we manipulated earlier](#alternative-original-fahrmeir-data) from the `Fahrmeir` package.
+We can try running the `VGAM::vglm()` function on the long-format `caesar_prepared` we manipulated earlier from the original `caesar` data from the `Fahrmeir` package.
 We don't fit the parallel model here.
 
 ```{r}
@@ -479,7 +479,7 @@ caes_vgam2 <- vglm(
 summary(caes_vgam2)
 ```
 
-We can compare the coefficients from this fit to the earlier `vglm` fit on the wide-format data.
+We can compare the coefficients from this fit to the earlier `vglm` fit `caes_vgam` based on the wide-format data.
 
 ```{r}
 #| label: coefs-vgam2
@@ -495,8 +495,10 @@ caes_vgam@criterion
 caes_vgam2@criterion
 ```
 
-We can see that the deviance and log-likelihoods are different between the fits.
+We can see that the deviance and log-likelihoods are different between the two `vglm()` fits.
 The deviance of `caes_vgam` matches that of in the book, however the deviance of `caes_vgam2` is just two times the negative log-likelihood of the fitted model.
+
+This obscure behavior is unlike the two `multinom` fits `caes_nnet` and `caes_nnet_prepared` respectively based on wide and long data, where both give a deviance of 321.8743.
 
 ::: {.callout-tip collapse="true"}
 ## Why `@` Here Instead of `$`?
