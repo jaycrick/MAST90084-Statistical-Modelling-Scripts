@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-04-15">
+<meta name="dcterms.date" content="2026-05-06">
 
 <title>Marginal Models: Ohio Respiratory Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -267,7 +267,7 @@ window.Quarto = {
   <li><a href="#scale-parameter-and-pearson-based-check" id="toc-scale-parameter-and-pearson-based-check" class="nav-link" data-scroll-target="#scale-parameter-and-pearson-based-check">Scale Parameter and Pearson-Based Check</a></li>
   <li><a href="#naive-standard-errors-with-scale-fixed-at-1" id="toc-naive-standard-errors-with-scale-fixed-at-1" class="nav-link" data-scroll-target="#naive-standard-errors-with-scale-fixed-at-1">Naive Standard Errors with Scale Fixed at 1</a></li>
   <li><a href="#derived-parameter-coefficient-for-age-10" id="toc-derived-parameter-coefficient-for-age-10" class="nav-link" data-scroll-target="#derived-parameter-coefficient-for-age-10">Derived Parameter: Coefficient for Age = 10</a></li>
-  <li><a href="#table-6.9-main-effects-models-no-interaction" id="toc-table-6.9-main-effects-models-no-interaction" class="nav-link" data-scroll-target="#table-6.9-main-effects-models-no-interaction">Table 6.9: Main-Effects Models (No Interaction)</a>
+  <li><a href="#table-6.9-main-effects-only-models-no-interaction" id="toc-table-6.9-main-effects-only-models-no-interaction" class="nav-link" data-scroll-target="#table-6.9-main-effects-only-models-no-interaction">Table 6.9: Main-Effects-Only Models (No Interaction)</a>
   <ul class="collapse">
   <li><a href="#robust-variance-matrix-comparisons" id="toc-robust-variance-matrix-comparisons" class="nav-link" data-scroll-target="#robust-variance-matrix-comparisons">Robust Variance Matrix Comparisons</a></li>
   </ul></li>
@@ -292,7 +292,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 15, 2026</p>
+      <p class="date">May 6, 2026</p>
     </div>
   </div>
   
@@ -306,7 +306,7 @@ window.Quarto = {
 
 <section id="data-loading-and-setup" class="level2">
 <h2 class="anchored" data-anchor-id="data-loading-and-setup">Data Loading and Setup</h2>
-<p>In this example, we reproduce Example 6.4 from <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. The dataset is a study of the effect of maternal smoking status and age on respiratory infection in children. The children were examined yearly from ages 7 to 10.</p>
+<p>In this example, we reproduce Example 6.4 from p.&nbsp;271 of <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. The dataset is a study of the effect of maternal smoking status and age on respiratory infection in children. The children were examined yearly from ages 7 to 10.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -382,7 +382,7 @@ Note
 # ℹ 2,138 more rows</code></pre>
 </div>
 </div>
-<p>The age coding in the dataset is:</p>
+<p>The age coding in the dataset (from the <a href="https://www.rdocumentation.org/packages/geepack/versions/1.3.13/topics/ohio" target="_blank">documentation page</a>) is:</p>
 <ul>
 <li><span class="math inline">\(\texttt{age} = -2\)</span> corresponds to 7 years old</li>
 <li><span class="math inline">\(\texttt{age} = -1\)</span> corresponds to 8 years old</li>
@@ -447,7 +447,7 @@ Note
 1   -1</code></pre>
 </div>
 </div>
-<p>10 years old is already the reference level for the age factor, but we need to explicitly set the reference level for <code>smoke</code> to match the textbook’s.</p>
+<p>10 years old is already the reference level for the age factor, but we need to explicitly set the reference level for <code>smoke</code> to “non-smoking”, to match the textbook’s.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -483,7 +483,7 @@ Note
   \log \frac{P(\text{infection})}{P(\text{no infection})} &amp;= \beta_0 + \beta_\text{S} x_\text{S} + \beta_\text{Age7} x_\text{Age7} + \beta_\text{Age8} x_\text{Age8} + \beta_\text{Age9} x_\text{Age9}\\
   &amp;\quad + \beta_\text{S,Age7} x_\text{S} x_\text{Age7} + \beta_\text{S,Age8} x_\text{S} x_\text{Age8} + \beta_\text{S,Age9} x_\text{S} x_\text{Age9}
   \end{split}
-\end{equation}\]</span> where <span class="math inline">\(x_\text{S} = 1\)</span> if the mother smokes, and <span class="math inline">\(-1\)</span> otherwise. Likewise, <span class="math inline">\(x_{\text{Age}i} = 1\)</span> if the child is <span class="math inline">\(i\)</span> years old, and <span class="math inline">\(0\)</span> otherwise.</p>
+\end{equation}\]</span> where <span class="math inline">\(x_\text{S} = 1\)</span> if the mother smokes, and <span class="math inline">\(-1\)</span> otherwise. Likewise, <span class="math inline">\(x_{\text{Age}i} = 1\)</span> if the child is <span class="math inline">\(i\)</span> years old, and <span class="math inline">\(-1\)</span> otherwise.</p>
 <p>Let <span class="math inline">\(I_{jm}\)</span> be the indicator random variable for whether child <span class="math inline">\(j\)</span> is infected at age <span class="math inline">\(m\)</span>. For the independent working correlation, <span class="math display">\[\mathrm{corr}(I_{jm}, I_{jn}) = 0\]</span> for all <span class="math inline">\(m \neq n\)</span>. For the exchangeable working correlation, <span class="math display">\[\mathrm{corr}(I_{jm}, I_{jn}) = \alpha\]</span> for all <span class="math inline">\(m \neq n\)</span>. For the unstructured working correlation, <span class="math display">\[\mathrm{corr}(I_{jm}, I_{jn}) = \alpha_{mn}\]</span> for all <span class="math inline">\(m \neq n\)</span>.</p>
 </div>
 </div>
@@ -661,7 +661,6 @@ smoke1:age3    0.025      0.082   0.308       0.082    0.310</code></pre>
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Dennis: Without looking into this, I find this behaviour very weird</strong></p>
 <p>We can also extract the robust variance matrices under each working correlation structure.</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -764,7 +763,7 @@ smoke1:age2  1.309174e-17  1.214306e-16 -2.602085e-16 -8.760354e-17
 smoke1:age3 -1.791102e-16 -1.687019e-16 -8.760354e-17  1.084202e-16</code></pre>
 </div>
 </div>
-<p>In theory all the robust variance matrices should differ, but here, perhaps due to the nature of the data, they are very close to each other.</p>
+<p><strong>Weird behavior</strong>: In principle, all the robust variance matrices should differ numerically (although all are theoretically valid assuming the mean models are correctly specified). But here, perhaps due to the nature of the data, they are very close to each other. We haven’t found the exact reason for that yet.</p>
 </div>
 </div>
 </section>
@@ -871,10 +870,9 @@ smoke1:age2 smoke1:age3
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
 <span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">term =</span> <span class="fu">rownames</span>(coefs_indep),</span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">se_rescaled =</span> naive_se_scale_fix <span class="sc">*</span></span>
-<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(geefit_indep<span class="sc">$</span>scale),</span>
-<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">se_original =</span> coefs_indep[, <span class="st">"Naive S.E."</span>]</span>
-<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">se_rescaled =</span> naive_se_scale_fix <span class="sc">*</span> <span class="fu">sqrt</span>(geefit_indep<span class="sc">$</span>scale),</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">se_original =</span> coefs_indep[, <span class="st">"Naive S.E."</span>]</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 3
@@ -914,12 +912,9 @@ smoke1:age3    0.025      0.106   0.240       0.082    0.310</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>beta_age_10 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">sum</span>(coefs_indep[</span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>),</span>
-<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Estimate"</span></span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>])</span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>beta_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>beta_age_10 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">sum</span>(coefs_indep[<span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>),<span class="st">"Estimate"</span>])</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>beta_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -0.2827363</code></pre>
@@ -948,34 +943,18 @@ smoke1:age3    0.025      0.106   0.240       0.082    0.310</code></pre>
 </div>
 </div>
 </div>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>SELF TEST: How should we interpret a negative <span class="math inline">\(\beta_\text{Age10}\)</span>
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-7" class="callout-7-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>The probability of infection for a child who is age 10 is lower than the average probability across all age groups, when smoking status is fixed.</p>
-</div>
-</div>
-</div>
-<p><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> also reports a standard deviation for this coefficient, which we can also reproduce. The robust standard error for this linear combination is:</p>
+<!-- ::: {.callout-important collapse="true"} -->
+<!-- ## SELF TEST: How should we interpret a negative $\beta_\text{Age10}$ -->
+<!-- The probability of RI for a child who is age 10 is lower than the average probability across all age groups, when smoking status is fixed. -->
+<!-- ::: -->
+<p><span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> also reports a standard deviation for <span class="math inline">\(\hat{\beta}_\text{Age10} = - (\hat{\beta}_\text{Age7} + \hat{\beta}_\text{Age8} + \hat{\beta}_\text{Age9})\)</span>, which we can also reproduce; it can be computed using the usual “quadratic form” formula:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>age_coef_names <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"age1"</span>, <span class="st">"age2"</span>, <span class="st">"age3"</span>)</span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>age_robust_vcov <span class="ot">&lt;-</span> geefit_indep<span class="sc">$</span>robust.variance[</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  age_coef_names,</span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  age_coef_names</span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>age_robust_vcov <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>age_robust_vcov <span class="ot">&lt;-</span> geefit_indep<span class="sc">$</span>robust.variance[age_coef_names, age_coef_names]</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>age_robust_vcov <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>        age1    age2    age3
@@ -998,21 +977,32 @@ age3 -0.0028 -0.0012  0.0067</code></pre>
 [1,] 0.09411951</code></pre>
 </div>
 </div>
-</section>
-<section id="table-6.9-main-effects-models-no-interaction" class="level2">
-<h2 class="anchored" data-anchor-id="table-6.9-main-effects-models-no-interaction">Table 6.9: Main-Effects Models (No Interaction)</h2>
-<p>The robust z-values (or alternatively the estimates and robust standard errors) reported in the model output tell us that the interaction terms are not statistically significant.</p>
-<p>Therefore we fit models without the interaction terms, and try to recover the main effect coefficients in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Table 6.9.</p>
+<p>The corresponding robust z-value for <span class="math inline">\(\hat{\beta}_\text{Age10}\)</span> is</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
-<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
-<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
-<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
-<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"independence"</span></span>
-<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>beta_age_10<span class="sc">/</span>robust_se_age_10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>          [,1]
+[1,] -3.004013</code></pre>
+</div>
+</div>
+<p>which is very significant, implying that the probability of RI is significantly lower at age 10.</p>
+</section>
+<section id="table-6.9-main-effects-only-models-no-interaction" class="level2">
+<h2 class="anchored" data-anchor-id="table-6.9-main-effects-only-models-no-interaction">Table 6.9: Main-Effects-Only Models (No Interaction)</h2>
+<p>We also fit models without the interaction terms, and try to recover the main effect coefficients in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Table 6.9.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"independence"</span></span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
@@ -1026,9 +1016,9 @@ age3 -0.0028 -0.0012  0.0067</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep_no_interaction) <span class="sc">|&gt;</span></span>
-<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
-<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(geefit_indep_no_interaction) <span class="sc">|&gt;</span></span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            Estimate Naive S.E. Naive z Robust S.E. Robust z
@@ -1044,13 +1034,13 @@ age3           0.060      0.104   0.575       0.080    0.742</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
-<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
-<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
-<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
-<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
-<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"exchangeable"</span></span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27</code></pre>
@@ -1064,13 +1054,13 @@ age3           0.060      0.104   0.575       0.080    0.742</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
-<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
-<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
-<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
-<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
-<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="ot">&lt;-</span> <span class="fu">gee</span>(</span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> resp <span class="sc">~</span> smoke <span class="sc">+</span> age,</span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ohio_tbl,</span>
+<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">corstr =</span> <span class="st">"unstructured"</span></span>
+<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Beginning Cgee S-function, @(#) geeformula.q 4.13 98/01/27
@@ -1082,9 +1072,9 @@ running glm to get initial regression estimate</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="sc">|&gt;</span></span>
-<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
-<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction <span class="sc">|&gt;</span></span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept)      smoke1        age1        age2        age3 
@@ -1092,23 +1082,23 @@ running glm to get initial regression estimate</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="sc">|&gt;</span></span>
-<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
-<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction <span class="sc">|&gt;</span></span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coef</span>() <span class="sc">|&gt;</span></span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept)      smoke1        age1        age2        age3 
      -1.696       0.131       0.087       0.141       0.060 </code></pre>
 </div>
 </div>
-<p>The unstructured coefficients agree (up to rounding) with the second column of Table 6.9 in <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span>. <strong>Dennis I’m unsure why the column in F&amp;T is called Exchangeable/Unspecified</strong></p>
+<p>It seems that only <code>geefit_unstruct_no_interaction</code> can reproduce the numbers for the “Exchangeable/Unspecified” column <span class="citation" data-cites="fahrmeir_multivariate_2001">Fahrmeir and Tutz (<a href="#ref-fahrmeir_multivariate_2001" role="doc-biblioref">2001</a>)</span> Table 6.9. Perhaps the book has a typo of some sort.</p>
 <section id="robust-variance-matrix-comparisons" class="level3">
 <h3 class="anchored" data-anchor-id="robust-variance-matrix-comparisons">Robust Variance Matrix Comparisons</h3>
-<p>Here we can see that the robust variances differ more across working correlation structures than in the interaction model. This supports the suspicion that the earlier agreement was a biproduct of the data.</p>
+<p>Below we can see that the robust variances differ more across working correlation structures for these main-effects-only models. This supports the suspicion that the earlier agreement for the interaction models was a coincidental biproduct of the data.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>geefit_indep_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            (Intercept)    smoke1      age1      age2      age3
@@ -1120,7 +1110,7 @@ age3          -0.000005  0.000081 -0.002703 -0.001235  0.006448</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>geefit_exch_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            (Intercept)    smoke1      age1      age2      age3
@@ -1132,7 +1122,7 @@ age3          -0.000001  0.000102 -0.002703 -0.001235  0.006448</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>geefit_unstruct_no_interaction<span class="sc">$</span>robust.variance <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>            (Intercept)    smoke1      age1      age2      age3
@@ -1148,7 +1138,7 @@ age3           0.000000  0.000103 -0.002702 -0.001235  0.006445</code></pre>
 <section id="package-citations-and-session-information" class="level2">
 <h2 class="anchored" data-anchor-id="package-citations-and-session-information">Package Citations and Session Information</h2>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1157,12 +1147,12 @@ age3           0.000000  0.000103 -0.002702 -0.001235  0.006445</code></pre>
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.2 (2024-10-31)
@@ -1202,22 +1192,22 @@ loaded via a namespace (and not attached):
 </div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"dplyr"</span>)</span>
-<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
-<span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
-<span id="cb91-4"><a href="#cb91-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb91-5"><a href="#cb91-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
-<span id="cb91-6"><a href="#cb91-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb91-7"><a href="#cb91-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb91-8"><a href="#cb91-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
-<span id="cb91-9"><a href="#cb91-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb91-10"><a href="#cb91-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb91-11"><a href="#cb91-11" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb91-12"><a href="#cb91-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb91-13"><a href="#cb91-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
-<span id="cb91-14"><a href="#cb91-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb91-15"><a href="#cb91-15" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb91-16"><a href="#cb91-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"conflicted"</span>, <span class="st">"gee"</span>, <span class="st">"geepack"</span>, <span class="st">"dplyr"</span>)</span>
+<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (pkg <span class="cf">in</span> packages) {</span>
+<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>  cit <span class="ot">&lt;-</span> <span class="fu">citation</span>(pkg)</span>
+<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if multiple citations</span></span>
+<span id="cb93-6"><a href="#cb93-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cit) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**:</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb93-8"><a href="#cb93-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(cit)) {</span>
+<span id="cb93-9"><a href="#cb93-9" aria-hidden="true" tabindex="-1"></a>      cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit[i], <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb93-10"><a href="#cb93-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="st">"    - "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb93-11"><a href="#cb93-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb93-12"><a href="#cb93-12" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb93-13"><a href="#cb93-13" aria-hidden="true" tabindex="-1"></a>    cit_text <span class="ot">&lt;-</span> <span class="fu">format</span>(cit, <span class="at">style =</span> <span class="st">"text"</span>)</span>
+<span id="cb93-14"><a href="#cb93-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"- **"</span>, pkg, <span class="st">"**: "</span>, cit_text, <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb93-15"><a href="#cb93-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb93-16"><a href="#cb93-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <ul>
 <li><p><strong>conflicted</strong>: Wickham H (2023). <em>conflicted: An Alternative Conflict Resolution Strategy</em>. R package version 1.2.0, https://github.com/r-lib/conflicted, <a href="https://conflicted.r-lib.org/" class="uri">https://conflicted.r-lib.org/</a>.</p></li>
