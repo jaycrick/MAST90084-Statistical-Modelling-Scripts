@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-05-06">
+<meta name="dcterms.date" content="2026-05-07">
 
 <title>Generalized Estimating Equations: CTSIB Balance Test Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -256,7 +256,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 6, 2026</p>
+      <p class="date">May 7, 2026</p>
     </div>
   </div>
   
@@ -330,7 +330,7 @@ div.csl-indent {
 </div>
 <section id="creating-binary-response" class="level3">
 <h3 class="anchored" data-anchor-id="creating-binary-response">Creating Binary Response</h3>
-<p>We convert the ordinal CTSIB outcome into a binary variable indicating “stable” (when <code>CTSIB == 1</code>) vs.&nbsp;“not stable” balance.</p>
+<p>We convert the ordinal CTSIB outcome into a binary variable indicating “stable” (when <code>CTSIB == 1</code>) vs.&nbsp;“not stable” balance, just like what was done on p.277 of <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -501,10 +501,9 @@ Working Correlation
 </div>
 </div>
 </div>
-<p><strong>DENNIS: you finished the demonstration of this script here last year</strong></p>
 <section id="empirical-scale-estimation" class="level3">
 <h3 class="anchored" data-anchor-id="empirical-scale-estimation">Empirical Scale Estimation</h3>
-<p>Alternatively, we can also estimate the scale from the data (which <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span> does not do).</p>
+<p>Alternatively, we can also estimate the scale from the data (which <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span> chose not to do for reasons explained on their p.292. But they also recognize generally there wouldn’t be a strong reason to fix it).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -570,13 +569,13 @@ Working Correlation
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Alternative: geepack Package
+<span class="screen-reader-only">Note</span>Alternative: geepack Package (optional and non-examinable)
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>The <strong>geepack</strong> package provides an alternative implementation of GEE with some methodological differences. This is the same package used in <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span>. The code is provided here without commentary.</p>
+<p>The <strong>geepack</strong> package provides an alternative implementation of GEE with some methodological differences from the paper by <span class="citation" data-cites="yan2004estimating">Yan and Fine (<a href="#ref-yan2004estimating" role="doc-biblioref">2004</a>)</span>. This is the same package used in <span class="citation" data-cites="faraway_extending_2016">Faraway (<a href="#ref-faraway_extending_2016" role="doc-biblioref">2016</a>)</span>. The code is provided here without commentary.</p>
 <section id="fitting-with-geepack-fixed-scale" class="level3">
 <h3 class="anchored" data-anchor-id="fitting-with-geepack-fixed-scale">Fitting with geepack (Fixed Scale)</h3>
 <div class="cell">
@@ -832,6 +831,9 @@ loaded via a namespace (and not attached):
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-faraway_extending_2016" class="csl-entry" role="listitem">
 Faraway, Julian J. 2016. <em>Extending the Linear Model with r : Generalized Linear, Mixed Effects and Nonparametric Regression Models, Second Edition</em>. Second edition. Chapman &amp; Hall/<span>CRC</span> Texts in Statistical Science Series. Chapman; Hall/<span>CRC</span>. <a href="https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53">https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53</a>.
+</div>
+<div id="ref-yan2004estimating" class="csl-entry" role="listitem">
+Yan, Jun, and Jason Fine. 2004. <span>“Estimating Equations for Association Structures.”</span> <em>Statistics in Medicine</em> 23 (6): 859–74.
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
