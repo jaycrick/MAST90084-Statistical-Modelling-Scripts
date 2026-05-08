@@ -10,7 +10,7 @@ editor:
 
 ## Data Loading and Setup
 
-In this example, we reproduce Example 6.4 from @fahrmeir_multivariate_2001.
+In this example, we reproduce Example 6.4 from p. 271 of @fahrmeir_multivariate_2001.
 The dataset is a study of the effect of maternal smoking status and age on respiratory infection in children.
 The children were examined yearly from ages 7 to 10.
 
@@ -23,7 +23,7 @@ library(dplyr)
 ```
 
 ::: callout-note
-Previously we have mentioned that the `geepack` implements its `geeglm` function differently to the `gee` function in the `gee` package.
+Previously we have mentioned that the `geepack` implements its `geeglm` function differently (using the methodology from the paper by @yan2004estimating) to the `gee` function in the `gee` package.
 Here we load it simply to access the `ohio` dataset.
 :::
 
@@ -50,7 +50,7 @@ ohio_tbl <- ohio_tbl %>%
 ohio_tbl
 ```
 
-The age coding in the dataset is:
+The age coding in the dataset (from the [documentation page](https://www.rdocumentation.org/packages/geepack/versions/1.3.13/topics/ohio){target="_blank"}) is:
 
 -   $\texttt{age} = -2$ corresponds to 7 years old
 -   $\texttt{age} = -1$ corresponds to 8 years old
@@ -78,7 +78,7 @@ contrasts(ohio_tbl$age)
 contrasts(ohio_tbl$smoke)
 ```
 
-10 years old is already the reference level for the age factor, but we need to explicitly set the reference level for `smoke` to match the textbook's.
+10 years old is already the reference level for the age factor, but we need to explicitly set the reference level for `smoke` to "non-smoking", to match the textbook's.
 
 ```{r}
 #| label: set-smoking-contrast
@@ -101,7 +101,7 @@ The marginal model is a logit model, and so \begin{equation}
   &\quad + \beta_\text{S,Age7} x_\text{S} x_\text{Age7} + \beta_\text{S,Age8} x_\text{S} x_\text{Age8} + \beta_\text{S,Age9} x_\text{S} x_\text{Age9}
   \end{split}
 \end{equation} where $x_\text{S} = 1$ if the mother smokes, and $-1$ otherwise.
-Likewise, $x_{\text{Age}i} = 1$ if the child is $i$ years old, and $0$ otherwise.
+Likewise, $x_{\text{Age}i} = 1$ if the child is $i$ years old, and $-1$ otherwise.
 
 Let $I_{jm}$ be the indicator random variable for whether child $j$ is infected at age $m$.
 For the independent working correlation, $$\mathrm{corr}(I_{jm}, I_{jn}) = 0$$ for all $m \neq n$.
@@ -189,8 +189,6 @@ summary(geefit_unstruct) |>
 ::: callout-note
 ## Robust (Sandwich) Variance Matrices
 
-**Dennis: Without looking into this, I find this behaviour very weird**
-
 We can also extract the robust variance matrices under each working correlation structure.
 
 ```{r}
@@ -208,7 +206,9 @@ We can confirm this by computing the difference between the independence and exc
 geefit_indep$robust.variance - geefit_exch$robust.variance
 ```
 
-In theory all the robust variance matrices should differ, but here, perhaps due to the nature of the data, they are very close to each other.
+**Weird behavior**: In principle, all the robust variance matrices should differ numerically (although all are theoretically valid assuming the mean models are correctly specified).
+But here, perhaps due to the nature of the data, they are very close to each other.
+We haven't found the exact reason for that yet.
 :::
 
 ## Scale Parameter and Pearson-Based Check
@@ -280,8 +280,7 @@ naive_se_scale_fix <- coef(summary(geefit_indep_scale_fix))[, "Naive S.E."]
 
 tibble(
   term = rownames(coefs_indep),
-  se_rescaled = naive_se_scale_fix *
-    sqrt(geefit_indep$scale),
+  se_rescaled = naive_se_scale_fix * sqrt(geefit_indep$scale),
   se_original = coefs_indep[, "Naive S.E."]
 )
 ```
@@ -296,10 +295,7 @@ $$ since the age 10 group is the reference group for the age factor.
 #| label: beta-age-10
 coefs_indep |> round(3)
 
-beta_age_10 <- -sum(coefs_indep[
-  c("age1", "age2", "age3"),
-  "Estimate"
-])
+beta_age_10 <- -sum(coefs_indep[c("age1", "age2", "age3"),"Estimate"])
 
 beta_age_10
 ```
@@ -318,26 +314,22 @@ This value matches page 273 of @fahrmeir_multivariate_2001.
 In matrix indexing, the format is always `[rows, columns]`.
 :::
 
-::: {.callout-important collapse="true"}
-## SELF TEST: How should we interpret a negative $\beta_\text{Age10}$
+<!-- ::: {.callout-important collapse="true"} -->
 
-The probability of infection for a child who is age 10 is lower than the average probability across all age groups, when smoking status is fixed.
-:::
+<!-- ## SELF TEST: How should we interpret a negative $\beta_\text{Age10}$ -->
 
-@fahrmeir_multivariate_2001 also reports a standard deviation for this coefficient, which we can also reproduce.
-The robust standard error for this linear combination is:
+<!-- The probability of RI for a child who is age 10 is lower than the average probability across all age groups, when smoking status is fixed. -->
+
+<!-- ::: -->
+
+@fahrmeir_multivariate_2001 also reports a standard deviation for $\hat{\beta}_\text{Age10} = - (\hat{\beta}_\text{Age7} + \hat{\beta}_\text{Age8} + \hat{\beta}_\text{Age9})$, which we can also reproduce; it can be computed using the usual "quadratic form" formula:
 
 ```{r}
 #| label: robust-se-age-10
 age_coef_names <- c("age1", "age2", "age3")
 
-age_robust_vcov <- geefit_indep$robust.variance[
-  age_coef_names,
-  age_coef_names
-]
-
+age_robust_vcov <- geefit_indep$robust.variance[age_coef_names, age_coef_names]
 age_robust_vcov |> round(4)
-
 robust_se_age_10 <- sqrt(
   rep(1, 3) %*%
     age_robust_vcov %*%
@@ -347,11 +339,18 @@ robust_se_age_10 <- sqrt(
 robust_se_age_10
 ```
 
-## Table 6.9: Main-Effects Models (No Interaction)
+The corresponding robust z-value for $\hat{\beta}_\text{Age10}$ is
 
-The robust z-values (or alternatively the estimates and robust standard errors) reported in the model output tell us that the interaction terms are not statistically significant.
+```{r}
+#| label: robust-z-value-beta-4
+beta_age_10/robust_se_age_10
+```
 
-Therefore we fit models without the interaction terms, and try to recover the main effect coefficients in @fahrmeir_multivariate_2001 Table 6.9.
+which is very significant, implying that the probability of RI is significantly lower at age 10.
+
+## Table 6.9: Main-Effects-Only Models (No Interaction)
+
+We also fit models without the interaction terms, and try to recover the main effect coefficients in @fahrmeir_multivariate_2001 Table 6.9.
 
 ```{r}
 #| label: fit-main-effects
@@ -397,13 +396,13 @@ geefit_unstruct_no_interaction |>
   round(3)
 ```
 
-The unstructured coefficients agree (up to rounding) with the second column of Table 6.9 in @fahrmeir_multivariate_2001.
-**Dennis I'm unsure why the column in F&T is called Exchangeable/Unspecified**
+It seems that only `geefit_unstruct_no_interaction` can reproduce the numbers for the "Exchangeable/Unspecified" column @fahrmeir_multivariate_2001 Table 6.9.
+Perhaps the book has a typo of some sort.
 
 ### Robust Variance Matrix Comparisons
 
-Here we can see that the robust variances differ more across working correlation structures than in the interaction model.
-This supports the suspicion that the earlier agreement was a biproduct of the data.
+Below we can see that the robust variances differ more across working correlation structures for these main-effects-only models.
+This supports the suspicion that the earlier agreement for the interaction models was a coincidental biproduct of the data.
 
 ```{r}
 #| label: robust-vcov-main

@@ -10,7 +10,7 @@ editor:
 
 ## Overview
 
-We now look at the CTSIB balance test dataset from the very applied book by @faraway_extending_2016, which can be [accessed online](https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53).
+We now look at the CTSIB balance test dataset from the very applied book by @faraway_extending_2016, which can be [accessed online](https://research.ebsco.com/plink/3806c0de-f79d-330d-9c4e-7bb136efaa53){target="_blank"}.
 In the second edition of this book, it is in section 13.5, page 292.
 
 ## Data Setup
@@ -29,7 +29,7 @@ options(contrasts = c("contr.treatment", "contr.poly"))
 data(ctsib)
 ```
 
-As always, we should spend some time [reading the documentation](https://search.r-project.org/CRAN/refmans/faraway/html/ctsib.html) to understand the data set.
+As always, we should spend some time [reading the documentation](https://search.r-project.org/CRAN/refmans/faraway/html/ctsib.html){target="_blank"} to understand the data set.
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-2
@@ -47,7 +47,7 @@ head(ctsib_tbl, 20)
 
 ### Creating Binary Response
 
-We convert the ordinal CTSIB outcome into a binary variable indicating "stable" (when `CTSIB == 1`) vs. "not stable" balance.
+We convert the ordinal CTSIB outcome into a binary variable indicating "stable" (when `CTSIB == 1`) vs. "not stable" balance, just like what was done on p.277 of @faraway_extending_2016.
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-4
@@ -94,11 +94,9 @@ summary(gg)
 -   `scale.fix = TRUE`: fixes the scale parameter fixed to 1.
 :::
 
-**DENNIS: you finished the demonstration of this script here last year**
-
 ### Empirical Scale Estimation
 
-Alternatively, we can also estimate the scale from the data (which @faraway_extending_2016 does not do).
+Alternatively, we can also estimate the scale from the data (which @faraway_extending_2016 chose not to do for reasons explained on their p.292. But they also recognize generally there wouldn't be a strong reason to fix it).
 
 ```{r}
 #| label: 08-gee-ctsib-chunk-6
@@ -110,7 +108,7 @@ gg_scale <- gee(
   corstr = "exchangeable",
   scale.fix = FALSE
 )
-
+summary(gg_scale)
 gg_scale$scale
 ```
 
@@ -127,12 +125,13 @@ coef_compare <- tibble(
 coef_compare
 ```
 
-The coefficient estimates are actually identical.
+The coefficient estimates actually appear numerically identical, which we cannot fully explain at the moment: Under the exchangeable correlation working model, the equicorrelation $\alpha$'s estimation (embedded in the working covariance matrix $\Sigma_i$ for each multivariate ${\bf y}_i$) should also depend on an estimated dispersion $\phi$ (if it is not fixed).
+Therefore, the dispersion shouldn't just simply factor out as a scalar in the estimating equations and the two approaches (fixed scale vs unfixed scale) should be solving non-identical equations.
 
 ::: {.callout-note collapse="true"}
-## Alternative: geepack Package
+## Alternative: geepack Package (optional and non-examinable)
 
-The **geepack** package provides an alternative implementation of GEE with some methodological differences.
+The **geepack** package provides an alternative implementation of GEE with some methodological differences from the paper by @yan2004estimating.
 This is the same package used in @faraway_extending_2016.
 The code is provided here without commentary.
 
