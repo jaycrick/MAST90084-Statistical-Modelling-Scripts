@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-04-15">
+<meta name="dcterms.date" content="2026-05-14">
 
 <title>Linear Mixed Models: Pulp Brightness and PSID Longitudinal Data – MAST90084 - Statistical Modelling Scripts</title>
 <style>
@@ -258,7 +258,7 @@ window.Quarto = {
   <li><a href="#faraway_extending_2016-section-10.1-pulp-brightness" id="toc-faraway_extending_2016-section-10.1-pulp-brightness" class="nav-link active" data-scroll-target="#faraway_extending_2016-section-10.1-pulp-brightness"><span class="citation" data-cites="faraway_extending_2016">Faraway (2016)</span> Section 10.1: Pulp Brightness</a>
   <ul class="collapse">
   <li><a href="#data-loading" id="toc-data-loading" class="nav-link" data-scroll-target="#data-loading">Data Loading</a></li>
-  <li><a href="#hand-computed-fixed-effect-estimate" id="toc-hand-computed-fixed-effect-estimate" class="nav-link" data-scroll-target="#hand-computed-fixed-effect-estimate">Hand-Computed Fixed Effect Estimate</a></li>
+  <li><a href="#computing-the-fixed-effect-estimate-and-its-estimated-standard-error-by-hand" id="toc-computing-the-fixed-effect-estimate-and-its-estimated-standard-error-by-hand" class="nav-link" data-scroll-target="#computing-the-fixed-effect-estimate-and-its-estimated-standard-error-by-hand">Computing the Fixed Effect Estimate and its estimated standard error “by hand”</a></li>
   <li><a href="#model-diagnostics" id="toc-model-diagnostics" class="nav-link" data-scroll-target="#model-diagnostics">Model Diagnostics</a></li>
   </ul></li>
   <li><a href="#faraway_extending_2016-section-11.1-psid-longitudinal-data" id="toc-faraway_extending_2016-section-11.1-psid-longitudinal-data" class="nav-link" data-scroll-target="#faraway_extending_2016-section-11.1-psid-longitudinal-data"><span class="citation" data-cites="faraway_extending_2016">Faraway (2016)</span> Section 11.1: PSID Longitudinal Data</a>
@@ -286,7 +286,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 15, 2026</p>
+      <p class="date">May 14, 2026</p>
     </div>
   </div>
   
@@ -447,9 +447,7 @@ Fixed effects:
 (Intercept)  60.4000     0.1494   404.2</code></pre>
 </div>
 </div>
-<p>We get one fixed effect (the overall mean brightness) and one random effect (the operator-level variation).</p>
-<p><strong>DENNIS TO ADD SOME EXPOSITION ON THE STANDARD ERROR OF FIXED EFFECTS HERE</strong></p>
-<p>For the random effect we get two variance parameters. The <code>Residual</code> variance is the estimated variance <span class="math inline">\(\sigma_{\varepsilon}^2\)</span> of the obervation-level errors <span class="math inline">\(\varepsilon_{ij}\)</span>, while the <code>operator</code> variance is the estimated variance <span class="math inline">\(\sigma_b^2\)</span> of the operator-level random effects <span class="math inline">\(b_i\)</span>. Here the value reported by <code>Std.Dev.</code> is just the square root of the variance (not a standard error of the variance estimate).</p>
+<p>We get one fixed effect (the overall mean brightness) and one random effect (the operator-level variation). For the random effect we get two variance parameters. The <code>Residual</code> variance is the estimated variance <span class="math inline">\(\sigma_{\varepsilon}^2\)</span> of the obervation-level errors <span class="math inline">\(\varepsilon_{ij}\)</span>, while the <code>operator</code> variance is the estimated variance <span class="math inline">\(\sigma_b^2\)</span> of the operator-level random effects <span class="math inline">\(b_i\)</span>. Here the value reported by <code>Std.Dev.</code> is just the square root of the variance (NOT a standard error of the variance estimate).</p>
 <p>We can also see the estimates for the MLE fit:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -479,7 +477,7 @@ Fixed effects:
 (Intercept)  60.4000     0.1294   466.7</code></pre>
 </div>
 </div>
-<p>We can see that (as expected) the MLE variance estimates are smaller than the REML estimates, while the fixed effect estimate is the same.</p>
+<p>We can see that the between-subject SD 0.21 of the MLE method is smaller than the between-subject SD 0.26 of the REML method because MLE tends to bias the estimates towards zero.</p>
 <p>We can directly extract the fixed effect estimates:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -506,8 +504,7 @@ Caution
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The fixed effect estimates here are the same between REML and MLE, <strong>only because the design is balanced</strong>. Generally they will differ for unbalanced designs.</p>
-<p><strong>DENNIS: TO ADD MORE CONTEXT IF NEEDED, CLAIM IS THAT REML VARIANCE ESTIMATES MUST BE SCALAR MULTIPLE OF MLE VARIANCE ESTIMATES IN BALANCED DESIGNS</strong></p>
+<p>The fixed effect estimates based should generally differ. They happen to be the same here since we have a balanced random-intercept ANOVA model and certain cancellations occur so the fixed effect estimate <span class="math inline">\(\hat{\beta}\)</span> doesn’t depend on how the variance components are estimated. The algebraic details are skipped but it is straight forward to work thru.</p>
 </div>
 </div>
 <section id="extracting-model-components" class="level4">
@@ -577,8 +574,8 @@ Caution
 </div>
 </section>
 </section>
-<section id="hand-computed-fixed-effect-estimate" class="level3">
-<h3 class="anchored" data-anchor-id="hand-computed-fixed-effect-estimate">Hand-Computed Fixed Effect Estimate</h3>
+<section id="computing-the-fixed-effect-estimate-and-its-estimated-standard-error-by-hand" class="level3">
+<h3 class="anchored" data-anchor-id="computing-the-fixed-effect-estimate-and-its-estimated-standard-error-by-hand">Computing the Fixed Effect Estimate and its estimated standard error “by hand”</h3>
 <p>Since fixed effect estimates for linear mixed models are a special case of solving a generalised least squares (GLS) estimator, we can verify the fixed effect estimate by hand-computing the GLS solution from the estimated variance structure:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -629,7 +626,7 @@ Caution
 [1,] 60.4</code></pre>
 </div>
 </div>
-<p>Hand-computed standard error (GLS covariance):</p>
+<p>Hand-computed standard error (this is simply the GLS covariance, also see Section 5.1 in <span class="citation" data-cites="bates_fitting_2015">Bates et al. (<a href="#ref-bates_fitting_2015" role="doc-biblioref">2015</a>)</span> for how this is computed):</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -644,7 +641,7 @@ Caution
 </section>
 <section id="model-diagnostics" class="level3">
 <h3 class="anchored" data-anchor-id="model-diagnostics">Model Diagnostics</h3>
-<p>This course does not focus on model diagnostics, but the general idea behind these plots is to evaluate whether our model assumptions are met. The default <code>residuals</code> function accounts for the estimated random effects. These residuals can be regarded as estimates of the observation-level errors <span class="math inline">\(\varepsilon_{ij}\)</span>, which is usually what we want for diagnostics:</p>
+<p>This subject does not focus on model diagnostics, but the general idea behind these plots is to evaluate whether our model assumptions are met. The default <code>residuals</code> function accounts for the estimated random effects. These residuals can be regarded as estimates of the observation-level errors <span class="math inline">\(\varepsilon_{ij}\)</span>, which is usually what we want for diagnostics:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -778,7 +775,7 @@ Note
 </div>
 <section id="reml-vs.-mle-with-random-slopes" class="level3">
 <h3 class="anchored" data-anchor-id="reml-vs.-mle-with-random-slopes">REML vs.&nbsp;MLE with Random Slopes</h3>
-<p>We fit models with both random intercept and random slope (person growth rate varies) using both the REML (default) and the biased MLE (<code>REML = FALSE</code>) estimation methods:</p>
+<p>We fit models with both random intercept and random slope (person growth rate varies) using both the REML (default) and the MLE (<code>REML = FALSE</code>) estimation methods:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -931,7 +928,7 @@ cyear:sexM  -2.838170e-06  1.497587e-04</code></pre>
 </div>
 </div>
 <p>Note that here the fixed effect estimates differ slightly between REML and MLE, which is to be expected.</p>
-<p>Finally we can access at the standard errors of the fixed effects:</p>
+<p>Finally we can access the standard errors of the fixed effects:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -965,7 +962,7 @@ cyear:sexM  -2.838170e-06  1.497587e-04</code></pre>
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The standard deviation of the random intercept tells us how much variability there is in initial log-income across individuals. Since income is on a log-scale, this values is multiplicative—95% of incomes are between <span class="math inline">\(\exp(-2\sigma_{b_0})\)</span>= 0.35 and <span class="math inline">\(\exp(2\sigma_{b_0})\)</span>= 2.89 times the overall mean income in 1978.</p>
+<p>The standard deviation of the random intercept tells us how much variability there is in initial log-income across individuals. Since income is on a log-scale, this values is multiplicative—95% of incomes are between <span class="math inline">\(\exp(-1.96\sigma_{b_0})\)</span>= 0.35 and <span class="math inline">\(\exp(1.96\sigma_{b_0})\)</span>= 2.83 times the overall mean income in 1978.</p>
 <p>The standard deviation of the random slope tells us how much variability there is in income growth rates across individuals.</p>
 <p>A low correlation value tells us that the slope of income growth over time, is minimally effected by the initial salary (intercept).</p>
 </div>
