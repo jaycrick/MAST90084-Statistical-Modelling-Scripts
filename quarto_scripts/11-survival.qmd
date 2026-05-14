@@ -8,8 +8,6 @@ editor:
     canonical: true
 ---
 
-**DENNIS: You may want to add more exposition to this code. I'm not exactly sure what happens in the lectures but when you are explaining it you are quite succinct (particularly in the sections on parametric models). You may also want to add some bibliographic information in the front end, such as the Cox and Oakes 84 paper, Kalbfleisch book, and @venables_modern_2002.**
-
 ## Data Loading and Setup
 
 We load packages and breast cancer survival data adapted from @leathem_predictive_1987 (referenced by @collett_modelling_2023), and inspect the structure:
