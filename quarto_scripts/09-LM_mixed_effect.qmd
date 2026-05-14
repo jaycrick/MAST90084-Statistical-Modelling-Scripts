@@ -90,12 +90,9 @@ sum_pulp_reml
 ```
 
 We get one fixed effect (the overall mean brightness) and one random effect (the operator-level variation).
-
-**DENNIS TO ADD SOME EXPOSITION ON THE STANDARD ERROR OF FIXED EFFECTS HERE**
-
 For the random effect we get two variance parameters.
 The `Residual` variance is the estimated variance $\sigma_{\varepsilon}^2$ of the obervation-level errors $\varepsilon_{ij}$, while the `operator` variance is the estimated variance $\sigma_b^2$ of the operator-level random effects $b_i$.
-Here the value reported by `Std.Dev.` is just the square root of the variance (not a standard error of the variance estimate).
+Here the value reported by `Std.Dev.` is just the square root of the variance (NOT a standard error of the variance estimate).
 
 We can also see the estimates for the MLE fit:
 
@@ -104,7 +101,7 @@ We can also see the estimates for the MLE fit:
 summary(m_pulp_mle)
 ```
 
-We can see that (as expected) the MLE variance estimates are smaller than the REML estimates, while the fixed effect estimate is the same.
+We can see that the between-subject SD 0.21 of the MLE method is smaller than the between-subject SD 0.26 of the REML method because MLE tends to bias the estimates towards zero.
 
 We can directly extract the fixed effect estimates:
 
@@ -117,10 +114,9 @@ tibble(
 ```
 
 ::: callout-caution
-The fixed effect estimates here are the same between REML and MLE, **only because the design is balanced**.
-Generally they will differ for unbalanced designs.
-
-**DENNIS: TO ADD MORE CONTEXT IF NEEDED, CLAIM IS THAT REML VARIANCE ESTIMATES MUST BE SCALAR MULTIPLE OF MLE VARIANCE ESTIMATES IN BALANCED DESIGNS**
+The fixed effect estimates based should generally differ.
+They happen to be the same here since we have a balanced random-intercept ANOVA model and certain cancellations occur so the fixed effect estimate $\hat{\beta}$ doesn't depend on how the variance components are estimated.
+The algebraic details are skipped but it is straight forward to work thru.
 :::
 
 #### Extracting Model Components
@@ -164,7 +160,7 @@ And the usual generic method `coef()` function gives us the fixed effect coeffic
 coef(sum_pulp_reml)
 ```
 
-### Hand-Computed Fixed Effect Estimate
+### Computing the Fixed Effect Estimate and its estimated standard error "by hand"
 
 Since fixed effect estimates for linear mixed models are a special case of solving a generalised least squares (GLS) estimator, we can verify the fixed effect estimate by hand-computing the GLS solution from the estimated variance structure:
 
@@ -194,7 +190,7 @@ Hand-computed GLS estimate of the fixed effect (intercept):
 (1 / (t(Z) %*% solve(V) %*% Z)) * t(Z) %*% solve(V) %*% pulp$bright
 ```
 
-Hand-computed standard error (GLS covariance):
+Hand-computed standard error (this is simply the GLS covariance, also see Section 5.1 in @bates_fitting_2015 for how this is computed):
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-15
@@ -203,7 +199,7 @@ sqrt(1 / (t(Z) %*% solve(V) %*% Z))
 
 ### Model Diagnostics
 
-This course does not focus on model diagnostics, but the general idea behind these plots is to evaluate whether our model assumptions are met.
+This subject does not focus on model diagnostics, but the general idea behind these plots is to evaluate whether our model assumptions are met.
 The default `residuals` function accounts for the estimated random effects.
 These residuals can be regarded as estimates of the observation-level errors $\varepsilon_{ij}$, which is usually what we want for diagnostics:
 
@@ -288,7 +284,7 @@ psid_tbl <- mutate(psid_tbl, cyear = year - 78)
 
 ### REML vs. MLE with Random Slopes
 
-We fit models with both random intercept and random slope (person growth rate varies) using both the REML (default) and the biased MLE (`REML = FALSE`) estimation methods:
+We fit models with both random intercept and random slope (person growth rate varies) using both the REML (default) and the MLE (`REML = FALSE`) estimation methods:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-22
@@ -366,7 +362,7 @@ tibble(
 
 Note that here the fixed effect estimates differ slightly between REML and MLE, which is to be expected.
 
-Finally we can access at the standard errors of the fixed effects:
+Finally we can access the standard errors of the fixed effects:
 
 ```{r}
 #| label: 09-lm-mixed-effect-chunk-26
@@ -384,7 +380,7 @@ VarCorr(m_psid_reml)
 ## Interpreting the Random Effects Output
 
 The standard deviation of the random intercept tells us how much variability there is in initial log-income across individuals.
-Since income is on a log-scale, this values is multiplicative---95% of incomes are between $\exp(-2\sigma_{b_0})$= `r {round(exp(-2*as_tibble(s_psid_reml$varcor)$sdcor[1]), 2)}` and $\exp(2\sigma_{b_0})$= `r {round(exp(2*as_tibble(s_psid_reml$varcor)$sdcor[1]), 2)}` times the overall mean income in 1978.
+Since income is on a log-scale, this values is multiplicative---95% of incomes are between $\exp(-1.96\sigma_{b_0})$= `r {round(exp(-1.96*as_tibble(s_psid_reml$varcor)$sdcor[1]), 2)}` and $\exp(1.96\sigma_{b_0})$= `r {round(exp(1.96*as_tibble(s_psid_reml$varcor)$sdcor[1]), 2)}` times the overall mean income in 1978.
 
 The standard deviation of the random slope tells us how much variability there is in income growth rates across individuals.
 
