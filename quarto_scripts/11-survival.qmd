@@ -10,7 +10,7 @@ editor:
 
 ## Data Loading and Setup
 
-We load packages and breast cancer survival data adapted from @leathem_predictive_1987 (referenced by @collett_modelling_2023), and inspect the structure:
+We load packages and breast cancer survival data adapted from @leathem_predictive_1987 (referenced by @collett_modelling_2023, p.6), and inspect the structure:
 
 ```{r}
 #| label: 11-survival-chunk-1 
@@ -23,9 +23,8 @@ library(survival)
 
 bcancer <- read_csv("data/survival.csv")
 
-bcancer
+print(bcancer, n = Inf)
 
-tail(bcancer)
 ```
 
 ::: callout-note
@@ -33,7 +32,7 @@ tail(bcancer)
 
 -   `time`: Time in days until event (death) or censoring (last follow-up)
 -   `status`: Censoring indicator (0 = censored, 1 = event observed)
--   `group`: Grouping variable (here: staining status: Positive (P) or Negative (N)) this indicates whether metastasis was observed in the lymph nodes, which is a prognostic factor for breast cancer survival.
+-   `group`: Grouping variable (Positive (P) or Negative (N) staining by HPA), which indicates whether there is potential of metastasis in the lymph nodes; a prognostic factor for breast cancer survival.
 
 The `survival::Surv()` function combines time and status into a survival object for modelling.
 :::
@@ -56,7 +55,7 @@ summary(cancer_km)
 Here the `survfit` object contains the estimated survival probabilities at each event time, along with confidence intervals and the number at risk.
 So for `group=N` at time 23, the estimated survival probability is 0.923.
 
-`n.risk` is the number of patients still at risk just before that time, and `n.event` is the number of events (deaths) that occur at that time.
+`n.risk` is the number of patients still at risk (not been censored and not dead) just before that time, and `n.event` is the number of events (deaths) that occur at that time.
 `n.risk` can decrease due to events or censoring, which is why it doesn't always decrease by the number of events.
 
 The generic `summary()` method for `survfit` objects also has a `data.frame = TRUE` option which we can use and convert to a tibble for easier manipulation:
@@ -90,7 +89,7 @@ km_plot_data
 ```
 
 Since we'll be making multiple survival plots, we can define a common theme and colour palette.
-We use colourblind-friendly colours [as suggested by Paul Tol](https://sronpersonalpages.nl/~pault/):
+We use colourblind-friendly colours [as suggested by Paul Tol](https://sronpersonalpages.nl/~pault/){target="_blank"}:
 
 ```{r}
 #| label: 11-survival-chunk-3b
@@ -161,7 +160,7 @@ Read this plot from top to bottom as a sequence of layers:
 ### Weibull Suitability Check
 
 Before fitting parametric models, check if the Weibull distribution is suitable.
-The **log-log transformation** of a Weibull survival curve is linear: $$\log(-\log(S(t))) = \alpha \log(\lambda t),$$ and so plotting $\log(-\log(S(t)))$ vs. $\log(t)$ should yield a straight line if the Weibull model is appropriate.
+The **complementary log-log transformation** of a Weibull survival curve is: $$\log(-\log(S(t))) = \alpha \log(\lambda) + \alpha \log( t),$$ and so plotting $\log(-\log(S(t)))$ vs. $\log(t)$ should yield a straight line if the Weibull model is appropriate.
 
 ```{r}
 #| label: 11-survival-chunk-5
@@ -201,8 +200,8 @@ Here we have a roughly linear pattern for both groups, suggesting the Weibull mo
 
 ### Proportional Hazards Assumption
 
-Many survival models (e.g., Cox) assume **proportional hazards**: the hazard ratio between groups is constant over time.
-We can check this by plotting the complementary log-log transformation of the survival curves: $\log(-\log(S(t)))$ vs. time, and looking for a parallel shift between groups.
+In a **proportional hazards** model, the hazard ratio between groups is constant over time.
+We can check this by plotting the complementary log-log transformation of the survival curves: $\log(-\log(S(t)))$ vs. $t$, and looking for a parallel shift between groups.
 
 ```{r}
 #| label: 11-survival-chunk-6
