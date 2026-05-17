@@ -168,10 +168,10 @@ weibull_plot_data <- km_plot_data |>
     dplyr::filter(time > 0, surv > 0) |>
     mutate(
         log_time = log(time),
-        log_log_surv = log(-log(surv))
+        cloglog = log(-log(surv))
     )
 
-ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group)) +
+ggplot(weibull_plot_data, aes(x = log_time, y = cloglog, colour = group)) +
     geom_point(size = 2.2, alpha = 0.8) +
     geom_line(linewidth = 0.9) +
     scale_colour_manual(values = stain_colours, name = "Group") +
@@ -188,7 +188,7 @@ ggplot(weibull_plot_data, aes(x = log_time, y = log_log_surv, colour = group)) +
 ::: {.callout-tip collapse="true"}
 ## Plot syntax walkthrough (Weibull diagnostic)
 
-1.  `ggplot2::ggplot(weibull_plot_data, ggplot2::aes(x = log_time, y = log_log_surv, colour = group))` sets the data source and maps transformed variables to the axes.
+1.  `ggplot2::ggplot(weibull_plot_data, ggplot2::aes(x = log_time, y = cloglog, colour = group))` sets the data source and maps transformed variables to the axes.
 2.  `ggplot2::geom_point(size = 2.2, alpha = 0.8)` adds plotted observations with size and transparency controls.
 3.  `ggplot2::geom_line(linewidth = 0.9)` connects points within each colour group.
 4.  `ggplot2::scale_colour_manual(values = stain_colours, name = "Group")` applies a named colour vector and legend title.
