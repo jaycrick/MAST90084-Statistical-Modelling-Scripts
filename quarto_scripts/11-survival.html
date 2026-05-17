@@ -636,10 +636,10 @@ group=P 32     21   64.5      41      NA</code></pre>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(time <span class="sc">&gt;</span> <span class="dv">0</span>, surv <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">log_time =</span> <span class="fu">log</span>(time),</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">log_log_surv =</span> <span class="fu">log</span>(<span class="sc">-</span><span class="fu">log</span>(surv))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">cloglog =</span> <span class="fu">log</span>(<span class="sc">-</span><span class="fu">log</span>(surv))</span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(weibull_plot_data, <span class="fu">aes</span>(<span class="at">x =</span> log_time, <span class="at">y =</span> log_log_surv, <span class="at">colour =</span> group)) <span class="sc">+</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(weibull_plot_data, <span class="fu">aes</span>(<span class="at">x =</span> log_time, <span class="at">y =</span> cloglog, <span class="at">colour =</span> group)) <span class="sc">+</span></span>
 <span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.2</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
 <span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> stain_colours, <span class="at">name =</span> <span class="st">"Group"</span>) <span class="sc">+</span></span>
@@ -673,7 +673,7 @@ group=P 32     21   64.5      41      NA</code></pre>
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ol type="1">
-<li><code>ggplot2::ggplot(weibull_plot_data, ggplot2::aes(x = log_time, y = log_log_surv, colour = group))</code> sets the data source and maps transformed variables to the axes.</li>
+<li><code>ggplot2::ggplot(weibull_plot_data, ggplot2::aes(x = log_time, y = cloglog, colour = group))</code> sets the data source and maps transformed variables to the axes.</li>
 <li><code>ggplot2::geom_point(size = 2.2, alpha = 0.8)</code> adds plotted observations with size and transparency controls.</li>
 <li><code>ggplot2::geom_line(linewidth = 0.9)</code> connects points within each colour group.</li>
 <li><code>ggplot2::scale_colour_manual(values = stain_colours, name = "Group")</code> applies a named colour vector and legend title.</li>
