@@ -69,7 +69,7 @@ We use `str()` to inspect the structure of the summary data frame, because our t
 
 ### Plotting Setup
 
-Build a tidy data frame from the Kaplan-Meier fit so we can reuse it across the plots below:
+Build a more compact data frame from the Kaplan-Meier fit to be used across the plots below:
 
 ```{r}
 #| label: 11-survival-chunk-3
