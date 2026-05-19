@@ -258,7 +258,7 @@ summary(cancer_exp)
 -   Censoring is non-informative (the reason for censoring is unrelated to the survival time).
 :::
 
-We can recover the p-value for the group effect using the Wald test.
+We can test whether the slope paramter is zero (i.e whether there a difference in survival time distribution for the two groups) by using a Wald test or likelihood ratio test.
 
 **Wald Test**:
 
@@ -277,17 +277,23 @@ wald_stat <- beta / sqrt(var_beta)
 2 * pnorm(-abs(wald_stat)) |> round(3)
 ```
 
-We can also do a likelihood ratio test comparing the exponential model with group to a null model without group:
+**LR Test**:
 
 ```{r}
 #| label: 11-survival-chunk-9
 
 exp_loglik <- cancer_exp$loglik
 lr_stat <- -2 * (exp_loglik[1] - exp_loglik[2])
+lr_stat
 pchisq(q = lr_stat, df = 1, lower.tail = FALSE) |> round(3)
 ```
 
-### Extracting Rate Parameters
+Note that `lr_stat` is the chisq statistic reported in `summary(cancer_exp)`.
+
+Here, we encountered one of those rare situations where the Wald test and LR test arrive at different conclusions under the usual test level $0.05$.
+(They gave the respective $p$-values $0.056$ and $0.037$).
+
+### Extracting Rate Parameters and Computing Survivial Probabilities
 
 For the exponential model, the rate parameter (hazard) is $$\lambda = e^{(\beta_0 + \beta_1 \cdot \text{group})}$$:
 
@@ -307,9 +313,17 @@ Positive stain group: $\lambda_P =$ `r round(lambda_p, 4)` events/time
 Higher $\lambda$ means shorter survival (higher hazard rate).
 :::
 
+Since the survival function $S(t)$ for the exponential distribution has the form $S(t) = e^{-\lambda t}$, on day 100, the survival probabilities of the Negative stain and Positive stain groups are respectively
+
+```{r}
+#| label: survival-probability-chunk
+exp(-lambda_n*100)
+exp(-lambda_p*100)
+```
+
 ### Verification: MLE via Method of Moments
 
-For the exponential distribution, the MLE is: $$\hat{\lambda} = \frac{\text{\# events}}{\text{total time at risk}}.$$ Therefore, we can verify our MLE estimates by calculating the event rates directly from the data:
+For the exponential distribution, the MLE is: $$\hat{\lambda} = \frac{\text{\# events}}{\text{total time at risk}}.$$ Therefore, we can alternatively compute our MLE estimates for $\lambda_N$ and $\lambda_P$ by applying this formula separately to the two groups:
 
 ```{r}
 #| label: 11-survival-chunk-11
@@ -337,7 +351,7 @@ CI |> round(3)
 
 ::: callout-note
 The lower bound is positive (doesn't cross zero), which is good since $\lambda$ must be positive.
-However, the delta method doesn't always respect parameter constraints; a safer approach is to transform:
+However, the delta method doesn't always respect the natural parameter constraints; a safer approach is as follows.
 :::
 
 **Better approach**: Transform to enforce positivity:
@@ -348,6 +362,8 @@ However, the delta method doesn't always respect parameter constraints; a safer 
 exp(-(beta - qnorm(0.975) * sqrt(var_beta) * c(-1, 1))) |>
     round(3)
 ```
+
+Both intervals contain $1$, and is consistent with the Wald test above that doesn't reject $\beta_1 = 0$ under level $0.05$.
 
 ## Weibull Regression
 
@@ -386,15 +402,15 @@ Extract and interpret the Weibull parameters:
 #| label: 11-survival-chunk-15
 lambda_n <- exp(-wbl_coef[1])
 lambda_p <- exp(-sum(wbl_coef))
-
 alpha <- 1 / wbl_scale
+```
 
+Because Weibull survival function has the formula $S(t) = e^{-(\lambda t)^\alpha}$, we can compute the survivial probability on day 100 for the two groups as:
+
+```{r}
 s_n_100 <- exp(-(lambda_n * 100)^alpha)
 s_p_100 <- exp(-(lambda_p * 100)^alpha)
 
-lambda_n
-lambda_p
-alpha
 s_n_100
 s_p_100
 ```
@@ -423,7 +439,7 @@ A hazard ratio \> 1 means positive-stain patients have higher hazard (die sooner
 
 ### Testing the Shape Parameter
 
-We can do a Wald test or likelihood ratio test to check if the shape parameter $\alpha$ is significantly different from 1, which would indicate that the Weibull model provides a better fit than the exponential model.
+We can do a Wald test or likelihood ratio test to check if the shape parameter $\alpha$ is significantly different from 1, or equivalently, $\log(\alpha)$ is different from $0$, which would indicate that the Weibull model provides a better fit than the exponential model.
 
 #### Wald Test
 
@@ -447,7 +463,6 @@ We also check this with a likelihood ratio test comparing the Weibull model to t
 wbl_loglik <- logLik(cancer_wbl)
 wbl_loglik
 lr_stat <- 2 * (wbl_loglik - exp_loglik[2])
-
 pchisq(
     lr_stat,
     df = 1,
@@ -455,7 +470,7 @@ pchisq(
 )
 ```
 
-Again, we don't reject the null hypothesis that $\alpha = 1$.
+Again, we don't reject the null hypothesis that $\alpha = 1$, as the $p$-value is so large.
 
 ## Package Citations and Session Information
 
