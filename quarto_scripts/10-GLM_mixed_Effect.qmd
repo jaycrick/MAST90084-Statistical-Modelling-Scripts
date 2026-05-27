@@ -33,7 +33,7 @@ The Ohio respiratory dataset contains repeated respiratory status measurements (
 We'll fit GLMM models to account for within-child correlation using random intercepts.
 Our goal is to reproduce some of Table 7.2 from @fahrmeir_multivariate_2001.
 
-Load required packages and do the standard preparation of the Ohio respiratory dataset (i.e. making `age` and `smoke` to `factor` in R and matching the effect coding scheme used by the book):
+Load required packages and do the standard preparation of the Ohio respiratory dataset (i.e. changing `age` and `smoke` to `factor` in R and matching the effect coding scheme used by the book):
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-1
