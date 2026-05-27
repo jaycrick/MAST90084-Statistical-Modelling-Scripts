@@ -33,7 +33,7 @@ The Ohio respiratory dataset contains repeated respiratory status measurements (
 We'll fit GLMM models to account for within-child correlation using random intercepts.
 Our goal is to reproduce some of Table 7.2 from @fahrmeir_multivariate_2001.
 
-Load required packages and do the standard preparation of the Ohio respiratory dataset:
+Load required packages and do the standard preparation of the Ohio respiratory dataset (i.e. making `age` and `smoke` to `factor` in R and matching the effect coding scheme used by the book):
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-1
@@ -119,7 +119,6 @@ summary(glmer_fit)
 The output is very similar to that in the linear mixed model fit, with fixed effects estimates, as well as a correlation matrix for the fixed effects, and an estimate of the random effect variance.
 
 The coefficient estimates are in the right ballpark, but ultimately don't match very closely with those in the book.
-Instead we follow the book's approach and try using adaptive Gauss-Hermite quadrature (AGHQ) to estimate the integration.
 
 ::: callout-caution
 ## Standard Errors in Table 7.2
@@ -151,7 +150,7 @@ glmer_fit_n_agq_10 <- glmer(
 summary(glmer_fit_n_agq_10)
 ```
 
-Comparing to Table 7.2, we are significantly closer to the book's reported estimates.
+Comparing to `nAGQ = 1`, we are significantly closer to the reported estimates in Table 7.2 of the book.
 
 ### Random Effects Estimates
 
