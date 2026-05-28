@@ -841,21 +841,21 @@ Number of Groups: 537 </code></pre>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">temp =</span> <span class="fu">factor</span>(temp, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"warm"</span>, <span class="st">"cold"</span>)),</span>
 <span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">contact =</span> <span class="fu">factor</span>(contact, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"yes"</span>, <span class="st">"no"</span>))</span>
 <span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>contact)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>    no
-yes  0
-no   1</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>temp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>temp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>     cold
 warm    0
 cold    1</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(wine_tbl<span class="sc">$</span>contact)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    no
+yes  0
+no   1</code></pre>
 </div>
 </div>
 <p>(Even though the book says that <code>no</code> is the reference level for <code>contact</code>, the analysis appears to be done with <code>yes</code> as the reference level, as we can more closely reproduce the estimates reported in the book that way.)</p>
