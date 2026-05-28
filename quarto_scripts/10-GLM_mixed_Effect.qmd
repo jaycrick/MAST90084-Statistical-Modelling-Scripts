@@ -199,16 +199,34 @@ As always, we should inspect the data help page
 ?wine
 ```
 
-The covariates are - `response`: a continuous measure of bitterness - `rating`: an ordered factor rating of bitterness (1-5) - `temp`: temperature (cold/warm) - `contact`: contact with skin (yes/no) - `judge`: judge ID
+The variables are
+
+-   `response`: a continuous measure of bitterness
+
+-   `rating`: an ordered factor rating of bitterness (1-5)
+
+-   `temp`: temperature (cold/warm)
+
+-   `contact`: contact with skin (yes/no)
+
+-   `judge`: judge ID
 
 We will regress the ordinal `rating` on the covariates `temp` and `contact`, while including a random intercept for `judge` to account for judge-specific differences in rating tendencies, in order to reproduce some of the results in Table 7.4 of @fahrmeir_multivariate_2001.
 
 ### Data Setup and Contrast Coding
 
-Even though the book says that no contact is the reference level, the analysis appears to be done with contact as the reference level.
+p.319 of @fahrmeir_multivariate_2001 indicates that dummy coding has been used for the two covariates.
+We reset contrasts to dummy coding:
 
 ```{r}
 #| label: 10-glm-mixed-effect-chunk-10
+options(contrasts = c("contr.treatment", "contr.poly"))
+```
+
+Now we change the `wine` dataset into a tibble and set the reference level for the two covariates.
+
+```{r}
+#| label: 10-glm-mixed-effect-chunk-11
 wine_tbl <- as_tibble(wine)
 wine_tbl
 
@@ -221,16 +239,7 @@ contrasts(wine_tbl$contact)
 contrasts(wine_tbl$temp)
 ```
 
-Reset contrasts to dummy coding:
-
-```{r}
-#| label: 10-glm-mixed-effect-chunk-11
-options(contrasts = c("contr.treatment", "contr.poly"))
-
-# Check default contrasts
-contrasts(wine_tbl$contact)
-contrasts(wine_tbl$temp)
-```
+(Even though the book says that `no` is the reference level for `contact`, the analysis appears to be done with `yes` as the reference level, as we can more closely reproduce the estimates reported in the book that way.)
 
 ### Fixed Effects Ordinal Model: `MASS::polr()`
 
@@ -248,7 +257,7 @@ wine_fixed_fit_polr <- polr(
 summary(wine_fixed_fit_polr)
 ```
 
-Our coefficient estimates for the non-threshold coefficients are relatively close to the book's (up to the signs as we expect, explained in [the first ordinal regression script](04-Example3-2BTR.qmd#model-fitting-proportional-odds-models)).
+Our coefficient estimates for the non-threshold (non-intercept) coefficients are relatively close to the book's (up to the signs as we expect, explained in [the first ordinal regression script](04-Example3-2BTR.qmd#model-fitting-proportional-odds-models)).
 
 The book reports thresholds differently to how we do, but we can easily convert our results to the book's formulation (see the equation (7.5.1) on page 320 to see why this is the case).
 Let's check:
@@ -337,7 +346,7 @@ alphas_mixed <- c(thresholds_mixed[1], log(diff(thresholds_mixed)))
 alphas_mixed
 ```
 
-We can extract fitted values and contrast structure from the fitted model.
+We can extract fitted values from the fitted model.
 Note that the fitted values are evaluated at the conditional modes of the random effects distribution (see `?clmm`).
 
 ```{r}
