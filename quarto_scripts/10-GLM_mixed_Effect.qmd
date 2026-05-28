@@ -235,8 +235,8 @@ wine_tbl <- wine_tbl |>
     temp = factor(temp, levels = c("warm", "cold")),
     contact = factor(contact, levels = c("yes", "no"))
   )
-contrasts(wine_tbl$contact)
 contrasts(wine_tbl$temp)
+contrasts(wine_tbl$contact)
 ```
 
 (Even though the book says that `no` is the reference level for `contact`, the analysis appears to be done with `yes` as the reference level, as we can more closely reproduce the estimates reported in the book that way.)
